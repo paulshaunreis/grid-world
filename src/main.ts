@@ -16,15 +16,22 @@ let identity = loadOrCreateIdentity();
 const persistence = new Persistence();
 const cloudPersistence = supabaseConfigured ? new SupabasePersistence(SUPABASE_URL!, SUPABASE_PUBLISHABLE_KEY!) : null;
 
+type HudTheme = 'cyan' | 'violet' | 'magenta' | 'emerald' | 'amber' | 'white';
+const HUD_THEME_KEY = 'grid-world:hud-theme';
+const hudTheme = (localStorage.getItem(HUD_THEME_KEY) as HudTheme | null) ?? 'cyan';
+document.documentElement.dataset.hudTheme = hudTheme;
+
 const hud = document.createElement('div');
 hud.className = 'hud';
 hud.innerHTML = `
+  <div class="hud-frame hud-frame-top"></div>
+  <div class="hud-frame hud-frame-bottom"></div>
   <div class="crosshair"></div>
   <button class="identity-button" id="identity-button" type="button">✦ ${identity.displayName}</button>
   <div class="identity-panel" id="identity-panel">
     <div class="identity-card">
       <div class="identity-title">Your Traveler</div>
-      <div class="identity-subtitle">Choose the name other players see.</div>
+      <div class="identity-subtitle">Choose the identity and interface style other players see.</div>
       <input id="identity-name" maxlength="20" autocomplete="off" placeholder="Display name" />
       <div class="avatar-label">Avatar style</div>
       <div class="avatar-options" id="avatar-options">
@@ -33,6 +40,16 @@ hud.innerHTML = `
         <button type="button" data-avatar="forest">Forest</button>
         <button type="button" data-avatar="violet">Violet</button>
       </div>
+      <div class="avatar-label">HUD color</div>
+      <div class="hud-options" id="hud-options">
+        <button type="button" data-hud="cyan">Cyan</button>
+        <button type="button" data-hud="violet">Violet</button>
+        <button type="button" data-hud="magenta">Magenta</button>
+        <button type="button" data-hud="emerald">Emerald</button>
+        <button type="button" data-hud="amber">Amber</button>
+        <button type="button" data-hud="white">White</button>
+      </div>
+      <div class="hud-opacity">HUD transparency · 20%</div>
       <div class="identity-actions">
         <button id="identity-cancel" type="button">Cancel</button>
         <button id="identity-save" type="button">Save</button>
@@ -141,11 +158,15 @@ const identityName = document.querySelector<HTMLInputElement>('#identity-name')!
 const identitySave = document.querySelector<HTMLButtonElement>('#identity-save')!;
 const identityCancel = document.querySelector<HTMLButtonElement>('#identity-cancel')!;
 const avatarOptions = document.querySelector<HTMLDivElement>('#avatar-options')!;
+const hudOptions = document.querySelector<HTMLDivElement>('#hud-options')!;
 
 function openIdentityPanel() {
   identityName.value = identity.displayName;
   avatarOptions.querySelectorAll<HTMLButtonElement>('[data-avatar]').forEach(button => {
     button.classList.toggle('selected', button.dataset.avatar === identity.avatarStyle);
+  });
+  hudOptions.querySelectorAll<HTMLButtonElement>('[data-hud]').forEach(button => {
+    button.classList.toggle('selected', button.dataset.hud === document.documentElement.dataset.hudTheme);
   });
   identityPanel.classList.add('open');
   identityName.focus();
@@ -155,6 +176,17 @@ function openIdentityPanel() {
 function closeIdentityPanel() {
   identityPanel.classList.remove('open');
 }
+
+hudOptions.addEventListener('click', event => {
+  const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-hud]');
+  if (!button) return;
+  const theme = button.dataset.hud as HudTheme;
+  document.documentElement.dataset.hudTheme = theme;
+  localStorage.setItem(HUD_THEME_KEY, theme);
+  hudOptions.querySelectorAll<HTMLButtonElement>('[data-hud]').forEach(option => {
+    option.classList.toggle('selected', option === button);
+  });
+});
 
 avatarOptions.addEventListener('click', event => {
   const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-avatar]');
