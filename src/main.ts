@@ -92,7 +92,7 @@ const cloudReady = cloudPersistence
       });
 
       try {
-        await presence.connect();
+        await presence.connect(player.getTransform());
       } catch (error) {
         console.warn('Realtime presence unavailable; continuing in local mode.', error);
         presence = null;
