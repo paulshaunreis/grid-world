@@ -15,4 +15,5 @@ export interface PresenceCallbacks {
   onJoin?: (player: RemotePlayerState) => void;
   onUpdate?: (player: RemotePlayerState) => void;
   onLeave?: (playerId: string) => void;
+  onStatus?: (status: 'CONNECTING' | 'CONNECTED' | 'ERROR' | 'TIMED_OUT', error?: unknown) => void;
 }
