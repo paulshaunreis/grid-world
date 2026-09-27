@@ -20,10 +20,12 @@ export class SupabasePresence {
 
   constructor(
     private readonly client: SupabaseClient,
-    private readonly identity: PlayerIdentity,
+    private identity: PlayerIdentity,
     private readonly callbacks: PresenceCallbacks,
     private readonly regionId = 'first-light',
   ) {}
+
+  setIdentity(identity: PlayerIdentity) { this.identity = identity; }
 
   async connect() {
     this.channel = this.client.channel(`region:${this.regionId}`, {
