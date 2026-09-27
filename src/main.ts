@@ -112,7 +112,7 @@ function savePlayer() {
     updatedAt: new Date().toISOString(),
   };
   persistence.savePlayerState(state);
-  if (cloudPersistence && cloudIdentity.id !== identity.id) {
+  if (cloudPersistence) {
     cloudPersistence.save(cloudIdentity, state).catch(console.error);
   }
   presence?.update(transform).catch(console.error);
@@ -148,10 +148,11 @@ function animate(now: number) {
 
   player.update(dt);
   for (const remote of remotePlayers.values()) remote.update(dt);
-  if (saveTimer >= 2) {
-    savePlayer();
+  if (saveTimer >= 0.25) {
+    presence?.update(player.getTransform()).catch(console.error);
     saveTimer = 0;
   }
+  if (Math.floor(now / 1000) % 2 === 0 && saveTimer < 0.05) savePlayer();
 
   const distance = firstPerson ? 0.05 : 7;
   const height = firstPerson ? 2.0 : 3.2;
