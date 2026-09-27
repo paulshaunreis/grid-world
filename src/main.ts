@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { Input } from './core/Input';
 import { InteractionSystem } from './core/InteractionSystem';
 import { Persistence } from './core/Persistence';
+import { SupabasePersistence } from './persistence/SupabasePersistence';
+import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, supabaseConfigured } from './persistence/config';
 import { loadOrCreateIdentity } from './core/PlayerIdentity';
 import { PlayerController } from './core/PlayerController';
 import { World } from './world/World';
@@ -10,6 +12,7 @@ import './style.css';
 const app = document.querySelector<HTMLDivElement>('#app')!;
 const identity = loadOrCreateIdentity();
 const persistence = new Persistence();
+const cloudPersistence = supabaseConfigured ? new SupabasePersistence(SUPABASE_URL!, SUPABASE_PUBLISHABLE_KEY!) : null;
 
 const hud = document.createElement('div');
 hud.className = 'hud';
@@ -26,8 +29,16 @@ const player = new PlayerController(input);
 world.scene.add(player.avatar);
 
 const savedState = persistence.loadPlayerState();
-if (savedState) {
-  player.restoreTransform(savedState);
+if (savedState) player.restoreTransform(savedState);
+
+if (cloudPersistence) {
+  cloudPersistence.signInAnonymously().then(({ data, error }) => {
+    if (error || !data.user) return;
+    const cloudIdentity = { ...identity, id: data.user.id };
+    cloudPersistence.load(cloudIdentity).then(cloudState => {
+      if (cloudState) player.restoreTransform(cloudState);
+    }).catch(console.error);
+  }).catch(console.error);
 }
 
 const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.1, 500);
@@ -49,11 +60,18 @@ let saveTimer = 0;
 
 function savePlayer() {
   const transform = player.getTransform();
-  persistence.savePlayerState({
+  const state = {
     ...transform,
     regionId: 'first-light',
     updatedAt: new Date().toISOString(),
-  });
+  };
+  persistence.savePlayerState(state);
+  if (cloudPersistence) {
+    cloudPersistence.signInAnonymously().then(({ data, error }) => {
+      if (error || !data.user) return;
+      cloudPersistence.save({ ...identity, id: data.user.id }, state).catch(console.error);
+    }).catch(console.error);
+  }
 }
 
 renderer.domElement.addEventListener('click', () => renderer.domElement.requestPointerLock());
