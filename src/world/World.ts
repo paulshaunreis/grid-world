@@ -28,6 +28,7 @@ export class World {
     this.scene.add(grid);
 
     this.createLandmark();
+    this.createBeacon();
     this.createTrees();
   }
 
@@ -41,6 +42,26 @@ export class World {
     landmark.userData.interactable = true;
     landmark.userData.interactionName = 'Central Landmark';
     this.scene.add(landmark);
+  }
+
+  private createBeacon() {
+    const beacon = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.65, 0.9, 2.4, 16),
+      new THREE.MeshStandardMaterial({
+        color: 0x68d9ff,
+        emissive: 0x16465a,
+        emissiveIntensity: 1.5
+      })
+    );
+    beacon.position.set(0, 1.2, -7);
+    beacon.castShadow = true;
+    beacon.userData.interactable = true;
+    beacon.userData.interactionName = 'World Beacon';
+    this.scene.add(beacon);
+
+    const glow = new THREE.PointLight(0x68d9ff, 8, 12);
+    glow.position.set(0, 2.2, -7);
+    this.scene.add(glow);
   }
 
   private createTrees() {
