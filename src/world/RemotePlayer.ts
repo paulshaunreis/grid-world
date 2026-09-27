@@ -6,6 +6,8 @@ export class RemotePlayer {
   readonly group = new THREE.Group();
   private readonly target = new THREE.Vector3();
   private targetYaw = 0;
+  private readonly labelTexture: THREE.CanvasTexture;
+  private readonly labelContext: CanvasRenderingContext2D;
 
   constructor(state: RemotePlayerState) {
     this.id = state.id;
@@ -25,19 +27,11 @@ export class RemotePlayer {
     const labelCanvas = document.createElement('canvas');
     labelCanvas.width = 512;
     labelCanvas.height = 128;
-    const context = labelCanvas.getContext('2d')!;
-    context.clearRect(0, 0, labelCanvas.width, labelCanvas.height);
-    context.fillStyle = 'rgba(7, 17, 31, 0.78)';
-    context.roundRect(8, 24, 496, 76, 18);
-    context.fill();
-    context.font = 'bold 42px system-ui, sans-serif';
-    context.textAlign = 'center';
-    context.textBaseline = 'middle';
-    context.fillStyle = '#eef8ff';
-    context.fillText(state.displayName, 256, 62);
+    this.labelContext = labelCanvas.getContext('2d')!;
+    this.labelTexture = new THREE.CanvasTexture(labelCanvas);
 
     const label = new THREE.Sprite(
-      new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(labelCanvas), transparent: true, depthWrite: false })
+      new THREE.SpriteMaterial({ map: this.labelTexture, transparent: true, depthWrite: false })
     );
     label.scale.set(3.2, 0.8, 1);
     label.position.set(0, 2.45, 0);
@@ -46,15 +40,29 @@ export class RemotePlayer {
     this.setState(state);
   }
 
+  private drawName(displayName: string) {
+    const context = this.labelContext;
+    context.clearRect(0, 0, 512, 128);
+    context.fillStyle = 'rgba(7, 17, 31, 0.78)';
+    context.roundRect(8, 24, 496, 76, 18);
+    context.fill();
+    context.font = 'bold 42px system-ui, sans-serif';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillStyle = '#eef8ff';
+    context.fillText(displayName, 256, 62);
+    this.labelTexture.needsUpdate = true;
+  }
+
   setState(state: RemotePlayerState) {
     this.target.set(state.x, state.y, state.z);
     this.targetYaw = state.yaw;
+    this.drawName(state.displayName);
   }
 
   update(delta: number) {
     const blend = 1 - Math.exp(-12 * delta);
     this.group.position.lerp(this.target, blend);
-    const angle = THREE.MathUtils.lerp(this.group.rotation.y, this.targetYaw, blend);
-    this.group.rotation.y = angle;
+    this.group.rotation.y = THREE.MathUtils.lerp(this.group.rotation.y, this.targetYaw, blend);
   }
 }
