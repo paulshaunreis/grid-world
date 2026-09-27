@@ -58,6 +58,13 @@ let cloudIdentity = identity;
 let presence: SupabasePresence | null = null;
 const remotePlayers = new Map<string, RemotePlayer>();
 
+if (presence) {
+  presence.connect(player.getTransform()).catch(error => {
+    console.warn('Realtime presence unavailable; continuing in local mode.', error);
+    presence = null;
+  });
+}
+
 const cloudReady = cloudPersistence
   ? (async () => {
       let authenticated = false;
@@ -66,8 +73,6 @@ const cloudReady = cloudPersistence
         if (!error && data.user) {
           cloudIdentity = { ...identity, id: data.user.id };
           authenticated = true;
-          const cloudState = await cloudPersistence.load(cloudIdentity);
-          if (cloudState) player.restoreTransform(cloudState);
         } else {
           console.warn('Anonymous auth unavailable; presence will use the local visitor identity.');
         }
@@ -75,27 +80,14 @@ const cloudReady = cloudPersistence
         console.warn('Cloud persistence unavailable; continuing with realtime presence.', error);
       }
 
-      presence = new SupabasePresence(cloudPersistence.getClient(), cloudIdentity, {
-        onJoin: state => {
-          if (remotePlayers.has(state.id)) return;
-          const remote = new RemotePlayer(state);
-          remotePlayers.set(state.id, remote);
-          world.scene.add(remote.group);
-        },
-        onUpdate: state => remotePlayers.get(state.id)?.setState(state),
-        onLeave: id => {
-          const remote = remotePlayers.get(id);
-          if (!remote) return;
-          world.scene.remove(remote.group);
-          remotePlayers.delete(id);
-        },
-      });
-
-      try {
-        await presence.connect(player.getTransform());
-      } catch (error) {
-        console.warn('Realtime presence unavailable; continuing in local mode.', error);
-        presence = null;
+      if (authenticated) {
+        presence?.setIdentity(cloudIdentity);
+        try {
+          const cloudState = await cloudPersistence.load(cloudIdentity);
+          if (cloudState) player.restoreTransform(cloudState);
+        } catch (error) {
+          console.warn('Cloud state unavailable; continuing with realtime presence.', error);
+        }
       }
       return authenticated;
     })()
