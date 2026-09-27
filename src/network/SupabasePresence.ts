@@ -30,7 +30,7 @@ export class SupabasePresence {
   async connect(initialTransform: PlayerTransform) {
     this.callbacks.onStatus?.('CONNECTING');
     this.channel = this.client.channel(`region:${this.regionId}`, {
-      config: { presence: { key: this.identity.id } },
+      config: { presence: { key: this.identity.id }, broadcast: { self: false, ack: true } },
     });
 
     this.channel.on('presence', { event: 'sync' }, () => {
@@ -95,6 +95,36 @@ export class SupabasePresence {
         }
       });
     });
+  }
+
+  onChat(callback: (message: { senderId: string; displayName: string; message: string; sentAt: number }) => void) {
+    this.channel?.on('broadcast', { event: 'chat' }, ({ payload }) => {
+      if (!payload || payload.senderId === this.identity.id) return;
+      if (typeof payload.displayName !== 'string' || typeof payload.message !== 'string') return;
+      callback({
+        senderId: String(payload.senderId),
+        displayName: payload.displayName.slice(0, 20),
+        message: payload.message.slice(0, 240),
+        sentAt: typeof payload.sentAt === 'number' ? payload.sentAt : Date.now(),
+      });
+    });
+  }
+
+  async sendChat(message: string) {
+    if (!this.channel) return false;
+    const text = message.trim().slice(0, 240);
+    if (!text) return false;
+    const result = await this.channel.send({
+      type: 'broadcast',
+      event: 'chat',
+      payload: {
+        senderId: this.identity.id,
+        displayName: this.identity.displayName,
+        message: text,
+        sentAt: Date.now(),
+      },
+    });
+    return result === 'ok';
   }
 
   async update(transform: PlayerTransform) {
