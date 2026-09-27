@@ -102,6 +102,9 @@ chatCompose.addEventListener('submit', event => {
   const message = chatInput.value.trim();
   if (!message) return;
   addChatMessage(identity.displayName, message, 'player');
+  presence?.sendChat(message).then(ok => {
+    if (!ok && presence) addChatMessage('GRID', 'Chat delivery unavailable. Message remains local.', 'system');
+  }).catch(() => addChatMessage('GRID', 'Chat delivery failed. Message remains local.', 'system'));
   chatInput.value = '';
   chatInput.focus();
 });
@@ -147,6 +150,7 @@ if (cloudPersistence) {
     },
   });
 
+  presence.onChat(chat => addChatMessage(chat.displayName, chat.message, 'player'));
   presence.connect(player.getTransform()).catch(error => {
     console.warn('Realtime presence unavailable; continuing in local mode.', error);
     status.textContent = 'FIRST LIGHT · MULTIPLAYER · Unavailable';
