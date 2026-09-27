@@ -10,6 +10,7 @@ export interface TeamAvatarDefinition {
   spawn: { x: number; y?: number; z: number };
   greeting: string;
   interaction: string;
+  topics: string[];
   badge: 'TEAM';
 }
 
@@ -102,7 +103,10 @@ export class TeamAvatar {
     this.glow.intensity = 2.2 + Math.sin(this.phase * 2) * 0.45;
   }
 
-  interact() {
-    return this.definition.interaction;
+  interact(topic?: string) {
+    if (!topic) return this.definition.interaction;
+    const normalized = topic.toLowerCase();
+    const match = this.definition.topics.find(candidate => normalized.includes(candidate.toLowerCase()));
+    return match ? `${this.definition.displayName}: ${this.definition.interaction}` : `${this.definition.displayName}: Ask me about ${this.definition.topics.join(', ')}.`;
   }
 }
