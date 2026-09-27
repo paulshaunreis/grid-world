@@ -144,6 +144,7 @@ avatarOptions.addEventListener('click', event => {
   player.setAvatarStyle(identity.avatarStyle);
   localStorage.setItem('grid-world:identity', JSON.stringify(identity));
   cloudIdentity = { ...cloudIdentity, avatarStyle: identity.avatarStyle };
+  presence?.setIdentity(cloudIdentity);
   avatarOptions.querySelectorAll<HTMLButtonElement>('[data-avatar]').forEach(option => {
     option.classList.toggle('selected', option === button);
   });
@@ -162,6 +163,7 @@ function saveIdentityName() {
   identity = { ...identity, displayName };
   localStorage.setItem('grid-world:identity', JSON.stringify(identity));
   cloudIdentity = { ...cloudIdentity, displayName };
+  presence?.setIdentity(cloudIdentity);
   identityButton.textContent = '✦ ' + displayName;
   status.textContent = 'FIRST LIGHT · ' + displayName + ' · WASD move · Shift sprint · Space jump · E interact · V camera';
   presence?.update(player.getTransform()).catch(console.error);
