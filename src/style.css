@@ -52,3 +52,55 @@ canvas { display: block; width: 100%; height: 100%; }
   background: rgba(7,17,31,.6);
   font-size: 12px;
 }
+
+
+.identity-button {
+  pointer-events: auto;
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 999px;
+  padding: 8px 13px;
+  color: #eef8ff;
+  background: rgba(7,17,31,.72);
+  font: 600 13px system-ui, sans-serif;
+  cursor: pointer;
+}
+.identity-panel {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(2,7,14,.55);
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .15s ease;
+  pointer-events: none;
+}
+.identity-panel.open { opacity: 1; visibility: visible; pointer-events: auto; }
+.identity-card {
+  width: min(360px, calc(100vw - 40px));
+  padding: 22px;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 16px;
+  background: rgba(7,17,31,.94);
+  box-shadow: 0 18px 60px rgba(0,0,0,.35);
+}
+.identity-title { font-size: 20px; font-weight: 700; }
+.identity-subtitle { margin: 6px 0 16px; opacity: .72; font-size: 13px; }
+#identity-name {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 9px;
+  outline: none;
+  color: #eef8ff;
+  background: rgba(255,255,255,.06);
+  font: 15px system-ui, sans-serif;
+}
+.identity-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+.identity-actions button { border: 0; border-radius: 9px; padding: 8px 13px; cursor: pointer; font: 600 13px system-ui, sans-serif; }
+.identity-hint { margin-top: 10px; opacity: .48; font-size: 11px; }
