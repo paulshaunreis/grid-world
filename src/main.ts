@@ -152,7 +152,7 @@ avatarOptions.addEventListener('click', event => {
 });
 
 function saveIdentityName() {
-  const displayName = identityName.value.trim().replace(/\\s+/g, ' ');
+  const displayName = identityName.value.trim().replace(/\s+/g, ' ');
   if (!/^[A-Za-z0-9 _-]{2,20}$/.test(displayName)) {
     identityName.setCustomValidity('Use 2–20 letters, numbers, spaces, - or _.');
     identityName.reportValidity();
