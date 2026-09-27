@@ -166,6 +166,11 @@ renderer.shadowMap.enabled = true;
 app.appendChild(renderer.domElement);
 
 const interaction = new InteractionSystem(camera, world.scene);
+const prompt = document.querySelector<HTMLDivElement>('#interaction-prompt')!;
+const creatorButton = document.querySelector<HTMLButtonElement>('#creator-button')!;
+const creatorPanel = document.querySelector<HTMLDivElement>('#creator-panel')!;
+const creatorCode = document.querySelector<HTMLPreElement>('#creator-code')!;
+const creatorCapabilities = document.querySelector<HTMLDivElement>('#creator-capabilities')!;
 const neonDoorSource = `object "Neon Door"
 
 when player interacts:
@@ -185,11 +190,6 @@ const neonDoorRuntime = parsedNeonDoor.script
       },
     })
   : null;
-const prompt = document.querySelector<HTMLDivElement>('#interaction-prompt')!;
-const creatorButton = document.querySelector<HTMLButtonElement>('#creator-button')!;
-const creatorPanel = document.querySelector<HTMLDivElement>('#creator-panel')!;
-const creatorCode = document.querySelector<HTMLPreElement>('#creator-code')!;
-const creatorCapabilities = document.querySelector<HTMLDivElement>('#creator-capabilities')!;
 const identityButton = document.querySelector<HTMLButtonElement>('#identity-button')!;
 const identityPanel = document.querySelector<HTMLDivElement>('#identity-panel')!;
 const identityName = document.querySelector<HTMLInputElement>('#identity-name')!;
