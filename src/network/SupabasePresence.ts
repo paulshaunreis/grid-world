@@ -76,8 +76,16 @@ export class SupabasePresence {
 
     return new Promise<void>((resolve, reject) => {
       this.channel!.subscribe(async (status, error) => {
-        if (status === 'SUBSCRIBED') resolve();
-        else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') reject(error ?? new Error(status));
+        if (status === 'SUBSCRIBED') {
+          try {
+            await this.update({ x: 0, y: 0, z: 8, yaw: 0 });
+            resolve();
+          } catch (trackError) {
+            reject(trackError);
+          }
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          reject(error ?? new Error(status));
+        }
       });
     });
   }
