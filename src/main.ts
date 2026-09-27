@@ -12,7 +12,7 @@ import { RemotePlayer } from './world/RemotePlayer';
 import './style.css';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
-const identity = loadOrCreateIdentity();
+let identity = loadOrCreateIdentity();
 const persistence = new Persistence();
 const cloudPersistence = supabaseConfigured ? new SupabasePersistence(SUPABASE_URL!, SUPABASE_PUBLISHABLE_KEY!) : null;
 
@@ -20,6 +20,19 @@ const hud = document.createElement('div');
 hud.className = 'hud';
 hud.innerHTML = `
   <div class="crosshair"></div>
+  <button class="identity-button" id="identity-button" type="button">✦ ${identity.displayName}</button>
+  <div class="identity-panel" id="identity-panel">
+    <div class="identity-card">
+      <div class="identity-title">Your Traveler</div>
+      <div class="identity-subtitle">Choose the name other players see.</div>
+      <input id="identity-name" maxlength="20" autocomplete="off" placeholder="Display name" />
+      <div class="identity-actions">
+        <button id="identity-cancel" type="button">Cancel</button>
+        <button id="identity-save" type="button">Save</button>
+      </div>
+      <div class="identity-hint">2–20 characters · letters, numbers, spaces, - and _</div>
+    </div>
+  </div>
   <div class="interaction" id="interaction-prompt">E · Interact</div>
   <div class="status" id="status">FIRST LIGHT · Connecting…</div>
 `;
@@ -95,6 +108,48 @@ app.appendChild(renderer.domElement);
 
 const interaction = new InteractionSystem(camera, world.scene);
 const prompt = document.querySelector<HTMLDivElement>('#interaction-prompt')!;
+const identityButton = document.querySelector<HTMLButtonElement>('#identity-button')!;
+const identityPanel = document.querySelector<HTMLDivElement>('#identity-panel')!;
+const identityName = document.querySelector<HTMLInputElement>('#identity-name')!;
+const identitySave = document.querySelector<HTMLButtonElement>('#identity-save')!;
+const identityCancel = document.querySelector<HTMLButtonElement>('#identity-cancel')!;
+
+function openIdentityPanel() {
+  identityName.value = identity.displayName;
+  identityPanel.classList.add('open');
+  identityName.focus();
+  identityName.select();
+}
+
+function closeIdentityPanel() {
+  identityPanel.classList.remove('open');
+}
+
+function saveIdentityName() {
+  const displayName = identityName.value.trim().replace(/\\s+/g, ' ');
+  if (!/^[A-Za-z0-9 _-]{2,20}$/.test(displayName)) {
+    identityName.setCustomValidity('Use 2–20 letters, numbers, spaces, - or _.');
+    identityName.reportValidity();
+    return;
+  }
+
+  identityName.setCustomValidity('');
+  identity = { ...identity, displayName };
+  localStorage.setItem('grid-world:identity', JSON.stringify(identity));
+  cloudIdentity = { ...cloudIdentity, displayName };
+  identityButton.textContent = '✦ ' + displayName;
+  status.textContent = 'FIRST LIGHT · ' + displayName + ' · WASD move · Shift sprint · Space jump · E interact · V camera';
+  presence?.update(player.getTransform()).catch(console.error);
+  closeIdentityPanel();
+}
+
+identityButton.addEventListener('click', openIdentityPanel);
+identityCancel.addEventListener('click', closeIdentityPanel);
+identitySave.addEventListener('click', saveIdentityName);
+identityName.addEventListener('keydown', event => {
+  if (event.key === 'Enter') saveIdentityName();
+  if (event.key === 'Escape') closeIdentityPanel();
+});
 const status = document.querySelector<HTMLDivElement>('#status')!;
 status.textContent = `FIRST LIGHT · ${identity.displayName} · WASD move · Shift sprint · Space jump · E interact · V camera`;
 
