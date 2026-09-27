@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "three": "^0.180.0",
-    "@supabase/supabase-js": "^2.57.4"
+    "@supabase/supabase-js": "2.57.4"
   },
   "devDependencies": {
     "@types/three": "^0.180.0",
