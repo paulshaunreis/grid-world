@@ -62,16 +62,16 @@ export class SupabasePresence {
     });
 
     this.channel.on('presence', { event: 'join' }, ({ newPresences }) => {
-      for (const entry of newPresences as PresencePayload[]) {
+      for (const entry of newPresences as unknown as PresencePayload[]) {
         if (entry.id === this.identity.id) continue;
-        const player = { ...entry, id: entry.id };
+        const player = { ...entry };
         this.remote.set(player.id, player);
         this.callbacks.onJoin?.(player);
       }
     });
 
     this.channel.on('presence', { event: 'leave' }, ({ leftPresences }) => {
-      for (const entry of leftPresences as PresencePayload[]) {
+      for (const entry of leftPresences as unknown as PresencePayload[]) {
         const id = entry.id;
         if (this.remote.delete(id)) this.callbacks.onLeave?.(id);
       }
