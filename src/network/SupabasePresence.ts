@@ -6,6 +6,7 @@ import type { PresenceCallbacks, RemotePlayerState } from './Presence';
 interface PresencePayload {
   id: string;
   displayName: string;
+  avatarStyle: 'azure' | 'sunset' | 'forest' | 'violet';
   x: number;
   y: number;
   z: number;
@@ -36,18 +37,13 @@ export class SupabasePresence {
       for (const [key, entries] of Object.entries(state)) {
         const entry = entries[0];
         if (!entry || key === this.identity.id) continue;
-
-        const player = {
+        const player: RemotePlayerState = {
           id: key,
           displayName: entry.displayName,
-          x: entry.x,
-          y: entry.y,
-          z: entry.z,
-          yaw: entry.yaw,
-          updatedAt: entry.updatedAt,
+          avatarStyle: entry.avatarStyle ?? 'azure',
+          x: entry.x, y: entry.y, z: entry.z, yaw: entry.yaw, updatedAt: entry.updatedAt,
         };
         seen.add(key);
-
         if (this.remote.has(key)) this.callbacks.onUpdate?.(player);
         else this.callbacks.onJoin?.(player);
         this.remote.set(key, player);
@@ -64,7 +60,7 @@ export class SupabasePresence {
     this.channel.on('presence', { event: 'join' }, ({ newPresences }) => {
       for (const entry of newPresences as unknown as PresencePayload[]) {
         if (entry.id === this.identity.id) continue;
-        const player = { ...entry };
+        const player: RemotePlayerState = { ...entry, avatarStyle: entry.avatarStyle ?? 'azure' };
         this.remote.set(player.id, player);
         this.callbacks.onJoin?.(player);
       }
@@ -72,8 +68,7 @@ export class SupabasePresence {
 
     this.channel.on('presence', { event: 'leave' }, ({ leftPresences }) => {
       for (const entry of leftPresences as unknown as PresencePayload[]) {
-        const id = entry.id;
-        if (this.remote.delete(id)) this.callbacks.onLeave?.(id);
+        if (this.remote.delete(entry.id)) this.callbacks.onLeave?.(entry.id);
       }
     });
 
@@ -87,10 +82,10 @@ export class SupabasePresence {
 
   async update(transform: PlayerTransform) {
     if (!this.channel) return;
-
     await this.channel.track({
       id: this.identity.id,
       displayName: this.identity.displayName,
+      avatarStyle: this.identity.avatarStyle,
       ...transform,
       updatedAt: Date.now(),
     } satisfies PresencePayload);
