@@ -140,7 +140,7 @@ const cloudReady = cloudPersistence
 let multiplayerLabel = 'MULTIPLAYER · Connecting…';
 
 function setControlStatus() {
-  setControlStatus();
+  status.textContent = `FIRST LIGHT · ${identity.displayName} · WASD move · Shift sprint · Space jump · E interact · V camera`;
 }
 
 function setMultiplayerStatus(label: string) {
