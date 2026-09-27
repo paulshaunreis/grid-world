@@ -1,3 +1,54 @@
-html, body, #app { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #07111f; }
+html, body, #app {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #07111f;
+}
 body { font-family: system-ui, sans-serif; }
 canvas { display: block; width: 100%; height: 100%; }
+
+.hud {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  color: #eef8ff;
+  text-shadow: 0 1px 3px rgba(0,0,0,.8);
+}
+
+.crosshair {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  margin: -5px;
+  border: 1px solid rgba(255,255,255,.85);
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.interaction {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + 18px);
+  transform: translateX(-50%);
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(7,17,31,.72);
+  font-size: 13px;
+  opacity: 0;
+  transition: opacity .12s ease;
+}
+
+.interaction.visible { opacity: 1; }
+
+.status {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(7,17,31,.6);
+  font-size: 12px;
+}
