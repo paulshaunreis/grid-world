@@ -1,13 +1,19 @@
 import * as THREE from 'three';
+import { FIRST_LIGHT_REGION, WorldRegionRegistry } from './WorldRegion';
+import { WorldAtmosphere } from './WorldAtmosphere';
 
 export class World {
   readonly scene = new THREE.Scene();
+  readonly regions = new WorldRegionRegistry();
+  readonly atmosphere = new WorldAtmosphere();
   readonly neonDoor = new THREE.Mesh(
     new THREE.BoxGeometry(3.2, 4.2, 0.5),
     new THREE.MeshStandardMaterial({ color: 0x17243b, emissive: 0x1a6a9a, emissiveIntensity: 0.9, metalness: 0.7, roughness: 0.3 })
   );
 
   constructor() {
+    this.regions.register(FIRST_LIGHT_REGION);
+
     this.scene.background = new THREE.Color(0x07111f);
     this.scene.fog = new THREE.Fog(0x07111f, 45, 180);
 
@@ -19,22 +25,25 @@ export class World {
     sun.castShadow = true;
     this.scene.add(sun);
 
+    this.createRegionGround(FIRST_LIGHT_REGION.size);
+    this.createLandmark();
+    this.createBeacon();
+    this.createNeonDoor();
+    this.createTrees();
+  }
+
+  private createRegionGround(size: number) {
     const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(220, 220, 40, 40),
+      new THREE.PlaneGeometry(size, size, 40, 40),
       new THREE.MeshStandardMaterial({ color: 0x27382a, roughness: 1 })
     );
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
     this.scene.add(ground);
 
-    const grid = new THREE.GridHelper(220, 44, 0x52705a, 0x304638);
+    const grid = new THREE.GridHelper(size, Math.max(1, Math.floor(size / 5)), 0x52705a, 0x304638);
     grid.position.y = 0.02;
     this.scene.add(grid);
-
-    this.createLandmark();
-    this.createBeacon();
-    this.createNeonDoor();
-    this.createTrees();
   }
 
   private createLandmark() {
@@ -52,11 +61,7 @@ export class World {
   private createBeacon() {
     const beacon = new THREE.Mesh(
       new THREE.CylinderGeometry(0.65, 0.9, 2.4, 16),
-      new THREE.MeshStandardMaterial({
-        color: 0x68d9ff,
-        emissive: 0x16465a,
-        emissiveIntensity: 1.5
-      })
+      new THREE.MeshStandardMaterial({ color: 0x68d9ff, emissive: 0x16465a, emissiveIntensity: 1.5 })
     );
     beacon.position.set(0, 1.2, -7);
     beacon.castShadow = true;
@@ -68,7 +73,6 @@ export class World {
     glow.position.set(0, 2.2, -7);
     this.scene.add(glow);
   }
-
 
   private createNeonDoor() {
     this.neonDoor.position.set(0, 2.1, -14);
