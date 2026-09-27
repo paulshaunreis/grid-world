@@ -1,6 +1,13 @@
 import * as THREE from 'three';
 import { Input } from './Input';
 
+export interface PlayerTransform {
+  x: number;
+  y: number;
+  z: number;
+  yaw: number;
+}
+
 export class PlayerController {
   readonly avatar = new THREE.Group();
   private velocityY = 0;
@@ -55,4 +62,21 @@ export class PlayerController {
 
   rotate(deltaX: number) { this.yaw -= deltaX * 0.0025; }
   get heading() { return this.yaw; }
+
+  getTransform(): PlayerTransform {
+    return {
+      x: this.avatar.position.x,
+      y: this.avatar.position.y,
+      z: this.avatar.position.z,
+      yaw: this.yaw,
+    };
+  }
+
+  restoreTransform(transform: PlayerTransform) {
+    this.avatar.position.set(transform.x, Math.max(0, transform.y), transform.z);
+    this.yaw = transform.yaw;
+    this.avatar.rotation.y = this.yaw;
+    this.velocityY = 0;
+    this.grounded = this.avatar.position.y === 0;
+  }
 }
