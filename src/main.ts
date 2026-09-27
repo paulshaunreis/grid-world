@@ -64,10 +64,47 @@ hud.innerHTML = `
     </div>
   </div>
   <div class="interaction" id="interaction-prompt">E · Interact</div>
+  <section class="chat" id="chat" aria-label="Grid World chat">
+    <div class="chat-header"><span>GRID CHAT</span><span id="chat-status">LOCAL</span></div>
+    <div class="chat-messages" id="chat-messages" aria-live="polite"></div>
+    <form class="chat-compose" id="chat-compose">
+      <input id="chat-input" maxlength="240" autocomplete="off" placeholder="Say something…" aria-label="Chat message" />
+      <button type="submit" aria-label="Send message">SEND</button>
+    </form>
+  </section>
   <div class="status" id="status">FIRST LIGHT · Connecting…</div>
 `;
 app.appendChild(hud);
 const status = document.querySelector<HTMLDivElement>('#status')!;
+const chatMessages = document.querySelector<HTMLDivElement>('#chat-messages')!;
+const chatCompose = document.querySelector<HTMLFormElement>('#chat-compose')!;
+const chatInput = document.querySelector<HTMLInputElement>('#chat-input')!;
+
+function addChatMessage(sender: string, message: string, kind: 'player' | 'system' | 'team' = 'player') {
+  const row = document.createElement('div');
+  row.className = 'chat-message chat-' + kind;
+  const name = document.createElement('span');
+  name.className = 'chat-name';
+  name.textContent = sender;
+  const text = document.createElement('span');
+  text.className = 'chat-text';
+  text.textContent = message;
+  row.append(name, text);
+  chatMessages.appendChild(row);
+  while (chatMessages.children.length > 40) chatMessages.firstElementChild?.remove();
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+addChatMessage('GRID', 'Welcome to First Light. Chat is ready.', 'system');
+
+chatCompose.addEventListener('submit', event => {
+  event.preventDefault();
+  const message = chatInput.value.trim();
+  if (!message) return;
+  addChatMessage(identity.displayName, message, 'player');
+  chatInput.value = '';
+  chatInput.focus();
+});
 
 const world = new World();
 const input = new Input();
@@ -299,6 +336,7 @@ addEventListener('mousemove', event => {
 });
 
 addEventListener('keydown', event => {
+  if (document.activeElement === chatInput || document.activeElement === identityName) return;
   if (event.code === 'KeyV' && !event.repeat) firstPerson = !firstPerson;
 
   if (event.code === 'KeyE' && !event.repeat) {
