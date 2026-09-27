@@ -9,7 +9,7 @@ import { PlayerController } from './core/PlayerController';
 import { World } from './world/World';
 import { SupabasePresence } from './network/SupabasePresence';
 import { RemotePlayer } from './world/RemotePlayer';
-import { GridScriptRuntime } from './scripting/GridScriptRuntime';
+import { GridScriptRegistry } from './scripting/GridScriptRegistry';
 import { parseGridScript } from './scripting/GridScript';
 import './style.css';
 
@@ -179,17 +179,18 @@ when player interacts:
 const parsedNeonDoor = parseGridScript(neonDoorSource);
 creatorCode.textContent = neonDoorSource;
 creatorCapabilities.textContent = parsedNeonDoor.script ? 'CAPABILITIES · ' + [...new Set(parsedNeonDoor.script.handlers.flatMap(handler => handler.actions.map(action => action.kind === 'call' ? 'object_control' : action.kind === 'play_sound' ? 'play_audio' : action.kind === 'give_item' ? 'economy_transaction' : 'ui_feedback')))].join(' · ') : 'SCRIPT ERROR · ' + parsedNeonDoor.diagnostics.map(d => 'L' + d.line + ' ' + d.message).join(' | ');
-const neonDoorRuntime = parsedNeonDoor.script
-  ? new GridScriptRuntime({
-      openDoor: () => {
-        world.neonDoor.position.y = 7;
-        const material = world.neonDoor.material;
-        if (material instanceof THREE.MeshStandardMaterial) material.emissiveIntensity = 2.5;
-        prompt.textContent = 'E · Neon Door opened';
-        window.setTimeout(() => { world.neonDoor.position.y = 2.1; }, 1800);
-      },
-    })
-  : null;
+const scriptedObjects = new GridScriptRegistry();
+if (parsedNeonDoor.script) {
+  scriptedObjects.register('neon-door', world.neonDoor, parsedNeonDoor.script, {
+    openDoor: () => {
+      world.neonDoor.position.y = 7;
+      const material = world.neonDoor.material;
+      if (material instanceof THREE.MeshStandardMaterial) material.emissiveIntensity = 2.5;
+      prompt.textContent = 'E · Neon Door opened';
+      window.setTimeout(() => { world.neonDoor.position.y = 2.1; }, 1800);
+    },
+  });
+}
 const identityButton = document.querySelector<HTMLButtonElement>('#identity-button')!;
 const identityPanel = document.querySelector<HTMLDivElement>('#identity-panel')!;
 const identityName = document.querySelector<HTMLInputElement>('#identity-name')!;
@@ -300,9 +301,7 @@ addEventListener('keydown', event => {
     const result = interaction.interact();
     if (result) {
       prompt.textContent = `E · ${result.name} ✓`;
-      if (result.object === world.neonDoor && neonDoorRuntime && parsedNeonDoor.script) {
-        neonDoorRuntime.dispatch(parsedNeonDoor.script, 'player interacts');
-      }
+      scriptedObjects.dispatch(result.object, 'player interacts');
       result.object.userData.interacted = true;
 
       const material = result.object instanceof THREE.Mesh
