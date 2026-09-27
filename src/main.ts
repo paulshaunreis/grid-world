@@ -38,12 +38,23 @@ let presence: SupabasePresence | null = null;
 const remotePlayers = new Map<string, RemotePlayer>();
 
 const cloudReady = cloudPersistence
-  ? cloudPersistence.signInAnonymously().then(async ({ data, error }) => {
-      if (error || !data.user) throw error ?? new Error('Anonymous authentication failed');
-      cloudIdentity = { ...identity, id: data.user.id };
+  ? (async () => {
+      let authenticated = false;
 
-      const cloudState = await cloudPersistence.load(cloudIdentity);
-      if (cloudState) player.restoreTransform(cloudState);
+      try {
+        const { data, error } = await cloudPersistence.signInAnonymously();
+        if (!error && data.user) {
+          cloudIdentity = { ...identity, id: data.user.id };
+          authenticated = true;
+
+          const cloudState = await cloudPersistence.load(cloudIdentity);
+          if (cloudState) player.restoreTransform(cloudState);
+        } else {
+          console.warn('Anonymous auth unavailable; presence will use the local visitor identity.');
+        }
+      } catch (error) {
+        console.warn('Cloud persistence unavailable; continuing with realtime presence.', error);
+      }
 
       presence = new SupabasePresence(cloudPersistence.getClient(), cloudIdentity, {
         onJoin: state => {
@@ -61,12 +72,16 @@ const cloudReady = cloudPersistence
         },
       });
 
-      await presence.connect();
-    }).catch(error => {
-      console.warn('Online presence unavailable; continuing in local mode.', error);
-      presence = null;
-    })
-  : Promise.resolve();
+      try {
+        await presence.connect();
+      } catch (error) {
+        console.warn('Realtime presence unavailable; continuing in local mode.', error);
+        presence = null;
+      }
+
+      return authenticated;
+    })()
+  : Promise.resolve(false);
 
 cloudReady.finally(() => {
   status.textContent = `FIRST LIGHT · ${identity.displayName} · WASD move · Shift sprint · Space jump · E interact · V camera`;
