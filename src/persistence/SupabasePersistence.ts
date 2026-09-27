@@ -9,6 +9,10 @@ export class SupabasePersistence {
     this.client = createClient(url, publishableKey);
   }
 
+  getClient() {
+    return this.client;
+  }
+
   async signInAnonymously() {
     return this.client.auth.signInAnonymously();
   }
