@@ -44,6 +44,7 @@ hud.innerHTML = `
   <div class="status" id="status">FIRST LIGHT · Connecting…</div>
 `;
 app.appendChild(hud);
+const status = document.querySelector<HTMLDivElement>('#status')!;
 
 const world = new World();
 const input = new Input();
@@ -73,10 +74,20 @@ if (cloudPersistence) {
       world.scene.remove(remote.group);
       remotePlayers.delete(id);
     },
+    onStatus: state => {
+      const labels = {
+        CONNECTING: 'MULTIPLAYER · Connecting…',
+        CONNECTED: 'MULTIPLAYER · Connected',
+        ERROR: 'MULTIPLAYER · Connection error',
+        TIMED_OUT: 'MULTIPLAYER · Timed out',
+      } as const;
+      status.textContent = `FIRST LIGHT · ${labels[state]}`;
+    },
   });
 
   presence.connect(player.getTransform()).catch(error => {
     console.warn('Realtime presence unavailable; continuing in local mode.', error);
+    status.textContent = 'FIRST LIGHT · MULTIPLAYER · Unavailable';
     presence = null;
   });
 }
@@ -185,7 +196,6 @@ identityName.addEventListener('keydown', event => {
   if (event.key === 'Enter') saveIdentityName();
   if (event.key === 'Escape') closeIdentityPanel();
 });
-const status = document.querySelector<HTMLDivElement>('#status')!;
 status.textContent = `FIRST LIGHT · ${identity.displayName} · WASD move · Shift sprint · Space jump · E interact · V camera`;
 
 let firstPerson = false;
