@@ -40,13 +40,11 @@ const remotePlayers = new Map<string, RemotePlayer>();
 const cloudReady = cloudPersistence
   ? (async () => {
       let authenticated = false;
-
       try {
         const { data, error } = await cloudPersistence.signInAnonymously();
         if (!error && data.user) {
           cloudIdentity = { ...identity, id: data.user.id };
           authenticated = true;
-
           const cloudState = await cloudPersistence.load(cloudIdentity);
           if (cloudState) player.restoreTransform(cloudState);
         } else {
@@ -78,7 +76,6 @@ const cloudReady = cloudPersistence
         console.warn('Realtime presence unavailable; continuing in local mode.', error);
         presence = null;
       }
-
       return authenticated;
     })()
   : Promise.resolve(false);
@@ -113,9 +110,7 @@ function savePlayer() {
     updatedAt: new Date().toISOString(),
   };
   persistence.savePlayerState(state);
-  if (cloudPersistence) {
-    cloudPersistence.save(cloudIdentity, state).catch(console.error);
-  }
+  if (cloudPersistence) cloudPersistence.save(cloudIdentity, state).catch(console.error);
   presence?.update(transform).catch(console.error);
 }
 
@@ -131,8 +126,22 @@ addEventListener('keydown', event => {
   if (event.code === 'KeyE' && !event.repeat) {
     const result = interaction.interact();
     if (result) {
-      prompt.textContent = `E · ${result.name}`;
-      console.info('Interacted with:', result.name);
+      prompt.textContent = `E · ${result.name} ✓`;
+      result.object.userData.interacted = true;
+
+      const material = result.object instanceof THREE.Mesh
+        ? result.object.material
+        : null;
+
+      if (material instanceof THREE.MeshStandardMaterial) {
+        material.emissiveIntensity = material.emissiveIntensity > 0 ? 2.8 : 0.35;
+      }
+
+      window.setTimeout(() => {
+        if (prompt.textContent === `E · ${result.name} ✓`) {
+          prompt.textContent = `E · ${result.name}`;
+        }
+      }, 1200);
     }
   }
 });
