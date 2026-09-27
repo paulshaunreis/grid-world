@@ -28,6 +28,7 @@ export class SupabasePresence {
   setIdentity(identity: PlayerIdentity) { this.identity = identity; }
 
   async connect(initialTransform: PlayerTransform) {
+    this.callbacks.onStatus?.('CONNECTING');
     this.channel = this.client.channel(`region:${this.regionId}`, {
       config: { presence: { key: this.identity.id } },
     });
@@ -79,11 +80,17 @@ export class SupabasePresence {
         if (status === 'SUBSCRIBED') {
           try {
             await this.update(initialTransform);
+            this.callbacks.onStatus?.('CONNECTED');
             resolve();
           } catch (trackError) {
+            this.callbacks.onStatus?.('ERROR', trackError);
             reject(trackError);
           }
-        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        } else if (status === 'CHANNEL_ERROR') {
+          this.callbacks.onStatus?.('ERROR', error);
+          reject(error ?? new Error(status));
+        } else if (status === 'TIMED_OUT') {
+          this.callbacks.onStatus?.('TIMED_OUT', error);
           reject(error ?? new Error(status));
         }
       });
