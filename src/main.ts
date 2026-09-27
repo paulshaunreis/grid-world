@@ -11,6 +11,8 @@ import { SupabasePresence } from './network/SupabasePresence';
 import { RemotePlayer } from './world/RemotePlayer';
 import { GridScriptRegistry } from './scripting/GridScriptRegistry';
 import { parseGridScript } from './scripting/GridScript';
+import { TeamAvatar } from './avatars/TeamAvatar';
+import { TEAM_AVATARS } from './avatars/teamRoster';
 import './style.css';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -78,6 +80,8 @@ player.setAvatarStyle(identity.avatarStyle);
 
 let cloudIdentity = identity;
 const remotePlayers = new Map<string, RemotePlayer>();
+const teamAvatars = TEAM_AVATARS.map(definition => new TeamAvatar(definition));
+for (const avatar of teamAvatars) world.scene.add(avatar.group);
 let presence: SupabasePresence | null = null;
 
 if (cloudPersistence) {
@@ -301,6 +305,11 @@ addEventListener('keydown', event => {
     const result = interaction.interact();
     if (result) {
       prompt.textContent = `E · ${result.name} ✓`;
+      const teamAvatarId = result.object.userData.teamAvatarId as string | undefined;
+      if (teamAvatarId) {
+        const teamAvatar = teamAvatars.find(avatar => avatar.definition.id === teamAvatarId);
+        if (teamAvatar) prompt.textContent = `E · ${teamAvatar.definition.displayName} · ${teamAvatar.interact()}`;
+      }
       scriptedObjects.dispatch(result.object, 'player interacts');
       result.object.userData.interacted = true;
 
@@ -334,6 +343,7 @@ function animate(now: number) {
 
   player.update(dt);
   for (const remote of remotePlayers.values()) remote.update(dt);
+  for (const avatar of teamAvatars) avatar.update(dt);
   if (presenceTimer >= 0.25) {
     presence?.update(player.getTransform()).catch(console.error);
     presenceTimer = 0;
