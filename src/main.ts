@@ -7,6 +7,8 @@ import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, supabaseConfigured } from './pe
 import { loadOrCreateIdentity } from './core/PlayerIdentity';
 import { PlayerController } from './core/PlayerController';
 import { World } from './world/World';
+import { SupabasePresence } from './network/SupabasePresence';
+import { RemotePlayer } from './world/RemotePlayer';
 import './style.css';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -19,7 +21,7 @@ hud.className = 'hud';
 hud.innerHTML = `
   <div class="crosshair"></div>
   <div class="interaction" id="interaction-prompt">E · Interact</div>
-  <div class="status" id="status">FIRST LIGHT · WASD move · Shift sprint · Space jump · E interact · V camera</div>
+  <div class="status" id="status">FIRST LIGHT · Connecting…</div>
 `;
 app.appendChild(hud);
 
@@ -31,15 +33,44 @@ world.scene.add(player.avatar);
 const savedState = persistence.loadPlayerState();
 if (savedState) player.restoreTransform(savedState);
 
-if (cloudPersistence) {
-  cloudPersistence.signInAnonymously().then(({ data, error }) => {
-    if (error || !data.user) return;
-    const cloudIdentity = { ...identity, id: data.user.id };
-    cloudPersistence.load(cloudIdentity).then(cloudState => {
+let cloudIdentity = identity;
+let presence: SupabasePresence | null = null;
+const remotePlayers = new Map<string, RemotePlayer>();
+
+const cloudReady = cloudPersistence
+  ? cloudPersistence.signInAnonymously().then(async ({ data, error }) => {
+      if (error || !data.user) throw error ?? new Error('Anonymous authentication failed');
+      cloudIdentity = { ...identity, id: data.user.id };
+
+      const cloudState = await cloudPersistence.load(cloudIdentity);
       if (cloudState) player.restoreTransform(cloudState);
-    }).catch(console.error);
-  }).catch(console.error);
-}
+
+      presence = new SupabasePresence(cloudPersistence.getClient(), cloudIdentity, {
+        onJoin: state => {
+          if (remotePlayers.has(state.id)) return;
+          const remote = new RemotePlayer(state);
+          remotePlayers.set(state.id, remote);
+          world.scene.add(remote.group);
+        },
+        onUpdate: state => remotePlayers.get(state.id)?.setState(state),
+        onLeave: id => {
+          const remote = remotePlayers.get(id);
+          if (!remote) return;
+          world.scene.remove(remote.group);
+          remotePlayers.delete(id);
+        },
+      });
+
+      await presence.connect();
+    }).catch(error => {
+      console.warn('Online presence unavailable; continuing in local mode.', error);
+      presence = null;
+    })
+  : Promise.resolve();
+
+cloudReady.finally(() => {
+  status.textContent = `FIRST LIGHT · ${identity.displayName} · WASD move · Shift sprint · Space jump · E interact · V camera`;
+});
 
 const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.1, 500);
 camera.position.set(0, 3.2, 7);
@@ -66,12 +97,10 @@ function savePlayer() {
     updatedAt: new Date().toISOString(),
   };
   persistence.savePlayerState(state);
-  if (cloudPersistence) {
-    cloudPersistence.signInAnonymously().then(({ data, error }) => {
-      if (error || !data.user) return;
-      cloudPersistence.save({ ...identity, id: data.user.id }, state).catch(console.error);
-    }).catch(console.error);
+  if (cloudPersistence && cloudIdentity.id !== identity.id) {
+    cloudPersistence.save(cloudIdentity, state).catch(console.error);
   }
+  presence?.update(transform).catch(console.error);
 }
 
 renderer.domElement.addEventListener('click', () => renderer.domElement.requestPointerLock());
@@ -93,6 +122,7 @@ addEventListener('keydown', event => {
 });
 
 addEventListener('beforeunload', savePlayer);
+addEventListener('beforeunload', () => { presence?.disconnect().catch(() => undefined); });
 
 let last = performance.now();
 
@@ -102,6 +132,7 @@ function animate(now: number) {
   saveTimer += dt;
 
   player.update(dt);
+  for (const remote of remotePlayers.values()) remote.update(dt);
   if (saveTimer >= 2) {
     savePlayer();
     saveTimer = 0;
