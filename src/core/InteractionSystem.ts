@@ -20,14 +20,24 @@ export class InteractionSystem {
   findTarget(): InteractionResult | null {
     this.raycaster.setFromCamera(this.center, this.camera);
     const hits = this.raycaster.intersectObjects(this.scene.children, true);
-    const hit = hits.find(item => item.object.userData.interactable);
+    const hit = hits.find(item => {
+      let current: THREE.Object3D | null = item.object;
+      while (current) {
+        if (current.userData.interactable) return true;
+        current = current.parent;
+      }
+      return false;
+    });
 
     if (!hit) return null;
 
+    let object: THREE.Object3D = hit.object;
+    while (object.parent && !object.userData.interactable) object = object.parent;
+
     return {
-      object: hit.object,
+      object,
       point: hit.point.clone(),
-      name: hit.object.userData.interactionName ?? 'Object'
+      name: object.userData.interactionName ?? 'Object'
     };
   }
 
