@@ -1,6 +1,9 @@
+import type { AvatarStyle } from '../core/PlayerIdentity';
+
 export interface RemotePlayerState {
   id: string;
   displayName: string;
+  avatarStyle: AvatarStyle;
   x: number;
   y: number;
   z: number;
