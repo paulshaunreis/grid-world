@@ -2,6 +2,10 @@ import * as THREE from 'three';
 
 export class World {
   readonly scene = new THREE.Scene();
+  readonly neonDoor = new THREE.Mesh(
+    new THREE.BoxGeometry(3.2, 4.2, 0.5),
+    new THREE.MeshStandardMaterial({ color: 0x17243b, emissive: 0x1a6a9a, emissiveIntensity: 0.9, metalness: 0.7, roughness: 0.3 })
+  );
 
   constructor() {
     this.scene.background = new THREE.Color(0x07111f);
@@ -29,6 +33,7 @@ export class World {
 
     this.createLandmark();
     this.createBeacon();
+    this.createNeonDoor();
     this.createTrees();
   }
 
@@ -62,6 +67,22 @@ export class World {
     const glow = new THREE.PointLight(0x68d9ff, 8, 12);
     glow.position.set(0, 2.2, -7);
     this.scene.add(glow);
+  }
+
+
+  private createNeonDoor() {
+    this.neonDoor.position.set(0, 2.1, -14);
+    this.neonDoor.castShadow = true;
+    this.neonDoor.userData.interactable = true;
+    this.neonDoor.userData.interactionName = 'Neon Door · Grid Script';
+    this.scene.add(this.neonDoor);
+
+    const frame = new THREE.Mesh(
+      new THREE.BoxGeometry(4.2, 5.2, 0.35),
+      new THREE.MeshStandardMaterial({ color: 0x0a1220, emissive: 0x083c5a, emissiveIntensity: 0.6, metalness: 0.8, roughness: 0.25 })
+    );
+    frame.position.set(0, 2.6, -14.25);
+    this.scene.add(frame);
   }
 
   private createTrees() {
