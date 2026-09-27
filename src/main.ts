@@ -30,6 +30,8 @@ hud.innerHTML = `
   <div class="hud-frame hud-frame-bottom"></div>
   <div class="crosshair"></div>
   <button class="identity-button" id="identity-button" type="button">✦ ${identity.displayName}</button>
+  <button class="creator-button" id="creator-button" type="button">◇ CREATOR</button>
+  <div class="creator-panel" id="creator-panel"><div class="creator-card"><div class="creator-title">Grid Script // Neon Door</div><div class="creator-subtitle">Safe preview · capability-bounded · no arbitrary code</div><pre class="creator-code" id="creator-code"></pre><div class="creator-capabilities" id="creator-capabilities"></div><button class="creator-close" id="creator-close" type="button">Close</button></div></div>
   <div class="identity-panel" id="identity-panel">
     <div class="identity-card">
       <div class="identity-title">Your Traveler</div>
@@ -170,6 +172,8 @@ when player interacts:
     door.open()
 `;
 const parsedNeonDoor = parseGridScript(neonDoorSource);
+creatorCode.textContent = neonDoorSource;
+creatorCapabilities.textContent = parsedNeonDoor.script ? 'CAPABILITIES · ' + [...new Set(parsedNeonDoor.script.handlers.flatMap(handler => handler.actions.map(action => action.kind === 'call' ? 'object_control' : action.kind === 'play_sound' ? 'play_audio' : action.kind === 'give_item' ? 'economy_transaction' : 'ui_feedback')))].join(' · ') : 'SCRIPT ERROR · ' + parsedNeonDoor.diagnostics.map(d => 'L' + d.line + ' ' + d.message).join(' | ');
 const neonDoorRuntime = parsedNeonDoor.script
   ? new GridScriptRuntime({
       openDoor: () => {
@@ -182,6 +186,10 @@ const neonDoorRuntime = parsedNeonDoor.script
     })
   : null;
 const prompt = document.querySelector<HTMLDivElement>('#interaction-prompt')!;
+const creatorButton = document.querySelector<HTMLButtonElement>('#creator-button')!;
+const creatorPanel = document.querySelector<HTMLDivElement>('#creator-panel')!;
+const creatorCode = document.querySelector<HTMLPreElement>('#creator-code')!;
+const creatorCapabilities = document.querySelector<HTMLDivElement>('#creator-capabilities')!;
 const identityButton = document.querySelector<HTMLButtonElement>('#identity-button')!;
 const identityPanel = document.querySelector<HTMLDivElement>('#identity-panel')!;
 const identityName = document.querySelector<HTMLInputElement>('#identity-name')!;
@@ -251,6 +259,9 @@ function saveIdentityName() {
   closeIdentityPanel();
 }
 
+creatorButton.addEventListener('click', () => creatorPanel.classList.add('open'));
+document.querySelector<HTMLButtonElement>('#creator-close')!.addEventListener('click', () => creatorPanel.classList.remove('open'));
+creatorPanel.addEventListener('click', event => { if (event.target === creatorPanel) creatorPanel.classList.remove('open'); });
 identityButton.addEventListener('click', openIdentityPanel);
 identityCancel.addEventListener('click', closeIdentityPanel);
 identitySave.addEventListener('click', saveIdentityName);
