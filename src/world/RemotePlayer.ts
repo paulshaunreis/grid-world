@@ -1,28 +1,36 @@
 import * as THREE from 'three';
 import type { RemotePlayerState } from '../network/Presence';
 
+const palettes = {
+  azure: { body: 0x66ccff, visor: 0x224466 },
+  sunset: { body: 0xff7f50, visor: 0x663322 },
+  forest: { body: 0x4fd18b, visor: 0x164a35 },
+  violet: { body: 0xb184ff, visor: 0x3d2266 },
+};
+
 export class RemotePlayer {
   readonly id: string;
   readonly group = new THREE.Group();
   private readonly target = new THREE.Vector3();
   private targetYaw = 0;
+  private readonly body: THREE.Mesh;
+  private readonly visor: THREE.Mesh;
   private readonly labelTexture: THREE.CanvasTexture;
   private readonly labelContext: CanvasRenderingContext2D;
 
   constructor(state: RemotePlayerState) {
     this.id = state.id;
-
-    const body = new THREE.Mesh(
+    this.body = new THREE.Mesh(
       new THREE.CapsuleGeometry(0.45, 0.9, 4, 8),
-      new THREE.MeshStandardMaterial({ color: 0x66ccff, roughness: 0.7 })
+      new THREE.MeshStandardMaterial({ color: palettes.azure.body, roughness: 0.7 })
     );
-    body.position.y = 1.05;
+    this.body.position.y = 1.05;
 
-    const visor = new THREE.Mesh(
+    this.visor = new THREE.Mesh(
       new THREE.SphereGeometry(0.27, 16, 12),
-      new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x224466, emissiveIntensity: 0.7 })
+      new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: palettes.azure.visor, emissiveIntensity: 0.7 })
     );
-    visor.position.set(0, 1.55, -0.28);
+    this.visor.position.set(0, 1.55, -0.28);
 
     const labelCanvas = document.createElement('canvas');
     labelCanvas.width = 512;
@@ -30,13 +38,11 @@ export class RemotePlayer {
     this.labelContext = labelCanvas.getContext('2d')!;
     this.labelTexture = new THREE.CanvasTexture(labelCanvas);
 
-    const label = new THREE.Sprite(
-      new THREE.SpriteMaterial({ map: this.labelTexture, transparent: true, depthWrite: false })
-    );
+    const label = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.labelTexture, transparent: true, depthWrite: false }));
     label.scale.set(3.2, 0.8, 1);
     label.position.set(0, 2.45, 0);
 
-    this.group.add(body, visor, label);
+    this.group.add(this.body, this.visor, label);
     this.setState(state);
   }
 
@@ -57,6 +63,9 @@ export class RemotePlayer {
   setState(state: RemotePlayerState) {
     this.target.set(state.x, state.y, state.z);
     this.targetYaw = state.yaw;
+    const palette = palettes[state.avatarStyle] ?? palettes.azure;
+    (this.body.material as THREE.MeshStandardMaterial).color.setHex(palette.body);
+    (this.visor.material as THREE.MeshStandardMaterial).emissive.setHex(palette.visor);
     this.drawName(state.displayName);
   }
 
