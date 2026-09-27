@@ -98,7 +98,7 @@ if (cloudPersistence) {
         ERROR: 'MULTIPLAYER · Connection error',
         TIMED_OUT: 'MULTIPLAYER · Timed out',
       } as const;
-      status.textContent = `FIRST LIGHT · ${labels[state]}`;
+      setMultiplayerStatus(labels[state]);
     },
   });
 
@@ -137,8 +137,19 @@ const cloudReady = cloudPersistence
     })()
   : Promise.resolve(false);
 
+let multiplayerLabel = 'MULTIPLAYER · Connecting…';
+
+function setControlStatus() {
+  setControlStatus();
+}
+
+function setMultiplayerStatus(label: string) {
+  multiplayerLabel = label;
+  status.textContent = `FIRST LIGHT · ${label}`;
+}
+
 cloudReady.finally(() => {
-  status.textContent = `FIRST LIGHT · ${identity.displayName} · WASD move · Shift sprint · Space jump · E interact · V camera`;
+  if (multiplayerLabel === 'MULTIPLAYER · Connecting…') setControlStatus();
 });
 
 const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.1, 500);
@@ -216,7 +227,7 @@ function saveIdentityName() {
   cloudIdentity = { ...cloudIdentity, displayName };
   presence?.setIdentity(cloudIdentity);
   identityButton.textContent = '✦ ' + displayName;
-  status.textContent = 'FIRST LIGHT · ' + displayName + ' · WASD move · Shift sprint · Space jump · E interact · V camera';
+  setControlStatus();
   presence?.update(player.getTransform()).catch(console.error);
   closeIdentityPanel();
 }
@@ -228,7 +239,7 @@ identityName.addEventListener('keydown', event => {
   if (event.key === 'Enter') saveIdentityName();
   if (event.key === 'Escape') closeIdentityPanel();
 });
-status.textContent = `FIRST LIGHT · ${identity.displayName} · WASD move · Shift sprint · Space jump · E interact · V camera`;
+setControlStatus();
 
 let firstPerson = false;
 let presenceTimer = 0;
