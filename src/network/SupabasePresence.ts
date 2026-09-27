@@ -27,7 +27,7 @@ export class SupabasePresence {
 
   setIdentity(identity: PlayerIdentity) { this.identity = identity; }
 
-  async connect() {
+  async connect(initialTransform: PlayerTransform) {
     this.channel = this.client.channel(`region:${this.regionId}`, {
       config: { presence: { key: this.identity.id } },
     });
@@ -78,7 +78,7 @@ export class SupabasePresence {
       this.channel!.subscribe(async (status, error) => {
         if (status === 'SUBSCRIBED') {
           try {
-            await this.update({ x: 0, y: 0, z: 8, yaw: 0 });
+            await this.update(initialTransform);
             resolve();
           } catch (trackError) {
             reject(trackError);
