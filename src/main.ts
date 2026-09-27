@@ -9,6 +9,8 @@ import { PlayerController } from './core/PlayerController';
 import { World } from './world/World';
 import { SupabasePresence } from './network/SupabasePresence';
 import { RemotePlayer } from './world/RemotePlayer';
+import { GridScriptRuntime } from './scripting/GridScriptRuntime';
+import { parseGridScript } from './scripting/GridScript';
 import './style.css';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -162,6 +164,23 @@ renderer.shadowMap.enabled = true;
 app.appendChild(renderer.domElement);
 
 const interaction = new InteractionSystem(camera, world.scene);
+const neonDoorSource = `object "Neon Door"
+
+when player interacts:
+    door.open()
+`;
+const parsedNeonDoor = parseGridScript(neonDoorSource);
+const neonDoorRuntime = parsedNeonDoor.script
+  ? new GridScriptRuntime({
+      openDoor: () => {
+        world.neonDoor.position.y = 7;
+        const material = world.neonDoor.material;
+        if (material instanceof THREE.MeshStandardMaterial) material.emissiveIntensity = 2.5;
+        prompt.textContent = 'E · Neon Door opened';
+        window.setTimeout(() => { world.neonDoor.position.y = 2.1; }, 1800);
+      },
+    })
+  : null;
 const prompt = document.querySelector<HTMLDivElement>('#interaction-prompt')!;
 const identityButton = document.querySelector<HTMLButtonElement>('#identity-button')!;
 const identityPanel = document.querySelector<HTMLDivElement>('#identity-panel')!;
@@ -270,6 +289,9 @@ addEventListener('keydown', event => {
     const result = interaction.interact();
     if (result) {
       prompt.textContent = `E · ${result.name} ✓`;
+      if (result.object === world.neonDoor && neonDoorRuntime && parsedNeonDoor.script) {
+        neonDoorRuntime.dispatch(parsedNeonDoor.script, 'player interacts');
+      }
       result.object.userData.interacted = true;
 
       const material = result.object instanceof THREE.Mesh
