@@ -26,7 +26,7 @@ export class PlayerController {
   }
 
   update(dt: number) {
-    const speed = this.input.isDown('ShiftLeft') ? 8 : 4;
+    const speed = this.input.isDown('ShiftLeft') || this.input.isDown('ShiftRight') ? 8 : 4;
     const forward = Number(this.input.isDown('KeyW')) - Number(this.input.isDown('KeyS'));
     const strafe = Number(this.input.isDown('KeyD')) - Number(this.input.isDown('KeyA'));
     const direction = new THREE.Vector3(strafe, 0, -forward);
