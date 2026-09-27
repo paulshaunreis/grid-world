@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { Input } from './Input';
 
+export type AvatarStyle = 'azure' | 'sunset' | 'forest' | 'violet';
+
 export interface PlayerTransform {
   x: number;
   y: number;
@@ -13,23 +15,37 @@ export class PlayerController {
   private velocityY = 0;
   private grounded = true;
   private yaw = 0;
+  private readonly body: THREE.Mesh;
+  private readonly head: THREE.Mesh;
 
   constructor(private readonly input: Input) {
-    const body = new THREE.Mesh(
+    this.body = new THREE.Mesh(
       new THREE.CapsuleGeometry(0.42, 1, 8, 16),
       new THREE.MeshStandardMaterial({ color: 0x8ad1ff, roughness: 0.55 })
     );
-    body.position.y = 1;
-    body.castShadow = true;
-    this.avatar.add(body);
+    this.body.position.y = 1;
+    this.body.castShadow = true;
+    this.avatar.add(this.body);
 
-    const head = new THREE.Mesh(
+    this.head = new THREE.Mesh(
       new THREE.SphereGeometry(0.34, 16, 12),
       new THREE.MeshStandardMaterial({ color: 0xe8f5ff, roughness: 0.7 })
     );
-    head.position.y = 1.85;
-    head.castShadow = true;
-    this.avatar.add(head);
+    this.head.position.y = 1.85;
+    this.head.castShadow = true;
+    this.avatar.add(this.head);
+  }
+
+  setAvatarStyle(style: AvatarStyle) {
+    const palettes = {
+      azure: { body: 0x8ad1ff, head: 0xe8f5ff },
+      sunset: { body: 0xff9a62, head: 0xffe1cc },
+      forest: { body: 0x73d39b, head: 0xdff7e8 },
+      violet: { body: 0xb58cff, head: 0xeee4ff },
+    };
+    const palette = palettes[style];
+    (this.body.material as THREE.MeshStandardMaterial).color.setHex(palette.body);
+    (this.head.material as THREE.MeshStandardMaterial).color.setHex(palette.head);
   }
 
   update(dt: number) {
@@ -38,16 +54,9 @@ export class PlayerController {
     const strafe = Number(this.input.isDown('KeyD')) - Number(this.input.isDown('KeyA'));
     const direction = new THREE.Vector3(strafe, 0, -forward);
 
-    if (direction.lengthSq() > 0) {
-      direction.normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), this.yaw);
-      this.avatar.position.addScaledVector(direction, speed * dt);
-    }
+    if (direction.lengthSq() > 0) direction.normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), this.yaw), this.avatar.position.addScaledVector(direction, speed * dt);
 
-    if (this.input.isDown('Space') && this.grounded) {
-      this.velocityY = 7;
-      this.grounded = false;
-    }
-
+    if (this.input.isDown('Space') && this.grounded) { this.velocityY = 7; this.grounded = false; }
     this.velocityY -= 18 * dt;
     this.avatar.position.y += this.velocityY * dt;
 
@@ -64,12 +73,7 @@ export class PlayerController {
   get heading() { return this.yaw; }
 
   getTransform(): PlayerTransform {
-    return {
-      x: this.avatar.position.x,
-      y: this.avatar.position.y,
-      z: this.avatar.position.z,
-      yaw: this.yaw,
-    };
+    return { x: this.avatar.position.x, y: this.avatar.position.y, z: this.avatar.position.z, yaw: this.yaw };
   }
 
   restoreTransform(transform: PlayerTransform) {
