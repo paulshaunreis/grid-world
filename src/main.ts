@@ -26,6 +26,13 @@ hud.innerHTML = `
       <div class="identity-title">Your Traveler</div>
       <div class="identity-subtitle">Choose the name other players see.</div>
       <input id="identity-name" maxlength="20" autocomplete="off" placeholder="Display name" />
+      <div class="avatar-label">Avatar style</div>
+      <div class="avatar-options" id="avatar-options">
+        <button type="button" data-avatar="azure">Azure</button>
+        <button type="button" data-avatar="sunset">Sunset</button>
+        <button type="button" data-avatar="forest">Forest</button>
+        <button type="button" data-avatar="violet">Violet</button>
+      </div>
       <div class="identity-actions">
         <button id="identity-cancel" type="button">Cancel</button>
         <button id="identity-save" type="button">Save</button>
@@ -45,6 +52,7 @@ world.scene.add(player.avatar);
 
 const savedState = persistence.loadPlayerState();
 if (savedState) player.restoreTransform(savedState);
+player.setAvatarStyle(identity.avatarStyle);
 
 let cloudIdentity = identity;
 let presence: SupabasePresence | null = null;
@@ -113,9 +121,13 @@ const identityPanel = document.querySelector<HTMLDivElement>('#identity-panel')!
 const identityName = document.querySelector<HTMLInputElement>('#identity-name')!;
 const identitySave = document.querySelector<HTMLButtonElement>('#identity-save')!;
 const identityCancel = document.querySelector<HTMLButtonElement>('#identity-cancel')!;
+const avatarOptions = document.querySelector<HTMLDivElement>('#avatar-options')!;
 
 function openIdentityPanel() {
   identityName.value = identity.displayName;
+  avatarOptions.querySelectorAll<HTMLButtonElement>('[data-avatar]').forEach(button => {
+    button.classList.toggle('selected', button.dataset.avatar === identity.avatarStyle);
+  });
   identityPanel.classList.add('open');
   identityName.focus();
   identityName.select();
@@ -124,6 +136,19 @@ function openIdentityPanel() {
 function closeIdentityPanel() {
   identityPanel.classList.remove('open');
 }
+
+avatarOptions.addEventListener('click', event => {
+  const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-avatar]');
+  if (!button) return;
+  identity = { ...identity, avatarStyle: button.dataset.avatar as typeof identity.avatarStyle };
+  player.setAvatarStyle(identity.avatarStyle);
+  localStorage.setItem('grid-world:identity', JSON.stringify(identity));
+  cloudIdentity = { ...cloudIdentity, avatarStyle: identity.avatarStyle };
+  avatarOptions.querySelectorAll<HTMLButtonElement>('[data-avatar]').forEach(option => {
+    option.classList.toggle('selected', option === button);
+  });
+  presence?.update(player.getTransform()).catch(console.error);
+});
 
 function saveIdentityName() {
   const displayName = identityName.value.trim().replace(/\\s+/g, ' ');
