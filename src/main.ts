@@ -102,6 +102,7 @@ const status = document.querySelector<HTMLDivElement>('#status')!;
 status.textContent = `FIRST LIGHT · ${identity.displayName} · WASD move · Shift sprint · Space jump · E interact · V camera`;
 
 let firstPerson = false;
+let presenceTimer = 0;
 let saveTimer = 0;
 
 function savePlayer() {
@@ -144,15 +145,19 @@ let last = performance.now();
 function animate(now: number) {
   const dt = Math.min((now - last) / 1000, 0.05);
   last = now;
+  presenceTimer += dt;
   saveTimer += dt;
 
   player.update(dt);
   for (const remote of remotePlayers.values()) remote.update(dt);
-  if (saveTimer >= 0.25) {
+  if (presenceTimer >= 0.25) {
     presence?.update(player.getTransform()).catch(console.error);
+    presenceTimer = 0;
+  }
+  if (saveTimer >= 2) {
+    savePlayer();
     saveTimer = 0;
   }
-  if (Math.floor(now / 1000) % 2 === 0 && saveTimer < 0.05) savePlayer();
 
   const distance = firstPerson ? 0.05 : 7;
   const height = firstPerson ? 2.0 : 3.2;
