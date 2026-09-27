@@ -55,10 +55,26 @@ if (savedState) player.restoreTransform(savedState);
 player.setAvatarStyle(identity.avatarStyle);
 
 let cloudIdentity = identity;
-let presence: SupabasePresence | null = null;
 const remotePlayers = new Map<string, RemotePlayer>();
+let presence: SupabasePresence | null = null;
 
-if (presence) {
+if (cloudPersistence) {
+  presence = new SupabasePresence(cloudPersistence.getClient(), identity, {
+    onJoin: state => {
+      if (remotePlayers.has(state.id)) return;
+      const remote = new RemotePlayer(state);
+      remotePlayers.set(state.id, remote);
+      world.scene.add(remote.group);
+    },
+    onUpdate: state => remotePlayers.get(state.id)?.setState(state),
+    onLeave: id => {
+      const remote = remotePlayers.get(id);
+      if (!remote) return;
+      world.scene.remove(remote.group);
+      remotePlayers.delete(id);
+    },
+  });
+
   presence.connect(player.getTransform()).catch(error => {
     console.warn('Realtime presence unavailable; continuing in local mode.', error);
     presence = null;
