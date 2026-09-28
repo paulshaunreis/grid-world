@@ -1,10 +1,12 @@
+export type ClimateType = 'temperate' | 'tropical' | 'arid' | 'alpine' | 'aquatic' | 'void' | 'frontier';
+
 export interface WorldRegionDefinition {
   id: string;
   zoneId: string;
   originX: number;
   originZ: number;
   size: number;
-  climate: 'temperate' | 'tropical' | 'arid' | 'alpine' | 'aquatic' | 'void' | 'frontier';
+  climate: ClimateType;
 }
 
 export interface WorldRegionBounds {
