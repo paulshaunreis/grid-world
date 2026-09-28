@@ -15,7 +15,7 @@ app.innerHTML = `
     <a class="brand" href="#home"><span class="brand-mark">◇</span><span>GRID WORLD</span></a>
     <nav>${navItems.map((item, i) => `<a href="#${item.toLowerCase().replaceAll(' ', '-')}" class="${i === 0 ? 'active' : ''}">${item}</a>`).join('')}</nav>
     <div class="header-actions">
-      <button class="ghost" id="login">SIGN IN</button>
+      <a class="ghost" href="/profile.html">PROFILE</a>
       <a class="primary" href="/play.html">ENTER WORLD</a>
     </div>
   </header>
@@ -39,7 +39,7 @@ app.innerHTML = `
     <section class="social-layout" id="discover">
       <aside class="side-card profile-card">
         <div class="profile-avatar">G</div><h3>Your Grid Identity</h3><p>Traveler · Creator · Explorer</p>
-        <div class="side-links"><a href="#profile">Profile</a><a href="#friends">Friends</a><a href="#messages">Messages</a><a href="#notifications">Notifications</a></div>
+        <div class="side-links"><a href="/profile.html">Profile Studio</a><a href="#friends">Friends</a><a href="#messages">Messages</a><a href="#notifications">Notifications</a></div>
       </aside>
 
       <section class="feed">
