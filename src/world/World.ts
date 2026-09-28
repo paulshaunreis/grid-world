@@ -1,11 +1,13 @@
 import * as THREE from 'three';
 import { FIRST_LIGHT_REGION, WorldRegionRegistry } from './WorldRegion';
 import { WorldAtmosphere } from './WorldAtmosphere';
+import { WorldChunkStreamer } from './WorldChunkStreamer';
 
 export class World {
   readonly scene = new THREE.Scene();
   readonly regions = new WorldRegionRegistry();
   readonly atmosphere = new WorldAtmosphere();
+  readonly chunks: WorldChunkStreamer;
   readonly neonDoor = new THREE.Mesh(
     new THREE.BoxGeometry(3.2, 4.2, 0.5),
     new THREE.MeshStandardMaterial({ color: 0x17243b, emissive: 0x1a6a9a, emissiveIntensity: 0.9, metalness: 0.7, roughness: 0.3 })
@@ -13,6 +15,8 @@ export class World {
 
   constructor() {
     this.regions.register(FIRST_LIGHT_REGION);
+    this.chunks = new WorldChunkStreamer(this.scene, { chunkSize: 32, loadRadius: 2 });
+    this.chunks.update(0, 0);
 
     this.scene.background = new THREE.Color(0x07111f);
     this.scene.fog = new THREE.Fog(0x07111f, 45, 180);
@@ -25,25 +29,14 @@ export class World {
     sun.castShadow = true;
     this.scene.add(sun);
 
-    this.createRegionGround(FIRST_LIGHT_REGION.size);
     this.createLandmark();
     this.createBeacon();
     this.createNeonDoor();
     this.createTrees();
   }
 
-  private createRegionGround(size: number) {
-    const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(size, size, 40, 40),
-      new THREE.MeshStandardMaterial({ color: 0x27382a, roughness: 1 })
-    );
-    ground.rotation.x = -Math.PI / 2;
-    ground.receiveShadow = true;
-    this.scene.add(ground);
-
-    const grid = new THREE.GridHelper(size, Math.max(1, Math.floor(size / 5)), 0x52705a, 0x304638);
-    grid.position.y = 0.02;
-    this.scene.add(grid);
+  updateStreaming(worldX: number, worldZ: number) {
+    this.chunks.update(worldX, worldZ);
   }
 
   private createLandmark() {
