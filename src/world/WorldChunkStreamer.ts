@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { WorldChunk } from './WorldChunk';
+import { createWorldChunkState, type WorldChunkState } from './WorldChunkState';
+import { LocalWorldChunkStore, type WorldChunkStore } from './WorldChunkStore';
 
 export interface WorldChunkStreamerOptions {
   chunkSize?: number;
@@ -10,10 +12,13 @@ export class WorldChunkStreamer {
   readonly chunkSize: number;
   readonly loadRadius: number;
   private readonly loaded = new Map<string, WorldChunk>();
+  private readonly states = new Map<string, WorldChunkState>();
+  private readonly store: WorldChunkStore;
 
-  constructor(private readonly scene: THREE.Scene, options: WorldChunkStreamerOptions = {}) {
+  constructor(private readonly scene: THREE.Scene, options: WorldChunkStreamerOptions = {}, store: WorldChunkStore = new LocalWorldChunkStore()) {
     this.chunkSize = options.chunkSize ?? 32;
     this.loadRadius = options.loadRadius ?? 2;
+    this.store = store;
   }
 
   update(worldX: number, worldZ: number) {
@@ -30,6 +35,7 @@ export class WorldChunkStreamer {
         if (!this.loaded.has(key)) {
           const chunk = new WorldChunk({ x, z }, this.chunkSize);
           this.loaded.set(key, chunk);
+          void this.loadState(key, x, z);
           this.scene.add(chunk.group);
         }
       }
@@ -41,6 +47,17 @@ export class WorldChunkStreamer {
       chunk.dispose();
       this.loaded.delete(key);
     }
+  }
+
+  private async loadState(key: string, x: number, z: number) {
+    const existing = await this.store.load(key);
+    const state = existing ?? createWorldChunkState('first-light', x, z);
+    this.states.set(key, state);
+    if (!existing) await this.store.save(state);
+  }
+
+  getState(key: string): WorldChunkState | undefined {
+    return this.states.get(key);
   }
 
   getLoaded(): WorldChunk[] {
