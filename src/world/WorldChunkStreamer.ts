@@ -75,6 +75,10 @@ export class WorldChunkStreamer {
     return [...this.loaded.values()];
   }
 
+  getLoadedStates(): WorldChunkState[] {
+    return [...this.states.values()];
+  }
+
   getLoadedCount(): number {
     return this.loaded.size;
   }
