@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { WorldChunk } from './WorldChunk';
-import { createWorldChunkState, type WorldChunkState } from './WorldChunkState';
+import { createWorldChunkState, worldChunkStateKey, type WorldChunkState } from './WorldChunkState';
 import { LocalWorldChunkStore, type WorldChunkStore } from './WorldChunkStore';
 
 export interface WorldChunkStreamerOptions {
@@ -39,7 +39,7 @@ export class WorldChunkStreamer {
         const chunkWorldX = x * this.chunkSize;
         const chunkWorldZ = z * this.chunkSize;
         const regionId = this.resolveRegionId(chunkWorldX, chunkWorldZ);
-        const stateKey = createWorldChunkState(regionId, x, z).key;
+        const stateKey = worldChunkStateKey(regionId, x, z);
         needed.add(stateKey);
 
         if (!this.loaded.has(stateKey)) {
