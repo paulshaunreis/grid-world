@@ -33,9 +33,25 @@ export class WorldSimulation {
   }
 
   simulateChunk(state: WorldChunkState, region: WorldRegion, elapsedSeconds: number, worldSeconds: number): WorldChunkState {
-    const boundedSeconds = clamp(elapsedSeconds, 0, 86400);
-    if (boundedSeconds <= 0) return state;
+    const totalSeconds = clamp(elapsedSeconds, 0, 30 * 86400);
+    if (totalSeconds <= 0) return state;
 
+    const stepSeconds = Math.min(6 * 3600, totalSeconds);
+    let remaining = totalSeconds;
+    let currentState = state;
+    let currentWorldSeconds = worldSeconds - totalSeconds;
+
+    while (remaining > 0) {
+      const step = Math.min(stepSeconds, remaining);
+      currentState = this.simulateStep(currentState, region, step, currentWorldSeconds + step);
+      currentWorldSeconds += step;
+      remaining -= step;
+    }
+
+    return currentState;
+  }
+
+  private simulateStep(state: WorldChunkState, region: WorldRegion, boundedSeconds: number, worldSeconds: number): WorldChunkState {
     const conditions = this.conditionsFor(region, worldSeconds);
     const profile = getClimateProfile(region.definition.climate);
     const rainFactor = conditions.weather === 'rain' ? 1 : conditions.weather === 'storm' ? 1.5 : conditions.weather === 'snow' ? 0.7 : 0;
