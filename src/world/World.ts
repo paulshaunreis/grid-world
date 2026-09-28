@@ -27,6 +27,14 @@ export class World {
       chunkSize: 32,
       loadRadius: 2,
       resolveRegionId: (worldX, worldZ) => this.regions.findAt(worldX, worldZ)?.definition.id ?? 'unclaimed',
+      hydrateState: state => {
+        const region = this.regions.get(state.regionId);
+        if (!region) return state;
+        const lastSimulatedMs = Date.parse(state.lastSimulatedAt);
+        if (!Number.isFinite(lastSimulatedMs)) return state;
+        const elapsedSeconds = Math.max(0, (Date.now() - lastSimulatedMs) / 1000);
+        return this.simulation.simulateChunk(state, region, elapsedSeconds, this.clock.getWorldSeconds());
+      },
     });
     this.chunks.update(0, 0);
 
@@ -59,13 +67,13 @@ export class World {
     this.simulationAccumulator = 0;
 
     for (const region of this.regions.all()) {
-      this.atmosphere.set(region.definition.id, this.simulation.conditionsFor(region, this.clock.totalSeconds));
+      this.atmosphere.set(region.definition.id, this.simulation.conditionsFor(region, this.clock.worldSeconds));
     }
 
     for (const state of this.chunks.getLoadedStates()) {
       const region = this.regions.get(state.regionId);
       if (!region) continue;
-      const updated = this.simulation.simulateChunk(state, region, simulationDelta, this.clock.totalSeconds);
+      const updated = this.simulation.simulateChunk(state, region, simulationDelta, this.clock.worldSeconds);
       if (updated !== state) {
         this.chunks.setState(updated);
       }
