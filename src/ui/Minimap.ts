@@ -14,7 +14,7 @@ export interface MinimapOptions {
 }
 
 export class Minimap {
-  readonly element: HTMLDivElement;
+  readonly element: HTMLElement;
   private readonly canvas: HTMLCanvasElement;
   private readonly context: CanvasRenderingContext2D;
   private zoom = 0.9;
