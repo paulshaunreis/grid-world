@@ -1,97 +1,29 @@
 import './site.css';
 
 const app = document.querySelector<HTMLDivElement>('#site')!;
-
-const navItems = ['Home', 'Discover', 'Communities', 'Events', 'Marketplace', 'Creator Hub'];
-
-const posts = [
-  { avatar: 'A', name: 'Aurora', meta: 'First Light · 12m', text: 'First Light is online. The world is beginning to change with time, weather, and living systems.', tag: 'WORLD UPDATE', likes: 42, comments: 8 },
-  { avatar: 'L', name: 'Link', meta: 'Creator Hub · 31m', text: 'Grid Script is designed to make creation powerful without handing creators unrestricted code execution.', tag: 'CREATION', likes: 27, comments: 5 },
-  { avatar: 'R', name: 'Rey', meta: 'Community · 1h', text: 'What should we build next? A floating city, a giant forest, or something nobody has imagined yet?', tag: 'DISCUSSION', likes: 64, comments: 19 },
+const navItems = ['Home','Worlds','Communities','Creators','Economy'];
+const worlds = [
+  { id:'01', name:'First Light', type:'Living world', description:'The first persistent district—quiet, social, and always changing.', stat:'128 explorers', tone:'first', action:'ENTER WORLD' },
+  { id:'02', name:'Neon District', type:'Social city', description:'Night markets, creator spaces, channels, events, and impossible architecture.', stat:'74 live', tone:'neon', action:'EXPLORE' },
+  { id:'03', name:'Verdant Arc', type:'Living systems', description:'A regenerative region built around stewardship, discovery, and shared creation.', stat:'51 exploring', tone:'verdant', action:'EXPLORE' },
+];
+const principles = [
+  ['01','Human first','Identity, accessibility, privacy, conscience, and due process belong in the foundation.'],
+  ['02','Build in layers','Worlds are persistent systems: physics → infrastructure → simulation → communities → people.'],
+  ['03','Create safely','Creators get powerful tools without unrestricted code, credentials, or client-authoritative economy actions.'],
+  ['04','Preserve what works','Every meaningful milestone is testable, auditable, recoverable, and designed to survive failure.'],
 ];
 
 app.innerHTML = `
-  <header class="site-header">
-    <a class="brand" href="#home"><span class="brand-mark">◇</span><span>GRID WORLD</span></a>
-    <nav>${navItems.map((item, i) => `<a href="#${item.toLowerCase().replaceAll(' ', '-')}" class="${i === 0 ? 'active' : ''}">${item}</a>`).join('')}</nav>
-    <div class="header-actions">
-      <a class="ghost" href="/profile.html">PROFILE</a>
-      <a class="primary" href="/play.html">ENTER WORLD</a>
-    </div>
-  </header>
+<header class="site-header"><a class="brand" href="#home"><span class="brand-mark">◇</span><span>GRID WORLD</span></a><nav>${navItems.map((item,i)=>`<a href="#${item.toLowerCase()}" class="${i===0?'active':''}">${item}</a>`).join('')}</nav><div class="header-actions"><a class="ghost" href="/profile.html">IDENTITY</a><a class="primary" href="/play.html">ENTER GRID</a></div></header>
+<main>
+<section class="hero" id="home"><div class="hero-grid"></div><div class="hero-copy"><div class="eyebrow">THE SHARED LAYER FOR WORLDS, PEOPLE & CREATION</div><h1>Make a place<br><span>worth returning to.</span></h1><p>Grid World connects persistent 3D spaces, social identity, communities, creators, media, and an emerging circular economy—under one coherent system.</p><div class="hero-actions"><a class="primary large" href="/play.html">ENTER GRID WORLD</a><a class="secondary large" href="#worlds">EXPLORE WORLDS</a></div><div class="hero-stats"><span><b>∞</b> expandable worlds</span><span><b>24/7</b> persistent simulation</span><span><b>1</b> shared identity</span></div></div><div class="hero-orb"><div class="orb-ring r1"></div><div class="orb-ring r2"></div><div class="orb-core">GRID<br><small>FIRST LIGHT · ONLINE</small></div></div></section>
+<section class="orientation"><div><span class="section-label">ONE SYSTEM</span><h2>From the first click<br><span>to the world itself.</span></h2></div><div class="orientation-path"><span>IDENTITY</span><i>→</i><span>WORLD</span><i>→</i><span>COMMUNITY</span><i>→</i><span>CREATE</span><i>→</i><span>VALUE</span></div></section>
+<section class="social-layout" id="communities"><aside class="side-card profile-card"><div class="profile-avatar">G</div><h3>Your Grid Identity</h3><p>Traveler · Creator · Explorer</p><div class="side-links"><a href="/profile.html">Open Profile Studio</a><a href="#worlds">Worlds</a><a href="#creators">Creations</a><a href="#economy">Economy</a></div></aside><section class="feed"><div class="composer"><div class="mini-avatar">G</div><div><strong>What are you building?</strong><small>Share an experience, creation, event, world update, or idea.</small></div><a class="composer-button" href="/play.html">CREATE</a></div><article class="post"><div class="post-head"><div class="mini-avatar avatar-a">A</div><div><strong>Aurora</strong><small>First Light · System journal</small></div><span class="live-pill">ONLINE</span></div><div class="post-tag">WORLD UPDATE</div><p>First Light is becoming a living place: time, weather, persistent state, social presence, and creator-made objects all share the same world.</p><div class="post-actions"><span>✦ 42</span><span>◇ 8 replies</span><span>↗ Share</span></div></article><article class="post"><div class="post-head"><div class="mini-avatar avatar-l">L</div><div><strong>Link</strong><small>Creator Hub · Build notes</small></div></div><div class="post-tag">SAFE CREATION</div><p>Grid Script stays capability-bounded. Creation should feel powerful while the system keeps ownership, economy, credentials, and infrastructure authoritative on the server.</p><div class="post-actions"><span>✦ 27</span><span>◇ 5 replies</span><span>↗ Share</span></div></article></section><aside class="right-rail"><div class="side-card"><div class="card-title">LIVE NOW</div><div class="live-row"><span class="dot"></span> First Light <b>128</b></div><div class="live-row"><span class="dot"></span> Neon District <b>74</b></div><div class="live-row"><span class="dot"></span> Verdant Arc <b>51</b></div></div><div class="side-card"><div class="card-title">NEXT</div><div class="event"><b>NEON NIGHTS</b><small>Tonight · Neon District</small></div><div class="event"><b>CREATOR CAMP</b><small>Saturday · Hybrid</small></div></div></aside></section>
+<section class="worlds" id="worlds"><div class="section-heading"><div><div class="section-label">THE WORLD LAYER</div><h2>Start somewhere.<br><span>Go anywhere.</span></h2></div><p>Grid World is a framework for worlds—not a single map. Regions stream in and out while authoritative state persists.</p></div><div class="world-cards">${worlds.map(w=>`<article class="world-card ${w.tone}"><div><div class="world-index">${w.id}</div><div class="world-type">${w.type}</div><h3>${w.name}</h3><p>${w.description}</p></div><div class="world-footer"><span>${w.stat}</span><a href="/play.html">${w.action} →</a></div></article>`).join('')}</div></section>
+<section class="platform" id="creators"><div class="section-label">THE CREATOR LAYER</div><h2>One identity.<br><span>Many ways to create.</span></h2><div class="feature-grid"><article><div class="feature-icon">◎</div><h3>Grid Identity</h3><p>A customizable identity shared across profile, social, world HUD, gallery, channels, and communities.</p></article><article><div class="feature-icon">◇</div><h3>Advanced Builder</h3><p>Object, terrain, materials, lighting, animation, world logic, simulation, and version history—built toward a serious creator workflow.</p></article><article><div class="feature-icon">⌁</div><h3>Grid Media</h3><p>Images, video, audio, galleries, channels, events, and in-world references live in the same creator graph.</p></article><article><div class="feature-icon">▣</div><h3>Grid Script</h3><p>Capability-based creation with quotas, validation, auditability, and server authority around sensitive actions.</p></article></div></section>
+<section class="principles" id="economy"><div><div class="section-label">THE FOUNDATION</div><h2>Powerful enough<br><span>to build. Safe enough to trust.</span></h2><p>Our design principles turn the lessons we've studied into engineering constraints: dignity, stewardship, humility, accountability, restraint, service, and recoverability.</p></div><div class="principle-list">${principles.map(p=>`<article><b>${p[0]}</b><div><h3>${p[1]}</h3><p>${p[2]}</p></div></article>`).join('')}</div></section>
+<section class="irllayer"><div><div class="section-label">GRID CONNECT</div><h2>Virtual or IRL.<br><span>Experience it together.</span></h2><p>Events can exist inside Grid World, in physical spaces, or across both. Participation and sharing remain user-controlled.</p><a class="secondary large" href="#events">BROWSE EVENTS</a></div><div class="event-map"><span>GRID</span><i></i><b>IRL</b></div></section>
+</main><footer><div class="brand"><span class="brand-mark">◇</span><span>GRID WORLD</span></div><p>Build boldly. Preserve deliberately. Change carefully.</p><div><a href="#terms">Terms</a><a href="#privacy">Privacy</a><a href="#safety">Safety</a><a href="#status">Status</a></div></footer>`;
 
-  <main>
-    <section class="hero" id="home">
-      <div class="hero-grid"></div>
-      <div class="hero-copy">
-        <div class="eyebrow">A PERSISTENT FRAMEWORK FOR WORLDS</div>
-        <h1>One grid.<br><span>Infinite worlds.</span></h1>
-        <p>Explore connected worlds, meet people, create experiences, and build places that keep evolving even when you're offline.</p>
-        <div class="hero-actions">
-          <a class="primary large" href="/play.html">ENTER GRID WORLD</a>
-          <a class="secondary large" href="#discover">EXPLORE WORLDS</a>
-        </div>
-        <div class="hero-stats"><span><b>09</b> starter regions</span><span><b>∞</b> expandable worlds</span><span><b>24/7</b> persistent simulation</span></div>
-      </div>
-      <div class="hero-orb"><div class="orb-ring r1"></div><div class="orb-ring r2"></div><div class="orb-core">GRID<br><small>FIRST LIGHT</small></div></div>
-    </section>
-
-    <section class="social-layout" id="discover">
-      <aside class="side-card profile-card">
-        <div class="profile-avatar">G</div><h3>Your Grid Identity</h3><p>Traveler · Creator · Explorer</p>
-        <div class="side-links"><a href="/profile.html">Profile Studio</a><a href="#friends">Friends</a><a href="#messages">Messages</a><a href="#notifications">Notifications</a></div>
-      </aside>
-
-      <section class="feed">
-        <div class="composer">
-          <div class="mini-avatar">G</div><input placeholder="What's happening in your Grid?" /><button>POST</button>
-          <div class="composer-tools"><span>✦ Experience</span><span>▧ Image</span><span>◉ Event</span><span>⌁ Location</span></div>
-        </div>
-        ${posts.map(post => `
-          <article class="post">
-            <div class="post-head"><div class="mini-avatar avatar-${post.avatar}">${post.avatar}</div><div><strong>${post.name}</strong><small>${post.meta}</small></div><button class="more">•••</button></div>
-            <div class="post-tag">${post.tag}</div><p>${post.text}</p>
-            <div class="post-actions"><button>♡ ${post.likes}</button><button>◇ ${post.comments} comments</button><button>↗ Share</button></div>
-          </article>
-        `).join('')}
-      </section>
-
-      <aside class="right-rail">
-        <div class="side-card"><div class="card-title">LIVE IN THE GRID</div><div class="live-row"><span class="dot"></span> First Light <b>128</b></div><div class="live-row"><span class="dot"></span> Neon District <b>74</b></div><div class="live-row"><span class="dot"></span> Verdant Arc <b>51</b></div><a class="card-link" href="#worlds">View all worlds →</a></div>
-        <div class="side-card"><div class="card-title">UPCOMING EVENTS</div><div class="event"><b>NEON NIGHTS</b><small>Tonight · Neon District</small></div><div class="event"><b>CREATOR CAMP</b><small>Saturday · Virtual + IRL</small></div><a class="card-link" href="#events">Explore events →</a></div>
-      </aside>
-    </section>
-
-    <section class="platform" id="communities">
-      <div class="section-label">THE SOCIAL LAYER</div><h2>More than a world.<br><span>A place to belong.</span></h2>
-      <div class="feature-grid">
-        <article><div class="feature-icon">◎</div><h3>Grid Social</h3><p>Profiles, friends, feeds, messages, reactions, sharing and presence—connected to the same identity you use in-world.</p></article>
-        <article><div class="feature-icon">◇</div><h3>Communities & Forums</h3><p>Every world, creator, interest and community can have a home for conversations, guides, ideas and collaboration.</p></article>
-        <article><div class="feature-icon">⌁</div><h3>Grid Connect</h3><p>Bring virtual and real-world experiences together with events, meetups, classes, concerts and hybrid gatherings.</p></article>
-        <article><div class="feature-icon">▣</div><h3>Creator Economy</h3><p>Create worlds, objects and experiences. Discover creations through the web or walk into them in 3D.</p></article>
-      </div>
-    </section>
-
-    <section class="worlds" id="worlds">
-      <div><div class="section-label">FIRST FRONTIER</div><h2>Start somewhere.<br><span>Go anywhere.</span></h2></div>
-      <div class="world-cards">
-        <div class="world-card first"><div><small>01</small><h3>FIRST LIGHT</h3><p>The beginning of the Grid.</p></div><a href="/play.html">ENTER →</a></div>
-        <div class="world-card neon"><div><small>02</small><h3>NEON DISTRICT</h3><p>City lights. Social energy.</p></div><a href="#discover">DISCOVER →</a></div>
-        <div class="world-card verdant"><div><small>03</small><h3>VERDANT ARC</h3><p>Living systems in motion.</p></div><a href="#discover">DISCOVER →</a></div>
-      </div>
-    </section>
-
-    <section class="irllayer" id="events"><div><div class="section-label">GRID CONNECT</div><h2>Virtual or IRL.<br><span>Experience it together.</span></h2><p>Events can exist in the physical world, inside Grid World, or across both. Users choose what they share and where they participate.</p><a class="secondary large" href="#events">BROWSE EVENTS</a></div><div class="event-map"><span>GRID</span><i></i><b>IRL</b></div></section>
-  </main>
-
-  <footer><div class="brand"><span class="brand-mark">◇</span><span>GRID WORLD</span></div><p>A framework for worlds, communities, and experiences.</p><div><a href="#terms">Terms</a><a href="#privacy">Privacy</a><a href="#safety">Safety</a><a href="#status">Status</a></div></footer>
-`;
-
-document.querySelectorAll<HTMLAnchorElement>('nav a').forEach(link => link.addEventListener('click', () => {
-  document.querySelectorAll('nav a').forEach(item => item.classList.remove('active'));
-  link.classList.add('active');
-}));
-
-document.querySelector('#login')?.addEventListener('click', () => {
-  alert('Grid Identity sign-in is coming next. Your in-world identity foundation is already in place.');
-});
+document.querySelectorAll<HTMLAnchorElement>('nav a').forEach(link=>link.addEventListener('click',()=>{document.querySelectorAll('nav a').forEach(item=>item.classList.remove('active'));link.classList.add('active')}));
