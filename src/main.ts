@@ -358,6 +358,7 @@ function savePlayer() {
     regionId: 'first-light',
     updatedAt: new Date().toISOString(),
   };
+  state.regionId = world.regions.findAt(transform.x, transform.z)?.definition.id ?? 'unmapped';
   persistence.savePlayerState(state);
   if (cloudPersistence) cloudPersistence.save(cloudIdentity, state).catch(console.error);
   presence?.update(transform).catch(console.error);
@@ -414,6 +415,7 @@ function animate(now: number) {
   saveTimer += dt;
 
   player.update(dt);
+  world.updateStreaming(player.avatar.position.x, player.avatar.position.z);
   for (const remote of remotePlayers.values()) remote.update(dt);
   for (const avatar of teamAvatars) avatar.update(dt);
   minimap.update();
