@@ -21,7 +21,7 @@ export function createWorldChunkState(
   chunkZ: number,
   now = new Date(),
 ): WorldChunkState {
-  const key = `${regionId}:${chunkX},${chunkZ}`;
+  const key = worldChunkStateKey(regionId, chunkX, chunkZ);
   const seed = hashChunkKey(key);
   return {
     key,
@@ -37,6 +37,10 @@ export function createWorldChunkState(
     lastSimulatedAt: now.toISOString(),
     revision: 1,
   };
+}
+
+export function worldChunkStateKey(regionId: string, chunkX: number, chunkZ: number): string {
+  return `${regionId}:${chunkX},${chunkZ}`;
 }
 
 export function hashChunkKey(key: string): number {
