@@ -7,6 +7,7 @@ export interface WorldChunkStreamerOptions {
   chunkSize?: number;
   loadRadius?: number;
   resolveRegionId?: (worldX: number, worldZ: number) => string;
+  hydrateState?: (state: WorldChunkState) => Promise<WorldChunkState> | WorldChunkState;
 }
 
 export class WorldChunkStreamer {
@@ -16,6 +17,7 @@ export class WorldChunkStreamer {
   private readonly states = new Map<string, WorldChunkState>();
   private readonly store: WorldChunkStore;
   private readonly resolveRegionId: (worldX: number, worldZ: number) => string;
+  private readonly hydrateState: (state: WorldChunkState) => Promise<WorldChunkState> | WorldChunkState;
 
   constructor(
     private readonly scene: THREE.Scene,
@@ -26,6 +28,7 @@ export class WorldChunkStreamer {
     this.loadRadius = options.loadRadius ?? 2;
     this.store = store;
     this.resolveRegionId = options.resolveRegionId ?? (() => 'unclaimed');
+    this.hydrateState = options.hydrateState ?? (state => state);
   }
 
   update(worldX: number, worldZ: number) {
@@ -65,8 +68,9 @@ export class WorldChunkStreamer {
   private async loadState(key: string, regionId: string, x: number, z: number) {
     const existing = await this.store.load(key);
     const state = existing ?? createWorldChunkState(regionId, x, z);
-    this.states.set(key, state);
-    if (!existing) await this.store.save(state);
+    const hydrated = await this.hydrateState(state);
+    this.states.set(key, hydrated);
+    if (!existing) await this.store.save(hydrated);
   }
 
   getState(key: string): WorldChunkState | undefined {
