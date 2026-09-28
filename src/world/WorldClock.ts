@@ -7,7 +7,10 @@ export class WorldClock {
   private elapsedSeconds = 0;
   private lastRealTimeMs = Date.now();
 
-  constructor(private readonly dayLengthSeconds = 1200) {}
+  constructor(
+    private readonly dayLengthSeconds = 1200,
+    private readonly worldEpochMs = Date.UTC(2026, 0, 1),
+  ) {}
 
   update(realTimeMs = Date.now()): number {
     const deltaSeconds = Math.max(0, (realTimeMs - this.lastRealTimeMs) / 1000);
@@ -20,13 +23,21 @@ export class WorldClock {
     return this.elapsedSeconds;
   }
 
+  get worldSeconds(): number {
+    return Math.max(0, (Date.now() - this.worldEpochMs) / 1000);
+  }
+
+  getWorldSeconds(realTimeMs = Date.now()): number {
+    return Math.max(0, (realTimeMs - this.worldEpochMs) / 1000);
+  }
+
   get dayFraction(): number {
-    return (this.elapsedSeconds % this.dayLengthSeconds) / this.dayLengthSeconds;
+    return (this.worldSeconds % this.dayLengthSeconds) / this.dayLengthSeconds;
   }
 
   get state(): WorldClockState {
     return {
-      startedAt: new Date(Date.now() - this.elapsedSeconds * 1000).toISOString(),
+      startedAt: new Date(this.worldEpochMs).toISOString(),
       elapsedSeconds: this.elapsedSeconds,
     };
   }
