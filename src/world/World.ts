@@ -1,9 +1,15 @@
 import * as THREE from 'three';
 import { FIRST_LIGHT_REGION, WorldRegionRegistry } from './WorldRegion';
+import { GRID_WORLD_DEFINITION, type WorldDefinition } from './WorldDefinition';
+import { WorldClock } from './WorldClock';
+import { WorldSimulation } from './WorldSimulation';
 import { WorldAtmosphere } from './WorldAtmosphere';
 import { WorldChunkStreamer } from './WorldChunkStreamer';
 
 export class World {
+  readonly definition: WorldDefinition;
+  readonly clock = new WorldClock();
+  readonly simulation = new WorldSimulation();
   readonly scene = new THREE.Scene();
   readonly regions = new WorldRegionRegistry();
   readonly atmosphere = new WorldAtmosphere();
@@ -13,9 +19,14 @@ export class World {
     new THREE.MeshStandardMaterial({ color: 0x17243b, emissive: 0x1a6a9a, emissiveIntensity: 0.9, metalness: 0.7, roughness: 0.3 })
   );
 
-  constructor() {
+  constructor(definition: WorldDefinition = GRID_WORLD_DEFINITION) {
+    this.definition = definition;
     this.regions.register(FIRST_LIGHT_REGION);
-    this.chunks = new WorldChunkStreamer(this.scene, { chunkSize: 32, loadRadius: 2 });
+    this.chunks = new WorldChunkStreamer(this.scene, {
+      chunkSize: 32,
+      loadRadius: 2,
+      resolveRegionId: (worldX, worldZ) => this.regions.findAt(worldX, worldZ)?.definition.id ?? 'unclaimed',
+    });
     this.chunks.update(0, 0);
 
     this.scene.background = new THREE.Color(0x07111f);
@@ -37,6 +48,24 @@ export class World {
 
   updateStreaming(worldX: number, worldZ: number) {
     this.chunks.update(worldX, worldZ);
+  }
+
+  update(realTimeMs = Date.now()) {
+    const deltaSeconds = this.clock.update(realTimeMs);
+    if (deltaSeconds <= 0) return;
+
+    for (const region of this.regions.all()) {
+      this.atmosphere.set(region.definition.id, this.simulation.conditionsFor(region, this.clock.totalSeconds));
+    }
+
+    for (const state of this.chunks.getLoadedStates()) {
+      const region = this.regions.get(state.regionId);
+      if (!region) continue;
+      const updated = this.simulation.simulateChunk(state, region, deltaSeconds, this.clock.totalSeconds);
+      if (updated !== state) {
+        this.chunks.replaceState(updated);
+      }
+    }
   }
 
   private createLandmark() {
