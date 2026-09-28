@@ -416,6 +416,7 @@ function animate(now: number) {
 
   player.update(dt);
   world.updateStreaming(player.avatar.position.x, player.avatar.position.z);
+  world.update(now);
   for (const remote of remotePlayers.values()) remote.update(dt);
   for (const avatar of teamAvatars) avatar.update(dt);
   minimap.update();
