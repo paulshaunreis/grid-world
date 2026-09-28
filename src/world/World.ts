@@ -14,6 +14,7 @@ export class World {
   readonly regions = new WorldRegionRegistry();
   readonly atmosphere = new WorldAtmosphere();
   readonly chunks: WorldChunkStreamer;
+  private simulationAccumulator = 0;
   readonly neonDoor = new THREE.Mesh(
     new THREE.BoxGeometry(3.2, 4.2, 0.5),
     new THREE.MeshStandardMaterial({ color: 0x17243b, emissive: 0x1a6a9a, emissiveIntensity: 0.9, metalness: 0.7, roughness: 0.3 })
@@ -52,7 +53,10 @@ export class World {
 
   update(realTimeMs = Date.now()) {
     const deltaSeconds = this.clock.update(realTimeMs);
-    if (deltaSeconds <= 0) return;
+    this.simulationAccumulator += deltaSeconds;
+    if (this.simulationAccumulator < 1) return;
+    const simulationDelta = Math.min(this.simulationAccumulator, 10);
+    this.simulationAccumulator = 0;
 
     for (const region of this.regions.all()) {
       this.atmosphere.set(region.definition.id, this.simulation.conditionsFor(region, this.clock.totalSeconds));
@@ -61,9 +65,9 @@ export class World {
     for (const state of this.chunks.getLoadedStates()) {
       const region = this.regions.get(state.regionId);
       if (!region) continue;
-      const updated = this.simulation.simulateChunk(state, region, deltaSeconds, this.clock.totalSeconds);
+      const updated = this.simulation.simulateChunk(state, region, simulationDelta, this.clock.totalSeconds);
       if (updated !== state) {
-        this.chunks.replaceState(updated);
+        this.chunks.setState(updated);
       }
     }
   }
