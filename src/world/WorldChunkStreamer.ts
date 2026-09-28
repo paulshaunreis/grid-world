@@ -54,6 +54,8 @@ export class WorldChunkStreamer {
     for (const [key, chunk] of this.loaded) {
       if (needed.has(key)) continue;
       this.scene.remove(chunk.group);
+      const state = this.states.get(key);
+      if (state) void this.store.save(state);
       chunk.dispose();
       this.loaded.delete(key);
       this.states.delete(key);
@@ -69,6 +71,10 @@ export class WorldChunkStreamer {
 
   getState(key: string): WorldChunkState | undefined {
     return this.states.get(key);
+  }
+
+  setState(state: WorldChunkState) {
+    this.states.set(state.key, state);
   }
 
   getLoaded(): WorldChunk[] {
