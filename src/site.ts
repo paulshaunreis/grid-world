@@ -1,3 +1,5 @@
+import './site.css';
+
 const app = document.querySelector<HTMLDivElement>('#site')!;
 
 const navItems = ['Home', 'Discover', 'Communities', 'Events', 'Marketplace', 'Creator Hub'];
