@@ -6,11 +6,14 @@ export type OmniEntryKind =
   | 'transfer'
   | 'reversal';
 
+export type OmniEntryDirection = 'credit' | 'debit';
+
 export interface OmniLedgerEntry {
   readonly id: string;
   readonly accountId: string;
   readonly asset: OmniAssetDefinition;
   readonly kind: OmniEntryKind;
+  readonly direction: OmniEntryDirection;
   readonly amountMinor: bigint;
   readonly referenceType: string;
   readonly referenceId: string;
@@ -40,11 +43,10 @@ export function calculateBalance(
   for (const entry of entries) {
     if (entry.accountId !== accountId || entry.asset.id !== assetId) continue;
 
-    if (entry.kind === 'credit' || entry.kind === 'reversal') {
-      amountMinor += entry.amountMinor;
-    } else {
-      amountMinor -= entry.amountMinor;
-    }
+    amountMinor +=
+      entry.direction === 'credit'
+        ? entry.amountMinor
+        : -entry.amountMinor;
   }
 
   return {
