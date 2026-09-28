@@ -13,6 +13,7 @@ import { GridScriptRegistry } from './scripting/GridScriptRegistry';
 import { parseGridScript } from './scripting/GridScript';
 import { TeamAvatar } from './avatars/TeamAvatar';
 import { TEAM_AVATARS } from './avatars/teamRoster';
+import { Minimap } from './ui/Minimap';
 import './style.css';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -122,6 +123,35 @@ let cloudIdentity = identity;
 const remotePlayers = new Map<string, RemotePlayer>();
 const teamAvatars = TEAM_AVATARS.map(definition => new TeamAvatar(definition));
 for (const avatar of teamAvatars) world.scene.add(avatar.group);
+
+const minimap = new Minimap({
+  regions: world.regions,
+  getPlayer: () => ({
+    x: player.avatar.position.x,
+    z: player.avatar.position.z,
+    yaw: player.heading,
+  }),
+  getMarkers: () => [
+    { id: 'player', x: player.avatar.position.x, z: player.avatar.position.z, kind: 'player' },
+    ...teamAvatars.map(avatar => ({
+      id: avatar.definition.id,
+      x: avatar.group.position.x,
+      z: avatar.group.position.z,
+      kind: 'team' as const,
+    })),
+    ...[...remotePlayers.values()].map(remote => ({
+      id: remote.id,
+      x: remote.group.position.x,
+      z: remote.group.position.z,
+      kind: 'player' as const,
+    })),
+    { id: 'central-landmark', x: 0, z: -22, kind: 'landmark' as const },
+    { id: 'world-beacon', x: 0, z: -7, kind: 'interactable' as const },
+    { id: 'neon-door', x: 0, z: -14, kind: 'interactable' as const },
+  ],
+});
+hud.appendChild(minimap.element);
+
 let presence: SupabasePresence | null = null;
 
 if (cloudPersistence) {
@@ -386,6 +416,7 @@ function animate(now: number) {
   player.update(dt);
   for (const remote of remotePlayers.values()) remote.update(dt);
   for (const avatar of teamAvatars) avatar.update(dt);
+  minimap.update();
   if (presenceTimer >= 0.25) {
     presence?.update(player.getTransform()).catch(console.error);
     presenceTimer = 0;
