@@ -6,6 +6,7 @@ import { LocalWorldChunkStore, type WorldChunkStore } from './WorldChunkStore';
 export interface WorldChunkStreamerOptions {
   chunkSize?: number;
   loadRadius?: number;
+  resolveRegionId?: (worldX: number, worldZ: number) => string;
 }
 
 export class WorldChunkStreamer {
@@ -14,11 +15,17 @@ export class WorldChunkStreamer {
   private readonly loaded = new Map<string, WorldChunk>();
   private readonly states = new Map<string, WorldChunkState>();
   private readonly store: WorldChunkStore;
+  private readonly resolveRegionId: (worldX: number, worldZ: number) => string;
 
-  constructor(private readonly scene: THREE.Scene, options: WorldChunkStreamerOptions = {}, store: WorldChunkStore = new LocalWorldChunkStore()) {
+  constructor(
+    private readonly scene: THREE.Scene,
+    options: WorldChunkStreamerOptions = {},
+    store: WorldChunkStore = new LocalWorldChunkStore(),
+  ) {
     this.chunkSize = options.chunkSize ?? 32;
     this.loadRadius = options.loadRadius ?? 2;
     this.store = store;
+    this.resolveRegionId = options.resolveRegionId ?? (() => 'unclaimed');
   }
 
   update(worldX: number, worldZ: number) {
@@ -29,13 +36,16 @@ export class WorldChunkStreamer {
       for (let dx = -this.loadRadius; dx <= this.loadRadius; dx += 1) {
         const x = center.x + dx;
         const z = center.z + dz;
-        const key = WorldChunk.keyOf(x, z);
-        needed.add(key);
+        const chunkWorldX = x * this.chunkSize;
+        const chunkWorldZ = z * this.chunkSize;
+        const regionId = this.resolveRegionId(chunkWorldX, chunkWorldZ);
+        const stateKey = createWorldChunkState(regionId, x, z).key;
+        needed.add(stateKey);
 
-        if (!this.loaded.has(key)) {
+        if (!this.loaded.has(stateKey)) {
           const chunk = new WorldChunk({ x, z }, this.chunkSize);
-          this.loaded.set(key, chunk);
-          void this.loadState(key, x, z);
+          this.loaded.set(stateKey, chunk);
+          void this.loadState(stateKey, regionId, x, z);
           this.scene.add(chunk.group);
         }
       }
@@ -46,12 +56,13 @@ export class WorldChunkStreamer {
       this.scene.remove(chunk.group);
       chunk.dispose();
       this.loaded.delete(key);
+      this.states.delete(key);
     }
   }
 
-  private async loadState(key: string, x: number, z: number) {
+  private async loadState(key: string, regionId: string, x: number, z: number) {
     const existing = await this.store.load(key);
-    const state = existing ?? createWorldChunkState('first-light', x, z);
+    const state = existing ?? createWorldChunkState(regionId, x, z);
     this.states.set(key, state);
     if (!existing) await this.store.save(state);
   }
