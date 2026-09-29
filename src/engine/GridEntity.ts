@@ -93,7 +93,7 @@ export class GridEntity {
     for (const component of this.components.values()) component.update?.(this, deltaSeconds);
   }
 
-  snapshot(): GridEntitySnapshot {
+  entitySnapshot(): GridEntitySnapshot {
     const components: Record<string, Record<string, unknown>> = {};
     for (const [type, component] of this.components) components[type] = component.serialize?.() ?? {};
     return {
