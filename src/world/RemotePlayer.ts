@@ -24,13 +24,13 @@ export class RemotePlayer {
     this.id = state.id;
     this.body = new THREE.Mesh(
       new THREE.CapsuleGeometry(0.45, 0.9, 4, 8),
-      new THREE.MeshStandardMaterial({ color: palettes.azure.body, roughness: 0.7 })
+      new THREE.MeshStandardMaterial({ color: palettes.navigator.body, roughness: 0.7 })
     );
     this.body.position.y = 1.05;
 
     this.visor = new THREE.Mesh(
       new THREE.SphereGeometry(0.27, 16, 12),
-      new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: palettes.azure.visor, emissiveIntensity: 0.7 })
+      new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: palettes.navigator.visor, emissiveIntensity: 0.7 })
     );
     this.visor.position.set(0, 1.55, -0.28);
 
