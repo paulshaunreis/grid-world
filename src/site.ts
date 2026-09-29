@@ -194,6 +194,24 @@ app.innerHTML = `
 const liveFeedRoot = document.querySelector<HTMLElement>('#grid-pulse');
 if (liveFeedRoot) mountGridLiveFeed(liveFeedRoot);
 
+const motionObserver = new IntersectionObserver(entries => {
+  for (const entry of entries) {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('is-visible');
+      motionObserver.unobserve(entry.target);
+    }
+  }
+}, { threshold: 0.12 });
+
+document.querySelectorAll<HTMLElement>('section, .feature-card, .world-card, .atlas-card, .market-grid article, .social-tools-grid article, .system-map-grid a').forEach((element, index) => {
+  element.classList.add('reveal-ready');
+  if (element.matches('.feature-grid, .world-cards, .atlas-grid, .market-grid, .social-tools-grid, .system-map-grid')) {
+    element.classList.add('reveal-stagger');
+  }
+  element.style.setProperty('--reveal-index', String(index % 8));
+  motionObserver.observe(element);
+});
+
 function toast(message: string) {
   const element = document.querySelector<HTMLDivElement>('#site-toast');
   if (!element) return;
