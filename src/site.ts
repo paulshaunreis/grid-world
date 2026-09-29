@@ -1,6 +1,8 @@
 import './site.css';
+import { QRScanner } from './ui/QRScanner';
 
 const app = document.querySelector<HTMLDivElement>('#site')!;
+const qrScanner = new QRScanner();
 
 const navItems = ['Home', 'Discover', 'Communities', 'Events', 'Marketplace', 'Creator Hub'];
 const siteStyles = ['aurora', 'studio', 'terminal', 'garden'] as const;
@@ -21,6 +23,7 @@ app.innerHTML = `
     <nav>${navItems.map((item, i) => `<a href="#${item.toLowerCase().replaceAll(' ', '-')}" class="${i === 0 ? 'active' : ''}">${item}</a>`).join('')}</nav>
     <div class="header-actions">
       <button class="ghost style-trigger" id="style-trigger" type="button">STYLE</button>
+      <button class="ghost" id="site-qr" type="button">QR</button>
       <a class="ghost" href="/profile.html">PROFILE</a>
       <a class="primary" href="/play.html">ENTER WORLD</a>
     </div>
@@ -192,6 +195,8 @@ document.querySelectorAll<HTMLAnchorElement>('nav a').forEach(link => link.addEv
   document.querySelectorAll('nav a').forEach(item => item.classList.remove('active'));
   link.classList.add('active');
 }));
+
+document.querySelector('#site-qr')?.addEventListener('click', () => qrScanner.open());
 
 document.querySelector('#style-trigger')?.addEventListener('click', () => {
   document.querySelector('#style-panel')?.classList.toggle('open');
