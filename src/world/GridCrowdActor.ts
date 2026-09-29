@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { createStarterPBRMaterial } from '../engine/GridPBRLibrary';
 import { GridNpcBrain, type GridNpcPersonality } from '../npc/GridNpcBrain';
 
 export type GridActorKind = 'npc' | 'animal' | 'user-test';
@@ -35,21 +36,21 @@ export class GridCrowdActor {
 
     this.body = new THREE.Mesh(
       isAnimal ? new THREE.CapsuleGeometry(.32, .65, 4, 8) : new THREE.CapsuleGeometry(.38, .78, 4, 8),
-      new THREE.MeshStandardMaterial({ color, roughness: .66, metalness: isAnimal ? .05 : .24 }),
+      createStarterPBRMaterial(isAnimal ? 'foliage' : 'fabric', { color: '#' + color.toString(16).padStart(6,'0'), roughness: .66, metalness: isAnimal ? .05 : .24 }),
     );
     this.body.position.y = isAnimal ? .62 : .92;
     this.body.castShadow = true;
 
     this.head = new THREE.Mesh(
       isAnimal ? new THREE.SphereGeometry(.34, 12, 8) : new THREE.SphereGeometry(.29, 14, 10),
-      new THREE.MeshStandardMaterial({ color: 0xd7c4b2, roughness: .78 }),
+      createStarterPBRMaterial('skin', { color: '#d7c4b2', roughness: .78 }),
     );
     this.head.position.set(0, isAnimal ? 1.16 : 1.48, isAnimal ? -.28 : -.2);
     this.head.castShadow = true;
 
     this.accent = new THREE.Mesh(
       isAnimal ? new THREE.TorusGeometry(.18, .045, 6, 16) : new THREE.BoxGeometry(.18, .42, .05),
-      new THREE.MeshStandardMaterial({ color: accent, emissive: accent, emissiveIntensity: .65, metalness: .55, roughness: .28 }),
+      createStarterPBRMaterial('technical', { color: '#' + accent.toString(16).padStart(6,'0'), emissive: '#' + accent.toString(16).padStart(6,'0'), emissiveIntensity: .65, metalness: .55, roughness: .28 }),
     );
     this.accent.position.set(0, isAnimal ? 1.16 : 1.22, -.42);
 
