@@ -51,7 +51,12 @@ const baseColors: Record<GridPBRFamily, string> = {
   foliage:'#3e6d4b', fabric:'#725d68', glass:'#a8dce5', technical:'#26394a', skin:'#c58f72',
 };
 
+const textureCache = new Map<string, { color: THREE.CanvasTexture; normal: THREE.CanvasTexture }>();
+
 function starterMap(seed: string, base: string, roughness: number) {
+  const cached = textureCache.get(seed + base);
+  if (cached) return cached;
+
   const canvas = document.createElement('canvas');
   canvas.width = 256; canvas.height = 256;
   const ctx = canvas.getContext('2d')!;
@@ -69,27 +74,28 @@ function starterMap(seed: string, base: string, roughness: number) {
     ctx.fillRect(x, y, size, size);
   }
   ctx.globalAlpha = 1;
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.repeat.set(4, 4);
-  return texture;
-}
 
-export function createStarterPBRMaterial(
-  family: GridPBRFamily,
-  options: { color?: string; metalness?: number; roughness?: number; emissive?: string; emissiveIntensity?: number } = {},
-) {
-  const base = options.color ?? baseColors[family];
-  const roughness = options.roughness ?? (family === 'metal' ? .3 : family === 'glass' ? .12 : .82);
-  const material = new THREE.MeshStandardMaterial({
-    color: 0xffffff,
-    map: starterMap(family + base, base, roughness),
-    roughness,
-    metalness: options.metalness ?? (family === 'metal' ? .8 : family === 'technical' ? .45 : 0),
-    emissive: options.emissive ?? '#000000',
-    emissiveIntensity: options.emissiveIntensity ?? 0,
-  });
-  material.normalScale.set(.18, .18);
-  return material;
+  const normalCanvas = document.createElement('canvas');
+  normalCanvas.width = 256; normalCanvas.height = 256;
+  const nctx = normalCanvas.getContext('2d')!;
+  nctx.fillStyle = '#8080ff'; nctx.fillRect(0, 0, 256, 256);
+  nctx.globalAlpha = .2;
+  nctx.fillStyle = '#ffffff';
+  for (let i = 0; i < 260; i++) {
+    const x = (i * 73 + seed.length * 11) % 256;
+    const y = (i * 41 + seed.length * 17) % 256;
+    nctx.fillRect(x, y, 1 + (i % 4), 1 + (i % 3));
+  }
+  nctx.globalAlpha = 1;
+
+  const color = new THREE.CanvasTexture(canvas);
+  const normal = new THREE.CanvasTexture(normalCanvas);
+  for (const texture of [color, normal]) {
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(4, 4);
+  }
+  color.colorSpace = THREE.SRGBColorSpace;
+  const pair = { color, normal };
+  textureCache.set(seed + base, pair);
+  return pair;
 }
