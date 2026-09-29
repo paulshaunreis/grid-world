@@ -36,6 +36,7 @@ import { createGridFreeObject } from './engine/GridFreeObjectLibrary';
 import { GridTeleportSystem, createTeleportGate, createTeleportPylon } from './engine/GridTeleport';
 import { GridLivingWorld } from './world/GridLivingWorld';
 import { GRID_MODEL_SOURCES } from './engine/GridModelLibrary';
+import { installGridWorldArtDirector } from './world-art-director';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
@@ -259,6 +260,7 @@ chatCompose.addEventListener('submit', event => {
 });
 
 const world = new World();
+const artDirector = installGridWorldArtDirector(world.scene);
 const engine = new GridEngine('client', world.scene);
 engine.register(new GridEngineCore());
 engine.register(new GridEntitySystem());
@@ -988,6 +990,7 @@ function animate(now: number) {
   world.updateStreaming(player.avatar.position.x, player.avatar.position.z);
   world.update();
   livingWorld.update(dt);
+  artDirector.update(dt);
   for (const remote of remotePlayers.values()) remote.update(dt);
   for (const avatar of teamAvatars) avatar.update(dt);
   for (const actor of crowdActors) actor.update(dt);
