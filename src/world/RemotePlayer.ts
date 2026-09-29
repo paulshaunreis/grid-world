@@ -1,11 +1,13 @@
 import * as THREE from 'three';
 import type { RemotePlayerState } from '../network/Presence';
 
-const palettes = {
-  azure: { body: 0x66ccff, visor: 0x224466 },
-  sunset: { body: 0xff7f50, visor: 0x663322 },
-  forest: { body: 0x4fd18b, visor: 0x164a35 },
-  violet: { body: 0xb184ff, visor: 0x3d2266 },
+const palettes: Record<RemotePlayerState['avatarStyle'], { body: number; visor: number }> = {
+  navigator: { body: 0x5fd8ff, visor: 0x16465a }, muse: { body: 0xd58cff, visor: 0x4c285e },
+  explorer: { body: 0xffad62, visor: 0x66351b }, builder: { body: 0xb18a62, visor: 0x543b24 },
+  scholar: { body: 0x9aaee8, visor: 0x263444 }, sentinel: { body: 0xd5c47c, visor: 0x4b3d1e },
+  wanderer: { body: 0x79c98b, visor: 0x17473f }, artist: { body: 0xef76b4, visor: 0x57263e },
+  ranger: { body: 0x719c66, visor: 0x35402a }, architect: { body: 0x78a5bd, visor: 0x1c3139 },
+  guardian: { body: 0x7182c8, visor: 0x2d3264 }, signal: { body: 0x65e6c8, visor: 0x1d4935 },
 };
 
 export class RemotePlayer {
@@ -63,7 +65,7 @@ export class RemotePlayer {
   setState(state: RemotePlayerState) {
     this.target.set(state.x, state.y, state.z);
     this.targetYaw = state.yaw;
-    const palette = palettes[state.avatarStyle] ?? palettes.azure;
+    const palette = palettes[state.avatarStyle] ?? palettes.navigator;
     (this.body.material as THREE.MeshStandardMaterial).color.setHex(palette.body);
     (this.visor.material as THREE.MeshStandardMaterial).emissive.setHex(palette.visor);
     this.drawName(state.displayName);
