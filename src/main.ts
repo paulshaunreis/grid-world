@@ -22,6 +22,9 @@ import { StarterZone } from './world/StarterZone';
 import { GridSentinel } from './world/GridSentinel';
 import { GridOmniGuard } from './core/GridOmniGuard';
 import { compileGridCode } from './scripting/GridCodeRuntime';
+import { GridEngine } from './engine/GridEngine';
+import { ThreeGridRenderer } from './engine/ThreeGridRenderer';
+import { GridSimulationClock } from './engine/GridEngineRuntime';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
@@ -145,6 +148,8 @@ chatCompose.addEventListener('submit', event => {
 });
 
 const world = new World();
+const engine = new GridEngine('client', world.scene);
+engine.register(new GridSimulationClock());
 const starterZone = new StarterZone();
 world.scene.add(starterZone.group);
 const omniGuard = new GridOmniGuard();
@@ -386,6 +391,8 @@ renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = true;
 app.appendChild(renderer.domElement);
+engine.setRenderer(new ThreeGridRenderer(renderer));
+void engine.start();
 
 const interaction = new InteractionSystem(camera, world.scene);
 const prompt = document.querySelector<HTMLDivElement>('#interaction-prompt')!;
@@ -594,6 +601,7 @@ function animate(now: number) {
   presenceTimer += dt;
   saveTimer += dt;
 
+  const frame = engine.update(dt);
   player.update(dt);
   world.updateStreaming(player.avatar.position.x, player.avatar.position.z);
   world.update();
@@ -628,7 +636,7 @@ function animate(now: number) {
   prompt.classList.toggle('visible', Boolean(targetObject));
   if (targetObject) prompt.textContent = `E · ${targetObject.name}`;
 
-  renderer.render(world.scene, camera);
+  engine.render(camera, frame);
   requestAnimationFrame(animate);
 }
 
@@ -638,4 +646,5 @@ addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
+  engine.resize(innerWidth, innerHeight, devicePixelRatio);
 });
