@@ -201,3 +201,45 @@ Grid Engine 0.1 now has an explicit engine-core subsystem. Its responsibilities 
 - remain independent of the current Three.js renderer
 
 The engine should grow outward from these contracts: entity/object model, Grid World Format, authoritative simulation, networking, asset lifecycle, creator preview, and replaceable renderer backends.
+
+
+## Grid Engine 0.1 — Entity & Object System
+
+Everything persistent in the Grid world is represented through a stable entity/object contract.
+
+```
+Grid Entity
+├── Transform (GU canonical)
+├── Metadata
+├── Components
+└── Stable ID
+
+Grid Object
+├── Entity
+├── Kind
+├── Permissions
+└── Provenance
+```
+
+Supported object kinds begin with structures, props, terrain, avatars, NPCs, plants, creatures, vehicles, items, and landmarks.
+
+### Grid World Format
+
+The first versioned object document uses:
+
+- `format: grid-world`
+- `version: 1`
+- stable object/entity ID
+- transform in Grid Units
+- metadata and tags
+- component payloads
+- permissions
+- provenance/version/hash fields
+
+The format is data-first and renderer-independent. A Three.js mesh is a presentation of a Grid object, not the object's identity.
+
+### Engine 0.1 rule
+
+**Identity belongs to Grid. Presentation belongs to the renderer.**
+
+This permits the same object to be represented in browser, native, editor, server, archive, or future renderer implementations without changing its world identity.
