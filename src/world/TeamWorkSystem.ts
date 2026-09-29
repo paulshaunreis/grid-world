@@ -57,7 +57,7 @@ export const TEAM_WORK_TASKS: WorkTask[] = SEED_TASKS;
 
 function findMember(id: string) { return TEAM_AVATARS.find(member => member.id === id); }
 
-export function createTeamWorkSystem() {
+export function createTeamWorkSystem(teamAvatars: Array<{ definition: { id: string }; group: THREE.Group }> = []) {
   const root = new THREE.Group();
   root.name = 'team-live-work';
   const workstations: THREE.Group[] = [];
@@ -65,6 +65,18 @@ export function createTeamWorkSystem() {
   for (const task of TEAM_WORK_TASKS) {
     const member = findMember(task.memberId);
     if (!member) continue;
+
+    const avatar = teamAvatars.find(candidate => candidate.definition.id === task.memberId);
+    if (avatar) {
+      const workAura = new THREE.Mesh(
+        new THREE.TorusGeometry(.58, .018, 6, 24),
+        new THREE.MeshBasicMaterial({ color: task.public ? 0x68d9ff : 0xffb66e, transparent: true, opacity: .5 }),
+      );
+      workAura.rotation.x = Math.PI / 2;
+      workAura.position.y = .04;
+      workAura.userData.workTask = task.title;
+      avatar.group.add(workAura);
+    }
 
     const station = new THREE.Group();
     station.name = 'workstation-' + task.memberId;
@@ -128,6 +140,7 @@ export function createTeamWorkSystem() {
         material.emissiveIntensity = 1.0 + Math.sin(elapsed * 3 + station.position.x) * .25;
       }
       station.children[2].scale.y = 1 + Math.sin(elapsed * 2 + station.position.z) * .08;
+      for (const avatar of teamAvatars) avatar.group.children.forEach(child => { if (child.userData.workTask === task.title) child.rotation.z += dt * .6; });
       station.rotation.y += dt * .01;
     }
   }
