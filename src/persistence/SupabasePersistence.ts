@@ -27,7 +27,12 @@ export class SupabasePersistence {
 
     const { error } = await this.client.from('player_state').upsert({
       user_id: identity.id,
-      ...state,
+      region_id: state.regionId,
+      x: state.x,
+      y: state.y,
+      z: state.z,
+      yaw: state.yaw,
+      updated_at: state.updatedAt,
     });
     if (error) throw error;
   }
