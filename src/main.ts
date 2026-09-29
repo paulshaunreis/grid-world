@@ -206,24 +206,6 @@ uiEditButton.addEventListener('click', () => {
   uiResetButton.hidden = !windowManager.isEditMode();
 });
 
-windowManager.register({
-  id: 'creator-console',
-  title: 'Creator Console',
-  element: creatorPanel,
-  defaultPosition: { x: 0, y: 0 },
-  movable: true,
-  resizable: true,
-});
-
-windowManager.register({
-  id: 'traveler-profile',
-  title: 'Traveler Profile',
-  element: identityPanel,
-  defaultPosition: { x: 0, y: 0 },
-  movable: true,
-  resizable: true,
-});
-
 let presence: SupabasePresence | null = null;
 
 if (cloudPersistence) {
@@ -345,6 +327,25 @@ const identitySave = document.querySelector<HTMLButtonElement>('#identity-save')
 const identityCancel = document.querySelector<HTMLButtonElement>('#identity-cancel')!;
 const avatarOptions = document.querySelector<HTMLDivElement>('#avatar-options')!;
 const hudOptions = document.querySelector<HTMLDivElement>('#hud-options')!;
+windowManager.register({
+  id: 'creator-console',
+  title: 'Creator Console',
+  element: creatorPanel,
+  defaultPosition: { x: 0, y: 0 },
+  movable: true,
+  resizable: true,
+});
+
+windowManager.register({
+  id: 'traveler-profile',
+  title: 'Traveler Profile',
+  element: identityPanel,
+  defaultPosition: { x: 0, y: 0 },
+  movable: true,
+  resizable: true,
+});
+
+
 
 windowManager.setEditMode(false);
 
