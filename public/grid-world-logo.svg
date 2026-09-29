@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-labelledby="title desc">
+<title id="title">Grid World</title>
+<desc id="desc">A luminous blue and gold orbital grid globe inside a compass shield.</desc>
+<defs>
+<radialGradient id="globe" cx="45%" cy="35%"><stop stop-color="#eaffff"/><stop offset=".22" stop-color="#59e9ff"/><stop offset=".62" stop-color="#2768d9"/><stop offset="1" stop-color="#111b4f"/></radialGradient>
+<linearGradient id="metal" x1="0" x2="1"><stop stop-color="#08132e"/><stop offset=".5" stop-color="#1e5ca8"/><stop offset="1" stop-color="#07132a"/></linearGradient>
+<linearGradient id="gold" x1="0" x2="1"><stop stop-color="#ffe8a1"/><stop offset=".45" stop-color="#d9942e"/><stop offset="1" stop-color="#fff1ad"/></linearGradient>
+<filter id="glow"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<g transform="translate(400 330)">
+<path d="M0-305 L75-220 L210-205 L290-90 L270 70 L170 200 L0 305 L-170 200 L-270 70 L-290-90 L-210-205 L-75-220 Z" fill="url(#metal)" stroke="#67dcff" stroke-width="8"/>
+<circle r="205" fill="#06122b" stroke="#48dcff" stroke-width="10" filter="url(#glow)"/>
+<circle r="178" fill="url(#globe)" stroke="#b7f7ff" stroke-width="4"/>
+<g fill="none" stroke="#b9f9ff" stroke-width="2" opacity=".55"><ellipse rx="178" ry="68"/><ellipse rx="178" ry="125"/><ellipse rx="74" ry="178"/><ellipse rx="145" ry="178"/><path d="M-178 0H178M0-178V178"/></g>
+<g fill="none" stroke="url(#gold)" stroke-width="13" filter="url(#glow)"><ellipse rx="275" ry="72" transform="rotate(-17)"/><ellipse rx="278" ry="70" transform="rotate(18)"/></g>
+<circle cx="240" cy="75" r="15" fill="#fff2a5" stroke="#d9902f" stroke-width="6"/>
+<path d="M0-245L18-18L245 0L18 18L0 245L-18 18L-245 0L-18-18Z" fill="none" stroke="url(#gold)" stroke-width="8"/>
+</g>
+<g transform="translate(70 570)">
+<path d="M0 0 H660 L625 120 H35 Z" fill="#07142e" stroke="#55ddff" stroke-width="7"/>
+<path d="M20 22 H640 L615 98 H45 Z" fill="none" stroke="#d9a13b" stroke-width="4"/>
+<text x="330" y="84" text-anchor="middle" fill="#eefcff" font-family="Arial, Helvetica, sans-serif" font-size="62" font-weight="900" letter-spacing="8">GRID WORLD</text>
+<path d="M325 43 l10 10 l-10 10 l-10-10z" fill="#5de9ff"/>
+</g>
+</svg>
