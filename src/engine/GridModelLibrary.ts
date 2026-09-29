@@ -28,4 +28,14 @@ export const GRID_MODEL_SOURCES: readonly GridModelSource[] = [
   { id:'grid.original.navigator', family:'avatar', name:'Grid Navigator', source:'Grid World Original', url:'/avatars.html', license:'Grid World Original', animated:true, role:'Canonical Grid avatar family', runtimeMode:'selected' },
 ];
 
+export const AURORA_ART_DIRECTION = {
+  identity: 'Aurora / Muse',
+  palette: { skin: 0x4f79b7, hair: 0x9b67d8, eyes: 0xffe84a, neonCyan: 0x37e8ff, neonMagenta: 0xff4fd8, armor: 0x101521, galaxy: 0x735cff, accentGold: 0xffd36a },
+  silhouette: 'athletic utility silhouette with layered luminous technical outerwear',
+  materials: 'wet reflective surfaces, translucent iridescent panels, starfield/nebula accents, restrained emissive circuitry',
+  animation: 'calm grounded idle, subtle weight shift, responsive head/eye motion, purposeful traversal',
+  environment: 'rain-slick neon city, cosmic interfaces, gallery and market districts',
+  symbol: 'luminous feather / Muse signal',
+} as const;
+
 export const GRID_MODEL_FAMILIES = ['building','avatar','animal','plant','tree'] as const;
