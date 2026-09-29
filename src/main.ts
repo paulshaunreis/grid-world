@@ -31,6 +31,7 @@ import { GridEntitySystem } from './engine/GridEntitySystem';
 import { GridCrowdActor, type GridActorDefinition } from './world/GridCrowdActor';
 import { createGridOmniGuardLayer } from './world/GridOmniGuardPylon';
 import { GridVoiceSystem } from './audio/GridVoiceSystem';
+import { GridAudioSystem } from './audio/GridAudioSystem';
 import { createGridFreeObject } from './engine/GridFreeObjectLibrary';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -134,8 +135,10 @@ const chatCompose = document.querySelector<HTMLFormElement>('#chat-compose')!;
 const chatInput = document.querySelector<HTMLInputElement>('#chat-input')!;
 const voiceTargetButton = document.querySelector<HTMLButtonElement>('#voice-target')!;
 const voice = new GridVoiceSystem();
+const audio = new GridAudioSystem();
 
 function addChatMessage(sender: string, message: string, kind: 'player' | 'system' | 'team' = 'player') {
+  if (kind !== 'player') audio.play('chat.receive');
   const row = document.createElement('div');
   row.className = 'chat-message chat-' + kind;
   const name = document.createElement('span');
@@ -158,6 +161,7 @@ function respondToVoiceTarget(utterance: string) {
   const text = utterance.trim();
   if (!target) {
     addChatMessage('GRID', 'I heard you, but there is no target in your crosshair.', 'system');
+    audio.play('ui.error');
     voice.speak('grid', 'I heard you, but there is no target in your crosshair.');
     return;
   }
@@ -223,6 +227,7 @@ voiceTargetButton.addEventListener('click', async () => {
     addChatMessage('GRID', 'Speech input is not available in this browser. Text chat remains active.', 'system');
     return;
   }
+  audio.play('ui.focus');
   voiceTargetButton.textContent = 'LISTENING…';
   const transcript = await voice.listenOnce();
   voiceTargetButton.textContent = 'MIC';
@@ -762,6 +767,7 @@ addEventListener('keydown', event => {
         const teamAvatar = teamAvatars.find(avatar => avatar.definition.id === teamAvatarId);
         if (teamAvatar) prompt.textContent = `E · ${teamAvatar.definition.displayName} · ${teamAvatar.interact()}`;
       }
+      audio.play('ui.confirm');
       scriptedObjects.dispatch(result.object, 'player interacts');
       result.object.userData.interacted = true;
 
@@ -786,6 +792,7 @@ addEventListener('beforeunload', savePlayer);
 addEventListener('beforeunload', () => { presence?.disconnect().catch(() => undefined); });
 
 let last = performance.now();
+let lastFootstepPosition = player.avatar.position.clone();
 
 function animate(now: number) {
   const dt = Math.min((now - last) / 1000, 0.05);
@@ -795,6 +802,10 @@ function animate(now: number) {
 
   const frame = engine.update(dt);
   player.update(dt);
+  if (player.avatar.position.distanceToSquared(lastFootstepPosition) > 0.22) {
+    audio.play('world.footstep', firstPerson ? .7 : .45);
+    lastFootstepPosition.copy(player.avatar.position);
+  }
   world.updateStreaming(player.avatar.position.x, player.avatar.position.z);
   world.update();
   for (const remote of remotePlayers.values()) remote.update(dt);
@@ -804,6 +815,7 @@ function animate(now: number) {
   npcChatTimer -= dt;
   if (npcChatTimer <= 0) {
     const [speakerA, speakerB, lineA, lineB] = npcChatPairs[npcChatIndex % npcChatPairs.length];
+    audio.play('chat.receive', .7);
     const actorA = crowdActors.find(actor => actor.definition.displayName === speakerA);
     const actorB = crowdActors.find(actor => actor.definition.displayName === speakerB);
     if (actorA && actorB) {
