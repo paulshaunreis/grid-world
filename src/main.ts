@@ -30,6 +30,8 @@ import { GridEngineCore } from './engine/GridEngineCore';
 import { GridEntitySystem } from './engine/GridEntitySystem';
 import { GridCrowdActor, type GridActorDefinition } from './world/GridCrowdActor';
 import { createGridOmniGuardLayer } from './world/GridOmniGuardPylon';
+import { GridVoiceSystem } from './audio/GridVoiceSystem';
+import { createGridFreeObject } from './engine/GridFreeObjectLibrary';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
@@ -120,7 +122,7 @@ hud.innerHTML = `
     <div class="chat-messages" id="chat-messages" aria-live="polite"></div>
     <form class="chat-compose" id="chat-compose">
       <input id="chat-input" maxlength="240" autocomplete="off" placeholder="Say something…" aria-label="Chat message" />
-      <button type="submit" aria-label="Send message">SEND</button>
+      <button type="button" id="voice-target" aria-label="Speak to the current target">MIC</button><button type="submit" aria-label="Send message">SEND</button>
     </form>
   </section>
   <div class="status" id="status">FIRST LIGHT · Connecting…</div>
@@ -130,6 +132,8 @@ const status = document.querySelector<HTMLDivElement>('#status')!;
 const chatMessages = document.querySelector<HTMLDivElement>('#chat-messages')!;
 const chatCompose = document.querySelector<HTMLFormElement>('#chat-compose')!;
 const chatInput = document.querySelector<HTMLInputElement>('#chat-input')!;
+const voiceTargetButton = document.querySelector<HTMLButtonElement>('#voice-target')!;
+const voice = new GridVoiceSystem();
 
 function addChatMessage(sender: string, message: string, kind: 'player' | 'system' | 'team' = 'player') {
   const row = document.createElement('div');
@@ -146,7 +150,89 @@ function addChatMessage(sender: string, message: string, kind: 'player' | 'syste
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-addChatMessage('GRID', 'Welcome to First Light. Chat is ready.', 'system');
+addChatMessage('GRID', 'Welcome to First Light. Chat is ready. MIC speaks to the object, NPC, or team member in your crosshair.', 'system');
+
+
+function respondToVoiceTarget(utterance: string) {
+  const target = interaction.findTarget();
+  const text = utterance.trim();
+  if (!target) {
+    addChatMessage('GRID', 'I heard you, but there is no target in your crosshair.', 'system');
+    voice.speak('grid', 'I heard you, but there is no target in your crosshair.');
+    return;
+  }
+
+  const npcBrain = target.object.userData.gridNpcBrain as {
+    remember?: (memory: { subjectId?: string; eventType: string; summary: string; valence: number; importance: number; confidence: number }) => void;
+    thought?: () => string;
+  } | undefined;
+
+  if (npcBrain?.remember) {
+    const npcId = target.object.userData.gridActorId as string | undefined;
+    npcBrain.remember({
+      subjectId: identity.id,
+      eventType: 'voice-interaction',
+      summary: identity.displayName + ' said: ' + text,
+      valence: .35,
+      importance: .72,
+      confidence: .94,
+    });
+    const response = npcBrain.thought?.() ?? 'I heard you.';
+    addChatMessage(target.name, response, 'team');
+    voice.speak(npcId ?? 'grid', response);
+    return;
+  }
+
+  const teamAvatarId = target.object.userData.teamAvatarId as string | undefined;
+  if (teamAvatarId) {
+    const teamAvatar = teamAvatars.find(avatar => avatar.definition.id === teamAvatarId);
+    if (teamAvatar) {
+      const response = teamAvatar.interact(text);
+      addChatMessage(teamAvatar.definition.displayName, response, 'team');
+      voice.speak(teamAvatarId, response);
+      return;
+    }
+  }
+
+  const objectId = String(target.object.userData.gridObjectId ?? '').toLowerCase();
+  const lower = text.toLowerCase();
+  let response = target.name + ' acknowledges the request.';
+
+  if (objectId.includes('beacon') || lower.includes('beacon') || target.name.toLowerCase().includes('beacon')) {
+    const material = target.object instanceof THREE.Mesh ? target.object.material : null;
+    if (material instanceof THREE.MeshStandardMaterial) material.emissiveIntensity = lower.includes('off') ? .15 : 2.8;
+    response = lower.includes('off') ? 'Beacon power reduced. The signal is now quiet.' : 'Beacon awakened. Its signal is now broadcasting locally.';
+  } else if (objectId.includes('neon-door') || target.name.toLowerCase().includes('neon door')) {
+    response = lower.includes('open') ? 'The Neon Door accepts the request and opens its scripted state.' : lower.includes('close') ? 'The Neon Door returns to its closed state.' : 'The Neon Door is listening for an open or close instruction.';
+    scriptedObjects.dispatch(target.object, 'voice command');
+  } else if (objectId.includes('terrain') || target.name.toLowerCase().includes('terrain')) {
+    response = 'Terrain profile: Grid Measurement is active. The land is being treated as a measurable world system.';
+  } else if (target.object.userData.gridFreeObject) {
+    response = lower.includes('inspect') || lower.includes('what') ? target.name + ' is a Grid World original object with a stable profile and provenance.' : target.name + ' responds through the Grid interaction layer.';
+    scriptedObjects.dispatch(target.object, 'voice command');
+  } else {
+    scriptedObjects.dispatch(target.object, 'voice command');
+  }
+
+  addChatMessage(target.name, response, 'team');
+  voice.speak('grid', response);
+}
+
+voiceTargetButton.addEventListener('click', async () => {
+  if (!voice.isSpeechInputAvailable()) {
+    addChatMessage('GRID', 'Speech input is not available in this browser. Text chat remains active.', 'system');
+    return;
+  }
+  voiceTargetButton.textContent = 'LISTENING…';
+  const transcript = await voice.listenOnce();
+  voiceTargetButton.textContent = 'MIC';
+  if (!transcript) {
+    addChatMessage('GRID', 'No speech was captured. Try again or use text chat.', 'system');
+    return;
+  }
+  addChatMessage(identity.displayName, transcript, 'player');
+  respondToVoiceTarget(transcript);
+});
 
 chatCompose.addEventListener('submit', event => {
   event.preventDefault();
@@ -179,13 +265,26 @@ const crowdDefinitions: GridActorDefinition[] = [
   { id: 'npc.gallery-curator', displayName: 'Elder Vell', kind: 'npc', role: 'Gallery Curator', color: 0x806aa8, accent: 0xc6a6ff, spawn: { x: -15, z: -24 }, chatLines: ['The new gallery wall is ready.', 'Leave room for artists to surprise us.'] },
   { id: 'npc.city-guide', displayName: 'Lyra', kind: 'npc', role: 'City Guide', color: 0x4f9a83, accent: 0x73e6c4, spawn: { x: 7, z: -4 }, chatLines: ['The Creator Yard connects to the east bridge.', 'First Light is easier to learn one district at a time.'] },
   { id: 'npc.builder', displayName: 'Mako', kind: 'npc', role: 'Builder', color: 0xa36e50, accent: 0xffc27d, spawn: { x: 15, z: -5 }, chatLines: ['I am testing a smaller building footprint.', 'The block grid makes expansion predictable.'] },
-  { id: 'npc archivist', displayName: 'Sera', kind: 'npc', role: 'Archive Keeper', color: 0x60758b, accent: 0x8ed9e8, spawn: { x: 0, z: 17 }, chatLines: ['Every important object needs a history.', 'Snapshots make experiments safer.'] },
+  { id: 'npc.archivist', displayName: 'Sera', kind: 'npc', role: 'Archive Keeper', color: 0x60758b, accent: 0x8ed9e8, spawn: { x: 0, z: 17 }, chatLines: ['Every important object needs a history.', 'Snapshots make experiments safer.'] },
   { id: 'npc.courier', displayName: 'Juno', kind: 'npc', role: 'World Courier', color: 0xb27b48, accent: 0xffd36a, spawn: { x: 8, z: 10 }, chatLines: ['Packages move between districts all day.', 'The bridge route is clear.'] },
   { id: 'animal.grid-wolf', displayName: 'Lumen Wolf', kind: 'animal', role: 'Wildlife · Curious', color: 0x53657a, accent: 0x76eaff, spawn: { x: 16, z: -25 }, speed: .8 },
   { id: 'animal.moss-fox', displayName: 'Moss Fox', kind: 'animal', role: 'Wildlife · Shy', color: 0x8b6650, accent: 0x9cf2c1, spawn: { x: 21, z: -28 }, speed: .65 },
   { id: 'animal.prism-bird', displayName: 'Prism Bird', kind: 'animal', role: 'Wildlife · Flyer', color: 0x6376a5, accent: 0xffb9ee, spawn: { x: -20, z: -25 }, speed: .95 },
   { id: 'animal.tide-deer', displayName: 'Tide Deer', kind: 'animal', role: 'Wildlife · Gentle', color: 0x7f745e, accent: 0x7fe9ff, spawn: { x: 25, z: -22 }, speed: .55 },
 ];
+
+const gridOriginalObjects = [
+  ['grid-wayfinder-lamp', -5, -8],
+  ['grid-profile-prism', 5, -8],
+  ['grid-creator-bench', 18, -2],
+  ['grid-gallery-plinth', -20, -24],
+  ['grid-signal-beacon', 0, -7],
+] as const;
+for (const [objectId, x, z] of gridOriginalObjects) {
+  const object = createGridFreeObject(objectId);
+  object.position.set(x, 0, z);
+  world.scene.add(object);
+}
 
 const crowdActors = crowdDefinitions.map(definition => new GridCrowdActor(definition));
 for (const actor of crowdActors) world.scene.add(actor.group);
