@@ -57,7 +57,20 @@ const itemData = [
 
 const app=document.querySelector<HTMLDivElement>('#marketplace')!;
 let staff=staffFallback;
-let listings:Listing[]=itemData.map(([seller,title,category,price,description,art_key],i)=>({id:'demo-'+i,seller_staff_id:String(seller),title:String(title),description:String(description),category:String(category),currency_id:'grid',price:Number(price),inventory_limit:25,art_key:String(art_key),status:'published',created_at:new Date().toISOString()}));
+const gridOriginalData = [
+  ['grid-world','Wayfinder Lamp','decor',0,'Free Grid World original. A luminous navigation lamp for paths and plazas.','grid-wayfinder-lamp'],
+  ['grid-world','Profile Prism','social',0,'Free Grid World original. A floating inspection prism for identity and object profiles.','grid-profile-prism'],
+  ['grid-world','Creator Bench','creator',25,'Grid World original workbench for creator spaces.','grid-creator-bench'],
+  ['grid-world','Gallery Plinth','social',10,'Grid World original display pedestal for creator art.','grid-gallery-plinth'],
+  ['grid-world','Signal Beacon','utility',60,'Grid World original programmable signal primitive.','grid-signal-beacon'],
+  ['grid-world','Portal Arch','world',120,'Grid World original gateway primitive for future region links.','grid-portal-arch'],
+  ['grid-world','Aurora Crystal','nature',15,'Grid World original luminous environmental accent.','grid-aurora-crystal'],
+  ['grid-world','Eco Planter','nature',8,'Grid World original living planter primitive.','grid-eco-planter'],
+  ['grid-world','Survey Drone','utility',90,'Grid World original diagnostic and discovery drone.','grid-hover-drone'],
+  ['grid-world','Waypoint Sign','world',5,'Grid World original navigation and accessibility marker.','grid-waypoint-sign'],
+] as const;
+const gridOriginalListings:Listing[]=gridOriginalData.map(([seller,title,category,price,description,art_key],i)=>({id:'grid-original-'+i,seller_staff_id:seller,title,description,category,currency_id:'grid',price,inventory_limit:null,art_key,status:'published',created_at:new Date().toISOString()}));
+let listings:Listing[]=[...gridOriginalListings,...itemData.map(([seller,title,category,price,description,art_key],i)=>({id:'demo-'+i,seller_staff_id:String(seller),title:String(title),description:String(description),category:String(category),currency_id:'grid',price:Number(price),inventory_limit:25,art_key:String(art_key),status:'published',created_at:new Date().toISOString()}))];
 let rules:Rule[]=[];
 
 function art(key:string){
@@ -71,7 +84,7 @@ function art(key:string){
 function render(){
   const people=new Map(staff.map(s=>[s.id,s]));
   app.innerHTML='<header><div><span class="eyebrow">GRID WORLD · LIVE PROTOTYPE MARKET</span><h1>Made by the Grid.</h1><p>21 staff merchants. 21 original object studies. Each staff wallet begins with <b>10,000 GRD simulated allocation</b>.</p></div><nav><a href="/">WORLD</a><a href="/economics.html">ECONOMICS</a><a href="/directory.html">STAFF</a><a href="/docs.html">DOCS</a></nav></header>'+
-  '<section class="market-meta"><div><b>SIMULATED LEDGER</b><span>Not real money · no cash value</span></div><div><b>'+listings.length+'</b><span>published objects</span></div><div><b>'+staff.length+'</b><span>staff merchants</span></div><div><b>12</b><span>protection rules</span></div></section>'+
+  '<section class="market-meta"><div><b>GRID ORIGINALS</b><span>10 reusable originals · 2 free starter objects</span></div><div><b>SIMULATED LEDGER</b><span>Not real money · no cash value</span></div><div><b>'+listings.length+'</b><span>published objects</span></div><div><b>'+staff.length+'</b><span>staff merchants</span></div><div><b>12</b><span>protection rules</span></div></section>'+
   '<section class="filters"><input id="search" placeholder="Search objects or merchants…"><select id="category"><option value="">All categories</option>'+[...new Set(listings.map(x=>x.category))].sort().map(x=>'<option>'+x+'</option>').join('')+'</select></section>'+
   '<main id="cards">'+listings.map(l=>card(l,people.get(l.seller_staff_id))).join('')+'</main>'+
   '<section class="protection"><div class="eyebrow">MERCHANT · USER · PLATFORM PROTECTION</div><h2>Commerce needs boundaries.</h2><div class="rules">'+rules.map(r=>'<article><small>'+r.audience.toUpperCase()+'</small><h3>'+r.title+'</h3><p>'+r.rule_text+'</p></article>').join('')+'</div></section>'+
@@ -93,7 +106,7 @@ async function load(){
       sb.from('grid_marketplace_protection_rules').select('id,audience,title,rule_text').eq('active',true).order('audience')
     ]);
     if(s.data?.length) staff=s.data;
-    if(l.data?.length) listings=l.data as Listing[];
+    if(l.data?.length) listings=[...gridOriginalListings,...(l.data as Listing[])];
     if(r.data?.length) rules=r.data as Rule[];
   }
   render();
