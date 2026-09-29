@@ -813,7 +813,11 @@ function animate(now: number) {
       actorB.brain.remember({ subjectId: actorA.definition.id, eventType: 'conversation', summary: lineA, valence: .35, importance: .5, confidence: .9 });
     }
     addChatMessage(speakerA, lineA, 'team');
-    window.setTimeout(() => addChatMessage(speakerB, lineB, 'team'), 900);
+    if (actorA) voice.speak(actorA.definition.id, lineA);
+    window.setTimeout(() => {
+      addChatMessage(speakerB, lineB, 'team');
+      if (actorB) voice.speak(actorB.definition.id, lineB);
+    }, 900);
     npcChatIndex++;
     npcChatTimer = 9 + Math.random() * 7;
   }
