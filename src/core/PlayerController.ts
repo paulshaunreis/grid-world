@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { Input } from './Input';
+import { createStarterPBRMaterial } from '../engine/GridPBRLibrary';
 
 export type AvatarStyle = 'navigator' | 'muse' | 'explorer' | 'builder' | 'scholar' | 'sentinel' | 'wanderer' | 'artist' | 'ranger' | 'architect' | 'guardian' | 'signal';
 
@@ -21,7 +22,7 @@ export class PlayerController {
   constructor(private readonly input: Input) {
     this.body = new THREE.Mesh(
       new THREE.CapsuleGeometry(0.42, 1, 8, 16),
-      new THREE.MeshStandardMaterial({ color: 0x8ad1ff, roughness: 0.55 })
+      createStarterPBRMaterial('fabric', { color: '#8ad1ff', roughness: .62 })
     );
     this.body.position.y = 1;
     this.body.castShadow = true;
@@ -29,7 +30,7 @@ export class PlayerController {
 
     this.head = new THREE.Mesh(
       new THREE.SphereGeometry(0.34, 16, 12),
-      new THREE.MeshStandardMaterial({ color: 0xe8f5ff, roughness: 0.7 })
+      createStarterPBRMaterial('skin', { color: '#e8d0bd', roughness: .72 })
     );
     this.head.position.y = 1.85;
     this.head.castShadow = true;
