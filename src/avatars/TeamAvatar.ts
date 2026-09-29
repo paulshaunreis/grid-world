@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { createStarterPBRMaterial } from '../engine/GridPBRLibrary';
 
-export type TeamAvatarStyle = 'aurora' | 'link' | 'rey' | 'elder' | 'veyr' | 'nyxen' | 'orin' | 'seraith' | 'vael' | 'kairox' | 'morrow' | 'cipher' | 'solenne' | 'rook' | 'echo' | 'umbra' | 'civitas' | 'axiom' | 'mosaic' | 'sentinel' | 'praxis';
+export type TeamAvatarStyle = 'aurora' | 'link' | 'rey' | 'elder' | 'veyr' | 'nyxen' | 'orin' | 'seraith' | 'vael' | 'kairox' | 'morrow' | 'cipher' | 'solenne' | 'rook' | 'echo' | 'umbra' | 'civitas' | 'axiom' | 'mosaic' | 'sentinel' | 'praxis' | 'atlas' | 'tessera' | 'waypoint';
 
 export interface TeamAvatarDefinition {
   id: string;
@@ -37,6 +37,9 @@ const palettes: Record<TeamAvatarStyle, { body: number; visor: number; glow: num
   mosaic: { body: 0xe1a6ff, visor: 0x4c285e, glow: 0xd18aff },
   sentinel: { body: 0xe7c98d, visor: 0x4b3d1e, glow: 0xffd66d },
   praxis: { body: 0xaeb8ff, visor: 0x2d3264, glow: 0x8d9bff },
+  atlas: { body: 0x70c6e8, visor: 0x193b55, glow: 0x58d9ff },
+  tessera: { body: 0xf0a56f, visor: 0x57321e, glow: 0xffa05c },
+  waypoint: { body: 0x6ed19c, visor: 0x1e4936, glow: 0x70e6ae },
 };
 
 export class TeamAvatar {
