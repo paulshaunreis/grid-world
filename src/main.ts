@@ -14,6 +14,7 @@ import { parseGridScript } from './scripting/GridScript';
 import { TeamAvatar } from './avatars/TeamAvatar';
 import { TEAM_AVATARS } from './avatars/teamRoster';
 import { Minimap } from './ui/Minimap';
+import { UIModRegistry, WindowManager } from './ui/WindowManager';
 import './style.css';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -152,6 +153,77 @@ const minimap = new Minimap({
 });
 hud.appendChild(minimap.element);
 
+const windowManager = new WindowManager();
+const uiMods = new UIModRegistry(windowManager);
+
+const uiEditButton = document.createElement('button');
+uiEditButton.type = 'button';
+uiEditButton.className = 'ui-edit-button';
+uiEditButton.textContent = '◇ UI';
+uiEditButton.title = 'Arrange Grid World interface';
+uiEditButton.addEventListener('click', () => {
+  const editing = windowManager.toggleEditMode();
+  uiEditButton.classList.toggle('active', editing);
+  uiEditButton.textContent = editing ? '◇ UI · ARRANGE' : '◇ UI';
+});
+hud.appendChild(uiEditButton);
+
+const uiResetButton = document.createElement('button');
+uiResetButton.type = 'button';
+uiResetButton.className = 'ui-reset-button';
+uiResetButton.textContent = 'RESET';
+uiResetButton.hidden = true;
+uiResetButton.addEventListener('click', () => windowManager.resetLayout());
+hud.appendChild(uiResetButton);
+
+windowManager.register({
+  id: 'grid-chat',
+  title: 'Grid Chat',
+  element: chatMessages.parentElement!,
+  defaultPosition: { x: 0, y: 0 },
+  movable: true,
+  resizable: true,
+});
+
+windowManager.register({
+  id: 'world-minimap',
+  title: 'World Map',
+  element: minimap.element,
+  defaultPosition: { x: 0, y: 0 },
+  movable: true,
+  resizable: true,
+});
+
+uiMods.register({
+  id: 'core-interface',
+  name: 'Grid World Core Interface',
+  version: '0.1.0',
+  enabledByDefault: true,
+  mount: () => undefined,
+});
+
+uiEditButton.addEventListener('click', () => {
+  uiResetButton.hidden = !windowManager.isEditMode();
+});
+
+windowManager.register({
+  id: 'creator-console',
+  title: 'Creator Console',
+  element: creatorPanel,
+  defaultPosition: { x: 0, y: 0 },
+  movable: true,
+  resizable: true,
+});
+
+windowManager.register({
+  id: 'traveler-profile',
+  title: 'Traveler Profile',
+  element: identityPanel,
+  defaultPosition: { x: 0, y: 0 },
+  movable: true,
+  resizable: true,
+});
+
 let presence: SupabasePresence | null = null;
 
 if (cloudPersistence) {
@@ -273,6 +345,8 @@ const identitySave = document.querySelector<HTMLButtonElement>('#identity-save')
 const identityCancel = document.querySelector<HTMLButtonElement>('#identity-cancel')!;
 const avatarOptions = document.querySelector<HTMLDivElement>('#avatar-options')!;
 const hudOptions = document.querySelector<HTMLDivElement>('#hud-options')!;
+
+windowManager.setEditMode(false);
 
 function openIdentityPanel() {
   identityName.value = identity.displayName;
