@@ -159,13 +159,15 @@ export class GridLivingWorld {
     for(let i=0;i<this.fireflies.length;i++){
       const f=this.fireflies[i];
       f.position.y += Math.sin(this.time*.6+i)*.0012;
-      f.material.opacity=.35+.35*(.5+.5*Math.sin(this.time*2.2+i));
+      const fireflyMaterial = f.material as THREE.MeshBasicMaterial;
+      fireflyMaterial.opacity=.35+.35*(.5+.5*Math.sin(this.time*2.2+i));
     }
     for(let i=0;i<this.waterRipples.length;i++){
       const r=this.waterRipples[i];
       const s=.8+.35*(.5+.5*Math.sin(this.time*.8+i));
       r.scale.setScalar(s);
-      r.material.opacity=.08+.1*(.5+.5*Math.sin(this.time*1.3+i));
+      const rippleMaterial = r.material as THREE.MeshBasicMaterial;
+      rippleMaterial.opacity=.08+.1*(.5+.5*Math.sin(this.time*1.3+i));
     }
   }
 }
