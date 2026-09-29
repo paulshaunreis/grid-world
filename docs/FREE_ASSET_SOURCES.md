@@ -30,3 +30,19 @@ Do not bulk-import a mixed-license collection into the product just because a se
 ## Legal boundary
 
 inZOI's own ModKit documentation warns that external assets can carry separate copyright and redistribution obligations. Grid World should follow the same discipline: record the exact source, license, version, hash, and intended use before an asset reaches a published catalog.
+
+
+## Audio sources
+
+- OpenGameArt CC0 collections are useful for footsteps, UI, NPC messages, teleport and environmental effects. Individual pages identify the license; preserve the source URL and author metadata in Grid's provenance record.
+- The OpenGameArt "The Shop" samples are CC0 for the files distributed on OpenGameArt and include ambience, drones and room tone.
+- Kenney's game assets are CC0, including its audio collections.
+- Sonniss #GameAudioGDC is a large royalty-free commercial game-audio source. Its current license allows use in games and other synchronized media, but prohibits redistributing the sounds as a standalone library. Therefore it is a production-source option, not a Grid marketplace redistribution source.
+- Freesound is a discovery source rather than a blanket license. Each sound can have a different Creative Commons license, including CC0, CC BY and CC BY-NC. Grid only accepts sounds whose exact license permits the intended use.
+- Pixabay provides free audio under its content license, but its license prohibits standalone redistribution. It can be used as a source for finished experiences, not as an unrestricted Grid sound-library pack.
+
+## Audio import rule
+
+Discover → exact license → creator/source → download date → hash → normalize → loudness check → scan → provenance → publish.
+
+The runtime also contains a procedural Grid-original audio layer so First Light has usable feedback even when no external binary audio has been imported.
