@@ -5,6 +5,7 @@ import { WorldClock } from './WorldClock';
 import { WorldSimulation } from './WorldSimulation';
 import { WorldAtmosphere } from './WorldAtmosphere';
 import { WorldChunkStreamer } from './WorldChunkStreamer';
+import { createStarterPBRMaterial } from '../engine/GridPBRLibrary';
 
 export class World {
   readonly definition: WorldDefinition;
@@ -49,6 +50,7 @@ export class World {
     sun.castShadow = true;
     this.scene.add(sun);
 
+    this.createTerrain();
     this.createFirstLightDistricts();
     this.createLandmark();
     this.createBeacon();
@@ -81,6 +83,47 @@ export class World {
     }
   }
 
+  private createTerrain() {
+    const geometry = new THREE.PlaneGeometry(112, 112, 32, 32);
+    const positions = geometry.attributes.position;
+    for (let i = 0; i < positions.count; i++) {
+      const x = positions.getX(i);
+      const y = positions.getY(i);
+      const radius = Math.hypot(x, y);
+      const rise = Math.max(0, (radius - 34) / 22) * .18;
+      const ripple = Math.sin(x * .16) * Math.cos(y * .13) * .045;
+      positions.setZ(i, rise + ripple);
+    }
+    geometry.computeVertexNormals();
+    const terrain = new THREE.Mesh(geometry, createStarterPBRMaterial('ground', { color: '#4d5648', roughness: .96 }));
+    terrain.rotation.x = -Math.PI / 2;
+    terrain.position.y = -.42;
+    terrain.receiveShadow = true;
+    terrain.userData.gridObjectId = 'terrain.first-light';
+    terrain.userData.interactable = true;
+    terrain.userData.interactionName = 'First Light Terrain';
+    this.scene.add(terrain);
+
+    const water = new THREE.Mesh(
+      new THREE.CircleGeometry(28, 48),
+      createStarterPBRMaterial('glass', { color: '#2c7180', roughness: .12, emissive: '#155766', emissiveIntensity: .22 }),
+    );
+    water.rotation.x = -Math.PI / 2;
+    water.position.set(0, -.25, 38);
+    water.scale.set(1.9, .7, 1);
+    this.scene.add(water);
+
+    for (const x of [-46, -34, 34, 46]) {
+      const berm = new THREE.Mesh(
+        new THREE.BoxGeometry(8, 1.2, 112),
+        createStarterPBRMaterial('stone', { color: '#59605b', roughness: .94 }),
+      );
+      berm.position.set(x, -.1, 0);
+      berm.receiveShadow = true;
+      this.scene.add(berm);
+    }
+  }
+
   private createFirstLightDistricts() {
     const districts = [
       { id: 'civic', name: 'Civic Ring', x: 0, z: 10, width: 28, depth: 18, color: 0x263b4d },
@@ -93,7 +136,7 @@ export class World {
     for (const district of districts) {
       const pad = new THREE.Mesh(
         new THREE.BoxGeometry(district.width, .3, district.depth),
-        new THREE.MeshStandardMaterial({ color: district.color, roughness: .9 }),
+        createStarterPBRMaterial('stone', { color: '#' + district.color.toString(16).padStart(6, '0'), roughness: .88 }),
       );
       pad.position.set(district.x, -.15, district.z);
       pad.receiveShadow = true;
@@ -163,7 +206,7 @@ export class World {
       const [x, z, w, h, d] = placements[index];
       const building = new THREE.Mesh(
         new THREE.BoxGeometry(w, h, d),
-        new THREE.MeshStandardMaterial({ color, roughness: .58, metalness: .18 }),
+        createStarterPBRMaterial('stone', { color: '#' + color.toString(16).padStart(6, '0'), roughness: .58, metalness: .18 }),
       );
       building.position.set(cx + x, h / 2, cz + z);
       building.castShadow = true;
@@ -175,7 +218,7 @@ export class World {
 
       const roof = new THREE.Mesh(
         new THREE.BoxGeometry(w + .3, .18, d + .3),
-        new THREE.MeshStandardMaterial({ color: 0x111b26, metalness: .72, roughness: .25 }),
+        createStarterPBRMaterial('metal', { color: '#111b26', metalness: .72, roughness: .25 }),
       );
       roof.position.set(cx + x, h + .1, cz + z);
       this.scene.add(roof);
@@ -195,7 +238,7 @@ export class World {
     const length = Math.hypot(x2 - x1, z2 - z1);
     const bridge = new THREE.Mesh(
       new THREE.BoxGeometry(length, .45, 2.8),
-      new THREE.MeshStandardMaterial({ color: 0x657987, metalness: .62, roughness: .35 }),
+      createStarterPBRMaterial('metal', { color: '#657987', metalness: .62, roughness: .35 }),
     );
     bridge.position.set((x1 + x2) / 2, 2.5, (z1 + z2) / 2);
     bridge.rotation.y = Math.atan2(z2 - z1, x2 - x1);
@@ -252,7 +295,7 @@ export class World {
       const tree = new THREE.Group();
       const trunk = new THREE.Mesh(
         new THREE.CylinderGeometry(0.18, 0.25, 2, 8),
-        new THREE.MeshStandardMaterial({ color: 0x5b3b24 })
+        createStarterPBRMaterial('wood', { color: '#5b3b24', roughness: .82 })
       );
       trunk.position.y = 1;
       trunk.castShadow = true;
@@ -260,7 +303,7 @@ export class World {
 
       const crown = new THREE.Mesh(
         new THREE.SphereGeometry(1.15, 10, 8),
-        new THREE.MeshStandardMaterial({ color: 0x3f7a4a })
+        createStarterPBRMaterial('foliage', { color: '#3f7a4a', roughness: .96 })
       );
       crown.position.y = 2.35;
       crown.castShadow = true;
