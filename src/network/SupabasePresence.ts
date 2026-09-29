@@ -1,12 +1,12 @@
 import type { SupabaseClient, RealtimeChannel } from '@supabase/supabase-js';
-import type { PlayerIdentity } from '../core/PlayerIdentity';
+import type { PlayerIdentity, AvatarStyle } from '../core/PlayerIdentity';
 import type { PlayerTransform } from '../core/PlayerController';
 import type { PresenceCallbacks, RemotePlayerState } from './Presence';
 
 interface PresencePayload {
   id: string;
   displayName: string;
-  avatarStyle: 'azure' | 'sunset' | 'forest' | 'violet';
+  avatarStyle: AvatarStyle;
   x: number;
   y: number;
   z: number;
