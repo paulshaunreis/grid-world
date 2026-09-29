@@ -1,3 +1,5 @@
+import { readVersioned, writeVersioned } from './VersionedStorage';
+
 export type AvatarStyle = 'azure' | 'sunset' | 'forest' | 'violet';
 
 export interface PlayerIdentity {
@@ -8,24 +10,37 @@ export interface PlayerIdentity {
 }
 
 const STORAGE_KEY = 'grid-world:identity';
+const SCHEMA_VERSION = 1;
+
+function isAvatarStyle(value: unknown): value is AvatarStyle {
+  return value === 'azure' || value === 'sunset' || value === 'forest' || value === 'violet';
+}
+
+function isIdentity(value: unknown): value is PlayerIdentity {
+  if (!value || typeof value !== 'object') return false;
+  const identity = value as Record<string, unknown>;
+  return typeof identity.id === 'string'
+    && /^[0-9a-f-]{20,}$/i.test(identity.id)
+    && typeof identity.displayName === 'string'
+    && /^[A-Za-z0-9 _-]{2,20}$/.test(identity.displayName)
+    && isAvatarStyle(identity.avatarStyle)
+    && typeof identity.createdAt === 'string';
+}
 
 export function loadOrCreateIdentity(): PlayerIdentity {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    try {
-      const identity = JSON.parse(saved) as PlayerIdentity;
-      if (identity.id && identity.displayName) {
-        return { ...identity, avatarStyle: identity.avatarStyle ?? 'azure' };
-      }
-    } catch { /* recreate below */ }
-  }
+  const identity = readVersioned(STORAGE_KEY, SCHEMA_VERSION, (data, schema) => {
+    if (schema === 1 && isIdentity(data)) return data;
+    return null;
+  });
 
-  const identity: PlayerIdentity = {
+  if (identity) return identity;
+
+  const created: PlayerIdentity = {
     id: crypto.randomUUID(),
     displayName: 'Traveler',
     avatarStyle: 'azure',
     createdAt: new Date().toISOString(),
   };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(identity));
-  return identity;
+  writeVersioned(STORAGE_KEY, SCHEMA_VERSION, created);
+  return created;
 }
