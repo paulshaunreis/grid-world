@@ -23,7 +23,7 @@ document.body.appendChild(eventEl);
 
 export interface GridWorldArtDirector {
   root: THREE.Group;
-  update(dt: number): void;
+  update(dt: number, playerX?: number, playerZ?: number): void;
   getActiveEvent(): WorldEvent | null;
 }
 
@@ -86,13 +86,19 @@ export function installGridWorldArtDirector(scene: THREE.Scene): GridWorldArtDir
     window.setTimeout(() => eventEl.classList.remove('live'), 4200);
   }
 
-  function update(dt: number) {
+  function update(dt: number, playerX = 0, playerZ = 0) {
     elapsed += dt;
     districtClock += dt;
 
     const keys = Object.keys(DISTRICT_VISUALS) as DistrictKey[];
     const districtIndex = Math.floor(elapsed / 24) % keys.length;
-    const currentKey = keys[districtIndex];
+    let currentKey = keys[districtIndex];
+    let nearest = Infinity;
+    for (const key of keys) {
+      const d = DISTRICT_VISUALS[key];
+      const distance = Math.hypot(playerX - d.center.x, playerZ - d.center.z);
+      if (distance < nearest) { nearest = distance; currentKey = key; }
+    }
     const current = DISTRICT_VISUALS[currentKey];
 
     hud.querySelector('.name')!.textContent = current.label;
