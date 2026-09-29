@@ -66,6 +66,20 @@ hud.innerHTML = `
     </div>
   </div>
   <div class="interaction" id="interaction-prompt">E · Interact</div>
+  <div class="grid-dock" aria-label="Grid World tools">
+    <button type="button" data-tool="profile"><b>◎</b><span>PROFILE</span></button>
+    <button type="button" data-tool="inventory"><b>▣</b><span>INVENTORY</span></button>
+    <button type="button" data-tool="wallet"><b>◉</b><span>WALLET</span></button>
+    <button type="button" data-tool="map"><b>◇</b><span>MAP</span></button>
+    <button type="button" data-tool="build"><b>✦</b><span>BUILD</span></button>
+    <button type="button" data-tool="settings"><b>⚙</b><span>SETTINGS</span></button>
+  </div>
+  <div class="target-card" id="target-card">
+    <div class="target-kicker">OBJECT PROFILE</div>
+    <div class="target-title" id="target-title">First Light Beacon</div>
+    <div class="target-meta" id="target-meta">LANDMARK · DISCOVERED · LEVEL 02</div>
+    <div class="target-bars"><span><i style="width:78%"></i> HISTORY</span><span><i style="width:62%"></i> RESONANCE</span><span><i style="width:91%"></i> VISIBILITY</span></div>
+  </div>
   <section class="chat" id="chat" aria-label="Grid World chat">
     <div class="chat-header"><span>GRID CHAT</span><span id="chat-status">LOCAL</span></div>
     <div class="chat-messages" id="chat-messages" aria-live="polite"></div>
@@ -283,6 +297,17 @@ function setMultiplayerStatus(label: string) {
 
 cloudReady.finally(() => {
   if (multiplayerLabel === 'MULTIPLAYER · Connecting…') setControlStatus();
+
+document.querySelectorAll<HTMLButtonElement>('.grid-dock [data-tool]').forEach(button => {
+  button.addEventListener('click', () => {
+    const tool = button.dataset.tool;
+    if (tool === 'profile') openIdentityPanel();
+    else if (tool === 'build') creatorPanel.classList.add('open');
+    else if (tool === 'map') minimap.element.classList.toggle('grid-highlight');
+    else if (tool === 'settings') openIdentityPanel();
+    else addChatMessage('GRID', tool === 'wallet' ? 'Wallet surface is staged for the next economy slice.' : 'Inventory surface is staged for the next creator slice.', 'system');
+  });
+});
 });
 
 const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.1, 500);
