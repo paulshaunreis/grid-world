@@ -213,7 +213,7 @@ app.innerHTML = `
 
 const studioLiveGrid = document.querySelector<HTMLElement>('#studio-live-grid');
 if (studioLiveGrid) {
-  const publicTasks = TEAM_WORK_TASKS.filter(task => task.visible);
+  const publicTasks = TEAM_WORK_TASKS.filter(task => task.public);
   studioLiveGrid.innerHTML = publicTasks.map(task => {
     const member = ['Aurora','Link','Orin','Echo','Atlas','Tessera','Waypoint'].find(name => name.toLowerCase() === task.memberId) ?? task.memberId.toUpperCase();
     return '<article class="studio-live-card"><div class="studio-live-top"><strong>' + member + '</strong><span>' + task.progress + '%</span></div><h3>' + task.title + '</h3><p>' + task.status + '</p><small>' + task.zone + '</small><div class="studio-progress"><i style="width:' + task.progress + '%"></i></div></article>';
