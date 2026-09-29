@@ -415,3 +415,13 @@ canvas { display: block; width: 100%; height: 100%; }
   .ui-edit-button { top: 98px; left: 20px; }
   .ui-reset-button { top: 98px; left: 132px; }
 }
+
+
+/* In-world visual language */
+.grid-dock{pointer-events:auto;position:absolute;left:50%;bottom:24px;transform:translateX(-50%);display:flex;gap:4px;padding:5px;border:1px solid rgba(var(--hud-rgb),.16);background:rgba(3,9,16,.48);backdrop-filter:blur(14px);box-shadow:0 0 30px rgba(var(--hud-rgb),.05)}
+.grid-dock button{width:64px;height:52px;border:1px solid transparent;background:rgba(var(--hud-rgb),.025);color:var(--hud-text);cursor:pointer;display:grid;place-items:center;align-content:center;gap:3px}
+.grid-dock button:hover{border-color:rgba(var(--hud-rgb),.4);background:rgba(var(--hud-rgb),.09);box-shadow:inset 0 0 18px rgba(var(--hud-rgb),.05)}
+.grid-dock b{font-size:16px;font-weight:500;color:var(--hud-strong);line-height:1}.grid-dock span{font-size:7px;letter-spacing:.1em;opacity:.62}
+.target-card{position:absolute;right:26px;bottom:92px;width:230px;padding:13px 14px;border:1px solid rgba(var(--hud-rgb),.16);border-left:2px solid var(--hud-strong);background:rgba(3,9,16,.38);backdrop-filter:blur(12px);box-shadow:0 0 28px rgba(var(--hud-rgb),.04)}
+.target-kicker{font-size:8px;letter-spacing:.15em;color:var(--hud-strong);font-weight:800}.target-title{font-size:16px;font-weight:750;margin-top:5px}.target-meta{font-size:8px;letter-spacing:.08em;opacity:.52;margin-top:3px}.target-bars{display:grid;gap:5px;margin-top:11px}.target-bars span{font-size:7px;letter-spacing:.1em;opacity:.55;display:grid;grid-template-columns:1fr;gap:2px}.target-bars i{display:block;height:2px;background:linear-gradient(90deg,var(--hud-strong),rgba(var(--hud-rgb),.18));border-radius:2px}.minimap.grid-highlight{box-shadow:0 0 0 2px rgba(var(--hud-rgb),.45),0 0 28px rgba(var(--hud-rgb),.2)}
+@media(max-width:700px){.grid-dock{left:20px;right:20px;bottom:18px;transform:none;justify-content:space-between}.grid-dock button{width:calc((100vw - 58px)/6);height:46px}.grid-dock span{font-size:6px}.target-card{right:20px;bottom:82px;width:200px}.status{bottom:76px;left:20px;font-size:9px;max-width:220px}}
