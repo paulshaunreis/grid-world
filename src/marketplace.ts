@@ -57,7 +57,7 @@ const itemData = [
 
 const app=document.querySelector<HTMLDivElement>('#marketplace')!;
 let staff=staffFallback;
-let listings:Listing=itemData.map(([seller,title,category,price,description,art_key],i)=>({id:'demo-'+i,seller_staff_id:String(seller),title:String(title),description:String(description),category:String(category),currency_id:'grid',price:Number(price),inventory_limit:25,art_key:String(art_key),status:'published',created_at:new Date().toISOString()}));
+let listings:Listing[]=itemData.map(([seller,title,category,price,description,art_key],i)=>({id:'demo-'+i,seller_staff_id:String(seller),title:String(title),description:String(description),category:String(category),currency_id:'grid',price:Number(price),inventory_limit:25,art_key:String(art_key),status:'published',created_at:new Date().toISOString()}));
 let rules:Rule[]=[];
 
 function art(key:string){
