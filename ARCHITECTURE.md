@@ -243,3 +243,30 @@ The format is data-first and renderer-independent. A Three.js mesh is a presenta
 **Identity belongs to Grid. Presentation belongs to the renderer.**
 
 This permits the same object to be represented in browser, native, editor, server, archive, or future renderer implementations without changing its world identity.
+
+
+## Grid Engine 0.1 — Components, Permissions & Mutation
+
+### Components
+
+Components are behavior/state extensions attached to entities. Each component has a stable type and may declare a schema version. Component data is serialized independently so new components can be added without changing the identity contract.
+
+### Permission invariant
+
+UI visibility is not authorization.
+
+Every persistent object mutation must pass a Grid permission check using an explicit actor/context. Copy, export, remix, view, and modify are separate capabilities.
+
+### Version-aware mutation
+
+Creator and multiplayer mutations may supply an expected object version. A stale expected version is rejected instead of silently overwriting newer state.
+
+Successful mutations advance the object's provenance version. This is the beginning of optimistic concurrency protection; authoritative server-side conflict resolution will be added at the network boundary.
+
+### Provenance
+
+Derived objects retain their parent object ID and source asset information where applicable. This supports creator attribution, remix lineage, rollback, moderation, and archive/recovery workflows.
+
+### Security boundary
+
+Client-side permission checks improve UX but are not the final authority. Grid Server / Grid Omni services must re-check authorization before persistent writes, commerce, publication, or privileged world actions.
