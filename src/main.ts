@@ -54,7 +54,11 @@ hud.className = 'hud';
 hud.innerHTML = `
   <div class="hud-frame hud-frame-top"></div>
   <div class="hud-frame hud-frame-bottom"></div>
-  <div class="crosshair"></div>
+  <div class="hud-topbar" aria-label="Grid runtime status">
+    <div class="hud-system"><span class="hud-signal"></span><b>GRID ENGINE 0.1</b><small>FIRST LIGHT</small></div>
+    <div class="hud-telemetry"><span>WORLD <b>ONLINE</b></span><span>TRANSIT <b>READY</b></span><span>OMNI <b>GUARDED</b></span></div>
+  </div>
+  <div class="crosshair"><span></span></div>
   <button class="identity-button" id="identity-button" type="button">✦ ${identity.displayName}</button>
   <button class="creator-button" id="creator-button" type="button">◇ CREATOR</button>
   <div class="creator-panel" id="creator-panel"><div class="creator-card"><div class="creator-title">Grid Script // Neon Door</div><div class="creator-subtitle">Safe preview · capability-bounded · no arbitrary code</div><pre class="creator-code" id="creator-code"></pre><div class="creator-capabilities" id="creator-capabilities"></div><button class="creator-close" id="creator-close" type="button">Close</button></div></div>
