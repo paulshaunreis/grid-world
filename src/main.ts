@@ -37,6 +37,8 @@ import { GridTeleportSystem, createTeleportGate, createTeleportPylon } from './e
 import { GridLivingWorld } from './world/GridLivingWorld';
 import { GRID_MODEL_SOURCES } from './engine/GridModelLibrary';
 import { installGridWorldArtDirector } from './world-art-director';
+import { createGridFoundationLayer } from './world/GridFoundationLayer';
+import { mountTeamArea } from './ui/TeamArea';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
@@ -118,7 +120,7 @@ hud.innerHTML = `
     <button type="button" data-tool="field"><b>⌖</b><span>FIELD</span></button>
     <button type="button" data-tool="qr"><b>▧</b><span>QR</span></button>
     <button type="button" data-tool="build"><b>✦</b><span>BUILD</span></button>
-    <button type="button" data-tool="settings"><b>⚙</b><span>SETTINGS</span></button>
+    <button type="button" data-tool="team"><b>⌂</b><span>TEAM</span></button><button type="button" data-tool="settings"><b>⚙</b><span>SETTINGS</span></button>
   </div>
   <div class="target-card" id="target-card">
     <div class="target-kicker">OBJECT PROFILE</div>
@@ -260,6 +262,9 @@ chatCompose.addEventListener('submit', event => {
 });
 
 const world = new World();
+const foundationLayer = createGridFoundationLayer();
+world.scene.add(foundationLayer.root);
+const teamArea = mountTeamArea();
 const artDirector = installGridWorldArtDirector(world.scene);
 const engine = new GridEngine('client', world.scene);
 engine.register(new GridEngineCore());
@@ -759,6 +764,9 @@ engine.setRenderer(new ThreeGridRenderer(renderer));
 void engine.start();
 
 const interaction = new InteractionSystem(camera, world.scene);
+
+const teamTool = document.querySelector<HTMLButtonElement>('[data-tool="team"]');
+teamTool?.addEventListener('click', () => teamArea.open());
 const prompt = document.querySelector<HTMLDivElement>('#interaction-prompt')!;
 const creatorButton = document.querySelector<HTMLButtonElement>('#creator-button')!;
 const creatorPanel = document.querySelector<HTMLDivElement>('#creator-panel')!;
@@ -991,6 +999,7 @@ function animate(now: number) {
   world.update();
   livingWorld.update(dt);
   artDirector.update(dt);
+  foundationLayer.update(dt, frame.elapsedSeconds);
   for (const remote of remotePlayers.values()) remote.update(dt);
   for (const avatar of teamAvatars) avatar.update(dt);
   for (const actor of crowdActors) actor.update(dt);
