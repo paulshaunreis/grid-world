@@ -9,7 +9,7 @@ export type FieldNode = {
 const COLLECTION_KEY = 'grid-world:field-collection:v1';
 
 export class FieldGuide {
-  readonly element: HTMLDivElement;
+  readonly element: HTMLElement;
   private nodes: FieldNode[] = [
     { id: 'signal-grove', name: 'Signal Grove', kind: 'LIVING SITE', distance: '120 m', reward: '+12 discovery' },
     { id: 'memory-arch', name: 'Memory Arch', kind: 'LANDMARK', distance: '280 m', reward: '+20 history' },
