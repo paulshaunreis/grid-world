@@ -1,3 +1,5 @@
+import { readVersioned, writeVersioned } from '../core/VersionedStorage';
+
 export type UIWindowDefinition = {
   id: string;
   title: string;
@@ -18,19 +20,18 @@ export type UILayoutState = {
 };
 
 type StoredLayout = Record<string, UILayoutState>;
-const STORAGE_KEY = 'grid-world:ui-layout:v1';
+const STORAGE_KEY = 'grid-world:ui-layout';
+const LAYOUT_SCHEMA_VERSION = 1;
 
 function loadLayout(): StoredLayout {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) as StoredLayout : {};
-  } catch {
-    return {};
-  }
+  return readVersioned(STORAGE_KEY, LAYOUT_SCHEMA_VERSION, (data, schema) => {
+    if (schema !== 1 || !data || typeof data !== 'object') return {};
+    return data as StoredLayout;
+  }) ?? {};
 }
 
 function saveLayout(layout: StoredLayout) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
+  writeVersioned(STORAGE_KEY, LAYOUT_SCHEMA_VERSION, layout);
 }
 
 export class WindowManager {
