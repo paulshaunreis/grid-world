@@ -15,6 +15,7 @@ import { TeamAvatar } from './avatars/TeamAvatar';
 import { TEAM_AVATARS } from './avatars/teamRoster';
 import { Minimap } from './ui/Minimap';
 import { UIModRegistry, WindowManager } from './ui/WindowManager';
+import { FieldGuide } from './ui/FieldGuide';
 import './style.css';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -26,6 +27,10 @@ type HudTheme = 'cyan' | 'violet' | 'magenta' | 'emerald' | 'amber' | 'white';
 const HUD_THEME_KEY = 'grid-world:hud-theme';
 const hudTheme = (localStorage.getItem(HUD_THEME_KEY) as HudTheme | null) ?? 'cyan';
 document.documentElement.dataset.hudTheme = hudTheme;
+type UIStyle = 'luminous' | 'slate' | 'signal' | 'ember';
+const UI_STYLE_KEY = 'grid-world:ui-style';
+const uiStyle = (localStorage.getItem(UI_STYLE_KEY) as UIStyle | null) ?? 'luminous';
+document.documentElement.dataset.uiStyle = uiStyle;
 
 const hud = document.createElement('div');
 hud.className = 'hud';
@@ -57,6 +62,13 @@ hud.innerHTML = `
         <button type="button" data-hud="amber">Amber</button>
         <button type="button" data-hud="white">White</button>
       </div>
+      <div class="avatar-label">Interface style</div>
+      <div class="ui-style-options" id="ui-style-options">
+        <button type="button" data-ui-style="luminous">Luminous</button>
+        <button type="button" data-ui-style="slate">Slate</button>
+        <button type="button" data-ui-style="signal">Signal</button>
+        <button type="button" data-ui-style="ember">Ember</button>
+      </div>
       <div class="hud-opacity">HUD transparency · 20%</div>
       <div class="identity-actions">
         <button id="identity-cancel" type="button">Cancel</button>
@@ -71,6 +83,7 @@ hud.innerHTML = `
     <button type="button" data-tool="inventory"><b>▣</b><span>INVENTORY</span></button>
     <button type="button" data-tool="wallet"><b>◉</b><span>WALLET</span></button>
     <button type="button" data-tool="map"><b>◇</b><span>MAP</span></button>
+    <button type="button" data-tool="field"><b>⌖</b><span>FIELD</span></button>
     <button type="button" data-tool="build"><b>✦</b><span>BUILD</span></button>
     <button type="button" data-tool="settings"><b>⚙</b><span>SETTINGS</span></button>
   </div>
@@ -166,6 +179,7 @@ const minimap = new Minimap({
   ],
 });
 hud.appendChild(minimap.element);
+const fieldGuide = new FieldGuide();
 
 const windowManager = new WindowManager();
 const uiMods = new UIModRegistry(windowManager);
@@ -304,8 +318,9 @@ document.querySelectorAll<HTMLButtonElement>('.grid-dock [data-tool]').forEach(b
     if (tool === 'profile') openIdentityPanel();
     else if (tool === 'build') creatorPanel.classList.add('open');
     else if (tool === 'map') minimap.element.classList.toggle('grid-highlight');
+    else if (tool === 'field') fieldGuide.open();
     else if (tool === 'settings') openIdentityPanel();
-    else addChatMessage('GRID', tool === 'wallet' ? 'Wallet surface is staged for the next economy slice.' : 'Inventory surface is staged for the next creator slice.', 'system');
+    else addChatMessage('GRID', tool === 'wallet' ? 'Wallet surface opened. Balance and exchange are in prototype mode.' : 'Inventory surface opened. Creator objects will appear here as the inventory service lands.', 'system');
   });
 });
 });
@@ -376,6 +391,9 @@ windowManager.setEditMode(false);
 
 function openIdentityPanel() {
   identityName.value = identity.displayName;
+  document.querySelectorAll<HTMLButtonElement>('[data-ui-style]').forEach(button => {
+    button.classList.toggle('selected', button.dataset.uiStyle === document.documentElement.dataset.uiStyle);
+  });
   avatarOptions.querySelectorAll<HTMLButtonElement>('[data-avatar]').forEach(button => {
     button.classList.toggle('selected', button.dataset.avatar === identity.avatarStyle);
   });
@@ -399,6 +417,15 @@ hudOptions.addEventListener('click', event => {
   localStorage.setItem(HUD_THEME_KEY, theme);
   hudOptions.querySelectorAll<HTMLButtonElement>('[data-hud]').forEach(option => {
     option.classList.toggle('selected', option === button);
+  });
+});
+
+document.querySelectorAll<HTMLButtonElement>('[data-ui-style]').forEach(button => {
+  button.addEventListener('click', () => {
+    const style = button.dataset.uiStyle as UIStyle;
+    document.documentElement.dataset.uiStyle = style;
+    localStorage.setItem(UI_STYLE_KEY, style);
+    document.querySelectorAll('[data-ui-style]').forEach(option => option.classList.toggle('selected', option === button));
   });
 });
 
