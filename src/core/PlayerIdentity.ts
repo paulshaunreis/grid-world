@@ -1,6 +1,6 @@
 import { readVersioned, writeVersioned } from './VersionedStorage';
 
-export type AvatarStyle = 'azure' | 'sunset' | 'forest' | 'violet';
+export type AvatarStyle = 'navigator' | 'muse' | 'explorer' | 'builder' | 'scholar' | 'sentinel' | 'wanderer' | 'artist' | 'ranger' | 'architect' | 'guardian' | 'signal';
 
 export interface PlayerIdentity {
   id: string;
@@ -13,7 +13,7 @@ const STORAGE_KEY = 'grid-world:identity';
 const SCHEMA_VERSION = 1;
 
 function isAvatarStyle(value: unknown): value is AvatarStyle {
-  return value === 'azure' || value === 'sunset' || value === 'forest' || value === 'violet';
+  return ['navigator','muse','explorer','builder','scholar','sentinel','wanderer','artist','ranger','architect','guardian','signal'].includes(value as string);
 }
 
 function isIdentity(value: unknown): value is PlayerIdentity {
