@@ -11,6 +11,8 @@ export default defineConfig({
         docs: 'docs.html',
         directory: 'directory.html',
         marketplace: 'marketplace.html',
+        sound: 'sound.html',
+        omni: 'omni.html',
       },
     },
   },
