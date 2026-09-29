@@ -191,7 +191,6 @@ else player.restoreTransform({
   y: starterZone.definition.spawn.y,
   z: starterZone.definition.spawn.z,
   yaw: 0,
-  updatedAt: Date.now(),
 });
 player.setAvatarStyle(identity.avatarStyle);
 
