@@ -1,5 +1,6 @@
 import './site.css';
 import { QRScanner } from './ui/QRScanner';
+import { mountGridLiveFeed } from './site-live-feed';
 
 const app = document.querySelector<HTMLDivElement>('#site')!;
 const qrScanner = new QRScanner();
@@ -49,6 +50,22 @@ app.innerHTML = `
         <div class="hero-stats"><span><b>09</b> starter regions</span><span><b>∞</b> expandable worlds</span><span><b>24/7</b> persistent simulation</span></div>
       </div>
       <div class="hero-orb"><div class="orb-ring r1"></div><div class="orb-ring r2"></div><div class="orb-core">GRID<br><small>FIRST LIGHT</small></div></div>
+    </section>
+
+    <section class="grid-pulse" id="grid-pulse">
+      <div class="pulse-art" aria-hidden="true">
+        <div class="pulse-orbit pulse-orbit-a"></div>
+        <div class="pulse-orbit pulse-orbit-b"></div>
+        <div class="pulse-core"><span>GRID</span><small>WORLD SIGNAL</small></div>
+        <i class="pulse-node n1"></i><i class="pulse-node n2"></i><i class="pulse-node n3"></i><i class="pulse-node n4"></i>
+      </div>
+      <div class="pulse-copy">
+        <div class="section-label">GRID PULSE · LIVE WORLD</div>
+        <h2>The site can<br><span>feel the world move.</span></h2>
+        <p>Public world events flow from Grid World into this surface in real time. Teleports, marketplace activity, sound releases, living memories, and system signals can appear as they happen.</p>
+        <div class="pulse-status"><span class="pulse-dot"></span><span data-grid-pulse-status>CONNECTING</span><b><span data-grid-pulse-count>00</span> RECENT</b></div>
+      </div>
+      <div class="pulse-feed" data-grid-pulse-list aria-live="polite"></div>
     </section>
 
     <section class="visual-atlas" id="visual-system">
@@ -173,6 +190,9 @@ app.innerHTML = `
   <footer><div class="brand"><img class="brand-logo brand-logo-footer" src="/grid-world-logo.svg" alt="Grid World"><span>GRID WORLD</span></div><p>A framework for worlds, communities, and experiences.</p><div><a href="#terms">Terms</a><a href="#privacy">Privacy</a><a href="#safety">Safety</a><a href="#status">Status</a></div></footer>
   <div class="site-toast" id="site-toast" role="status" aria-live="polite"></div>
 `;
+
+const liveFeedRoot = document.querySelector<HTMLElement>('#grid-pulse');
+if (liveFeedRoot) mountGridLiveFeed(liveFeedRoot);
 
 function toast(message: string) {
   const element = document.querySelector<HTMLDivElement>('#site-toast');
