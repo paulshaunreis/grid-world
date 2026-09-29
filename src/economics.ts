@@ -12,7 +12,7 @@ const history:Record<string,number[]>={};
 for(const r of rates) history[r.quote_currency]=Array.from({length:24},(_,i)=>r.rate*(1+Math.sin(i*.55)*.018));
 
 app.innerHTML=`
-<header><a href="/" class="brand">◇ GRID WORLD</a><nav><a href="/docs.html">Docs</a><a href="/staff.html">Staff</a><a href="/play.html">Enter World</a></nav></header>
+<header><a href="/" class="brand">◇ GRID WORLD</a><nav><a href="/docs.html">Docs</a><a href="/directory.html">Staff</a><a href="/play.html">Enter World</a></nav></header>
 <main class="econ"><div class="eyebrow">GRID WORLD · ECONOMICS</div><div class="hero-row"><div><h1>A living<br><span>Grid economy.</span></h1><p>Internal simulated market data, exchange surfaces, creator value flows and a future-ready external payments boundary.</p></div><div class="market-status"><i></i><b>SIMULATION LIVE</b><small id="updated">Updating…</small></div></div>
 <section class="market"><div class="section-head"><div><span>MARKET BOARD</span><h2>Currency worth</h2></div><small>Base: GRD · updates every 15 seconds</small></div><div class="currency-grid" id="currency-grid"></div></section>
 <section class="chart-panel"><div class="section-head"><div><span>SELECTED MARKET</span><h2 id="chart-title">Grid / Lumen</h2></div><select id="currency-select"></select></div><div class="chart-wrap"><svg id="chart" viewBox="0 0 900 300" preserveAspectRatio="none"></svg></div><div class="chart-foot"><span>1 GRD = <b id="selected-rate">0.82 LUM</b></span><span>Simulation only · not a real-world exchange rate</span></div></section>
