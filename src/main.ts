@@ -187,7 +187,6 @@ world.scene.add(player.avatar);
 const savedState = persistence.loadPlayerState();
 if (savedState) player.restoreTransform(savedState);
 else player.restoreTransform({
-  regionId: 'first-light',
   x: starterZone.definition.spawn.x,
   y: starterZone.definition.spawn.y,
   z: starterZone.definition.spawn.z,
