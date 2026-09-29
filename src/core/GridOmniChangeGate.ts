@@ -41,7 +41,7 @@ export class GridOmniChangeGate {
       proposal.risk === 'low' || proposal.reversible,
     ];
 
-    const failed = checks.findIndex(Boolean) === -1;
+    const failed = checks.findIndex(check => !check);
     if (failed) {
       return {
         allowed: false,
