@@ -13,7 +13,7 @@ export default defineConfig({
         marketplace: 'marketplace.html',
         sound: 'sound.html',
         omni: 'omni.html',
-        ringStudio: 'ring-studio.html',
+        gridWorldStudio: 'grid-world-studio.html',
       },
     },
   },
