@@ -1,4 +1,5 @@
 import './marketplace.css';
+import { mountStaffMarketActivity } from './marketplace-activity';
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, supabaseConfigured } from './persistence/config';
 
@@ -96,5 +97,6 @@ async function load(){
     if(r.data?.length) rules=r.data as Rule[];
   }
   render();
+  void mountStaffMarketActivity(app);
 }
 load();
