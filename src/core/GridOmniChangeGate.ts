@@ -9,6 +9,11 @@ export interface GridOmniChangeProposal {
   tests: readonly string[];
   rollbackPlan: string;
   evidence: readonly string[];
+  owner: string;
+  blastRadius: 'scoped' | 'regional' | 'platform';
+  dependencyReview: boolean;
+  dataImpactReviewed: boolean;
+  observabilityReady: boolean;
 }
 
 export interface GridOmniChangeDecision {
@@ -35,10 +40,13 @@ export class GridOmniChangeGate {
       proposal.id.trim().length > 0,
       proposal.target.trim().length > 0,
       proposal.summary.trim().length > 0,
+      proposal.owner.trim().length > 0,
       proposal.tests.length > 0,
       proposal.rollbackPlan.trim().length > 0,
       proposal.evidence.length >= (riskOrder[proposal.risk] >= 3 ? 2 : 1),
       proposal.risk === 'low' || proposal.reversible,
+      proposal.dependencyReview,
+      proposal.dataImpactReviewed && proposal.observabilityReady,
     ];
 
     const failed = checks.findIndex(check => !check);
