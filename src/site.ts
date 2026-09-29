@@ -4,7 +4,7 @@ import { QRScanner } from './ui/QRScanner';
 const app = document.querySelector<HTMLDivElement>('#site')!;
 const qrScanner = new QRScanner();
 
-const navItems = ['Home', 'Discover', 'Communities', 'Events', 'Marketplace', 'Creator Hub', 'Economics', 'Staff', 'Docs'];
+const navItems = ['Home', 'Discover', 'Communities', 'Events', 'Marketplace', 'Creator Hub'];
 const siteStyles = ['aurora', 'studio', 'terminal', 'garden'] as const;
 type SiteStyle = typeof siteStyles[number];
 const SITE_STYLE_KEY = 'grid-world:site-style';
