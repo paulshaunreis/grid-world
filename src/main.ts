@@ -601,8 +601,40 @@ void cloudReady.then(async () => {
       }]);
     }
     addChatMessage('GRID MEMORY', 'Public NPC memory archive synchronized.', 'system');
+
+    const { data: remoteTeleportNodes, error: teleportError } = await cloudPersistence.getClient()
+      .from('grid_teleport_nodes')
+      .select('id,node_kind,display_name,region_id,x,y,z,yaw,destination_ids,clearance_radius,access,status,cooldown_seconds')
+      .eq('status', 'online');
+    if (teleportError) throw teleportError;
+
+    for (const node of remoteTeleportNodes ?? []) {
+      if (teleportSystem.get(node.id)) continue;
+      const definition = {
+        id: node.id,
+        kind: node.node_kind as 'gate' | 'pylon',
+        displayName: node.display_name,
+        regionId: node.region_id,
+        position: { x: Number(node.x), y: Number(node.y), z: Number(node.z) },
+        yaw: Number(node.yaw),
+        clearanceRadius: Number(node.clearance_radius),
+        destinationIds: Array.isArray(node.destination_ids) ? node.destination_ids : [],
+        access: node.access as 'public' | 'friends' | 'owner',
+        status: node.status as 'online' | 'guarded' | 'offline',
+        cooldownSeconds: Number(node.cooldown_seconds),
+      };
+      teleportSystem.register(definition);
+      const visual = definition.kind === 'gate'
+        ? createTeleportGate(definition)
+        : createTeleportPylon(definition);
+      world.scene.add(visual);
+      teleportVisuals.push(visual);
+    }
+    if ((remoteTeleportNodes?.length ?? 0) > 0) {
+      addChatMessage('GRID TRANSIT', 'Persistent teleport nodes synchronized from Grid Omni World.', 'system');
+    }
   } catch (error) {
-    console.warn('NPC memory archive unavailable; local memory remains active.', error);
+    console.warn('NPC memory or teleport archive unavailable; local systems remain active.', error);
   }
 });
 
@@ -617,7 +649,7 @@ function handleTeleportNode(result: ReturnType<InteractionSystem['findTarget']>)
     actorId: cloudIdentity.id,
     nodeId,
     nowSeconds: performance.now() / 1000,
-    relationship: 'owner',
+    relationship: 'public',
   });
 
   if (!teleport.ok || !teleport.destination) {
@@ -645,6 +677,17 @@ function handleTeleportNode(result: ReturnType<InteractionSystem['findTarget']>)
   audio.play('world.portal', 1);
   prompt.textContent = 'E · Arrived at ' + destination.displayName + ' ✓';
   addChatMessage('GRID TRANSIT', 'Arrived at ' + destination.displayName + '. Safe arrival clearance applied.', 'system');
+  if (cloudPersistence) {
+    cloudPersistence.getClient().from('grid_teleport_events').insert({
+      actor_id: cloudIdentity.id,
+      source_node_id: teleport.sourceNodeId ?? null,
+      destination_node_id: destination.id,
+      result: 'teleported',
+      metadata: { regionId: destination.regionId, client: 'grid-world-web' },
+    }).then(({ error }) => {
+      if (error) console.warn('Teleport event archive unavailable.', error);
+    });
+  }
   presence?.update(player.getTransform()).catch(console.error);
   savePlayer();
   return true;
