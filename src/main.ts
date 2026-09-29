@@ -5,6 +5,7 @@ import { Persistence } from './core/Persistence';
 import { SupabasePersistence } from './persistence/SupabasePersistence';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, supabaseConfigured } from './persistence/config';
 import { loadOrCreateIdentity } from './core/PlayerIdentity';
+import { writeVersioned } from './core/VersionedStorage';
 import { PlayerController } from './core/PlayerController';
 import { World } from './world/World';
 import { SupabasePresence } from './network/SupabasePresence';
@@ -60,10 +61,18 @@ hud.innerHTML = `
       <input id="identity-name" maxlength="20" autocomplete="off" placeholder="Display name" />
       <div class="avatar-label">Avatar style</div>
       <div class="avatar-options" id="avatar-options">
-        <button type="button" data-avatar="azure">Azure</button>
-        <button type="button" data-avatar="sunset">Sunset</button>
-        <button type="button" data-avatar="forest">Forest</button>
-        <button type="button" data-avatar="violet">Violet</button>
+        <button type="button" data-avatar="navigator">Navigator</button>
+        <button type="button" data-avatar="muse">Muse</button>
+        <button type="button" data-avatar="explorer">Explorer</button>
+        <button type="button" data-avatar="builder">Builder</button>
+        <button type="button" data-avatar="scholar">Scholar</button>
+        <button type="button" data-avatar="sentinel">Sentinel</button>
+        <button type="button" data-avatar="wanderer">Wanderer</button>
+        <button type="button" data-avatar="artist">Artist</button>
+        <button type="button" data-avatar="ranger">Ranger</button>
+        <button type="button" data-avatar="architect">Architect</button>
+        <button type="button" data-avatar="guardian">Guardian</button>
+        <button type="button" data-avatar="signal">Signal</button>
       </div>
       <div class="avatar-label">HUD color</div>
       <div class="hud-options" id="hud-options">
@@ -532,7 +541,7 @@ avatarOptions.addEventListener('click', event => {
   if (!button) return;
   identity = { ...identity, avatarStyle: button.dataset.avatar as typeof identity.avatarStyle };
   player.setAvatarStyle(identity.avatarStyle);
-  localStorage.setItem('grid-world:identity', JSON.stringify(identity));
+  writeVersioned('grid-world:identity', 1, identity);
   cloudIdentity = { ...cloudIdentity, avatarStyle: identity.avatarStyle };
   presence?.setIdentity(cloudIdentity);
   avatarOptions.querySelectorAll<HTMLButtonElement>('[data-avatar]').forEach(option => {
@@ -603,6 +612,19 @@ addEventListener('keydown', event => {
     const result = interaction.interact();
     if (result) {
       prompt.textContent = `E · ${result.name} ✓`;
+      const npcBrain = result.object.userData.gridNpcBrain as { remember?: (memory: { subjectId?: string; eventType: string; summary: string; valence: number; importance: number; confidence: number }) => void; thought?: () => string } | undefined;
+      if (npcBrain?.remember) {
+        const npcId = result.object.userData.gridActorId as string | undefined;
+        npcBrain.remember({
+          subjectId: identity.id,
+          eventType: 'player-interaction',
+          summary: identity.displayName + ' interacted with me.',
+          valence: .45,
+          importance: .7,
+          confidence: .95,
+        });
+        addChatMessage(result.name, npcBrain.thought?.() ?? 'I remember meeting you.', 'team');
+      }
       const teamAvatarId = result.object.userData.teamAvatarId as string | undefined;
       if (teamAvatarId) {
         const teamAvatar = teamAvatars.find(avatar => avatar.definition.id === teamAvatarId);
@@ -650,6 +672,14 @@ function animate(now: number) {
   npcChatTimer -= dt;
   if (npcChatTimer <= 0) {
     const [speakerA, speakerB, lineA, lineB] = npcChatPairs[npcChatIndex % npcChatPairs.length];
+    const actorA = crowdActors.find(actor => actor.definition.displayName === speakerA);
+    const actorB = crowdActors.find(actor => actor.definition.displayName === speakerB);
+    if (actorA && actorB) {
+      actorA.brain.meet(actorB.definition.id);
+      actorB.brain.meet(actorA.definition.id);
+      actorA.brain.remember({ subjectId: actorB.definition.id, eventType: 'conversation', summary: lineB, valence: .35, importance: .5, confidence: .9 });
+      actorB.brain.remember({ subjectId: actorA.definition.id, eventType: 'conversation', summary: lineA, valence: .35, importance: .5, confidence: .9 });
+    }
     addChatMessage(speakerA, lineA, 'team');
     window.setTimeout(() => addChatMessage(speakerB, lineB, 'team'), 900);
     npcChatIndex++;
