@@ -24,7 +24,7 @@ export interface GridObjectProvenance {
 
 export interface GridObjectSnapshot {
   schema: 1;
-  entity: ReturnType<GridEntity['snapshot']>;
+  entity: ReturnType<GridEntity['entitySnapshot']>;
   kind: GridObjectKind;
   permissions: GridObjectPermissions;
   provenance: GridObjectProvenance;
