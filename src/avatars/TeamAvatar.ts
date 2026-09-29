@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { createStarterPBRMaterial } from '../engine/GridPBRLibrary';
 
 export type TeamAvatarStyle = 'aurora' | 'link' | 'rey' | 'elder' | 'veyr' | 'nyxen' | 'orin' | 'seraith' | 'vael' | 'kairox' | 'morrow' | 'cipher' | 'solenne' | 'rook' | 'echo' | 'umbra' | 'civitas' | 'axiom' | 'mosaic' | 'sentinel' | 'praxis';
 
@@ -51,14 +52,14 @@ export class TeamAvatar {
     const palette = palettes[definition.style];
     this.body = new THREE.Mesh(
       new THREE.CapsuleGeometry(0.45, 0.9, 4, 8),
-      new THREE.MeshStandardMaterial({ color: palette.body, roughness: 0.62, metalness: 0.25 })
+      createStarterPBRMaterial('fabric', { color: '#' + palette.body.toString(16).padStart(6,'0'), roughness: .62, metalness: .25 })
     );
     this.body.position.y = 1.05;
     this.body.castShadow = true;
 
     this.visor = new THREE.Mesh(
       new THREE.SphereGeometry(0.27, 16, 12),
-      new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: palette.visor, emissiveIntensity: 0.9 })
+      createStarterPBRMaterial('glass', { color: '#ffffff', emissive: '#' + palette.visor.toString(16).padStart(6,'0'), emissiveIntensity: .9, roughness: .16 })
     );
     this.visor.position.set(0, 1.55, -0.28);
 
