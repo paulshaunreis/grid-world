@@ -208,6 +208,11 @@ const gridHealth = {
   gridCode: true,
 };
 const healthStars = Object.values(gridHealth).filter(Boolean).length;
+addChatMessage('AURORA', 'World pass: First Light is now organized as connected districts with terrain, bridges, wildlife, and creator space.', 'team');
+addChatMessage('ATLAS', 'Simulation pass: NPCs now have needs, utility-based autonomy, memories, relationships, cooldowns, and bounded behavior.', 'team');
+addChatMessage('TESSERA', 'Materials pass: the PBR library now catalogs CC0 sources and supplies lightweight starter materials for world and avatars.', 'team');
+addChatMessage('WAYPOINT', 'Ecology pass: terrain, water, vegetation, wildlife habitats, and traversal are now treated as one regional system.', 'team');
+addChatMessage('LINK', 'Architecture pass: the new systems stay behind replaceable Grid Engine contracts so the renderer and asset pipeline can evolve.', 'team');
 addChatMessage('GRID OMNI', 'System health ' + healthStars + '/5 ★ · Grid Measurement active · First Light starter zone assigned.', 'system');
 
 const automaticHouseScript = `<House id="starter-home" scale="5">
