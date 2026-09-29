@@ -204,14 +204,14 @@ function respondToVoiceTarget(utterance: string) {
     response = lower.includes('off') ? 'Beacon power reduced. The signal is now quiet.' : 'Beacon awakened. Its signal is now broadcasting locally.';
   } else if (objectId.includes('neon-door') || target.name.toLowerCase().includes('neon door')) {
     response = lower.includes('open') ? 'The Neon Door accepts the request and opens its scripted state.' : lower.includes('close') ? 'The Neon Door returns to its closed state.' : 'The Neon Door is listening for an open or close instruction.';
-    scriptedObjects.dispatch(target.object, 'voice command');
+    scriptedObjects.dispatch(target.object, 'player interacts');
   } else if (objectId.includes('terrain') || target.name.toLowerCase().includes('terrain')) {
     response = 'Terrain profile: Grid Measurement is active. The land is being treated as a measurable world system.';
   } else if (target.object.userData.gridFreeObject) {
     response = lower.includes('inspect') || lower.includes('what') ? target.name + ' is a Grid World original object with a stable profile and provenance.' : target.name + ' responds through the Grid interaction layer.';
-    scriptedObjects.dispatch(target.object, 'voice command');
+    scriptedObjects.dispatch(target.object, 'player interacts');
   } else {
-    scriptedObjects.dispatch(target.object, 'voice command');
+    scriptedObjects.dispatch(target.object, 'player interacts');
   }
 
   addChatMessage(target.name, response, 'team');
