@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Input } from './Input';
 
-export type AvatarStyle = 'azure' | 'sunset' | 'forest' | 'violet';
+export type AvatarStyle = 'navigator' | 'muse' | 'explorer' | 'builder' | 'scholar' | 'sentinel' | 'wanderer' | 'artist' | 'ranger' | 'architect' | 'guardian' | 'signal';
 
 export interface PlayerTransform {
   x: number;
@@ -38,10 +38,18 @@ export class PlayerController {
 
   setAvatarStyle(style: AvatarStyle) {
     const palettes = {
-      azure: { body: 0x8ad1ff, head: 0xe8f5ff },
-      sunset: { body: 0xff9a62, head: 0xffe1cc },
-      forest: { body: 0x73d39b, head: 0xdff7e8 },
-      violet: { body: 0xb58cff, head: 0xeee4ff },
+      navigator: { body: 0x5fd8ff, head: 0xe6f7ff },
+      muse: { body: 0xd58cff, head: 0xffe8fa },
+      explorer: { body: 0xffad62, head: 0xffe0c7 },
+      builder: { body: 0xb18a62, head: 0xf1d7bc },
+      scholar: { body: 0x9aaee8, head: 0xe4eaff },
+      sentinel: { body: 0xd5c47c, head: 0xf4e8ca },
+      wanderer: { body: 0x79c98b, head: 0xdff6e6 },
+      artist: { body: 0xef76b4, head: 0xffd8ea },
+      ranger: { body: 0x719c66, head: 0xe0f0d8 },
+      architect: { body: 0x78a5bd, head: 0xe3f2f7 },
+      guardian: { body: 0x7182c8, head: 0xe2e7ff },
+      signal: { body: 0x65e6c8, head: 0xdffff7 },
     };
     const palette = palettes[style];
     (this.body.material as THREE.MeshStandardMaterial).color.setHex(palette.body);
