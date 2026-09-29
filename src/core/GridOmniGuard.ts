@@ -9,7 +9,8 @@ export type OmniAction =
   | 'revoke'
   | 'pause'
   | 'rollback'
-  | 'notify';
+  | 'notify'
+  | 'audit';
 
 export interface OmniSignal {
   source: string;
