@@ -38,7 +38,7 @@ export function loadOrCreateIdentity(): PlayerIdentity {
   const created: PlayerIdentity = {
     id: crypto.randomUUID(),
     displayName: 'Traveler',
-    avatarStyle: 'azure',
+    avatarStyle: 'navigator',
     createdAt: new Date().toISOString(),
   };
   writeVersioned(STORAGE_KEY, SCHEMA_VERSION, created);
