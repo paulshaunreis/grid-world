@@ -270,3 +270,30 @@ Derived objects retain their parent object ID and source asset information where
 ### Security boundary
 
 Client-side permission checks improve UX but are not the final authority. Grid Server / Grid Omni services must re-check authorization before persistent writes, commerce, publication, or privileged world actions.
+
+
+## Grid World Texture Library
+
+Grid materials are first-class world resources.
+
+```
+Grid Texture ID
+├── Material Definition
+├── Rights
+├── Provenance
+├── Version
+└── Renderer Variants
+    ├── WebGL
+    ├── WebGPU
+    └── Native
+```
+
+The initial library contains ten original Grid materials spanning stone, wood, metal, glass, ground, foliage, technical, and special categories.
+
+Binary texture files are intentionally separate from catalog metadata. The catalog lives in `grid_texture_library`; future binary maps should live in Supabase Storage with bucket-specific access controls. This follows Supabase's current Storage architecture and avoids putting large media blobs into Postgres. citeturn0search0turn0search4
+
+Texture publication follows:
+
+`Create/Import → Hash → Quarantine → Validate → Rights Metadata → Moderation → Publish → Cache → Renderer Variant`
+
+No external texture is treated as Grid-owned merely because it was imported. Rights status and provenance travel with the material.
