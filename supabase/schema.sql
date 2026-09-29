@@ -126,3 +126,36 @@ insert into public.grid_omni_services (id,display_name,description) values
 ('omni-connect','Grid Omni Connect','Web, desktop, mobile and external service bridges.'),
 ('omni-archive','Grid Omni Archive','Preservation, history, provenance and recovery records.')
 on conflict (id) do update set display_name=excluded.display_name,description=excluded.description,updated_at=now();
+
+
+drop policy if exists "Public can read Omni services" on public.grid_omni_services;
+create policy "Public can read Omni services" on public.grid_omni_services for select to anon, authenticated using (true);
+
+drop policy if exists "Users can read own Omni incidents" on public.grid_omni_incidents;
+create policy "Users can read own Omni incidents" on public.grid_omni_incidents for select to authenticated using ((select auth.uid()) = subject_id);
+
+drop policy if exists "Users can read own Omni actions" on public.grid_omni_actions;
+create policy "Users can read own Omni actions" on public.grid_omni_actions for select to authenticated using (
+  exists (select 1 from public.grid_omni_incidents i where i.id = incident_id and i.subject_id = (select auth.uid()))
+);
+
+drop policy if exists "Public can read Omni service events" on public.grid_omni_service_events;
+create policy "Public can read Omni service events" on public.grid_omni_service_events for select to anon, authenticated using (severity in ('info','notice'));
+
+drop policy if exists "Public can read approved sound" on public.grid_sound_tracks;
+create policy "Public can read approved sound" on public.grid_sound_tracks for select to anon, authenticated using (visibility = 'public' and moderation_state = 'approved');
+
+drop policy if exists "Creators can read own sound" on public.grid_sound_tracks;
+create policy "Creators can read own sound" on public.grid_sound_tracks for select to authenticated using ((select auth.uid()) = creator_id);
+
+drop policy if exists "Creators can insert sound" on public.grid_sound_tracks;
+create policy "Creators can insert sound" on public.grid_sound_tracks for insert to authenticated with check ((select auth.uid()) = creator_id);
+
+drop policy if exists "Creators can update own sound" on public.grid_sound_tracks;
+create policy "Creators can update own sound" on public.grid_sound_tracks for update to authenticated
+using ((select auth.uid()) = creator_id)
+with check ((select auth.uid()) = creator_id);
+
+drop policy if exists "Listeners can insert play events" on public.grid_sound_play_events;
+create policy "Listeners can insert play events" on public.grid_sound_play_events for insert to authenticated
+with check ((select auth.uid()) = listener_id);
