@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-export type TeamAvatarStyle = 'aurora' | 'link' | 'rey' | 'elder' | 'veyr' | 'nyxen' | 'orin' | 'seraith' | 'vael' | 'kairox' | 'morrow' | 'cipher' | 'solenne' | 'rook' | 'echo' | 'umbra';
+export type TeamAvatarStyle = 'aurora' | 'link' | 'rey' | 'elder' | 'veyr' | 'nyxen' | 'orin' | 'seraith' | 'vael' | 'kairox' | 'morrow' | 'cipher' | 'solenne' | 'rook' | 'echo' | 'umbra' | 'civitas' | 'axiom' | 'mosaic' | 'sentinel' | 'praxis';
 
 export interface TeamAvatarDefinition {
   id: string;
@@ -31,6 +31,11 @@ const palettes: Record<TeamAvatarStyle, { body: number; visor: number; glow: num
   rook: { body: 0xd3a46f, visor: 0x543b24, glow: 0xd99a52 },
   echo: { body: 0xff746d, visor: 0x57211e, glow: 0xff6258 },
   umbra: { body: 0x687080, visor: 0x151923, glow: 0x697cff },
+  civitas: { body: 0x76a7c9, visor: 0x19364d, glow: 0x66c9ff },
+  axiom: { body: 0x8ed8b0, visor: 0x1d4935, glow: 0x67f0a5 },
+  mosaic: { body: 0xe1a6ff, visor: 0x4c285e, glow: 0xd18aff },
+  sentinel: { body: 0xe7c98d, visor: 0x4b3d1e, glow: 0xffd66d },
+  praxis: { body: 0xaeb8ff, visor: 0x2d3264, glow: 0x8d9bff },
 };
 
 export class TeamAvatar {
