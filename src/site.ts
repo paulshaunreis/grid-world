@@ -4,7 +4,7 @@ import { QRScanner } from './ui/QRScanner';
 const app = document.querySelector<HTMLDivElement>('#site')!;
 const qrScanner = new QRScanner();
 
-const navItems = ['Home', 'Discover', 'Communities', 'Events', 'Marketplace', 'Creator Hub'];
+const navItems = ['Home', 'Discover', 'Communities', 'Events', 'Marketplace', 'Creator Hub', 'Economics', 'Staff', 'Docs'];
 const siteStyles = ['aurora', 'studio', 'terminal', 'garden'] as const;
 type SiteStyle = typeof siteStyles[number];
 const SITE_STYLE_KEY = 'grid-world:site-style';
@@ -24,7 +24,7 @@ app.innerHTML = `
     <div class="header-actions">
       <button class="ghost style-trigger" id="style-trigger" type="button">STYLE</button>
       <button class="ghost" id="site-qr" type="button">QR</button>
-      <a class="ghost" href="/profile.html">PROFILE</a>
+      <a class="ghost" href="/economics.html">ECONOMICS</a><a class="ghost" href="/directory.html">STAFF</a><a class="ghost" href="/docs.html">DOCS</a><a class="ghost" href="/profile.html">PROFILE</a>
       <a class="primary" href="/play.html">ENTER WORLD</a>
     </div>
   </header>
