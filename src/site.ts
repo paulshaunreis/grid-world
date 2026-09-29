@@ -181,7 +181,7 @@ app.innerHTML = `
       <div class="world-cards">
         <div class="world-card first"><img src="/worlds/tideline.svg" alt="Tideline concept art"><div><small>01 · TIDELINE</small><h3>OCEAN WORLD</h3><p>Harbors, moons, sky cities and tidal exploration.</p></div><a href="/play.html">ENTER →</a></div>
         <div class="world-card neon"><img src="/worlds/crown.svg" alt="Crown concept art"><div><small>02 · CROWN</small><h3>CELESTIAL CITADEL</h3><p>Monuments beneath a ringed world and strange skies.</p></div><a href="#discover">DISCOVER →</a></div>
-        <div class="world-card verdant"><img src="/worlds/verdant.svg" alt="Verdant concept art"><div><small>03 · VERDANT</small><h3>FLOATING GARDENS</h3><p>Alien ecology, multiple moons and living architecture.</p></div><a href="#discover">DISCOVER →</a></div>
+        <div class="world-card verdant"><img src="/worlds/verdant.svg" alt="Verdant concept art"><div><small>03 · VERDANT</small><h3>FLOATING GARDENS</h3><p>Alien ecology, multiple moons and living architecture.</p></div><a href="#discover">DISCOVER →</a></div><div class="world-card muse"><img src="/worlds/muse.svg" alt="Muse concept art"><div><small>04 · MUSE</small><h3>ART REALM</h3><p>Impossible geometry, color, movement and expression.</p></div><a href="#discover">DISCOVER →</a></div><div class="world-card frontier"><img src="/worlds/frontier.svg" alt="Frontier concept art"><div><small>05 · FRONTIER</small><h3>ANCIENT WILDS</h3><p>Wild habitats, colossal trees and living discovery.</p></div><a href="#discover">DISCOVER →</a></div>
       </div>
     </section>
 
