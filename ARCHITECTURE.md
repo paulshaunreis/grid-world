@@ -6,7 +6,7 @@
 - Persistence — account/world-state adapters.
 - Networking — realtime presence and future authoritative synchronization.
 - UI — HUD, inventory, chat, social and creator surfaces.
-- Scripting — capability-bounded Grid Code and Grid Ring packages.
+- Scripting — capability-bounded Grid Code and Grid World Studio packages.
 
 ## Interaction contract
 World objects expose an interactable flag and optional interaction name. The interaction system raycasts from the center of the player's view and returns the first interactable object.
@@ -72,8 +72,8 @@ Grid Code is declarative and HTML-like. It compiles to a restricted intermediate
 
 It must never provide arbitrary JavaScript execution, credentials, unrestricted networking, filesystem access, or raw database access.
 
-### Grid Ring
-Grid Ring packages a creator-authored experience as a versioned manifest:
+### Grid World Studio
+Grid World Studio packages a creator-authored experience as a versioned manifest:
 - stable package ID
 - semantic version
 - creator identity
@@ -87,7 +87,7 @@ Grid Ring packages a creator-authored experience as a versioned manifest:
 
 The compiler verifies that every capability required by Grid Code is explicitly declared by the package.
 
-Grid Ring is designed to support the lesson demonstrated by Ryzom Ring: creator tools become much more powerful when authors can build, test and publish experiences without engine-level programming.
+Grid World Studio is designed to support the lesson demonstrated by Ryzom Ring: creator tools become much more powerful when authors can build, test and publish experiences without engine-level programming.
 
 ## Mod safety
 Mods should be capability-bounded. They must not receive arbitrary access to authentication tokens, service-role credentials, raw database access, unrestricted network access, arbitrary DOM outside their declared UI surface, or arbitrary code execution through user-authored world scripts.
