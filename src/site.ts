@@ -1,6 +1,7 @@
 import './site.css';
 import { QRScanner } from './ui/QRScanner';
 import { mountGridLiveFeed } from './site-live-feed';
+import { TEAM_WORK_TASKS } from './world/TeamWorkSystem';
 
 const app = document.querySelector<HTMLDivElement>('#site')!;
 const qrScanner = new QRScanner();
@@ -66,6 +67,12 @@ app.innerHTML = `
         <div class="pulse-status"><span class="pulse-dot"></span><span data-grid-pulse-status>CONNECTING</span><b><span data-grid-pulse-count>00</span> RECENT</b></div>
       </div>
       <div class="pulse-feed" data-grid-pulse-list aria-live="polite"></div>
+    </section>
+
+
+    <section class="studio-live" id="studio-live">
+      <div class="studio-live-head"><div><div class="section-label">PUBLIC STUDIO SIGNAL</div><h2>The world is being<br><span>built in front of you.</span></h2><p>Team members can publish the parts of the build they are comfortable sharing. These are the current public workstreams.</p></div><div class="studio-live-badge"><span></span> LIVE BUILD</div></div>
+      <div class="studio-live-grid" id="studio-live-grid"></div>
     </section>
 
     <section class="visual-atlas" id="visual-system">
@@ -203,6 +210,24 @@ app.innerHTML = `
   <footer><div class="brand"><img class="brand-logo brand-logo-footer" src="/grid-world-logo.svg" alt="Grid World"><span>GRID WORLD</span></div><p>A framework for worlds, communities, and experiences.</p><div><a href="#terms">Terms</a><a href="#privacy">Privacy</a><a href="#safety">Safety</a><a href="#status">Status</a></div></footer>
   <div class="site-toast" id="site-toast" role="status" aria-live="polite"></div>
 `;
+
+const studioLiveGrid = document.querySelector<HTMLElement>('#studio-live-grid');
+if (studioLiveGrid) {
+  const publicTasks = TEAM_WORK_TASKS.filter(task => task.visible);
+  studioLiveGrid.innerHTML = publicTasks.map(task => {
+    const member = ['Aurora','Link','Orin','Echo','Atlas','Tessera','Waypoint'].find(name => name.toLowerCase() === task.memberId) ?? task.memberId.toUpperCase();
+    return '<article class="studio-live-card"><div class="studio-live-top"><strong>' + member + '</strong><span>' + task.progress + '%</span></div><h3>' + task.title + '</h3><p>' + task.status + '</p><small>' + task.zone + '</small><div class="studio-progress"><i style="width:' + task.progress + '%"></i></div></article>';
+  }).join('');
+  let pulse = 0;
+  window.setInterval(() => {
+    pulse++;
+    studioLiveGrid.querySelectorAll<HTMLElement>('.studio-progress i').forEach((bar, index) => {
+      const task = publicTasks[index];
+      const value = Math.min(99, task.progress + ((pulse + index) % 5));
+      bar.style.width = value + '%';
+    });
+  }, 4200);
+}
 
 const liveFeedRoot = document.querySelector<HTMLElement>('#grid-pulse');
 if (liveFeedRoot) mountGridLiveFeed(liveFeedRoot);
