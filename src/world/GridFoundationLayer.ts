@@ -15,6 +15,8 @@ export function createGridFoundationLayer(): GridFoundationLayer {
   root.name = 'grid-foundation-layer';
   root.position.y = -8;
   root.visible = false;
+  root.userData.access = 'team-or-authorized-foundation';
+  root.userData.artDirection = 'technical foundation beneath many visual worlds';
 
   const grid = new THREE.GridHelper(240, 120, 0x2a8cff, 0x12304d);
   grid.material.transparent = true;
@@ -33,6 +35,16 @@ export function createGridFoundationLayer(): GridFoundationLayer {
   underGlow.rotation.x = -Math.PI / 2;
   underGlow.position.y = -.04;
   root.add(underGlow);
+
+  const rings = new THREE.Group();
+  rings.name = 'foundation-orbits';
+  for (let i = 0; i < 3; i++) {
+    const ring = new THREE.Mesh(new THREE.RingGeometry(18 + i * 14, 18.06 + i * 14, 96), new THREE.MeshBasicMaterial({ color: 0x315c78, transparent: true, opacity: .18, side: THREE.DoubleSide }));
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.y = .06 + i * .015;
+    rings.add(ring);
+  }
+  root.add(rings);
 
   const nodes = new THREE.Group();
   nodes.name = 'foundation-nodes';
@@ -110,6 +122,7 @@ export function createGridFoundationLayer(): GridFoundationLayer {
     }
     positions.needsUpdate = true;
 
+    rings.rotation.y -= dt * .012;
     nodes.rotation.y += dt * .004;
     if (currentWeather === 'aurora') {
       nodes.children.forEach((node, i) => {
