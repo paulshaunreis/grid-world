@@ -24,7 +24,7 @@ app.innerHTML = `
     <div class="header-actions">
       <button class="ghost style-trigger" id="style-trigger" type="button">STYLE</button>
       <button class="ghost" id="site-qr" type="button">QR</button>
-      <a class="ghost" href="/economics.html">ECONOMICS</a><a class="ghost" href="/marketplace.html">MARKET</a><a class="ghost" href="/directory.html">STAFF</a><a class="ghost" href="/docs.html">DOCS</a><a class="ghost" href="/profile.html">PROFILE</a>
+      <a class="ghost" href="/economics.html">ECONOMICS</a><a class="ghost" href="/marketplace.html">MARKET</a><a class="ghost" href="/sound.html">SOUND</a><a class="ghost" href="/omni.html">OMNI</a><a class="ghost" href="/directory.html">STAFF</a><a class="ghost" href="/docs.html">DOCS</a><a class="ghost" href="/profile.html">PROFILE</a>
       <a class="primary" href="/play.html">ENTER WORLD</a>
     </div>
   </header>
@@ -83,7 +83,7 @@ app.innerHTML = `
       </div>
     </section>
 
-    <section class="social-layout" id="discover">
+    <section class="sound-feature" id="sound"><div><div class="section-label">GRID OMNI SOUND</div><h2>Your worlds<br><span>have a soundtrack.</span></h2><p>Music, radio, live sets, podcasts and spatial soundscapes become first-class Grid World media.</p><a class="secondary large" href="/sound.html">OPEN GRID OMNI SOUND</a></div><div class="sound-wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></section>\n\n    <section class="social-layout" id="discover">
       <aside class="side-card profile-card">
         <div class="profile-avatar">G</div><h3>Your Grid Identity</h3><p>Traveler · Creator · Explorer</p>
         <div class="side-links"><a href="/profile.html">Profile Studio</a><a href="#friends">Friends</a><a href="#messages">Messages</a><a href="#notifications">Notifications</a></div>
