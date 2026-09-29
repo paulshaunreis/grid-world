@@ -26,6 +26,7 @@ import { GridEngine } from './engine/GridEngine';
 import { ThreeGridRenderer } from './engine/ThreeGridRenderer';
 import { GridSimulationClock } from './engine/GridEngineRuntime';
 import { GridEngineCore } from './engine/GridEngineCore';
+import { GridEntitySystem } from './engine/GridEntitySystem';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
@@ -151,6 +152,7 @@ chatCompose.addEventListener('submit', event => {
 const world = new World();
 const engine = new GridEngine('client', world.scene);
 engine.register(new GridEngineCore());
+engine.register(new GridEntitySystem());
 engine.register(new GridSimulationClock());
 const starterZone = new StarterZone();
 world.scene.add(starterZone.group);
