@@ -29,9 +29,24 @@ export interface GridWorldArtDirector {
 
 export function installGridWorldArtDirector(scene: THREE.Scene): GridWorldArtDirector {
   const root = new THREE.Group();
-  root.name = 'grid-art-director-v3';
+  root.name = 'grid-art-director-v4';
+  root.userData.worldPrinciple = 'many worlds share one living foundation';
+  root.userData.neonIsLocal = true;
 
-  const districtGroups: Record<DistrictKey, THREE.Group> = {} as Record<DistrictKey, THREE.Group>;
+  const ambient = new THREE.Group();
+  ambient.name = 'shared-world-atmosphere';
+  const motes = new THREE.Points(
+    new THREE.BufferGeometry(),
+    new THREE.PointsMaterial({ color: 0xb9e7ff, size: .035, transparent: true, opacity: .16 })
+  );
+  const positions = new Float32Array(360 * 3);
+  for (let i = 0; i < 360; i++) {
+    positions[i*3]=(Math.random()-.5)*90; positions[i*3+1]=Math.random()*28; positions[i*3+2]=(Math.random()-.5)*90;
+  }
+  motes.geometry.setAttribute('position', new THREE.BufferAttribute(positions,3));
+  ambient.add(motes); root.add(ambient);
+
+  const districtGroups: Record<DistrictKey, THREE.Group> = {} as Record<DistrictKey, THREE.Group;
   (Object.keys(DISTRICT_VISUALS) as DistrictKey[]).forEach(key => {
     const group = buildDistrictAssets(key);
     districtGroups[key] = group;
@@ -94,6 +109,9 @@ export function installGridWorldArtDirector(scene: THREE.Scene): GridWorldArtDir
     });
 
     const artGroup = districtGroups.ARTS;
+    const motePositions = motes.geometry.attributes.position as THREE.BufferAttribute;
+    for (let i=0;i<360;i++){ let y=motePositions.getY(i)+Math.sin(elapsed*.4+i)*dt*.01; if(y>28)y=0; motePositions.setY(i,y); } motePositions.needsUpdate=true;
+
     artGroup.children.forEach((child, index) => {
       if (child instanceof THREE.Mesh && index % 2 === 0) child.rotation.y += dt * (.18 + index * .015);
     });
