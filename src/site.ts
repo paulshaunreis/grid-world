@@ -39,7 +39,7 @@ app.innerHTML = `
   <main>
     <section class="hero" id="home">
 
-      <div class="hero-grid"></div>
+      <div class="hero-art" aria-hidden="true"></div><div class="hero-grid"></div>
       <div class="hero-copy">
         <div class="eyebrow">A PERSISTENT FRAMEWORK FOR WORLDS</div>
         <h1>One grid.<br><span>Infinite worlds.</span></h1>
@@ -72,7 +72,7 @@ app.innerHTML = `
 
     <section class="studio-live" id="studio-live">
       <div class="studio-live-head"><div><div class="section-label">PUBLIC STUDIO SIGNAL</div><h2>The world is being<br><span>built in front of you.</span></h2><p>Team members can publish the parts of the build they are comfortable sharing. These are the current public workstreams.</p></div><div class="studio-live-badge"><span></span> LIVE BUILD</div></div>
-      <div class="studio-live-grid" id="studio-live-grid"></div>
+      <div class="studio-live-art"><img src="/art/team-studio.svg" alt="" aria-hidden="true"></div><div class="studio-live-grid" id="studio-live-grid"></div>
     </section>
 
     <section class="visual-atlas" id="visual-system">
@@ -189,7 +189,7 @@ app.innerHTML = `
       <div class="section-label">ASSET CONSTELLATION</div>
       <h2>Nothing stands still.<br><span>Everything has a body.</span></h2>
       <p class="model-intro">Grid World is building around five reusable model families: architecture, avatars, animals, plants, and trees. Free CC0 sources supply production candidates while Grid-native procedural forms keep the world alive between asset drops.</p>
-      <div class="model-atlas-grid">
+      <div class="model-atlas-art"><img src="/art/asset-constellation.svg" alt="Grid World asset constellation"></div><div class="model-atlas-grid">
         <a href="https://kenney.nl/assets/modular-buildings" target="_blank" rel="noreferrer"><b>ARCHITECTURE</b><strong>MODULAR CITY</strong><small>Kenney · CC0 · buildings</small><i>▱</i></a>
         <a href="https://kenney.nl/assets/blocky-characters" target="_blank" rel="noreferrer"><b>AVATARS</b><strong>ANIMATED PEOPLE</strong><small>Kenney · CC0 · characters</small><i>◈</i></a>
         <a href="https://kenney.nl/assets/cube-pets" target="_blank" rel="noreferrer"><b>ANIMALS</b><strong>LIVING COMPANIONS</strong><small>Kenney · CC0 · animated pets</small><i>◇</i></a>
@@ -198,7 +198,9 @@ app.innerHTML = `
       </div>
     </section>
 
-        <section class="irllayer" id="events"><div><div class="section-label">GRID CONNECT</div><h2>Virtual or IRL.<br><span>Experience it together.</span></h2><p>Events can exist in the physical world, inside Grid World, or across both. Users choose what they share and where they participate.</p><a class="secondary large" href="#events">BROWSE EVENTS</a></div><div class="event-map"><span>GRID</span><i></i><b>IRL</b></div></section>
+        <section class="foundation-art-section"><div class="section-label">THE LAYER BENEATH THE WORLDS</div><h2>One foundation.<br><span>Many realities.</span></h2><img src="/art/foundation.svg" alt="Grid Foundation concept art"><p>The Grid Foundation remains hidden unless authorized. It carries shared weather, system nodes, world links and access-controlled infrastructure beneath every world.</p></section>
+
+    <section class="irllayer" id="events"><div><div class="section-label">GRID CONNECT</div><h2>Virtual or IRL.<br><span>Experience it together.</span></h2><p>Events can exist in the physical world, inside Grid World, or across both. Users choose what they share and where they participate.</p><a class="secondary large" href="#events">BROWSE EVENTS</a></div><div class="event-map"><span>GRID</span><i></i><b>IRL</b></div></section>
   </main>
 
   <section class="legal-strip" id="terms">
