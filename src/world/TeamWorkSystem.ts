@@ -8,19 +8,52 @@ type WorkTask = {
   zone: string;
   progress: number;
   visible: boolean;
+  public: boolean;
   position: { x: number; z: number };
 };
 
-export const TEAM_WORK_TASKS: WorkTask[] = [
-  { memberId:'tessera', title:'Texturing + PBR pass', status:'Applying world materials', zone:'All worlds', progress:78, visible:true, position:{x:24,z:20} },
-  { memberId:'waypoint', title:'Terrain + ecology', status:'Shaping terrain and habitats', zone:'Frontier', progress:64, visible:true, position:{x:0,z:25} },
+const SEED_TASKS: WorkTask[] = [
+  { memberId:'tessera', title:'Texturing + PBR pass', status:'Applying world materials', zone:'All worlds', progress:78, visible:true, public:true, position:{x:24,z:20} },
+  { memberId:'waypoint', title:'Terrain + ecology', status:'Shaping terrain and habitats', zone:'Frontier', progress:64, visible:true, public:true, position:{x:0,z:25} },
   { memberId:'atlas', title:'Living-world simulation', status:'Tuning creature behavior', zone:'Frontier', progress:71, visible:true, position:{x:-24,z:20} },
   { memberId:'link', title:'Performance + streaming', status:'Profiling frame time', zone:'Grid systems', progress:86, visible:true, position:{x:3.2,z:-12.2} },
   { memberId:'aurora', title:'World direction', status:'Composing zone transitions', zone:'Many Worlds', progress:69, visible:true, position:{x:-2.4,z:-6.2} },
   { memberId:'orin', title:'World connections', status:'Mapping dependencies', zone:'All worlds', progress:58, visible:true, position:{x:-9,z:-17} },
   { memberId:'echo', title:'Playtest + QA', status:'Walking the world and finding breaks', zone:'All worlds', progress:82, visible:true, position:{x:-18,z:-8} },
-  { memberId:'nyxen', title:'Foundation security', status:'Checking access boundaries', zone:'Grid Foundation', progress:74, visible:false, position:{x:8,z:-16} },
+  { memberId:'nyxen', title:'Foundation security', status:'Checking access boundaries', zone:'Grid Foundation', progress:74, visible:true, public:false, position:{x:8,z:-16} },
 ];
+
+
+const PRIVATE_IDS = new Set(['nyxen','civitas','axiom','praxis','sentinel']);
+const TASK_LIBRARY = [
+  ['Modeling', 'Building and refining world geometry'],
+  ['Texturing', 'Creating and tuning surface materials'],
+  ['Lighting', 'Balancing atmosphere and world illumination'],
+  ['Animation', 'Tuning motion and character presence'],
+  ['World building', 'Composing landmarks and spatial stories'],
+  ['Simulation', 'Testing living systems and behavior'],
+  ['QA', 'Walking the world and finding rough edges'],
+  ['Optimization', 'Reducing frame cost while preserving detail'],
+] as const;
+
+const seeded = new Set(SEED_TASKS.map(task => task.memberId));
+for (let i = 0; i < TEAM_AVATARS.length; i++) {
+  const member = TEAM_AVATARS[i];
+  if (seeded.has(member.id)) continue;
+  const [title, status] = TASK_LIBRARY[i % TASK_LIBRARY.length];
+  SEED_TASKS.push({
+    memberId: member.id,
+    title,
+    status,
+    zone: i % 3 === 0 ? 'Many Worlds' : i % 3 === 1 ? 'World systems' : 'Studio',
+    progress: 48 + (i * 11) % 44,
+    visible: true,
+    public: !PRIVATE_IDS.has(member.id),
+    position: member.spawn,
+  });
+}
+
+export const TEAM_WORK_TASKS: WorkTask[] = SEED_TASKS;
 
 function findMember(id: string) { return TEAM_AVATARS.find(member => member.id === id); }
 
