@@ -4,7 +4,7 @@ export interface MinimapMarker {
   id: string;
   x: number;
   z: number;
-  kind: 'player' | 'team' | 'landmark' | 'interactable';
+  kind: 'player' | 'team' | 'landmark' | 'interactable' | 'teleport';
 }
 
 export interface MinimapOptions {
@@ -76,13 +76,13 @@ export class Minimap {
       const point = toMap(marker.x, marker.z);
       if (Math.abs(point.x) > center || Math.abs(point.y) > center) continue;
 
-      const size = marker.kind === 'landmark' ? 4 : marker.kind === 'team' ? 3.5 : 3;
+      const size = marker.kind === 'landmark' ? 4 : marker.kind === 'team' ? 3.5 : marker.kind === 'teleport' ? 4 : 3;
       context.beginPath();
       context.arc(point.x, point.y, size, 0, Math.PI * 2);
       context.fillStyle =
         marker.kind === 'player' ? '#ffffff' :
         marker.kind === 'team' ? '#68d9ff' :
-        marker.kind === 'landmark' ? '#ffd05a' : '#b78cff';
+        marker.kind === 'landmark' ? '#ffd05a' : marker.kind === 'teleport' ? '#55ddff' : '#b78cff';
       context.fill();
     }
 
