@@ -386,6 +386,34 @@ const cloudReady = cloudPersistence
     })()
   : Promise.resolve(false);
 
+void cloudReady.then(async () => {
+  if (!cloudPersistence) return;
+  try {
+    const { data, error } = await cloudPersistence.getClient()
+      .from('grid_npc_memories')
+      .select('id,npc_id,event_type,summary,valence,importance,confidence,memory_at')
+      .eq('visibility', 'public')
+      .order('memory_at', { ascending: false })
+      .limit(120);
+    if (error) throw error;
+    for (const memory of data ?? []) {
+      const actor = crowdActors.find(item => item.definition.id === memory.npc_id);
+      actor?.brain.hydrateMemories([{
+        id: memory.id,
+        eventType: memory.event_type,
+        summary: memory.summary,
+        valence: Number(memory.valence),
+        importance: Number(memory.importance),
+        confidence: Number(memory.confidence),
+        createdAt: memory.memory_at,
+      }]);
+    }
+    addChatMessage('GRID MEMORY', 'Public NPC memory archive synchronized.', 'system');
+  } catch (error) {
+    console.warn('NPC memory archive unavailable; local memory remains active.', error);
+  }
+});
+
 let multiplayerLabel = 'MULTIPLAYER · Connecting…';
 
 function handleOmniSignal(kind: string, severity: 'info'|'notice'|'warning'|'critical', message: string) {
