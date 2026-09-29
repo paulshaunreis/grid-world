@@ -34,6 +34,8 @@ import { GridVoiceSystem } from './audio/GridVoiceSystem';
 import { GridAudioSystem } from './audio/GridAudioSystem';
 import { createGridFreeObject } from './engine/GridFreeObjectLibrary';
 import { GridTeleportSystem, createTeleportGate, createTeleportPylon } from './engine/GridTeleport';
+import { GridLivingWorld } from './world/GridLivingWorld';
+import { GRID_MODEL_SOURCES } from './engine/GridModelLibrary';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
@@ -264,6 +266,8 @@ engine.register(new GridSimulationClock());
 const teleportSystem = new GridTeleportSystem();
 engine.register(teleportSystem);
 const starterZone = new StarterZone();
+const livingWorld = new GridLivingWorld();
+world.scene.add(livingWorld.root);
 world.scene.add(starterZone.group);
 const omniGuard = new GridOmniGuard();
 const sentinels = [new GridSentinel('Omni Sentinel · First Light')];
@@ -405,6 +409,7 @@ addChatMessage('WAYPOINT', 'Ecology pass: terrain, water, vegetation, wildlife h
 addChatMessage('LINK', 'Architecture pass: the new systems stay behind replaceable Grid Engine contracts so the renderer and asset pipeline can evolve.', 'team');
 addChatMessage('GRID OMNI', 'System health ' + healthStars + '/6 ★ · Grid Measurement active · Teleport network online · First Light starter zone assigned.', 'system');
 addChatMessage('AURORA', 'Transit pass: Teleportation Gates and Teleport Pylons are now addressable Grid objects with guarded destinations and cooldowns.', 'team');
+addChatMessage('TESSERA', GRID_MODEL_SOURCES.length + ' curated CC0/Grid-original model targets are mapped across buildings, avatars, animals, plants, and trees; live fallbacks keep First Light populated.', 'system');
 
 const automaticHouseScript = `<House id="starter-home" scale="5">
   <Notify value="Starter zone systems online." />
@@ -982,6 +987,7 @@ function animate(now: number) {
   }
   world.updateStreaming(player.avatar.position.x, player.avatar.position.z);
   world.update();
+  livingWorld.update(dt);
   for (const remote of remotePlayers.values()) remote.update(dt);
   for (const avatar of teamAvatars) avatar.update(dt);
   for (const actor of crowdActors) actor.update(dt);
