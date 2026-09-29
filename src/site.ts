@@ -24,7 +24,7 @@ app.innerHTML = `
     <div class="header-actions">
       <button class="ghost style-trigger" id="style-trigger" type="button">STYLE</button>
       <button class="ghost" id="site-qr" type="button">QR</button>
-      <a class="ghost" href="/economics.html">ECONOMICS</a><a class="ghost" href="/directory.html">STAFF</a><a class="ghost" href="/docs.html">DOCS</a><a class="ghost" href="/profile.html">PROFILE</a>
+      <a class="ghost" href="/economics.html">ECONOMICS</a><a class="ghost" href="/marketplace.html">MARKET</a><a class="ghost" href="/directory.html">STAFF</a><a class="ghost" href="/docs.html">DOCS</a><a class="ghost" href="/profile.html">PROFILE</a>
       <a class="primary" href="/play.html">ENTER WORLD</a>
     </div>
   </header>
@@ -135,7 +135,7 @@ app.innerHTML = `
     <section class="marketplace-section" id="marketplace">
       <div class="section-label">GRID MARKETPLACE</div>
       <h2>Things made<br><span>by the Grid.</span></h2>
-      <div class="market-grid">
+      <div class="market-grid"><a class="market-live-link" href="/marketplace.html">OPEN LIVE MARKETPLACE →</a>
         <article><div class="market-art prism-art">◇</div><small>OBJECT</small><h3>Profile Prism Kit</h3><p>Identity components for creators.</p><button data-market-action="Profile Prism Kit" type="button">VIEW OBJECT</button></article>
         <article><div class="market-art voxel-art">▦</div><small>BUILD</small><h3>Voxel Workshop</h3><p>Primitive-to-sculpt creator tools.</p><button data-market-action="Voxel Workshop" type="button">VIEW OBJECT</button></article>
         <article><div class="market-art stage-art">✦</div><small>EVENT</small><h3>Stage Light Set</h3><p>Lighting primitives for live worlds.</p><button data-market-action="Stage Light Set" type="button">VIEW OBJECT</button></article>
