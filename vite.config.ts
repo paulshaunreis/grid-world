@@ -15,6 +15,7 @@ export default defineConfig({
         omni: 'omni.html',
         avatars: 'avatars.html',
         gridWorldStudio: 'grid-world-studio.html',
+        textures: 'textures.html',
       },
     },
   },
