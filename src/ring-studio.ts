@@ -1,4 +1,5 @@
 import './ring-studio.css';
+import { compileGridCode } from './scripting/GridCodeRuntime';
 import { compileGridRing, GridRingPackage } from './scripting/GridRing';
 
 const editor=document.querySelector<HTMLTextAreaElement>('#code-editor')!;
@@ -18,21 +19,23 @@ function currentPackage():GridRingPackage{
 }
 function inspect(){
  try{
-  const base=currentPackage(); const compiled=compileGridRing({...base,capabilities:[]});
-  const required=compiled.program.capabilities;
+  const base=currentPackage();
+  const program=compileGridCode(base.gridCode);
+  const required=program.capabilities;
+  const pkg={...base,capabilities:required};
+  const compiled=compileGridRing(pkg);
   caps.innerHTML=required.length?required.map(c=>'<span class="chip">'+c+'</span>').join(''):'<span class="chip">world.basic</span>';
   capCount.textContent=String(required.length);
   diagnostics.textContent='● Valid Grid Code · '+compiled.program.events.length+' event block(s)';
   diagnostics.style.color='#54e0b0'; runtime.textContent='READY';
-  const pkg={...base,capabilities:required};
-  packagePreview.textContent=JSON.stringify({manifest:{...pkg,gridCode:undefined},program:compiled.program},null,2);
+  packagePreview.textContent=JSON.stringify({manifest:compiled.manifest,program:compiled.program},null,2);
   return pkg;
  }catch(e){caps.innerHTML='<span class="chip">'+(e instanceof Error?e.message:'Validation error')+'</span>';capCount.textContent='—';diagnostics.textContent='● '+(e instanceof Error?e.message:'Validation error');diagnostics.style.color='#ff8797';runtime.textContent='BLOCKED';return null}
 }
 document.querySelectorAll<HTMLButtonElement>('.nav').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelector('[data-panel="'+b.dataset.tab+'"]')?.classList.add('active')});
 document.querySelectorAll<HTMLButtonElement>('.template').forEach(b=>b.onclick=()=>{document.querySelectorAll('.template').forEach(x=>x.classList.remove('active'));b.classList.add('active');(document.querySelector<HTMLSelectElement>('#template-input')!).value=b.dataset.template||'first-light';inspect()});
 editor.addEventListener('input',inspect);
-document.querySelector('#validate')?.addEventListener('click',()=>{const p=inspect();if(p){document.querySelector('#save-state')!.textContent='VALIDATED';}});
+document.querySelector('#validate')?.addEventListener('click',()=>{if(inspect())document.querySelector('#save-state')!.textContent='VALIDATED'});
 document.querySelector('#format-code')?.addEventListener('click',()=>{editor.value=editor.value.replace(/>\s*</g,'>\n<').replace(/\n{2,}/g,'\n');inspect()});
 document.querySelector('#save')?.addEventListener('click',()=>{if(inspect())document.querySelector('#save-state')!.textContent='VERSION READY'});
 document.querySelector('#preview')?.addEventListener('click',()=>{runtime.textContent='PREVIEW';document.querySelector('#save-state')!.textContent='PREVIEW'});
