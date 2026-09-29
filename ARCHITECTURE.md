@@ -150,3 +150,54 @@ Ryzom's strongest architectural ideas for Grid are:
 Its major caution is equally important: ambitious systems must be introduced as independently useful, bounded and observable capabilities. A living world cannot depend on every subsystem working perfectly at once.
 
 See `docs/RYZOM_LESSONS.md` for the detailed design translation.
+
+
+## Grid Omni organizational tree
+
+**Grid Omni Core** is the root organizational layer above every Grid Omni service. It is not a peer of Security, World, Wallet, or the other domains.
+
+```
+Grid Omni Core
+├── Grid Omni Security
+├── Grid Omni Identity
+├── Grid Omni World
+├── Grid Omni Social
+├── Grid Omni Creator
+├── Grid Omni Market
+├── Grid Omni Wallet
+├── Grid Omni Sound
+├── Grid Omni Events
+├── Grid Omni Media
+├── Grid Omni Connect
+└── Grid Omni Archive
+```
+
+Services may contain their own subsystems and capabilities, but their stable organizational parent is Grid Omni Core. This gives the platform one durable namespace and makes future Omni services additive rather than architectural rewrites.
+
+### Measure Ten Times, Cut Once
+
+Grid Omni Core provides a pre-change safety gate for high-impact Grid Engine changes. Before activation, a proposal checks ten things:
+
+1. change identity
+2. target scope
+3. clear summary
+4. accountable owner
+5. executable tests
+6. rollback plan
+7. supporting evidence
+8. reversibility appropriate to risk
+9. dependency review
+10. data-impact and observability readiness
+
+The gate is a safety mechanism, not a guarantee. Critical changes should still receive independent review and production verification. A failed gate blocks activation rather than silently accepting an unsafe change.
+
+## Grid Engine 0.1
+
+Grid Engine 0.1 now has an explicit engine-core subsystem. Its responsibilities are deliberately narrow:
+
+- expose the Grid Omni Core organizational contract
+- expose the pre-change security gate
+- coordinate stable engine-owned boundaries
+- remain independent of the current Three.js renderer
+
+The engine should grow outward from these contracts: entity/object model, Grid World Format, authoritative simulation, networking, asset lifecycle, creator preview, and replaceable renderer backends.
