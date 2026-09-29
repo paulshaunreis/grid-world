@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { createCyberpackMaterial } from './cyberpack-materials';
 
 export type DistrictKey = 'HARBOR' | 'GARDENS' | 'CITADEL' | 'ARTS' | 'WILDS';
 
@@ -57,6 +58,9 @@ export const DISTRICT_VISUALS: Record<DistrictKey, DistrictVisual> = {
 function standard(color: number, roughness = .68, metalness = .12) {
   return new THREE.MeshStandardMaterial({ color, roughness, metalness });
 }
+function cyber(key: 'pcb'|'carbon'|'gunmetal'|'hazard'|'technical-leather'|'iridescent-glass') {
+  return createCyberpackMaterial(key);
+}
 
 function glow(color: number, opacity = .72) {
   return new THREE.MeshBasicMaterial({ color, transparent: true, opacity });
@@ -79,7 +83,7 @@ function addHarbor(group: THREE.Group, d: DistrictVisual) {
   group.add(water);
   for (let i = 0; i < 6; i++) {
     const h = 2.8 + i * .55;
-    const pylon = new THREE.Mesh(new THREE.CylinderGeometry(.22, .34, h, 8), standard(d.secondary, .5, .4));
+    const pylon = new THREE.Mesh(new THREE.CylinderGeometry(.22, .34, h, 8), cyber('gunmetal'));
     const angle = i / 6 * Math.PI * 2;
     pylon.position.set(Math.cos(angle) * 6.5, h / 2, Math.sin(angle) * 4.5);
     group.add(pylon);
@@ -100,7 +104,7 @@ function addGardens(group: THREE.Group, d: DistrictVisual) {
   for (let i = 0; i < 5; i++) {
     const terrace = new THREE.Mesh(
       new THREE.CylinderGeometry(2.4 - i * .28, 2.8 - i * .3, .24, 12),
-      standard(d.secondary, .9, 0),
+      cyber('technical-leather'),
     );
     terrace.position.y = .12 + i * .55;
     terrace.scale.z = .78;
@@ -122,11 +126,11 @@ function addGardens(group: THREE.Group, d: DistrictVisual) {
 }
 
 function addCitadel(group: THREE.Group, d: DistrictVisual) {
-  const base = new THREE.Mesh(new THREE.CylinderGeometry(7, 8.2, .5, 8), standard(d.secondary, .82, .18));
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(7, 8.2, .5, 8), cyber('gunmetal'));
   base.position.y = .25;
   group.add(base);
   for (let i = 0; i < 4; i++) {
-    const tower = new THREE.Mesh(new THREE.BoxGeometry(1.35, 4.5 + i * .4, 1.35), standard(d.secondary, .7, .2));
+    const tower = new THREE.Mesh(new THREE.BoxGeometry(1.35, 4.5 + i * .4, 1.35), cyber('carbon'));
     const a = i / 4 * Math.PI * 2 + Math.PI / 4;
     tower.position.set(Math.cos(a) * 4.9, tower.geometry.parameters.height / 2 + .5, Math.sin(a) * 4.9);
     group.add(tower);
@@ -155,7 +159,7 @@ function addArts(group: THREE.Group, d: DistrictVisual) {
     sculpture.position.set(Math.sin(i * 2.2) * 4.5, 1 + (i % 4) * .7, Math.cos(i * 1.6) * 3.5);
     group.add(sculpture);
   }
-  const gallery = new THREE.Mesh(new THREE.BoxGeometry(5.8, .16, 2.4), standard(d.secondary, .32, .48));
+  const gallery = new THREE.Mesh(new THREE.BoxGeometry(5.8, .16, 2.4), cyber('iridescent-glass'));
   gallery.position.y = 4.8;
   group.add(gallery);
 }
@@ -163,7 +167,7 @@ function addArts(group: THREE.Group, d: DistrictVisual) {
 function addWilds(group: THREE.Group, d: DistrictVisual) {
   for (let i = 0; i < 8; i++) {
     const h = 3.2 + (i % 4) * 1.1;
-    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(.22, .42, h, 7), standard(d.secondary, .95, 0));
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(.22, .42, h, 7), cyber('carbon'));
     const a = i / 8 * Math.PI * 2;
     const r = 4.5 + (i % 3) * 1.1;
     trunk.position.set(Math.cos(a) * r, h / 2, Math.sin(a) * r * .72);
