@@ -270,8 +270,6 @@ const teamArea = mountTeamArea();
 const artDirector = installGridWorldArtDirector(world.scene);
 const worldSkins = createWorldSkinDirector();
 world.scene.add(worldSkins.root);
-const teamWork = createTeamWorkSystem();
-world.scene.add(teamWork.root);
 const engine = new GridEngine('client', world.scene);
 engine.register(new GridEngineCore());
 engine.register(new GridEntitySystem());
@@ -452,6 +450,8 @@ let cloudIdentity = identity;
 const remotePlayers = new Map<string, RemotePlayer>();
 const teamAvatars = TEAM_AVATARS.map(definition => new TeamAvatar(definition));
 for (const avatar of teamAvatars) world.scene.add(avatar.group);
+const teamWork = createTeamWorkSystem(teamAvatars);
+world.scene.add(teamWork.root);
 
 const minimap = new Minimap({
   regions: world.regions,
