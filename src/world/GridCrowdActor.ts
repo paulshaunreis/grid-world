@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { GridNpcBrain, type GridNpcPersonality } from '../npc/GridNpcBrain';
 
 export type GridActorKind = 'npc' | 'animal' | 'user-test';
 
@@ -12,6 +13,7 @@ export interface GridActorDefinition {
   spawn: { x: number; y?: number; z: number };
   speed?: number;
   chatLines?: readonly string[];
+  personality?: Partial<GridNpcPersonality>;
 }
 
 export class GridCrowdActor {
@@ -24,8 +26,10 @@ export class GridCrowdActor {
   private phase = 0;
   private target = new THREE.Vector3();
   private targetTimer = 0;
+  readonly brain: GridNpcBrain;
 
   constructor(readonly definition: GridActorDefinition) {
+    this.brain = new GridNpcBrain(definition.id, definition.displayName, definition.personality);
     const { color, accent } = definition;
     const isAnimal = definition.kind === 'animal';
 
@@ -62,6 +66,7 @@ export class GridCrowdActor {
     this.group.userData.interactionName = definition.displayName;
     this.group.userData.gridActorId = definition.id;
     this.group.userData.gridActorKind = definition.kind;
+    this.group.userData.gridNpcBrain = this.brain;
     this.target.copy(this.group.position);
   }
 
@@ -103,7 +108,9 @@ export class GridCrowdActor {
       );
     }
 
-    const speed = this.definition.speed ?? .55;
+    this.brain.update(delta, { isDaytime: true, safe: true, hasWork: this.definition.kind === 'npc', hasFood: true });
+    const action = this.brain.state.currentAction;
+    const speed = (this.definition.speed ?? .55) * (action === 'rest' ? .15 : action === 'work' ? 1 : action === 'explore' ? 1.2 : .75);
     const dx = this.target.x - this.group.position.x;
     const dz = this.target.z - this.group.position.z;
     const distance = Math.hypot(dx, dz);
