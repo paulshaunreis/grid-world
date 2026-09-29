@@ -13,6 +13,7 @@ export default defineConfig({
         marketplace: 'marketplace.html',
         sound: 'sound.html',
         omni: 'omni.html',
+        avatars: 'avatars.html',
         gridWorldStudio: 'grid-world-studio.html',
       },
     },
