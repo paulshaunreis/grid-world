@@ -179,9 +179,9 @@ app.innerHTML = `
     <section class="worlds" id="worlds">
       <div><div class="section-label">FIRST FRONTIER</div><h2>Start somewhere.<br><span>Go anywhere.</span></h2></div>
       <div class="world-cards">
-        <div class="world-card first"><div><small>01</small><h3>FIRST LIGHT</h3><p>The beginning of the Grid.</p></div><a href="/play.html">ENTER →</a></div>
-        <div class="world-card neon"><div><small>02</small><h3>NEON DISTRICT</h3><p>City lights. Social energy.</p></div><a href="#discover">DISCOVER →</a></div>
-        <div class="world-card verdant"><div><small>03</small><h3>VERDANT ARC</h3><p>Living systems in motion.</p></div><a href="#discover">DISCOVER →</a></div>
+        <div class="world-card first"><img src="/worlds/tideline.svg" alt="Tideline concept art"><div><small>01 · TIDELINE</small><h3>OCEAN WORLD</h3><p>Harbors, moons, sky cities and tidal exploration.</p></div><a href="/play.html">ENTER →</a></div>
+        <div class="world-card neon"><img src="/worlds/crown.svg" alt="Crown concept art"><div><small>02 · CROWN</small><h3>CELESTIAL CITADEL</h3><p>Monuments beneath a ringed world and strange skies.</p></div><a href="#discover">DISCOVER →</a></div>
+        <div class="world-card verdant"><img src="/worlds/verdant.svg" alt="Verdant concept art"><div><small>03 · VERDANT</small><h3>FLOATING GARDENS</h3><p>Alien ecology, multiple moons and living architecture.</p></div><a href="#discover">DISCOVER →</a></div>
       </div>
     </section>
 
