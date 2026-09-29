@@ -19,10 +19,13 @@ export function mountTeamArea(): { open(): void; close(): void } {
       <button class="gw-team-close" type="button">CLOSE</button>
     </div>
     <div class="gw-team-grid"></div>
-    <div class="gw-team-status">TEAM NETWORK · <b>CONNECTED</b></div><div class="gw-team-task"><strong>LIVE WORLD WORK</strong><div class="gw-team-grid"> + taskMarkup + </div></div>
+    <div class="gw-team-status">TEAM NETWORK · <b>CONNECTED</b></div><div class="gw-team-task"><strong>LIVE WORLD WORK</strong><div class="gw-team-grid" id="gw-team-live-work"></div></div>
     <div class="gw-team-foundation"><strong>GRID FOUNDATION</strong><br><span>Base layer exists beneath the worlds. Foundation visibility is permission-gated and is not enabled by this client UI.</span></div>
   `;
   document.body.appendChild(panel);
+
+  const liveWork = panel.querySelector<HTMLDivElement>('#gw-team-live-work')!;
+  liveWork.innerHTML = taskMarkup;
 
   const grid = panel.querySelector('.gw-team-grid')!;
   grid.innerHTML = TEAM_AVATARS.map(member => `
