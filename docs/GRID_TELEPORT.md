@@ -73,7 +73,7 @@ These are deliberately simple routes. The destination-list contract is already a
 
 ## Visual direction
 
-The first visual pass uses Grid PBR starter materials and WebGL-compatible geometry. Three.js also provides a portal example and current WebGPU rendering path, so the renderer can later evolve from a stylized energy surface into a true scene-through-portal effect without changing the teleport contract. citeturn2search0turn0search1
+The first visual pass uses Grid PBR starter materials and WebGL-compatible geometry. Three.js also provides a portal example and current WebGPU rendering path, so the renderer can later evolve from a stylized energy surface into a true scene-through-portal effect without changing the teleport contract.
 
 ## Creator direction
 
