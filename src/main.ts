@@ -33,6 +33,7 @@ import { createGridOmniGuardLayer } from './world/GridOmniGuardPylon';
 import { GridVoiceSystem } from './audio/GridVoiceSystem';
 import { GridAudioSystem } from './audio/GridAudioSystem';
 import { createGridFreeObject } from './engine/GridFreeObjectLibrary';
+import { GridTeleportSystem, createTeleportGate, createTeleportPylon } from './engine/GridTeleport';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
@@ -256,6 +257,8 @@ const engine = new GridEngine('client', world.scene);
 engine.register(new GridEngineCore());
 engine.register(new GridEntitySystem());
 engine.register(new GridSimulationClock());
+const teleportSystem = new GridTeleportSystem();
+engine.register(teleportSystem);
 const starterZone = new StarterZone();
 world.scene.add(starterZone.group);
 const omniGuard = new GridOmniGuard();
@@ -291,6 +294,84 @@ for (const [objectId, x, z] of gridOriginalObjects) {
   world.scene.add(object);
 }
 
+const teleportDefinitions = [
+  {
+    id: 'gate:civic-to-gallery',
+    kind: 'gate' as const,
+    displayName: 'Civic Gate · Gallery Row',
+    regionId: 'first-light',
+    position: { x: 0, y: 0, z: 16 },
+    yaw: 0,
+    clearanceRadius: 3,
+    destinationIds: ['pylon:gallery'],
+    access: 'public' as const,
+  },
+  {
+    id: 'pylon:gallery',
+    kind: 'pylon' as const,
+    displayName: 'Gallery Pylon · Civic Return',
+    regionId: 'first-light',
+    position: { x: -25, y: 0, z: -26 },
+    yaw: Math.PI / 2,
+    clearanceRadius: 3,
+    destinationIds: ['gate:civic-to-gallery'],
+    access: 'public' as const,
+  },
+  {
+    id: 'gate:wilds-to-creator',
+    kind: 'gate' as const,
+    displayName: 'Wilds Gate · Creator Yard',
+    regionId: 'first-light',
+    position: { x: 0, y: 0, z: -18 },
+    yaw: Math.PI,
+    clearanceRadius: 3,
+    destinationIds: ['pylon:creator'],
+    access: 'public' as const,
+  },
+  {
+    id: 'pylon:creator',
+    kind: 'pylon' as const,
+    displayName: 'Creator Pylon · Wilds Return',
+    regionId: 'first-light',
+    position: { x: 25, y: 0, z: -3 },
+    yaw: -Math.PI / 2,
+    clearanceRadius: 3,
+    destinationIds: ['gate:wilds-to-creator'],
+    access: 'public' as const,
+  },
+  {
+    id: 'pylon:market',
+    kind: 'pylon' as const,
+    displayName: 'Market Pylon · Civic Gate',
+    regionId: 'first-light',
+    position: { x: -25, y: 0, z: 4 },
+    yaw: Math.PI / 2,
+    clearanceRadius: 3,
+    destinationIds: ['gate:civic-to-gallery'],
+    access: 'public' as const,
+  },
+  {
+    id: 'pylon:wilds',
+    kind: 'pylon' as const,
+    displayName: 'Wilds Pylon · Wilds Gate',
+    regionId: 'first-light',
+    position: { x: 25, y: 0, z: -26 },
+    yaw: -Math.PI / 2,
+    clearanceRadius: 3,
+    destinationIds: ['gate:wilds-to-creator'],
+    access: 'public' as const,
+  },
+] as const;
+
+const teleportVisuals = teleportDefinitions.map(definition => {
+  teleportSystem.register(definition);
+  const visual = definition.kind === 'gate'
+    ? createTeleportGate(definition)
+    : createTeleportPylon(definition);
+  world.scene.add(visual);
+  return visual;
+});
+
 const crowdActors = crowdDefinitions.map(definition => new GridCrowdActor(definition));
 for (const actor of crowdActors) world.scene.add(actor.group);
 
@@ -310,6 +391,7 @@ const gridHealth = {
   omniSecurity: true,
   sentinelResponse: true,
   gridCode: true,
+  teleportation: teleportSystem.all().length === teleportDefinitions.length,
 };
 const healthStars = Object.values(gridHealth).filter(Boolean).length;
 addChatMessage('AURORA', 'World pass: First Light is now organized as connected districts with terrain, bridges, wildlife, and creator space.', 'team');
@@ -317,7 +399,8 @@ addChatMessage('ATLAS', 'Simulation pass: NPCs now have needs, utility-based aut
 addChatMessage('TESSERA', 'Materials pass: the PBR library now catalogs CC0 sources and supplies lightweight starter materials for world and avatars.', 'team');
 addChatMessage('WAYPOINT', 'Ecology pass: terrain, water, vegetation, wildlife habitats, and traversal are now treated as one regional system.', 'team');
 addChatMessage('LINK', 'Architecture pass: the new systems stay behind replaceable Grid Engine contracts so the renderer and asset pipeline can evolve.', 'team');
-addChatMessage('GRID OMNI', 'System health ' + healthStars + '/5 ★ · Grid Measurement active · First Light starter zone assigned.', 'system');
+addChatMessage('GRID OMNI', 'System health ' + healthStars + '/6 ★ · Grid Measurement active · Teleport network online · First Light starter zone assigned.', 'system');
+addChatMessage('AURORA', 'Transit pass: Teleportation Gates and Teleport Pylons are now addressable Grid objects with guarded destinations and cooldowns.', 'team');
 
 const automaticHouseScript = `<House id="starter-home" scale="5">
   <Notify value="Starter zone systems online." />
@@ -524,6 +607,48 @@ void cloudReady.then(async () => {
 });
 
 let multiplayerLabel = 'MULTIPLAYER · Connecting…';
+
+function handleTeleportNode(result: ReturnType<InteractionSystem['findTarget']>) {
+  if (!result) return false;
+  const nodeId = result.object.userData.gridTeleportNodeId as string | undefined;
+  if (!nodeId) return false;
+
+  const teleport = teleportSystem.request({
+    actorId: cloudIdentity.id,
+    nodeId,
+    nowSeconds: performance.now() / 1000,
+    relationship: 'owner',
+  });
+
+  if (!teleport.ok || !teleport.destination) {
+    const message = teleport.reason === 'cooldown'
+      ? 'Teleport gate is recharging.'
+      : teleport.reason === 'access-denied'
+        ? 'This teleport node is access controlled.'
+        : 'Teleport destination is unavailable; Grid Omni is holding the route.';
+    prompt.textContent = 'E · ' + message;
+    addChatMessage('GRID OMNI', message, 'system');
+    audio.play('ui.error');
+    return true;
+  }
+
+  const destination = teleport.destination;
+  const arrival = new THREE.Vector3(destination.position.x, Math.max(0, destination.position.y), destination.position.z);
+  const backward = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), destination.yaw);
+  arrival.addScaledVector(backward, Math.max(2.5, destination.clearanceRadius));
+  player.restoreTransform({
+    x: arrival.x,
+    y: arrival.y,
+    z: arrival.z,
+    yaw: destination.yaw,
+  });
+  audio.play('world.portal', 1);
+  prompt.textContent = 'E · Arrived at ' + destination.displayName + ' ✓';
+  addChatMessage('GRID TRANSIT', 'Arrived at ' + destination.displayName + '. Safe arrival clearance applied.', 'system');
+  presence?.update(player.getTransform()).catch(console.error);
+  savePlayer();
+  return true;
+}
 
 function handleOmniSignal(kind: string, severity: 'info'|'notice'|'warning'|'critical', message: string) {
   const decision = omniGuard.evaluate({ source: 'grid-world-client', kind, severity });
@@ -748,6 +873,7 @@ addEventListener('keydown', event => {
   if (event.code === 'KeyE' && !event.repeat) {
     const result = interaction.interact();
     if (result) {
+      if (handleTeleportNode(result)) return;
       prompt.textContent = `E · ${result.name} ✓`;
       const npcBrain = result.object.userData.gridNpcBrain as { remember?: (memory: { subjectId?: string; eventType: string; summary: string; valence: number; importance: number; confidence: number }) => void; thought?: () => string } | undefined;
       if (npcBrain?.remember) {
@@ -812,6 +938,12 @@ function animate(now: number) {
   for (const avatar of teamAvatars) avatar.update(dt);
   for (const actor of crowdActors) actor.update(dt);
   for (const pylon of omniLayer.pylons) pylon.update(dt);
+  const transitTime = performance.now() / 1000;
+  for (const visual of teleportVisuals) {
+    visual.rotation.y += dt * 0.08;
+    const energy = 1 + Math.sin(transitTime * 2.4 + visual.position.x) * .08;
+    visual.scale.setScalar(energy);
+  }
   npcChatTimer -= dt;
   if (npcChatTimer <= 0) {
     const [speakerA, speakerB, lineA, lineB] = npcChatPairs[npcChatIndex % npcChatPairs.length];
