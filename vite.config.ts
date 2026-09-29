@@ -10,6 +10,7 @@ export default defineConfig({
         economics: 'economics.html',
         docs: 'docs.html',
         directory: 'directory.html',
+        marketplace: 'marketplace.html',
       },
     },
   },
