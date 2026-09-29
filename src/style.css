@@ -307,10 +307,9 @@ canvas { display: block; width: 100%; height: 100%; }
 
 
 /* Grid UI window system */
-.grid-window {
-  position: relative;
-  z-index: 20;
-}
+.grid-window { z-index: 20; }
+.identity-card.grid-window,
+.creator-card.grid-window { position: relative; }
 
 .grid-window.grid-window-editing {
   outline: 1px dashed rgba(var(--hud-rgb), .55);
