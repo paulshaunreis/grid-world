@@ -11,7 +11,7 @@ type WorkTask = {
   position: { x: number; z: number };
 };
 
-const TASKS: WorkTask[] = [
+export const TEAM_WORK_TASKS: WorkTask[] = [
   { memberId:'tessera', title:'Texturing + PBR pass', status:'Applying world materials', zone:'All worlds', progress:78, visible:true, position:{x:24,z:20} },
   { memberId:'waypoint', title:'Terrain + ecology', status:'Shaping terrain and habitats', zone:'Frontier', progress:64, visible:true, position:{x:0,z:25} },
   { memberId:'atlas', title:'Living-world simulation', status:'Tuning creature behavior', zone:'Frontier', progress:71, visible:true, position:{x:-24,z:20} },
@@ -29,7 +29,7 @@ export function createTeamWorkSystem() {
   root.name = 'team-live-work';
   const workstations: THREE.Group[] = [];
 
-  for (const task of TASKS) {
+  for (const task of TEAM_WORK_TASKS) {
     const member = findMember(task.memberId);
     if (!member) continue;
 
@@ -99,6 +99,6 @@ export function createTeamWorkSystem() {
     }
   }
 
-  root.userData.tasks = TASKS;
-  return { root, update, tasks: TASKS };
+  root.userData.tasks = TEAM_WORK_TASKS;
+  return { root, update, tasks: TEAM_WORK_TASKS };
 }
