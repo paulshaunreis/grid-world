@@ -17,6 +17,8 @@ export interface GridEntityMetadata {
 
 export interface GridEntityComponent {
   readonly type: string;
+  /** Stable component schema version for future migrations. */
+  readonly schema?: number;
   onAttach?(entity: GridEntity): void;
   onDetach?(entity: GridEntity): void;
   update?(entity: GridEntity, deltaSeconds: number): void;
