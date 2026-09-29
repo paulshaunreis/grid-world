@@ -132,6 +132,15 @@ export class GridNpcBrain {
     this.persist();
   }
 
+  hydrateMemories(memories: readonly GridNpcMemory[]) {
+    for (const memory of memories) {
+      if (!this.state.memories.some(existing => existing.id === memory.id)) this.state.memories.push({ ...memory });
+    }
+    this.state.memories.sort((a, b) => (b.importance * b.confidence) - (a.importance * a.confidence));
+    this.state.memories = this.state.memories.slice(0, 80);
+    this.persist();
+  }
+
   recall(subjectId?: string, limit = 3) {
     const candidates = this.state.memories
       .filter(memory => !subjectId || memory.subjectId === subjectId)
