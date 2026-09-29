@@ -455,6 +455,7 @@ const minimap = new Minimap({
     { id: 'central-landmark', x: 0, z: -22, kind: 'landmark' as const },
     { id: 'world-beacon', x: 0, z: -7, kind: 'interactable' as const },
     { id: 'neon-door', x: 0, z: -14, kind: 'interactable' as const },
+    ...teleportDefinitions.map(node => ({ id: node.id, x: node.position.x, z: node.position.z, kind: 'teleport' as const })),
   ],
 });
 hud.appendChild(minimap.element);
