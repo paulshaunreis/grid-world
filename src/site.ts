@@ -19,7 +19,7 @@ const posts = [
 
 app.innerHTML = `
   <header class="site-header">
-    <a class="brand" href="#home"><span class="brand-mark">◇</span><span>GRID WORLD</span></a>
+    <a class="brand" href="#home"><img class="brand-logo" src="/grid-world-logo.svg" alt="Grid World"><span>GRID WORLD</span></a>
     <nav>${navItems.map((item, i) => `<a href="#${item.toLowerCase().replaceAll(' ', '-')}" class="${i === 0 ? 'active' : ''}">${item}</a>`).join('')}</nav>
     <div class="header-actions">
       <button class="ghost style-trigger" id="style-trigger" type="button">STYLE</button>
@@ -170,7 +170,7 @@ app.innerHTML = `
     <div id="safety"><span>SAFETY</span><p>Moderation, reporting, blocking, creator permissions, and age-appropriate defaults are platform capabilities—not afterthoughts.</p></div>
     <div id="status"><span>STATUS</span><p>Prototype services: web UI, First Light 3D, local profile persistence, and optional realtime presence.</p></div>
   </section>
-  <footer><div class="brand"><span class="brand-mark">◇</span><span>GRID WORLD</span></div><p>A framework for worlds, communities, and experiences.</p><div><a href="#terms">Terms</a><a href="#privacy">Privacy</a><a href="#safety">Safety</a><a href="#status">Status</a></div></footer>
+  <footer><div class="brand"><img class="brand-logo brand-logo-footer" src="/grid-world-logo.svg" alt="Grid World"><span>GRID WORLD</span></div><p>A framework for worlds, communities, and experiences.</p><div><a href="#terms">Terms</a><a href="#privacy">Privacy</a><a href="#safety">Safety</a><a href="#status">Status</a></div></footer>
   <div class="site-toast" id="site-toast" role="status" aria-live="polite"></div>
 `;
 
