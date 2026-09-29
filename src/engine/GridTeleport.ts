@@ -16,7 +16,7 @@ export interface GridTeleportDestination {
 
 export interface GridTeleportNodeDefinition extends GridTeleportDestination {
   kind: GridTeleportNodeKind;
-  destinationIds: string[];
+  destinationIds: readonly string[];
   status?: GridTeleportNodeStatus;
   cooldownSeconds?: number;
   access: 'public' | 'friends' | 'owner';
