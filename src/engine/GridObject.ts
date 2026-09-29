@@ -51,7 +51,7 @@ export class GridObject extends GridEntity {
   snapshot(): GridObjectSnapshot {
     return {
       schema: 1,
-      entity: super.snapshot(),
+      entity: super.entitySnapshot(),
       kind: this.kind,
       permissions: { ...this.permissions },
       provenance: { ...this.provenance },
