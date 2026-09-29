@@ -178,7 +178,20 @@ app.innerHTML = `
       </div>
     </section>
 
-    <section class="irllayer" id="events"><div><div class="section-label">GRID CONNECT</div><h2>Virtual or IRL.<br><span>Experience it together.</span></h2><p>Events can exist in the physical world, inside Grid World, or across both. Users choose what they share and where they participate.</p><a class="secondary large" href="#events">BROWSE EVENTS</a></div><div class="event-map"><span>GRID</span><i></i><b>IRL</b></div></section>
+    <section class="model-atlas" id="models">
+      <div class="section-label">ASSET CONSTELLATION</div>
+      <h2>Nothing stands still.<br><span>Everything has a body.</span></h2>
+      <p class="model-intro">Grid World is building around five reusable model families: architecture, avatars, animals, plants, and trees. Free CC0 sources supply production candidates while Grid-native procedural forms keep the world alive between asset drops.</p>
+      <div class="model-atlas-grid">
+        <a href="https://kenney.nl/assets/modular-buildings" target="_blank" rel="noreferrer"><b>ARCHITECTURE</b><strong>MODULAR CITY</strong><small>Kenney · CC0 · buildings</small><i>▱</i></a>
+        <a href="https://kenney.nl/assets/blocky-characters" target="_blank" rel="noreferrer"><b>AVATARS</b><strong>ANIMATED PEOPLE</strong><small>Kenney · CC0 · characters</small><i>◈</i></a>
+        <a href="https://kenney.nl/assets/cube-pets" target="_blank" rel="noreferrer"><b>ANIMALS</b><strong>LIVING COMPANIONS</strong><small>Kenney · CC0 · animated pets</small><i>◇</i></a>
+        <a href="https://polyhaven.com/models/nature/plants" target="_blank" rel="noreferrer"><b>PLANTS</b><strong>UNDERSTORY</strong><small>Poly Haven · CC0 · vegetation</small><i>✦</i></a>
+        <a href="https://polyhaven.com/a/tree_small_02" target="_blank" rel="noreferrer"><b>TREES</b><strong>HERO CANOPY</strong><small>Poly Haven · CC0 · glTF-ready</small><i>♧</i></a>
+      </div>
+    </section>
+
+        <section class="irllayer" id="events"><div><div class="section-label">GRID CONNECT</div><h2>Virtual or IRL.<br><span>Experience it together.</span></h2><p>Events can exist in the physical world, inside Grid World, or across both. Users choose what they share and where they participate.</p><a class="secondary large" href="#events">BROWSE EVENTS</a></div><div class="event-map"><span>GRID</span><i></i><b>IRL</b></div></section>
   </main>
 
   <section class="legal-strip" id="terms">
