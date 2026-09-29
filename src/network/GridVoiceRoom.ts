@@ -123,7 +123,7 @@ export class GridVoiceRoom {
       await this.client.removeChannel(this.channel);
       this.channel = undefined;
     }
-    await this.audioContext?.close().catch(() => undefined);
+    if (this.audioContext) await this.audioContext.close().catch(() => undefined);
     this.audioContext = undefined;
     this.started = false;
     this.callbacks.onPeerCount?.(0);
