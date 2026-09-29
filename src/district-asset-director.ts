@@ -73,6 +73,30 @@ function addRing(group: THREE.Group, radius: number, y: number, color: number, t
   return ring;
 }
 
+
+
+function addTechnicalInlay(group: THREE.Group, radius: number, y: number, color: number, count = 6) {
+  const material = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: .38 });
+  for (let i = 0; i < count; i++) {
+    const a = i / count * Math.PI * 2;
+    const strip = new THREE.Mesh(new THREE.BoxGeometry(radius * .72, .025, .045), material);
+    strip.position.set(Math.cos(a) * radius, y, Math.sin(a) * radius);
+    strip.rotation.y = a;
+    group.add(strip);
+  }
+}
+
+function addTechSpines(group: THREE.Group, y: number, color: number) {
+  for (let i = 0; i < 5; i++) {
+    const spine = new THREE.Mesh(
+      new THREE.BoxGeometry(.035, .65 + i * .12, .035),
+      new THREE.MeshBasicMaterial({ color, transparent: true, opacity: .28 }),
+    );
+    spine.position.set(-1.8 + i * .9, y + .35, .1 + Math.sin(i) * .5);
+    group.add(spine);
+  }
+}
+
 function addHarbor(group: THREE.Group, d: DistrictVisual) {
   const water = new THREE.Mesh(
     new THREE.CylinderGeometry(8.5, 8.5, .08, 48),
@@ -81,6 +105,7 @@ function addHarbor(group: THREE.Group, d: DistrictVisual) {
   water.position.y = .04;
   water.scale.z = .7;
   group.add(water);
+  addTechnicalInlay(group, 5.2, .11, d.color, 8);
   for (let i = 0; i < 6; i++) {
     const h = 2.8 + i * .55;
     const pylon = new THREE.Mesh(new THREE.CylinderGeometry(.22, .34, h, 8), cyber('gunmetal'));
@@ -111,6 +136,7 @@ function addGardens(group: THREE.Group, d: DistrictVisual) {
     group.add(terrace);
     addRing(group, 2.45 - i * .28, terrace.position.y + .15, d.color, .035);
   }
+  addTechSpines(group, .85, d.color);
   for (let i = 0; i < 12; i++) {
     const stem = new THREE.Mesh(new THREE.CylinderGeometry(.035, .07, 1.1 + (i % 3) * .3, 6), standard(d.secondary, .8, 0));
     const a = i / 12 * Math.PI * 2;
@@ -159,6 +185,7 @@ function addArts(group: THREE.Group, d: DistrictVisual) {
     sculpture.position.set(Math.sin(i * 2.2) * 4.5, 1 + (i % 4) * .7, Math.cos(i * 1.6) * 3.5);
     group.add(sculpture);
   }
+  addTechnicalInlay(group, 3.9, .18, d.color, 7);
   const gallery = new THREE.Mesh(new THREE.BoxGeometry(5.8, .16, 2.4), cyber('iridescent-glass'));
   gallery.position.y = 4.8;
   group.add(gallery);
@@ -178,6 +205,7 @@ function addWilds(group: THREE.Group, d: DistrictVisual) {
     canopy.scale.set(1.1, .75, .9);
     group.add(canopy);
   }
+  addTechnicalInlay(group, 3.7, .28, d.color, 10);
   for (let i = 0; i < 12; i++) {
     const stone = new THREE.Mesh(new THREE.DodecahedronGeometry(.25 + (i % 3) * .14, 0), standard(d.secondary, 1, 0));
     const a = i / 12 * Math.PI * 2;
