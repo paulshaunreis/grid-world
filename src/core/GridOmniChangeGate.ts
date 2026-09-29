@@ -50,7 +50,7 @@ export class GridOmniChangeGate {
     ];
 
     const failed = checks.findIndex(check => !check);
-    if (failed) {
+    if (failed !== -1) {
       return {
         allowed: false,
         reason: 'Change gate failed: required measurement, test, evidence, or rollback criteria are missing.',
