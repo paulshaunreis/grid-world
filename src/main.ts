@@ -18,6 +18,10 @@ import { UIModRegistry, WindowManager } from './ui/WindowManager';
 import { FieldGuide } from './ui/FieldGuide';
 import { QRScanner } from './ui/QRScanner';
 import './style.css';
+import { StarterZone } from './world/StarterZone';
+import { GridSentinel } from './world/GridSentinel';
+import { GridOmniGuard } from './core/GridOmniGuard';
+import { compileGridCode } from './scripting/GridCodeRuntime';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
@@ -141,12 +145,46 @@ chatCompose.addEventListener('submit', event => {
 });
 
 const world = new World();
+const starterZone = new StarterZone();
+world.scene.add(starterZone.group);
+const omniGuard = new GridOmniGuard();
+const sentinels = [new GridSentinel('Omni Sentinel · First Light')];
+for (const sentinel of sentinels) world.scene.add(sentinel.group);
+
+const gridHealth = {
+  measurement: true,
+  starterZone: true,
+  omniSecurity: true,
+  sentinelResponse: true,
+  gridCode: true,
+};
+const healthStars = Object.values(gridHealth).filter(Boolean).length;
+addChatMessage('GRID OMNI', 'System health ' + healthStars + '/5 ★ · Grid Measurement active · First Light starter zone assigned.', 'system');
+
+const automaticHouseScript = `<House id="starter-home" scale="5">
+  <Notify value="Starter zone systems online." />
+  <Show target="welcome-beacon" />
+  <Set target="measurement" value="Grid Measurement" />
+</House>`;
+try {
+  compileGridCode(automaticHouseScript);
+} catch (error) {
+  console.warn('Automatic Grid Code validation failed.', error);
+}
 const input = new Input();
 const player = new PlayerController(input);
 world.scene.add(player.avatar);
 
 const savedState = persistence.loadPlayerState();
 if (savedState) player.restoreTransform(savedState);
+else player.restoreTransform({
+  regionId: 'first-light',
+  x: starterZone.definition.spawn.x,
+  y: starterZone.definition.spawn.y,
+  z: starterZone.definition.spawn.z,
+  yaw: 0,
+  updatedAt: Date.now(),
+});
 player.setAvatarStyle(identity.avatarStyle);
 
 let cloudIdentity = identity;
@@ -303,6 +341,15 @@ const cloudReady = cloudPersistence
 
 let multiplayerLabel = 'MULTIPLAYER · Connecting…';
 
+function handleOmniSignal(kind: string, severity: 'info'|'notice'|'warning'|'critical', message: string) {
+  const decision = omniGuard.evaluate({ source: 'grid-world-client', kind, severity });
+  addChatMessage('GRID OMNI', message + ' ' + decision.userMessage, 'system');
+  if (severity === 'warning' || severity === 'critical') {
+    for (const sentinel of sentinels) sentinel.respond(player.avatar.position);
+  }
+  return decision;
+}
+
 function setControlStatus() {
   status.textContent = `FIRST LIGHT · ${identity.displayName} · WASD move · Shift sprint · Space jump · E interact · V camera`;
 }
@@ -328,6 +375,8 @@ document.querySelectorAll<HTMLButtonElement>('.grid-dock [data-tool]').forEach(b
   });
 });
 });
+
+window.setTimeout(() => handleOmniSignal('starter-zone-ready', 'info', 'Starter zone security presence is active.'), 700);
 
 const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.1, 500);
 camera.position.set(0, 3.2, 7);
