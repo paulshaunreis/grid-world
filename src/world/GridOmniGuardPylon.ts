@@ -61,8 +61,8 @@ export class GridOmniGuardPylon {
     this.phase += delta;
     this.core.rotation.y += delta * .8;
     this.ring.rotation.z += delta * .5;
-    this.core.material = this.core.material as THREE.MeshStandardMaterial;
-    this.core.material.emissiveIntensity = this.diagnosis.status === 'clear' || this.diagnosis.status === 'watch'
+    const material = this.core.material as THREE.MeshStandardMaterial;
+    material.emissiveIntensity = this.diagnosis.status === 'clear' || this.diagnosis.status === 'watch'
       ? 1.5 + Math.sin(this.phase * 2) * .3
       : 3;
   }
