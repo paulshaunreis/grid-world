@@ -54,6 +54,7 @@ function loadDraft(): ProfileDraft {
 }
 
 let draft = loadDraft();
+let following = localStorage.getItem('grid-world:profile-following') === 'true';
 
 const app = document.querySelector<HTMLDivElement>('#profile-app')!;
 
@@ -129,7 +130,7 @@ function render() {
             <div class="identity-row">
               <div class="avatar">G</div>
               <div class="identity-copy"><h2>${escapeHtml(draft.displayName)}</h2><p>@${escapeHtml(draft.handle)} · ${escapeHtml(draft.status)}</p></div>
-              <button class="follow">FOLLOW</button>
+              <button class="follow ${following ? "following" : ""}" id="follow-button" type="button">${following ? "FOLLOWING" : "FOLLOW"}</button>
             </div>
             <div class="profile-grid columns-${draft.layout.columns}">
               ${draft.layout.sections.map(section => moduleMarkup(section, draft)).join('')}
@@ -161,6 +162,11 @@ function bind() {
   document.querySelector<HTMLInputElement>('#status')?.addEventListener('input', e => { draft.status=(e.target as HTMLInputElement).value; renderPreviewOnly(); });
   document.querySelector<HTMLTextAreaElement>('#bio')?.addEventListener('input', e => { draft.bio=(e.target as HTMLTextAreaElement).value; renderPreviewOnly(); });
   document.querySelector('#save')?.addEventListener('click', save);
+  document.querySelector<HTMLButtonElement>('#follow-button')?.addEventListener('click', () => {
+    following = !following;
+    localStorage.setItem('grid-world:profile-following', String(following));
+    render();
+  });
 
   document.querySelectorAll<HTMLButtonElement>('[data-theme]').forEach(button => button.addEventListener('click', () => {
     draft.theme.preset = button.dataset.theme ?? 'aurora';
