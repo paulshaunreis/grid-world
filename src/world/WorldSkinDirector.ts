@@ -27,6 +27,9 @@ export function createWorldSkinDirector() {
     const skin = new THREE.Group();
     skin.name = 'world-skin-' + key.toLowerCase();
     skin.position.copy(DISTRICT_VISUALS[key].center);
+    const worldLight = new THREE.HemisphereLight(PALETTES[key], 0x11151a, 1.15);
+    worldLight.position.set(0, 24, 0);
+    skin.add(worldLight);
 
     const dome = new THREE.Mesh(
       new THREE.SphereGeometry(42, 24, 16),
