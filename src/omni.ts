@@ -1,4 +1,5 @@
 import './omni.css';
+import { mountOmniGuards } from './omni-guards';
 
 const app = document.querySelector<HTMLDivElement>('#omni')!;
 const controls = [
@@ -18,3 +19,5 @@ app.innerHTML = `
 <section class="response"><div><span class="eyebrow">INCIDENT RESPONSE CONTRACT</span><h2>Never let one failure become the whole world.</h2></div><div class="steps"><b>01 DETECT</b><b>02 CONTAIN</b><b>03 DEGRADE SAFELY</b><b>04 PRESERVE EVIDENCE</b><b>05 NOTIFY</b><b>06 RECOVER / ROLLBACK</b><b>07 REVIEW</b></div></section>
 <section class="rules"><div><span class="eyebrow">USER CONTROL</span><h2>Security should protect your agency.</h2></div><ul><li>Mute, block, hide, leave and report remain available even during incidents.</li><li>High-risk account and wallet operations require stronger authentication.</li><li>Untrusted uploads enter quarantine before becoming world content.</li><li>Creator systems run with explicit capabilities rather than unrestricted code execution.</li><li>Compromised assets can be revoked without deleting an account.</li><li>Safety actions are logged, reviewable and designed to be reversible where appropriate.</li></ul></section></main>
 <footer><a href="/docs.html">DOCS</a><a href="/directory.html">STAFF</a><a href="/economics.html">ECONOMICS</a><a href="/sound.html">SOUND</a><a href="/">GRID WORLD</a></footer>`;
+
+mountOmniGuards(app);
