@@ -27,6 +27,8 @@ import { ThreeGridRenderer } from './engine/ThreeGridRenderer';
 import { GridSimulationClock } from './engine/GridEngineRuntime';
 import { GridEngineCore } from './engine/GridEngineCore';
 import { GridEntitySystem } from './engine/GridEntitySystem';
+import { GridCrowdActor, type GridActorDefinition } from './world/GridCrowdActor';
+import { createGridOmniGuardLayer } from './world/GridOmniGuardPylon';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
@@ -159,6 +161,35 @@ world.scene.add(starterZone.group);
 const omniGuard = new GridOmniGuard();
 const sentinels = [new GridSentinel('Omni Sentinel · First Light')];
 for (const sentinel of sentinels) world.scene.add(sentinel.group);
+
+const omniLayer = createGridOmniGuardLayer();
+world.scene.add(omniLayer.root);
+
+const crowdDefinitions: GridActorDefinition[] = [
+  { id: 'npc.market-broker', displayName: 'Mira Vale', kind: 'npc', role: 'Market Broker', color: 0x4f86b7, accent: 0x68d9ff, spawn: { x: -8, z: -4 }, chatLines: ['The market is quiet enough to browse.', 'I just received three new creator listings.'] },
+  { id: 'npc.gallery-curator', displayName: 'Elder Vell', kind: 'npc', role: 'Gallery Curator', color: 0x806aa8, accent: 0xc6a6ff, spawn: { x: -15, z: -24 }, chatLines: ['The new gallery wall is ready.', 'Leave room for artists to surprise us.'] },
+  { id: 'npc.city-guide', displayName: 'Lyra', kind: 'npc', role: 'City Guide', color: 0x4f9a83, accent: 0x73e6c4, spawn: { x: 7, z: -4 }, chatLines: ['The Creator Yard connects to the east bridge.', 'First Light is easier to learn one district at a time.'] },
+  { id: 'npc.builder', displayName: 'Mako', kind: 'npc', role: 'Builder', color: 0xa36e50, accent: 0xffc27d, spawn: { x: 15, z: -5 }, chatLines: ['I am testing a smaller building footprint.', 'The block grid makes expansion predictable.'] },
+  { id: 'npc archivist', displayName: 'Sera', kind: 'npc', role: 'Archive Keeper', color: 0x60758b, accent: 0x8ed9e8, spawn: { x: 0, z: 17 }, chatLines: ['Every important object needs a history.', 'Snapshots make experiments safer.'] },
+  { id: 'npc.courier', displayName: 'Juno', kind: 'npc', role: 'World Courier', color: 0xb27b48, accent: 0xffd36a, spawn: { x: 8, z: 10 }, chatLines: ['Packages move between districts all day.', 'The bridge route is clear.'] },
+  { id: 'animal.grid-wolf', displayName: 'Lumen Wolf', kind: 'animal', role: 'Wildlife · Curious', color: 0x53657a, accent: 0x76eaff, spawn: { x: 16, z: -25 }, speed: .8 },
+  { id: 'animal.moss-fox', displayName: 'Moss Fox', kind: 'animal', role: 'Wildlife · Shy', color: 0x8b6650, accent: 0x9cf2c1, spawn: { x: 21, z: -28 }, speed: .65 },
+  { id: 'animal.prism-bird', displayName: 'Prism Bird', kind: 'animal', role: 'Wildlife · Flyer', color: 0x6376a5, accent: 0xffb9ee, spawn: { x: -20, z: -25 }, speed: .95 },
+  { id: 'animal.tide-deer', displayName: 'Tide Deer', kind: 'animal', role: 'Wildlife · Gentle', color: 0x7f745e, accent: 0x7fe9ff, spawn: { x: 25, z: -22 }, speed: .55 },
+];
+
+const crowdActors = crowdDefinitions.map(definition => new GridCrowdActor(definition));
+for (const actor of crowdActors) world.scene.add(actor.group);
+
+const npcChatPairs = [
+  ['Mira Vale', 'Elder Vell', 'The market is quiet enough to browse.', 'Good. Artists need space before the crowd arrives.'],
+  ['Lyra', 'Mako', 'The Creator Yard connects to the east bridge.', 'And the block grid keeps the next expansion sane.'],
+  ['Sera', 'Juno', 'Every important object needs a history.', 'Then I will make sure the courier routes preserve the delivery record.'],
+  ['Mira Vale', 'Lyra', 'I just received three new creator listings.', 'Point me to the new ones. I want to see what people are making.'],
+] as const;
+let npcChatIndex = 0;
+let npcChatTimer = 5;
+
 
 const gridHealth = {
   measurement: true,
@@ -384,6 +415,11 @@ document.querySelectorAll<HTMLButtonElement>('.grid-dock [data-tool]').forEach(b
 });
 
 window.setTimeout(() => handleOmniSignal('starter-zone-ready', 'info', 'Starter zone security presence is active.'), 700);
+window.setInterval(() => {
+  const watched = omniLayer.pylons[Math.floor(Math.random() * omniLayer.pylons.length)];
+  const diagnosis = watched.diagnose();
+  if (diagnosis.status === 'clear') addChatMessage('GRID OMNI', watched.group.userData.interactionName + ' · preflight clear.', 'system');
+}, 15000);
 
 const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.1, 500);
 camera.position.set(0, 3.2, 7);
@@ -609,6 +645,16 @@ function animate(now: number) {
   world.update();
   for (const remote of remotePlayers.values()) remote.update(dt);
   for (const avatar of teamAvatars) avatar.update(dt);
+  for (const actor of crowdActors) actor.update(dt);
+  for (const pylon of omniLayer.pylons) pylon.update(dt);
+  npcChatTimer -= dt;
+  if (npcChatTimer <= 0) {
+    const [speakerA, speakerB, lineA, lineB] = npcChatPairs[npcChatIndex % npcChatPairs.length];
+    addChatMessage(speakerA, lineA, 'team');
+    window.setTimeout(() => addChatMessage(speakerB, lineB, 'team'), 900);
+    npcChatIndex++;
+    npcChatTimer = 9 + Math.random() * 7;
+  }
   minimap.update();
   if (presenceTimer >= 0.25) {
     presence?.update(player.getTransform()).catch(console.error);
