@@ -330,7 +330,7 @@ const hudOptions = document.querySelector<HTMLDivElement>('#hud-options')!;
 windowManager.register({
   id: 'creator-console',
   title: 'Creator Console',
-  element: creatorPanel,
+  element: creatorPanel.querySelector('.creator-card')!,
   defaultPosition: { x: 0, y: 0 },
   movable: true,
   resizable: true,
@@ -339,7 +339,7 @@ windowManager.register({
 windowManager.register({
   id: 'traveler-profile',
   title: 'Traveler Profile',
-  element: identityPanel,
+  element: identityPanel.querySelector('.identity-card')!,
   defaultPosition: { x: 0, y: 0 },
   movable: true,
   resizable: true,
