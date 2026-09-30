@@ -1169,6 +1169,21 @@ addEventListener('keydown', event => {
         marketPanel.open();
         prompt.textContent = 'E · Merchant Exchange';
         audio.play('ui.confirm');
+        if (npcId && combatAuthority) {
+          void combatAuthority.npcMemoryRead(npcId, 16).then(memoryResult => {
+            const memories = memoryResult?.memories ?? [];
+            const mine = memories.filter(m => String(m.subject_id ?? '') === identity.id);
+            const tradeCount = mine.filter(m => String(m.event_type ?? '').toUpperCase() === 'MARKET_TRADE').length;
+            const last = mine[0]?.summary ? String(mine[0].summary) : '';
+            let line = tradeCount >= 3
+              ? 'I know you. You have traded with me more than once.'
+              : tradeCount > 0
+                ? 'I remember our last trade. The exchange helped my stall.'
+                : 'You are new to my stall. Let us see what the world has brought you.';
+            if (last && tradeCount > 0) line += ' ' + last;
+            addChatMessage(String(result.name), line, 'team');
+          }).catch(() => undefined);
+        }
       }
       if (npcBrain?.remember) {
         npcBrain.remember({
