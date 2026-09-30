@@ -55,6 +55,7 @@ import { mountQuestPanel } from './ui/QuestPanel';
 import { WorldResourceSystem } from './world/WorldResourceSystem';
 import { mountWorldAtlas } from './ui/WorldAtlas';
 import { mountMarketPanel } from './ui/MarketPanel';
+import { mountTransitPanel } from './ui/TransitPanel';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
@@ -305,6 +306,7 @@ let marketPanel: ReturnType<typeof mountMarketPanel> | null = null;
 const questPanel = mountQuestPanel(questSystem);
 mountWorldAtlas(() => ({ world: (livingWorld.getSnapshot().world as EcologyWorld), event: livingWorld.getSnapshot().event, consequences: worldConsequences.getSnapshot(), resources: worldResources.getSnapshot(), inventory: worldResources.getInventory(), market: marketQuotes }));
 marketPanel = mountMarketPanel(() => worldResources.getInventory(), () => marketQuotes, () => combatAuthority);
+const transitPanel = mountTransitPanel();
 let merchantRefreshTimer = 0;
 async function refreshMerchantMarket(){
   if(!combatAuthority) return;
@@ -751,51 +753,70 @@ function handleTeleportNode(result: ReturnType<InteractionSystem['findTarget']>)
   const nodeId = result.object.userData.gridTeleportNodeId as string | undefined;
   if (!nodeId) return false;
 
-  const teleport = teleportSystem.request({
-    actorId: cloudIdentity.id,
-    nodeId,
-    nowSeconds: performance.now() / 1000,
-    relationship: 'public',
-  });
-
-  if (!teleport.ok || !teleport.destination) {
-    const message = teleport.reason === 'cooldown'
-      ? 'Teleport gate is recharging.'
-      : teleport.reason === 'access-denied'
-        ? 'This teleport node is access controlled.'
-        : 'Teleport destination is unavailable; Grid Omni is holding the route.';
-    prompt.textContent = 'E · ' + message;
-    addChatMessage('GRID OMNI', message, 'system');
+  const destinations = teleportSystem.destinations(nodeId, 'public');
+  if (!destinations.length) {
+    prompt.textContent = 'E · No destinations available';
+    addChatMessage('GRID OMNI', 'This transit node has no available destinations.', 'system');
     audio.play('ui.error');
     return true;
   }
 
-  const destination = teleport.destination;
-  const arrival = new THREE.Vector3(destination.position.x, Math.max(0, destination.position.y), destination.position.z);
-  const backward = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), destination.yaw);
-  arrival.addScaledVector(backward, Math.max(2.5, destination.clearanceRadius));
-  player.restoreTransform({
-    x: arrival.x,
-    y: arrival.y,
-    z: arrival.z,
-    yaw: destination.yaw,
-  });
-  audio.play('world.portal', 1);
-  prompt.textContent = 'E · Arrived at ' + destination.displayName + ' ✓';
-  addChatMessage('GRID TRANSIT', 'Arrived at ' + destination.displayName + '. Safe arrival clearance applied.', 'system');
-  if (cloudPersistence) {
-    cloudPersistence.getClient().from('grid_teleport_events').insert({
-      actor_id: cloudIdentity.id,
-      source_node_id: teleport.sourceNodeId ?? null,
-      destination_node_id: destination.id,
-      result: 'teleported',
-      metadata: { regionId: destination.regionId, client: 'grid-world-web' },
-    }).then(({ error }) => {
-      if (error) console.warn('Teleport event archive unavailable.', error);
+  void transitPanel.choose(result.name, destinations).then(destinationId => {
+    if (!destinationId) {
+      prompt.textContent = 'E · Transit cancelled';
+      return;
+    }
+
+    const teleport = teleportSystem.request({
+      actorId: cloudIdentity.id,
+      nodeId,
+      destinationId,
+      nowSeconds: performance.now() / 1000,
+      relationship: 'public',
     });
-  }
-  presence?.update(player.getTransform()).catch(console.error);
-  savePlayer();
+
+    if (!teleport.ok || !teleport.destination) {
+      const message = teleport.reason === 'cooldown'
+        ? 'Transit gate is recharging.'
+        : teleport.reason === 'access-denied'
+          ? 'This transit node is access controlled.'
+          : 'Selected destination is unavailable; Grid Omni is holding the route.';
+      prompt.textContent = 'E · ' + message;
+      addChatMessage('GRID OMNI', message, 'system');
+      audio.play('ui.error');
+      return;
+    }
+
+    const destination = teleport.destination;
+    const arrival = new THREE.Vector3(destination.position.x, Math.max(0, destination.position.y), destination.position.z);
+    const backward = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), destination.yaw);
+    arrival.addScaledVector(backward, Math.max(2.5, destination.clearanceRadius));
+
+    prompt.textContent = 'E · Entering ' + destination.displayName + '…';
+    addChatMessage('GRID TRANSIT', 'Route locked: ' + destination.displayName + '. Gate transit engaged.', 'system');
+    audio.play('world.portal', .8);
+
+    window.setTimeout(() => {
+      player.restoreTransform({
+        x: arrival.x,
+        y: arrival.y,
+        z: arrival.z,
+        yaw: destination.yaw,
+      });
+      audio.play('world.portal', 1);
+      prompt.textContent = 'E · Arrived at ' + destination.displayName + ' ✓';
+      addChatMessage('GRID TRANSIT', 'Arrived at ' + destination.displayName + '. Safe arrival clearance applied.', 'system');
+      if (cloudPersistence) {
+        cloudPersistence.getClient().from('grid_teleport_events').insert({
+          actor_id: cloudIdentity.id,
+          source_node_id: teleport.sourceNodeId ?? null,
+          destination_node_id: destination.id,
+          result: 'teleported',
+        }).then(() => undefined).catch(() => undefined);
+      }
+    }, 850);
+  });
+
   return true;
 }
 
