@@ -25,6 +25,10 @@ type Citizen = {
   jumpStyle: number;
   jumpTargetY: number;
   jumpCount: number;
+  merchant:boolean;
+  merchantStock:number;
+  merchantStress:number;
+  merchantMood:string;
 };
 
 export interface SocietySnapshot {
@@ -79,7 +83,7 @@ export class NPCSocietySystem {
       root.add(canopy,counter,sigil);
     }
     this.root.add(root);
-    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0});
+    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0,merchant,merchantStock:merchant?0:0,merchantStress:0,merchantMood:'CALM'});
   }
 
   private chooseState(c:Citizen,event:string,phase:string,pressure=0,stability=1) {
@@ -98,6 +102,13 @@ export class NPCSocietySystem {
   update(delta:number,playerX=0,playerZ=0,world:EcologyWorld='HARBOR',event='QUIET',phase='DAY',ecology?:EcologySnapshot,consequences?:WorldConsequenceSnapshot) {
     const pressure=consequences?.pressure ?? 0;
     const stability=consequences?.stability ?? 1;
+    for (const c of this.citizens) {
+      if (!c.merchant) continue;
+      c.merchantStress = THREE.MathUtils.clamp(pressure*.7 + (1-stability)*.8, 0, 1);
+      c.merchantMood = c.merchantStress > .72 ? 'WORRIED' : c.merchantStress > .38 ? 'WATCHFUL' : (event.toUpperCase() === 'MARKET' ? 'BUSY' : 'CALM');
+      c.root.userData.merchantMood = c.merchantMood;
+      c.root.userData.merchantStress = c.merchantStress;
+    }
     let active=0,working=0,gathering=0,talking=0;
     for(const c of this.citizens) {
       const distance=Math.hypot(c.root.position.x-playerX,c.root.position.z-playerZ);
@@ -106,6 +117,8 @@ export class NPCSocietySystem {
       active++;
       c.stateTimer-=delta;
       if(c.stateTimer<=0){ c.state=this.chooseState(c,event.toUpperCase(),phase,pressure,stability); c.stateTimer=5+(c.phase%6); }
+      if(c.merchant && c.merchantStress > .72 && c.state === 'WORK') c.state='GATHER';
+      if(c.merchant) c.root.userData.marketPrompt = c.merchantMood === 'WORRIED' ? 'SUPPLIES LOW' : c.merchantMood === 'BUSY' ? 'MARKET ACTIVE' : 'TRADE';
       c.energy=Math.max(0,c.energy-delta*(c.state==='WORK'?.012:.005));
       c.social=Math.max(0,c.social-delta*.006);
       if(c.state==='REST') c.energy=Math.min(1,c.energy+delta*.045);
