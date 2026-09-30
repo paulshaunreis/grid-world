@@ -297,8 +297,9 @@ const livingWorld = new GridLivingWorld();
 const creatureEcology = new CreatureEcologySystem();
 const npcSociety = new NPCSocietySystem();
 npcSociety.setTransitTrafficRecorder((source, destination) => {
-  const sourceNode = teleportSystem.all().find(node => node.regionId.toUpperCase() === source && node.kind === 'gate')?.id;
-  const destinationNode = teleportSystem.all().find(node => node.regionId.toUpperCase() === destination)?.id;
+  const transitNodeByWorld: Record<string,string> = { HARBOR:'gate:civic-to-gallery', GARDENS:'pylon:market', CITADEL:'gate:wilds-to-creator', ARTS:'pylon:gallery', WILDS:'pylon:wilds' };
+  const sourceNode = transitNodeByWorld[source];
+  const destinationNode = transitNodeByWorld[destination];
   if (sourceNode && destinationNode) teleportSystem.recordTraffic(sourceNode, destinationNode);
   addChatMessage('GRID TRANSIT', source + ' → ' + destination + ' · NPC transit route completed.', 'system');
 });
