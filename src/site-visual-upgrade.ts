@@ -31,7 +31,7 @@ const layer=document.createElement('div');layer.className='gw-art-layer';
 const canvas=document.createElement('canvas');canvas.className='gw-art-canvas';
 const vignette=document.createElement('div');vignette.className='gw-art-vignette';
 const atlas=document.createElement('div');atlas.className='gw-world-atlas';for(let i=0;i<3;i++){const o=document.createElement('div');o.className='gw-world-orb';atlas.appendChild(o)}for(let i=0;i<2;i++){const t=document.createElement('div');t.className='gw-world-thread';atlas.appendChild(t)}const orb=document.createElement('div');orb.className='gw-orbital-grid';const city=document.createElement('div');city.className='gw-cityline';const garden1=document.createElement('div');garden1.className='gw-floating-garden';garden1.style.right='10%';garden1.style.top='24%';const garden2=document.createElement('div');garden2.className='gw-floating-garden';garden2.style.right='22%';garden2.style.top='36%';garden2.style.transform='scale(.72)';const feather=document.createElement('div');feather.className='gw-feather';feather.textContent='✦';layer.append(atlas,orb,garden1,garden2,feather,city,canvas,vignette);document.body.appendChild(layer);
-const ctx=canvas.getContext('2d');let w=0,h=0,t=0;
+const ctx=canvas.getContext('2d')!;let w=0,h=0,t=0;
 const nodes=Array.from({length:34},(_,i)=>({x:Math.random(),y:Math.random(),r:.4+Math.random()*1.8,p:Math.random()*Math.PI*2,s:.2+Math.random()*.8}));
 function resize(){const d=devicePixelRatio||1;w=innerWidth;h=innerHeight;canvas.width=w*d;canvas.height=h*d;ctx.setTransform(d,0,0,d,0,0)}
 addEventListener('resize',resize);resize();
