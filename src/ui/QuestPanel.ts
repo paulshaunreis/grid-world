@@ -1,20 +1,9 @@
 import { QuestSystem } from '../world/QuestSystem';
-
-export function mountQuestPanel(quests: QuestSystem) {
-  const style=document.createElement('style');
-  style.textContent=`
-    .gw-quest-panel{position:fixed;left:22px;top:78px;width:min(410px,calc(100vw - 44px));max-height:calc(100vh - 110px);overflow:auto;z-index:31;background:rgba(5,9,15,.94);border:1px solid rgba(255,211,106,.22);box-shadow:0 24px 80px rgba(0,0,0,.45);backdrop-filter:blur(18px);padding:18px;color:#effcff;font:12px/1.45 ui-monospace,monospace;display:none}
-    .gw-quest-panel.open{display:block}.gw-quest-head{display:flex;justify-content:space-between;align-items:start}.gw-quest-kicker{font-size:8px;letter-spacing:.2em;opacity:.55}.gw-quest-title{font:600 25px system-ui;margin:4px 0}.gw-quest-sub{opacity:.62}.gw-quest-close{border:1px solid rgba(255,255,255,.14);background:transparent;color:inherit;padding:7px 9px;cursor:pointer}.gw-quest-card{margin-top:10px;padding:12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.025)}.gw-quest-card.done{opacity:.5}.gw-quest-card strong{font:600 15px system-ui}.gw-quest-card small{display:block;opacity:.62;margin-top:4px}.gw-quest-meta{margin-top:8px;font-size:9px;letter-spacing:.08em;display:flex;justify-content:space-between}.gw-quest-bar{height:3px;background:rgba(255,255,255,.08);margin-top:8px}.gw-quest-bar i{display:block;height:100%;background:#ffd36a}
-  `;
-  document.head.appendChild(style);
-  const panel=document.createElement('section');
-  panel.className='gw-quest-panel';
-  panel.innerHTML=`<div class="gw-quest-head"><div><div class="gw-quest-kicker">GRID WORLD // MISSIONS</div><div class="gw-quest-title">Field Journal</div><div class="gw-quest-sub">Missions emerge from the people, creatures and events around you.</div></div><button class="gw-quest-close">CLOSE</button></div><div id="gw-quest-list"></div>`;
-  document.body.appendChild(panel);
-  const list=panel.querySelector<HTMLDivElement>('#gw-quest-list')!;
-  const render=()=>{list.innerHTML=quests.getQuests().map(q=>`<article class="gw-quest-card ${q.complete?'done':''}"><strong>${q.complete?'✓ ':''}${q.title}</strong><small>${q.description}</small><div class="gw-quest-meta"><span>${q.giver} · ${q.world}</span><span>${q.progress}/${q.target} · +${q.reward} GRID</span></div><div class="gw-quest-bar"><i style="width:${Math.min(100,q.progress/q.target*100)}%"></i></div></article>`).join('');};
-  const open=()=>{render();panel.classList.add('open');};
-  const close=()=>panel.classList.remove('open');
-  panel.querySelector('button')!.addEventListener('click',close);
-  return {open,close,render};
+export function mountQuestPanel(quests:QuestSystem){
+ const style=document.createElement('style');style.textContent=`
+ .gw-quest-panel{position:fixed;left:22px;top:78px;width:min(430px,calc(100vw - 44px));max-height:calc(100vh - 110px);overflow:auto;z-index:31;background:rgba(5,9,15,.94);border:1px solid rgba(255,211,106,.22);box-shadow:0 24px 80px rgba(0,0,0,.45);backdrop-filter:blur(18px);padding:18px;color:#effcff;font:12px/1.45 ui-monospace,monospace;display:none}.gw-quest-panel.open{display:block}.gw-quest-head{display:flex;justify-content:space-between;align-items:start}.gw-quest-kicker{font-size:8px;letter-spacing:.2em;opacity:.55}.gw-quest-title{font:600 25px system-ui;margin:4px 0}.gw-quest-sub{opacity:.62}.gw-quest-close{border:1px solid rgba(255,255,255,.14);background:transparent;color:inherit;padding:7px 9px;cursor:pointer}.gw-quest-card{margin-top:10px;padding:12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.025)}.gw-quest-card.complete{opacity:.5}.gw-quest-card.available{border-color:rgba(255,211,106,.2)}.gw-quest-card strong{font:600 15px system-ui}.gw-quest-card small{display:block;opacity:.62;margin-top:4px}.gw-quest-meta{margin-top:8px;font-size:9px;letter-spacing:.08em;display:flex;justify-content:space-between}.gw-quest-bar{height:3px;background:rgba(255,255,255,.08);margin-top:8px}.gw-quest-bar i{display:block;height:100%;background:#ffd36a}.gw-quest-state{margin-top:7px;font-size:9px;letter-spacing:.12em;opacity:.7}`;document.head.appendChild(style);
+ const panel=document.createElement('section');panel.className='gw-quest-panel';panel.innerHTML=`<div class="gw-quest-head"><div><div class="gw-quest-kicker">GRID WORLD // MISSIONS</div><div class="gw-quest-title">Field Journal</div><div class="gw-quest-sub">Missions emerge from the people, creatures and events around you.</div></div><button class="gw-quest-close">CLOSE</button></div><div id="gw-quest-list"></div>`;document.body.appendChild(panel);
+ const list=panel.querySelector<HTMLDivElement>('#gw-quest-list')!;
+ const render=()=>{list.innerHTML=quests.getQuests().map(q=>{const pct=Math.min(100,q.progress/q.target*100);return `<article class="gw-quest-card ${q.status.toLowerCase()}"><strong>${q.status==='COMPLETE'?'✓ ':q.status==='ACTIVE'?'◆ ':'○ '}${q.title}</strong><small>${q.description}</small><div class="gw-quest-meta"><span>${q.giver} · ${q.world}</span><span>+${q.reward} GRID</span></div><div class="gw-quest-state">${q.status} · ${q.objective??''}</div><div class="gw-quest-bar"><i style="width:${pct}%"></i></div><div class="gw-quest-meta"><span>PROGRESS</span><span>${q.progress}/${q.target}</span></div></article>`}).join('');};
+ const open=()=>{render();panel.classList.add('open')};const close=()=>panel.classList.remove('open');panel.querySelector('button')!.addEventListener('click',close);return{open,close,render};
 }
