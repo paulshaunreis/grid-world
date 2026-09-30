@@ -265,24 +265,25 @@ export function createTeleportPylon(definition: GridTeleportNodeDefinition) {
   group.userData.gridTeleportNodeId = definition.id;
   group.userData.gridTeleportKind = definition.kind;
 
-  const base = new THREE.Mesh(
-    new THREE.CylinderGeometry(.85, 1.15, .55, 12),
-    createStarterPBRMaterial('metal', { color: '#172637', metalness: .82, roughness: .28 }),
-  );
+  const world=definition.worldId ? getWorld(definition.worldId) : undefined;
+  const dna=deriveWorldDNA(world?.tags ?? []);
+  const primary=world?.color ?? 0x4aa8c7;
+  const secondary=world?.secondary ?? 0x172637;
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(.85,1.15,.55,12),createStarterPBRMaterial('metal',{color:'#'+secondary.toString(16).padStart(6,'0'),metalness:.82,roughness:.28}));
   base.position.y = .28;
 
   const shaft = new THREE.Mesh(
     new THREE.CylinderGeometry(.22, .38, 2.8, 10),
-    createStarterPBRMaterial('technical', { color: '#31566b', metalness: .72, roughness: .3 }),
+    createStarterPBRMaterial('technical', { color:'#'+secondary.toString(16).padStart(6,'0'), metalness:.72, roughness:.3 }),
   );
   shaft.position.y = 1.65;
 
   const crystal = new THREE.Mesh(
     new THREE.OctahedronGeometry(.72, 1),
     createStarterPBRMaterial('glass', {
-      color: '#4aa8c7',
+      color:'#'+primary.toString(16).padStart(6,'0'),
       roughness: .08,
-      emissive: '#42d9ff',
+      emissive:'#'+primary.toString(16).padStart(6,'0'),
       emissiveIntensity: 1.9,
     }),
   );
@@ -290,13 +291,23 @@ export function createTeleportPylon(definition: GridTeleportNodeDefinition) {
 
   const ring = new THREE.Mesh(
     new THREE.TorusGeometry(.88, .09, 10, 32),
-    createStarterPBRMaterial('metal', { color: '#6a8da0', metalness: .86, roughness: .2 }),
+    createStarterPBRMaterial('metal', { color:'#'+secondary.toString(16).padStart(6,'0'), metalness:.86, roughness:.2 }),
   );
   ring.rotation.x = Math.PI / 2;
   ring.position.y = .65;
 
+  if(dna.transit.gateLanguage.includes('living') || world?.tags?.includes('growth')){
+    const vine=new THREE.Mesh(new THREE.TorusGeometry(1.05,.045,6,28),createStarterPBRMaterial('technical',{color:'#'+primary.toString(16).padStart(6,'0'),emissive:'#'+primary.toString(16).padStart(6,'0'),emissiveIntensity:.9}));
+    vine.rotation.x=Math.PI/2;vine.position.y=2.1;group.add(vine);
+  } else if(world?.tags?.includes('art')){
+    const ribbon=new THREE.Mesh(new THREE.TorusGeometry(1.25,.035,6,32),createStarterPBRMaterial('glass',{color:'#'+primary.toString(16).padStart(6,'0'),emissive:'#'+primary.toString(16).padStart(6,'0'),emissiveIntensity:1.1}));
+    ribbon.rotation.set(Math.PI/2,.45,.25);ribbon.position.y=2.25;group.add(ribbon);
+  }
   group.add(base, shaft, crystal, ring);
-  addGlow(group, 0x55ddff, 10, 2.8);
+  addGlow(group, primary, 10, 2.8);
+  group.userData.worldId=definition.worldId ?? '';
+  group.userData.transitLanguage=dna.transit.gateLanguage;
+  group.userData.transitEffects=[...dna.transit.effects];
 
   group.position.set(definition.position.x, definition.position.y, definition.position.z);
   group.rotation.y = definition.yaw;
