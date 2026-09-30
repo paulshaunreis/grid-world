@@ -289,7 +289,7 @@ const creatureEcology = new CreatureEcologySystem();
 const npcSociety = new NPCSocietySystem();
 const relationshipStories = new RelationshipStorySystem();
 const traversalSystem = new TraversalSystem();
-const questSystem = new QuestSystem();
+const questSystem = new QuestSystem(identity.id);
 const questPanel = mountQuestPanel(questSystem);
 let lastStoryId = '';
 world.scene.add(livingWorld.root);
@@ -962,6 +962,18 @@ addEventListener('keydown', event => {
     const result = interaction.interact();
     if (result) {
       if (handleTeleportNode(result)) return;
+      const questInteraction = questSystem.interact(
+        result.object,
+        livingWorld.getSnapshot().world as EcologyWorld,
+        livingWorld.getSnapshot().event
+      );
+      if (questInteraction.handled) {
+        prompt.textContent = `E · ${questInteraction.message}`;
+        addChatMessage(result.name, questInteraction.message, 'team');
+        audio.play('ui.confirm');
+        questPanel.render();
+        return;
+      }
       prompt.textContent = `E · ${result.name} ✓`;
       const npcBrain = result.object.userData.gridNpcBrain as { remember?: (memory: { subjectId?: string; eventType: string; summary: string; valence: number; importance: number; confidence: number }) => void; thought?: () => string } | undefined;
       if (npcBrain?.remember) {
