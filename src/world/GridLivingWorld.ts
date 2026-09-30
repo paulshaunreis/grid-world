@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import { createStarterPBRMaterial } from '../engine/GridPBRLibrary';
 
 interface LivingPlant { root: THREE.Group; sway: number; }
-interface LivingCreature { root: THREE.Group; phase: number; radius: number; speed: number; center: THREE.Vector3; }
+interface LivingCreature { root: THREE.Group; phase: number; radius: number; speed: number; center: THREE.Vector3; habitat: 'HARBOR' | 'GARDENS' | 'CITADEL' | 'ARTS' | 'WILDS'; }
+export interface LivingWorldSnapshot { world: string; event: string; phase: 'DAWN' | 'DAY' | 'DUSK' | 'NIGHT'; weather: 'CLEAR' | 'RAIN' | 'MIST' | 'STORM' | 'AURORA'; activity: number; ecology: number; }
 
 export class GridLivingWorld {
   readonly root = new THREE.Group();
@@ -14,6 +15,8 @@ export class GridLivingWorld {
   private worldEventSlot = -1;
   private worldEvent: 'quiet' | 'migration' | 'market' | 'bloom' | 'aurora' | 'storm' = 'quiet';
   private readonly eventSignal: THREE.Mesh;
+  private activeWorld = 'HARBOR';
+  private snapshot: LivingWorldSnapshot = { world: 'HARBOR', event: 'QUIET', phase: 'DAY', weather: 'CLEAR', activity: 1, ecology: 70 };
 
   constructor() {
     this.root.name = 'grid-living-world';
@@ -109,7 +112,7 @@ export class GridLivingWorld {
         root.userData.interactionName='Wildlife ' + (index+1);
         root.userData.gridObjectKind='creature';
         this.root.add(root);
-        this.creatures.push({root,phase:index*.9,radius:2+index%3,speed:.16+(index%4)*.035,center:new THREE.Vector3(habitat.x,.02,habitat.z)});
+        this.creatures.push({root,phase:index*.9,radius:2+index%3,speed:.16+(index%4)*.035,center:new THREE.Vector3(habitat.x,.02,habitat.z),habitat: i < 2 ? 'GARDENS' : index % 3 === 0 ? 'HARBOR' : 'WILDS'});
         index++;
       }
     }
@@ -153,17 +156,34 @@ export class GridLivingWorld {
     }
   }
 
-  update(delta:number) {
+  update(delta:number, playerX = 0, playerZ = 0) {
     this.time+=delta;
     const epochSeconds = Date.now() / 1000;
+    if (playerX < -16 && playerZ > 8) this.activeWorld = 'WILDS';
+    else if (playerX > 12 && playerZ > 8) this.activeWorld = 'GARDENS';
+    else if (playerX < -10 && playerZ < -8) this.activeWorld = 'CITADEL';
+    else if (playerX > 10 && playerZ < -8) this.activeWorld = 'ARTS';
+    else this.activeWorld = 'HARBOR';
     const eventSlot = Math.floor(epochSeconds / 70);
     if (eventSlot !== this.worldEventSlot) {
       this.worldEventSlot = eventSlot;
-      this.worldEvent = (['quiet','migration','market','bloom','aurora','storm'] as const)[eventSlot % 6];
+      const eventByWorld: Record<string, readonly ['quiet' | 'migration' | 'market' | 'bloom' | 'aurora' | 'storm', string, 'CLEAR' | 'RAIN' | 'MIST' | 'STORM' | 'AURORA']> = {
+        HARBOR: [['tide' as never, 'Tide surge', 'RAIN']],
+        GARDENS: [['bloom', 'Canopy bloom', 'CLEAR']],
+        CITADEL: [['aurora', 'Crown aurora', 'AURORA']],
+        ARTS: [['market', 'Open studios', 'CLEAR']],
+        WILDS: [['migration', 'Wildlife migration', 'MIST']],
+      };
+      const worldEvent = eventByWorld[this.activeWorld]?.[0] ?? ['quiet', 'The world is breathing', 'CLEAR'];
+      this.worldEvent = worldEvent[0] as typeof this.worldEvent;
       this.root.userData.worldEvent = this.worldEvent;
       this.root.userData.worldEventStartedAt = epochSeconds;
     }
     const eventPhase = (epochSeconds % 70) / 70;
+    const localDay = ((epochSeconds % 86400) + 86400) % 86400;
+    const phase: LivingWorldSnapshot['phase'] = localDay < 7 * 3600 ? 'DAWN' : localDay < 18 * 3600 ? 'DAY' : localDay < 20 * 3600 ? 'DUSK' : 'NIGHT';
+    const weather: LivingWorldSnapshot['weather'] = this.worldEvent === 'storm' ? 'STORM' : this.worldEvent === 'aurora' ? 'AURORA' : this.worldEvent === 'migration' ? 'MIST' : this.worldEvent === 'tide' ? 'RAIN' : 'CLEAR';
+    this.snapshot = { world: this.activeWorld, event: this.worldEvent.toUpperCase(), phase, weather, activity: this.worldEvent === 'migration' ? 1.8 : this.worldEvent === 'bloom' ? 1.35 : this.worldEvent === 'storm' ? .72 : 1, ecology: this.activeWorld === 'WILDS' || this.activeWorld === 'GARDENS' ? 96 : this.activeWorld === 'HARBOR' ? 68 : 61 };
     const activity = this.worldEvent === 'migration' ? 1.8 : this.worldEvent === 'bloom' ? 1.35 : this.worldEvent === 'storm' ? .72 : 1;
     this.root.userData.worldActivity = activity;
     this.root.userData.worldPulse = eventPhase;
@@ -188,7 +208,7 @@ export class GridLivingWorld {
     }
     for(let i=0;i<this.creatures.length;i++){
       const c=this.creatures[i];
-      const migration = this.worldEvent === 'migration' ? 1.8 : 1;
+      const migration = c.habitat === this.activeWorld && this.worldEvent === 'migration' ? 1.8 : 1;
       const angle=this.time*c.speed*migration+c.phase;
       c.root.position.x=c.center.x+Math.cos(angle)*c.radius;
       c.root.position.z=c.center.z+Math.sin(angle*1.17)*c.radius*.7;
@@ -212,4 +232,6 @@ export class GridLivingWorld {
       rippleMaterial.opacity=.08+.1*(.5+.5*Math.sin(this.time*1.3+i));
     }
   }
+
+  getSnapshot() { return this.snapshot; }
 }
