@@ -2,8 +2,10 @@ import * as THREE from 'three';
 import { createStarterPBRMaterial } from '../engine/GridPBRLibrary';
 import { traversalHit, steerAround } from './TraversalSystem';
 import type { WorldConsequenceSnapshot } from './WorldConsequenceSystem';
+import { getWorlds } from './GridWorldRegistry';
+import { deriveWorldDNA } from './WorldDNA';
 
-export type EcologyWorld = 'HARBOR' | 'GARDENS' | 'CITADEL' | 'ARTS' | 'WILDS';
+export type EcologyWorld = string;
 export type CreatureLifeState = 'FORAGE' | 'REST' | 'SOCIALIZE' | 'EXPLORE' | 'MIGRATE' | 'PLAY';
 
 type Species = {
@@ -67,7 +69,22 @@ export class CreatureEcologySystem {
 
   constructor() {
     this.root.name = 'grid-creature-ecology';
+    const known = new Set(SPECIES.map(s => s.world));
     for (const species of SPECIES) this.spawnSpecies(species, species.social > .8 ? 3 : 2);
+
+    // New registered worlds automatically receive native life without editing this file.
+    for (const world of getWorlds()) {
+      if (known.has(world.id)) continue;
+      const dna = deriveWorldDNA(world.tags ?? []);
+      const base = '#' + world.color.toString(16).padStart(6,'0');
+      const accent = '#' + world.secondary.toString(16).padStart(6,'0');
+      const center = { x: world.center.x, z: world.center.z };
+      const generated: Species[] = [
+        { id:world.id.toLowerCase()+'-wanderer', name:world.label+' Wanderer', world:world.id, color:base, accent, size:.55 + dna.ambientLife*.08, speed:.7 + dna.ambientLife*.18, social:.55, center, radius:7 },
+        { id:world.id.toLowerCase()+'-native', name:world.label+' Native', world:world.id, color:accent, accent:base, size:.42 + dna.ambientLife*.1, speed:.85 + dna.ambientLife*.22, social:.72, center, radius:9, nocturnal:dna.ecology.environmentalForces.includes('night') },
+      ];
+      for (const species of generated) this.spawnSpecies(species, dna.ecology.lifeDensity > 1.3 ? 3 : 2);
+    }
   }
 
   private spawnSpecies(species: Species, count: number) {
