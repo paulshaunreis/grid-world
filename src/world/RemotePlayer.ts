@@ -44,6 +44,7 @@ export class RemotePlayer {
     label.scale.set(3.2, 0.8, 1);
     label.position.set(0, 2.45, 0);
 
+    this.group.userData={gridObjectKind:'remote-player',combatId:this.id,combatFaction:'PLAYER',maxHealth:100,damage:14};
     this.group.add(this.body, this.visor, label);
     this.setState(state);
   }
