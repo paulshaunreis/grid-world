@@ -296,6 +296,7 @@ const questSystem = new QuestSystem(identity.id);
 const dynamicQuestSystem = new DynamicQuestSystem(questSystem);
 const questPanel = mountQuestPanel(questSystem);
 let lastStoryId = '';
+let lastCombatKills = 0;
 world.scene.add(livingWorld.root);
 world.scene.add(creatureEcology.root);
 world.scene.add(npcSociety.root);
@@ -1106,7 +1107,14 @@ function animate(now: number) {
   traversalSystem.update(dt);
   combatSystem.syncScene(world.scene);
   combatSystem.update(dt, identity.id);
+  const combatSnapshot = combatSystem.getSnapshot();
   questSystem.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, societySnapshot, player.avatar.position.x, player.avatar.position.z);
+  if (combatSnapshot.kills > lastCombatKills) {
+    const defeated = combatSnapshot.kills - lastCombatKills;
+    lastCombatKills = combatSnapshot.kills;
+    addChatMessage('COMBAT', defeated === 1 ? 'Hostile target defeated. The field remembers.' : defeated + ' hostile targets defeated.', 'system');
+    questPanel.render();
+  }
   relationshipStories.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, societySnapshot, player.avatar.position.x, player.avatar.position.z);
   const latestStory = relationshipStories.getLatestStory();
   if (dynamicQuestSystem.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, societySnapshot, latestStory, player.avatar.position.x, player.avatar.position.z)) questPanel.render();
