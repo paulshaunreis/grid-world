@@ -641,6 +641,18 @@ if (cloudPersistence) {
 let combatAuthority: GridCombatAuthority | null = null;
 type MarketQuote = {world:string;item_id:string;unit_price:number;currency_id:string;scarcity:number;demand:number};
 let marketQuotes:MarketQuote[] = [];
+let persistentTransitFlow = 0;
+let lastTransitPoll = 0;
+async function refreshPersistentTransit(){
+  if(!cloudPersistence) return;
+  try {
+    const { data } = await cloudPersistence.getClient().from('grid_transit_traffic').select('source_world,destination_world,departures,arrivals,queue_depth,updated_at');
+    if(!data) return;
+    const now=Date.now();
+    persistentTransitFlow=data.reduce((sum:any,row:any)=>{ const age=(now-Date.parse(row.updated_at))/60000; const freshness=Math.max(0,1-age/15); return sum + (Number(row.departures||0)+Number(row.arrivals||0)+Number(row.queue_depth||0)*.5)*freshness; },0);
+    persistentTransitFlow=Math.min(10,persistentTransitFlow);
+  } catch {}
+}
 async function refreshMarketQuotes() {
   if (!combatAuthority) return;
   const items:[string,string][] = [
@@ -1428,7 +1440,8 @@ function animate(now: number) {
     questPanel.render();
   }
   relationshipStories.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, societySnapshot, player.avatar.position.x, player.avatar.position.z);
-  worldConsequences.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.activity, ecologySnapshot, societySnapshot);
+  if (performance.now()/1000-lastTransitPoll>10) { lastTransitPoll=performance.now()/1000; void refreshPersistentTransit(); }
+  worldConsequences.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.activity, ecologySnapshot, societySnapshot, Date.now()/1000, persistentTransitFlow);
   const consequenceSnapshotForResources = worldConsequences.getSnapshot();
   const nearestResource = worldResources.getSnapshot().filter(node => node.world === livingSnapshot.world).sort((a,b) => a.position.distanceTo(player.avatar.position)-b.position.distanceTo(player.avatar.position))[0];
   const resourceNear = !!nearestResource && nearestResource.position.distanceTo(player.avatar.position) < 2.2;
