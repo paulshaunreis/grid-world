@@ -188,6 +188,12 @@ export class GridCombatAuthority {
     return data;
   }
 
+  async marketTick(): Promise<CombatServerResult | null> {
+    const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', { body:{action:'market_tick'} });
+    if(error) throw error;
+    return data;
+  }
+
   async marketMerchants(): Promise<CombatServerResult | null> {
     const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', { body:{action:'market_merchants'} });
     if(error) throw error;
