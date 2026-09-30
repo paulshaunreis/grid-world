@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { EcologyWorld } from './CreatureEcologySystem';
 import type { WorldConsequenceSnapshot } from './WorldConsequenceSystem';
+import { createClient } from '@supabase/supabase-js';
 
 export type WorldResourceKind = 'TIDE_SALT' | 'BLOOM_RESIN' | 'CROWN_RELIC' | 'MUSE_INK' | 'FRONTIER_ORE';
 
@@ -21,12 +22,15 @@ const DEFINITIONS: Record<EcologyWorld,{kind:WorldResourceKind;label:string;colo
   WILDS:{kind:'FRONTIER_ORE',label:'Frontier Ore',color:0xc9a36a,points:[[-25,20],[-18,25],[-29,27],[-21,15]]},
 };
 
+const RESOURCE_STORAGE='grid-world:resource-inventory:v1';
 export class WorldResourceSystem {
   readonly root=new THREE.Group();
   private nodes:WorldResourceNode[]=[];
   private pulse=0;
   private snapshot:WorldResourceNode[]=[];
   private inventory:Partial<Record<WorldResourceKind,number>>={};
+  private lastSave=0;
+  private readonly supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
   constructor(){
     this.root.name='grid-world-resources';
     this.root.userData.system='world-specific-resource-layer';
@@ -45,6 +49,7 @@ export class WorldResourceSystem {
         mesh.userData.resourceId=node.id;
       });
     });
+    try { this.inventory=JSON.parse(localStorage.getItem(RESOURCE_STORAGE)??'{}'); } catch { this.inventory={}; }
     this.snapshot=this.nodes;
   }
   update(delta:number,world:EcologyWorld,event:string,consequences:WorldConsequenceSnapshot){
@@ -63,6 +68,7 @@ export class WorldResourceSystem {
       const material=child instanceof THREE.Mesh ? child.material as THREE.MeshStandardMaterial : null;
       if(material) material.emissiveIntensity=active ? .5+Math.sin(this.pulse*2+index)*.18 : .18;
     });
+    if(this.pulse-this.lastSave>2){ localStorage.setItem(RESOURCE_STORAGE,JSON.stringify(this.inventory)); this.lastSave=this.pulse; }
     this.snapshot=this.nodes.map(node=>({...node,position:node.position.clone()}));
     this.root.userData.activeWorld=world;
     this.root.userData.snapshot=this.snapshot;
@@ -75,6 +81,7 @@ export class WorldResourceSystem {
     const taken=Math.min(Math.max(1,amount),node.amount);
     node.amount-=taken;
     this.inventory[node.kind]=(this.inventory[node.kind]??0)+taken;
+    localStorage.setItem(RESOURCE_STORAGE,JSON.stringify(this.inventory));
     return {id:node.id,world:node.world,kind:node.kind,amount:taken,remaining:node.amount};
   }
   spend(kind:WorldResourceKind,amount:number){
