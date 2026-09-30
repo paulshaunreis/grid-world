@@ -85,6 +85,21 @@ async function getUser(req: Request) {
   return data.user;
 }
 
+async function recordWorldEvent(eventType:string,title:string,summary:string,metadata:Record<string,unknown>,sourceId?:string){
+  try{
+    await admin.from("grid_world_events").insert({
+      event_type:eventType,
+      source_table:"grid-combat",
+      source_id:sourceId ?? null,
+      region_id:"first-light",
+      title,
+      summary,
+      visibility:"public",
+      metadata,
+    });
+  }catch(error){ console.error("world_event_log_failed",error); }
+}
+
 async function ensureState(userId: string) {
   const { data } = await admin.from("grid_combat_state").select("*").eq("user_id", userId).maybeSingle();
   if (data) return data;
@@ -195,6 +210,7 @@ Deno.serve(async (req: Request) => {
         .update({health:nextHealth,last_attack_at:new Date(now).toISOString(),respawn_at:nextHealth<=0?new Date(now+6000).toISOString():null,updated_at:new Date(now).toISOString()})
         .eq("creature_id",creatureId).eq("health",Number(target.health)).select("*").single();
       if(updatedCreature.error) return json({ok:false,error:"conflict_or_creature_changed"},409);
+      if(nextHealth<=0) await recordWorldEvent("CREATURE_DEFEATED","A creature fell in the living world",String(target.species).replaceAll("-"," ")+" was defeated; nearby ecology has registered the loss.",{world:target.world,species:target.species,creatureId},creatureId);
       return json({ok:true,action,damage:18,creature:updatedCreature.data,defeated:nextHealth<=0});
     }
 
@@ -252,6 +268,7 @@ Deno.serve(async (req: Request) => {
         .eq("user_id",user.id).select("*").single();
       if(attackerError) throw attackerError;
 
+      if(nextHealth<=0) await recordWorldEvent("PVP_DEFEAT","Grid Arena duel resolved","A player was defeated in the authorized Grid Arena.",{attacker:user.id,target:targetId});
       return json({ok:true,action,damage,targetId,defeated:nextHealth<=0,attacker:updatedAttacker,target:updatedTarget});
     }
 
