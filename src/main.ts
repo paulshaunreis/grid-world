@@ -1069,7 +1069,7 @@ addEventListener('keydown', event => {
       );
       if (questInteraction.handled) {
         prompt.textContent = `E · ${questInteraction.message}`;
-        addChatMessage(String(result.name), questInteraction.message, 'team');
+        addChatMessage(String(result.name), String(questInteraction.message ?? ''), 'team');
         audio.play('ui.confirm');
         questPanel.render();
         return;
