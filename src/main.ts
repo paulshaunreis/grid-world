@@ -1334,10 +1334,26 @@ function animate(now: number) {
   if (!resourceDown) resourceInteractLatched = false;
   if (nearestResource && resourceNear && resourceDown && !resourceInteractLatched) {
     resourceInteractLatched = true;
-    const gathered = worldResources.collect(nearestResource.id, 8);
-    if (gathered) {
-      worldConsequences.recordResourceGathered(livingSnapshot.world as EcologyWorld, gathered.kind, gathered.amount);
-      addChatMessage('RESOURCE', 'Gathered +' + gathered.amount + ' ' + gathered.kind.replaceAll('_',' ') + '.', 'system');
+    if (combatAuthority) {
+      try {
+        const result = await combatAuthority.gatherResource(nearestResource.id);
+        const resource = result?.resource as { kind?: string; amount?: number } | undefined;
+        if (result?.ok && resource?.kind && resource.amount) {
+          worldResources.collect(nearestResource.id, Number(resource.amount));
+          worldConsequences.recordResourceGathered(livingSnapshot.world as EcologyWorld, resource.kind as any, Number(resource.amount));
+          addChatMessage('RESOURCE', 'Gathered +' + resource.amount + ' ' + resource.kind.replaceAll('_',' ') + ' · secured to inventory.', 'system');
+        } else if (result?.error) {
+          addChatMessage('RESOURCE', String(result.error).replaceAll('_',' '), 'system');
+        }
+      } catch (error) {
+        addChatMessage('RESOURCE', 'Server resource service unavailable.', 'system');
+      }
+    } else {
+      const gathered = worldResources.collect(nearestResource.id, 8);
+      if (gathered) {
+        worldConsequences.recordResourceGathered(livingSnapshot.world as EcologyWorld, gathered.kind, gathered.amount);
+        addChatMessage('RESOURCE', 'Gathered +' + gathered.amount + ' ' + gathered.kind.replaceAll('_',' ') + '.', 'system');
+      }
     }
   }
   worldResources.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, consequenceSnapshotForResources);
