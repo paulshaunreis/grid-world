@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { EcologyWorld, EcologySnapshot } from './CreatureEcologySystem';
 import { traversalHit, steerAround } from './TraversalSystem';
+import type { WorldConsequenceSnapshot } from './WorldConsequenceSystem';
 
 export type CitizenState = 'WORK'|'TRAVEL'|'GATHER'|'TALK'|'REST'|'CELEBRATE';
 export type CitizenRole = 'NAVIGATOR'|'GARDENER'|'ARTISAN'|'KEEPER'|'RANGER';
@@ -71,7 +72,9 @@ export class NPCSocietySystem {
     this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0});
   }
 
-  private chooseState(c:Citizen,event:string,phase:string) {
+  private chooseState(c:Citizen,event:string,phase:string,pressure=0,stability=1) {
+    if (pressure > .72 && c.role === 'RANGER') return 'TRAVEL';
+    if (stability < .4 && c.energy < .6) return 'REST';
     if(event==='MARKET' && c.world==='ARTS') return 'GATHER';
     if(event==='BLOOM' && c.world==='GARDENS') return 'GATHER';
     if(event==='MIGRATION' && c.world==='WILDS') return 'TRAVEL';
@@ -82,7 +85,9 @@ export class NPCSocietySystem {
     return c.phase%2>.9 ? 'GATHER' : 'WORK';
   }
 
-  update(delta:number,playerX=0,playerZ=0,world:EcologyWorld='HARBOR',event='QUIET',phase='DAY',ecology?:EcologySnapshot) {
+  update(delta:number,playerX=0,playerZ=0,world:EcologyWorld='HARBOR',event='QUIET',phase='DAY',ecology?:EcologySnapshot,consequences?:WorldConsequenceSnapshot) {
+    const pressure=consequences?.pressure ?? 0;
+    const stability=consequences?.stability ?? 1;
     let active=0,working=0,gathering=0,talking=0;
     for(const c of this.citizens) {
       const distance=Math.hypot(c.root.position.x-playerX,c.root.position.z-playerZ);
@@ -90,7 +95,7 @@ export class NPCSocietySystem {
       if(!c.root.visible) continue;
       active++;
       c.stateTimer-=delta;
-      if(c.stateTimer<=0){ c.state=this.chooseState(c,event.toUpperCase(),phase); c.stateTimer=5+(c.phase%6); }
+      if(c.stateTimer<=0){ c.state=this.chooseState(c,event.toUpperCase(),phase,pressure,stability); c.stateTimer=5+(c.phase%6); }
       c.energy=Math.max(0,c.energy-delta*(c.state==='WORK'?.012:.005));
       c.social=Math.max(0,c.social-delta*.006);
       if(c.state==='REST') c.energy=Math.min(1,c.energy+delta*.045);
@@ -108,7 +113,8 @@ export class NPCSocietySystem {
         }
       }
       const dx=c.target.x-c.root.position.x,dz=c.target.z-c.root.position.z,len=Math.hypot(dx,dz);
-      if(len>.2){const speed=c.state==='TRAVEL'?1.45:c.state==='WORK'?.42:.7;const step=Math.min(len,speed*delta);c.root.position.x+=dx/len*step;c.root.position.z+=dz/len*step;c.root.rotation.y=Math.atan2(dx,dz);}
+      if(len>.2){const consequenceSpeed=stability<.45?.82:pressure>.6?1.1:1;
+        const speed=(c.state==='TRAVEL'?1.45:c.state==='WORK'?.42:.7)*consequenceSpeed;const step=Math.min(len,speed*delta);c.root.position.x+=dx/len*step;c.root.position.z+=dz/len*step;c.root.rotation.y=Math.atan2(dx,dz);}
       c.jumpCooldown-=delta;
       const canJump = len>.8 && c.state!=='REST' && c.energy>.34;
       if(c.jumpCooldown<=0 && canJump) {
