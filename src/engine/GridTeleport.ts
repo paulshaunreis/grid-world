@@ -27,6 +27,7 @@ export interface GridTeleportRequest {
   nodeId: string;
   nowSeconds: number;
   relationship?: 'owner' | 'friend' | 'public';
+  destinationId?: string;
 }
 
 export interface GridTeleportResult {
@@ -69,6 +70,14 @@ export class GridTeleportSystem implements GridEngineSubsystem {
     return [...this.nodes.values()];
   }
 
+  destinations(nodeId: string, relationship: 'owner' | 'friend' | 'public' = 'public') {
+    const node = this.nodes.get(nodeId);
+    if (!node || node.status !== 'online') return [];
+    if (node.access === 'owner' && relationship !== 'owner') return [];
+    if (node.access === 'friends' && relationship === 'public') return [];
+    return node.destinationIds.map(id => this.nodes.get(id)).filter((destination): destination is GridTeleportNodeDefinition => Boolean(destination && destination.status === 'online')).map(destination => ({ id: destination.id, displayName: destination.displayName, regionId: destination.regionId, position: { ...destination.position }, yaw: destination.yaw, clearanceRadius: destination.clearanceRadius }));
+  }
+
   request(request: GridTeleportRequest): GridTeleportResult {
     const node = this.nodes.get(request.nodeId);
     if (!node) return { ok: false, reason: 'unknown-node' };
@@ -84,7 +93,8 @@ export class GridTeleportSystem implements GridEngineSubsystem {
       return { ok: false, reason: 'cooldown', cooldownUntil };
     }
 
-    const destinationId = node.destinationIds[0];
+    const destinationId = request.destinationId ?? node.destinationIds[0];
+    if (request.destinationId && !node.destinationIds.includes(request.destinationId)) return { ok: false, reason: 'no-destination' };
     const destination = destinationId ? this.nodes.get(destinationId) : undefined;
     if (!destination || destination.status !== 'online') return { ok: false, reason: 'no-destination' };
 
