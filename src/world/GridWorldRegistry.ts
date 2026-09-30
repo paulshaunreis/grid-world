@@ -72,5 +72,17 @@ registerWorld({ id:'CITADEL', label:'CROWN', description:'monolithic stone + lum
 registerWorld({ id:'ARTS', label:'MUSE', description:'kinetic frames + suspended galleries', center:new THREE.Vector3(-20,0,-24), color:0xd28cff, secondary:0x4d285e, resourceKind:'MUSE_INK', tags:['art','market','culture'], gateId:'gate-arts' });
 registerWorld({ id:'WILDS', label:'FRONTIER', description:'ancient trunks + stone paths', center:new THREE.Vector3(20,0,-25), color:0xc9a36a, secondary:0x3d3021, resourceKind:'FRONTIER_ORE', tags:['wildlife','migration','frontier'], gateId:'gate-wilds' });
 
+registerNetworkWorld({
+  id:'SKYROOT',
+  label:'SKYROOT',
+  description:'A colossal living canopy-city suspended above a cloud sea; homes, bridges, gardens and transit are grown through the branches of a world-tree.',
+  center:new THREE.Vector3(-38,18,22),
+  color:0x74d99b,
+  secondary:0x173d32,
+  resourceKind:'SKYROOT_SAP',
+  tags:['growth','wildlife','canopy','living','aerial','cloud'],
+  gateId:'gate-skyroot',
+}, ['GARDENS','WILDS']);
+
 const BUILTIN = ['HARBOR','GARDENS','CITADEL','ARTS','WILDS'];
 for (const source of BUILTIN) for (const destination of BUILTIN) if (source !== destination) connectWorld(source, destination);
