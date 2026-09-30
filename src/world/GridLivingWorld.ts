@@ -11,6 +11,8 @@ export class GridLivingWorld {
   private readonly fireflies: THREE.Mesh[] = [];
   private readonly waterRipples: THREE.Mesh[] = [];
   private time = 0;
+  private worldEventSlot = -1;
+  private worldEvent: 'quiet' | 'migration' | 'market' | 'bloom' | 'aurora' | 'storm' = 'quiet';
 
   constructor() {
     this.root.name = 'grid-living-world';
@@ -142,14 +144,28 @@ export class GridLivingWorld {
 
   update(delta:number) {
     this.time+=delta;
+    const epochSeconds = Date.now() / 1000;
+    const eventSlot = Math.floor(epochSeconds / 70);
+    if (eventSlot !== this.worldEventSlot) {
+      this.worldEventSlot = eventSlot;
+      this.worldEvent = (['quiet','migration','market','bloom','aurora','storm'] as const)[eventSlot % 6];
+      this.root.userData.worldEvent = this.worldEvent;
+      this.root.userData.worldEventStartedAt = epochSeconds;
+    }
+    const eventPhase = (epochSeconds % 70) / 70;
+    const activity = this.worldEvent === 'migration' ? 1.8 : this.worldEvent === 'bloom' ? 1.35 : this.worldEvent === 'storm' ? .72 : 1;
+    this.root.userData.worldActivity = activity;
+    this.root.userData.worldPulse = eventPhase;
     for(let i=0;i<this.plants.length;i++){
       const p=this.plants[i];
-      p.root.rotation.z=Math.sin(this.time*p.sway+i)*.045;
+      const bloom = this.worldEvent === 'bloom' ? .11 : .045;
+      p.root.rotation.z=Math.sin(this.time*p.sway+i)*bloom;
       p.root.rotation.x=Math.cos(this.time*p.sway*.7+i)*.025;
     }
     for(let i=0;i<this.creatures.length;i++){
       const c=this.creatures[i];
-      const angle=this.time*c.speed+c.phase;
+      const migration = this.worldEvent === 'migration' ? 1.8 : 1;
+      const angle=this.time*c.speed*migration+c.phase;
       c.root.position.x=c.center.x+Math.cos(angle)*c.radius;
       c.root.position.z=c.center.z+Math.sin(angle*1.17)*c.radius*.7;
       c.root.rotation.y=Math.atan2(Math.cos(angle*1.17),-Math.sin(angle))+Math.PI;
@@ -160,11 +176,13 @@ export class GridLivingWorld {
       const f=this.fireflies[i];
       f.position.y += Math.sin(this.time*.6+i)*.0012;
       const fireflyMaterial = f.material as THREE.MeshBasicMaterial;
-      fireflyMaterial.opacity=.35+.35*(.5+.5*Math.sin(this.time*2.2+i));
+      const auroraBoost = this.worldEvent === 'aurora' ? .2 : 0;
+      fireflyMaterial.opacity=Math.min(.95,.35+auroraBoost+.35*(.5+.5*Math.sin(this.time*2.2+i)));
     }
     for(let i=0;i<this.waterRipples.length;i++){
       const r=this.waterRipples[i];
-      const s=.8+.35*(.5+.5*Math.sin(this.time*.8+i));
+      const tidePulse = this.worldEvent === 'storm' ? .22 : 0;
+      const s=.8+.35*(.5+.5*Math.sin(this.time*.8+i))+tidePulse;
       r.scale.setScalar(s);
       const rippleMaterial = r.material as THREE.MeshBasicMaterial;
       rippleMaterial.opacity=.08+.1*(.5+.5*Math.sin(this.time*1.3+i));
