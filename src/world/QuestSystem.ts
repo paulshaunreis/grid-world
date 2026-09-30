@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { EcologyWorld } from './CreatureEcologySystem';
 import type { SocietySnapshot } from './NPCSocietySystem';
 
-export type QuestType='EXPLORE'|'MEET'|'CREATURE'|'WORLD_EVENT'|'DELIVER'|'BUILD'|'DISCOVER';
+export type QuestType='EXPLORE'|'MEET'|'CREATURE'|'WORLD_EVENT'|'DELIVER'|'BUILD'|'DISCOVER'|'COMBAT';
 export type QuestStatus='AVAILABLE'|'ACTIVE'|'TURN_IN'|'COMPLETE';
 export interface Quest { id:string; title:string; description:string; type:QuestType; world:EcologyWorld|'ANY'; target:number; progress:number; reward:number; giver:string; status:QuestStatus; objective?:string; targetId?:string; objectivePosition?:[number,number]; observed?:boolean; }
 type QuestState=Record<string,{progress:number;status:QuestStatus}>;
@@ -14,6 +14,7 @@ const SEEDS:Omit<Quest,'progress'|'status'>[]=[
 {id:'wild-migration',title:'Migration Watch',description:'Observe the Frontier migration and follow the movement of the wilds.',type:'WORLD_EVENT',world:'WILDS',target:1,reward:180,giver:'Rook',objective:'Reach the migration overlook during MIGRATION.',objectivePosition:[-25,22]},
 {id:'crown-signal',title:'Signal at the Crown',description:'Reach Crown during its aurora event.',type:'WORLD_EVENT',world:'CITADEL',target:1,reward:180,giver:'Orin',objective:'Reach the Crown signal during AURORA.',objectivePosition:[-19,-18]},
 {id:'world-builder',title:'Leave a Mark',description:'Interact with a world object, creator station, or living-world feature.',type:'DISCOVER',world:'ANY',target:3,reward:150,giver:'Aurora',objective:'Interact with 3 meaningful world objects.',objectivePosition:[18,-2]},
+{id:'frontier-defense',title:'Hold the Wild Line',description:'Defend the living Frontier when its creatures become dangerous.',type:'COMBAT',world:'WILDS',target:2,reward:220,giver:'Rook',objective:'Defeat 2 Frontier creatures.',objectivePosition:[-25,22]},
 ];
 const GIVERS:Record<string,{world:EcologyWorld;position:[number,number]}>={
 Lyra:{world:'HARBOR',position:[0,-7]},Mara:{world:'HARBOR',position:[22,-24]},Sela:{world:'GARDENS',position:[23,20]},Caro:{world:'ARTS',position:[17,-15]},Rook:{world:'WILDS',position:[-25,22]},Orin:{world:'CITADEL',position:[-19,-18]},Aurora:{world:'ARTS',position:[0,-12]}
@@ -29,8 +30,18 @@ export class QuestSystem{
       const position=q.status==='TURN_IN'?GIVERS[q.giver]?.position:q.objectivePosition;
       if(position)this.marker(q.id,position,q.status==='TURN_IN'?'RETURN · '+q.giver:'OBJECTIVE');
     }}
- update(_delta:number,world:EcologyWorld,event:string,_society:SocietySnapshot,_playerX:number,_playerZ:number){if(world!==this.lastWorld){this.visited.add(world);this.lastWorld=world;}const ev=event.toUpperCase();for(const q of this.quests){if(q.status!=='ACTIVE')continue;if(q.type==='EXPLORE')q.progress=Math.min(q.target,this.visited.size);if(q.type==='WORLD_EVENT'&&q.world===world&&ev!=='QUIET'&&ev!==this.lastEvent)q.observed=true;if(q.type==='CREATURE'&&q.world===world)q.progress=Math.min(q.target,[...this.interacted].filter(v=>v.startsWith('creature:')).length);if(q.type==='DISCOVER')q.progress=Math.min(q.target,this.interacted.size);
+ update(_delta:number,world:EcologyWorld,event:string,_society:SocietySnapshot,_playerX:number,_playerZ:number){if(world!==this.lastWorld){this.visited.add(world);this.lastWorld=world;}const ev=event.toUpperCase();for(const q of this.quests){if(q.status!=='ACTIVE')continue;if(q.type==='EXPLORE')q.progress=Math.min(q.target,this.visited.size);if(q.type==='WORLD_EVENT'&&q.world===world&&ev!=='QUIET'&&ev!==this.lastEvent)q.observed=true;if(q.type==='CREATURE'&&q.world===world)q.progress=Math.min(q.target,[...this.interacted].filter(v=>v.startsWith('creature:')).length);
+      if(q.type==='COMBAT'&&q.world===world)q.progress=Math.min(q.target,[...this.interacted].filter(v=>v.startsWith('combat-kill:')).length);if(q.type==='DISCOVER')q.progress=Math.min(q.target,this.interacted.size);
       if(q.type==='WORLD_EVENT'&&q.observed&&q.objectivePosition){const dx=playerX-q.objectivePosition[0],dz=playerZ-q.objectivePosition[1];if(dx*dx+dz*dz<16)q.progress=q.target;}if(q.progress>=q.target){q.status='TURN_IN';}}if(ev!==this.lastEvent)this.lastEvent=ev;this.syncMarkers();this.save();this.root.userData.quests=this.getSnapshot();}
+recordCombatKill(species:string,world:EcologyWorld){
+    this.interacted.add('combat-kill:'+species+':'+Date.now());
+    for(const q of this.quests.filter(q=>q.status==='ACTIVE'&&q.type==='COMBAT'&&q.world===world)){
+      q.progress=Math.min(q.target,[...this.interacted].filter(v=>v.startsWith('combat-kill:')).length);
+      if(q.progress>=q.target)q.status='TURN_IN';
+    }
+    this.syncMarkers();this.save();this.root.userData.quests=this.getSnapshot();
+  }
+
  interact(target:THREE.Object3D,world:EcologyWorld,event:string){const kind=String(target.userData.gridObjectKind??'');const name=String(target.userData.interactionName??target.name??'');const isTeamAvatar=Boolean(target.userData.teamAvatarId);if(kind==='npc'||isTeamAvatar){
       const turnIn=this.quests.find(q=>q.giver===name&&q.status==='TURN_IN');
       for(const q of this.quests.filter(q=>q.status==='ACTIVE'&&q.type==='MEET'&&q.world===world)){this.interacted.add('citizen:'+name);q.progress=Math.min(q.target,[...this.interacted].filter(v=>v.startsWith('citizen:')).length);if(q.progress>=q.target)q.status='TURN_IN';}
