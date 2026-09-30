@@ -80,6 +80,7 @@ export class CreatureEcologySystem {
       );
       root.userData.gridObjectKind = 'creature';
       root.userData.species = species.id;
+      root.userData.combatId = species.id + ':' + i;
       root.userData.interactable = true;
       root.userData.interactionName = species.name;
       root.userData.combatFaction = 'CREATURE';
