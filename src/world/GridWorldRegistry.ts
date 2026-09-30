@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 export type GridWorldId = string;
+export type GridWorldEvent = 'quiet' | 'tide' | 'migration' | 'market' | 'bloom' | 'aurora' | 'storm';
 
 export interface GridWorldDefinition {
   id: GridWorldId;
@@ -13,6 +14,7 @@ export interface GridWorldDefinition {
   tags?: readonly string[];
   gateId?: string;
   enabled?: boolean;
+  event?: GridWorldEvent;
 }
 
 export interface GridWorldConnection {
@@ -66,11 +68,11 @@ export function registerNetworkWorld(definition: GridWorldDefinition, destinatio
 }
 
 // Current built-in worlds are registered once here. New worlds should use registerNetworkWorld.
-registerWorld({ id:'HARBOR', label:'TIDELINE', description:'tidal glass + industrial ribs', center:new THREE.Vector3(25,0,-4), color:0x3bc7df, secondary:0x174b6b, resourceKind:'TIDE_SALT', tags:['water','commerce','navigation'], gateId:'gate-harbor' });
-registerWorld({ id:'GARDENS', label:'VERDANT', description:'biomorphic terraces + canopy', center:new THREE.Vector3(8,0,10), color:0x8fe388, secondary:0x285c3b, resourceKind:'BLOOM_RESIN', tags:['ecology','growth','canopy'], gateId:'gate-gardens' });
-registerWorld({ id:'CITADEL', label:'CROWN', description:'monolithic stone + luminous seams', center:new THREE.Vector3(0,0,16), color:0xd7b46a, secondary:0x5c4425, resourceKind:'CROWN_RELIC', tags:['ancient','systems','keeper'], gateId:'gate-citadel' });
-registerWorld({ id:'ARTS', label:'MUSE', description:'kinetic frames + suspended galleries', center:new THREE.Vector3(-20,0,-24), color:0xd28cff, secondary:0x4d285e, resourceKind:'MUSE_INK', tags:['art','market','culture'], gateId:'gate-arts' });
-registerWorld({ id:'WILDS', label:'FRONTIER', description:'ancient trunks + stone paths', center:new THREE.Vector3(20,0,-25), color:0xc9a36a, secondary:0x3d3021, resourceKind:'FRONTIER_ORE', tags:['wildlife','migration','frontier'], gateId:'gate-wilds' });
+registerWorld({ id:'HARBOR', label:'TIDELINE', description:'tidal glass + industrial ribs', center:new THREE.Vector3(25,0,-4), color:0x3bc7df, secondary:0x174b6b, resourceKind:'TIDE_SALT', tags:['water','commerce','navigation'], event:'tide', gateId:'gate-harbor' });
+registerWorld({ id:'GARDENS', label:'VERDANT', description:'biomorphic terraces + canopy', center:new THREE.Vector3(8,0,10), color:0x8fe388, secondary:0x285c3b, resourceKind:'BLOOM_RESIN', tags:['ecology','growth','canopy'], event:'bloom', gateId:'gate-gardens' });
+registerWorld({ id:'CITADEL', label:'CROWN', description:'monolithic stone + luminous seams', center:new THREE.Vector3(0,0,16), color:0xd7b46a, secondary:0x5c4425, resourceKind:'CROWN_RELIC', tags:['ancient','systems','keeper'], event:'aurora', gateId:'gate-citadel' });
+registerWorld({ id:'ARTS', label:'MUSE', description:'kinetic frames + suspended galleries', center:new THREE.Vector3(-20,0,-24), color:0xd28cff, secondary:0x4d285e, resourceKind:'MUSE_INK', tags:['art','market','culture'], event:'market', gateId:'gate-arts' });
+registerWorld({ id:'WILDS', label:'FRONTIER', description:'ancient trunks + stone paths', center:new THREE.Vector3(20,0,-25), color:0xc9a36a, secondary:0x3d3021, resourceKind:'FRONTIER_ORE', tags:['wildlife','migration','frontier'], event:'migration', gateId:'gate-wilds' });
 
 registerNetworkWorld({
   id:'SKYROOT',
@@ -81,6 +83,7 @@ registerNetworkWorld({
   secondary:0x173d32,
   resourceKind:'SKYROOT_SAP',
   tags:['growth','wildlife','canopy','living','aerial','cloud'],
+  event:'bloom',
   gateId:'gate-skyroot',
 }, ['GARDENS','WILDS']);
 
