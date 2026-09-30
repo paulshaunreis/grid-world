@@ -26,30 +26,42 @@ export type WorldDNA = {
   transit: WorldTransitProfile;
   ambientLife: number;
   conceptKeywords: string[];
+  creatureMorphology: { locomotion:string[]; bodyPlans:string[]; adaptations:string[] };
+  buildingStyle: { massing:string; verticality:number; organicity:number };
 };
 
 const TAG_DEFAULTS: Record<string, Partial<WorldDNA>> = {
   water: {
+    creatureMorphology:{locomotion:['swim','skim'],bodyPlans:['streamlined','finned'],adaptations:['gills','water-shedding']},
+    buildingStyle:{massing:'flowing',verticality:1.1,organicity:.45},
     architecture: { structuralLanguage:'tidal, flowing structures', materials:['glass','stone','oxidized metal'], buildingFamilies:['harbor','aquatic civic','bridge'], landmarkMotifs:['arches','canals','tide towers'] },
     ecology: { lifeDensity:1.25, floraFamilies:['shore flora','floating vegetation'], faunaTraits:['aquatic','amphibious','surface-skimming'], environmentalForces:['tides','mist','rain'] },
     transit: { gateLanguage:'pressure-lock / tidal arch', materials:['glass','stone','metal'], effects:['water-ring','mist','refraction'] },
   },
   growth: {
+    creatureMorphology:{locomotion:['climb','glide'],bodyPlans:['six-limbed','winged'],adaptations:['camouflage','pollination']},
+    buildingStyle:{massing:'grown',verticality:1.5,organicity:1},
     architecture: { structuralLanguage:'biomorphic, grown architecture', materials:['wood','living fiber','glass'], buildingFamilies:['canopy homes','terraces','groves'], landmarkMotifs:['roots','canopies','living arches'] },
     ecology: { lifeDensity:1.5, floraFamilies:['canopy','moss','flowering growth'], faunaTraits:['arboreal','pollinating','camouflaged'], environmentalForces:['growth','pollen','dew'] },
     transit: { gateLanguage:'living root portal', materials:['wood','living fiber','crystal'], effects:['pollen','leaf-light','bioluminescence'] },
   },
   ancient: {
+    creatureMorphology:{locomotion:['stalk','burrow'],bodyPlans:['armored','four-legged'],adaptations:['stone-camouflage','low-light']},
+    buildingStyle:{massing:'monumental',verticality:1.35,organicity:.15},
     architecture: { structuralLanguage:'monumental, ancient geometry', materials:['stone','bronze','ceramic'], buildingFamilies:['temple','citadel','archive'], landmarkMotifs:['monoliths','colonnades','rings'] },
     ecology: { lifeDensity:0.95, floraFamilies:['lichen','hardy grasses','sacred groves'], faunaTraits:['stone-adapted','nocturnal','territorial'], environmentalForces:['dust','wind','aurora'] },
     transit: { gateLanguage:'monumental rune aperture', materials:['stone','bronze','crystal'], effects:['runes','dust','aurora'] },
   },
   art: {
+    creatureMorphology:{locomotion:['dance','glide'],bodyPlans:['feathered','ribboned'],adaptations:['color-shift','social-display']},
+    buildingStyle:{massing:'kinetic',verticality:1.7,organicity:.55},
     architecture: { structuralLanguage:'kinetic, expressive structures', materials:['glass','fabric','painted metal'], buildingFamilies:['galleries','studios','markets'], landmarkMotifs:['ribbons','frames','suspended stages'] },
     ecology: { lifeDensity:1.1, floraFamilies:['ornamental','floating gardens'], faunaTraits:['social','colorful','curious'], environmentalForces:['light','music','wind'] },
     transit: { gateLanguage:'kinetic gallery portal', materials:['glass','painted metal','light'], effects:['ribbons','particles','color-shift'] },
   },
   wildlife: {
+    creatureMorphology:{locomotion:['run','burrow','climb'],bodyPlans:['four-legged','antlered'],adaptations:['seasonal-coat','pack-sense']},
+    buildingStyle:{massing:'low-impact',verticality:.85,organicity:.75},
     architecture: { structuralLanguage:'low-impact frontier structures', materials:['timber','stone','earth'], buildingFamilies:['ranger lodges','burrows','watchtowers'], landmarkMotifs:['fallen trunks','stone circles','lookouts'] },
     ecology: { lifeDensity:1.7, floraFamilies:['old growth','grassland','fungi'], faunaTraits:['pack','burrowing','migratory'], environmentalForces:['wind','rain','seasonal change'] },
     transit: { gateLanguage:'stone-circle wilderness gate', materials:['stone','wood','mineral'], effects:['fireflies','leaf swirl','earth pulse'] },
@@ -63,11 +75,15 @@ export function deriveWorldDNA(tags: readonly string[] = []): WorldDNA {
     transit:{ gateLanguage:'world-native transit monument', materials:['local materials'], effects:['world-native energy'] },
     ambientLife:1,
     conceptKeywords:[...tags],
+    creatureMorphology:{locomotion:['walk'],bodyPlans:['native'],adaptations:['environmental adaptation']},
+    buildingStyle:{massing:'native',verticality:1,organicity:.5},
   };
   for (const tag of tags) {
     const preset=TAG_DEFAULTS[tag];
     if (!preset) continue;
     if (preset.architecture) merged.architecture={...merged.architecture,...preset.architecture};
+    if (preset.creatureMorphology) merged.creatureMorphology={...merged.creatureMorphology,...preset.creatureMorphology};
+    if (preset.buildingStyle) merged.buildingStyle={...merged.buildingStyle,...preset.buildingStyle};
     if (preset.ecology) merged.ecology={...merged.ecology,...preset.ecology};
     if (preset.transit) merged.transit={...merged.transit,...preset.transit};
   }
