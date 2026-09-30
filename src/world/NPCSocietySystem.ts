@@ -66,7 +66,7 @@ export class NPCSocietySystem {
     const badge=new THREE.Mesh(new THREE.TorusGeometry(.17,.025,5,10),new THREE.MeshBasicMaterial({color:0x7fe7ff}));
     badge.rotation.x=Math.PI/2; badge.position.y=1.02;
     root.add(body,head,badge); root.position.set(hx,0,hz);
-    root.userData={gridObjectKind:'npc',interactable:true,interactionName:name,role,world};
+    root.userData={gridObjectKind:'npc',interactable:true,interactionName:name,role,world,combatFaction:'NPC',maxHealth:120,damage:6};
     this.root.add(root);
     this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0});
   }
