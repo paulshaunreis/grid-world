@@ -133,6 +133,22 @@ export class NPCSocietySystem {
     this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0,merchant,merchantStock:merchant?0:0,merchantStress:0,merchantMood:'CALM',merchantOpen:true,merchantSchedule:name.length%6,schedulePhase:(name.length%10)/10,travelTimer:8+name.length%9,travelTarget:new THREE.Vector3(wx,0,wz),travelMode:'WALK',travelPurpose:'WORK',travelWorld:world,selectedDestination:world,gateCooldown:0,travelStage:'IDLE',gatePosition:new THREE.Vector3(hx,0,hz)});
   }
 
+  hydratePersistentState(rows:any[]) {
+    for (const row of rows) {
+      const c=this.citizens.find(item=>item.name.toLowerCase()===String(row.npc_id).toLowerCase());
+      if (!c) continue;
+      if (row.world) c.world=row.world;
+      if (row.state) c.state=row.state;
+      if (typeof row.energy==='number') c.energy=THREE.MathUtils.clamp(row.energy,0,1);
+      if (typeof row.social==='number') c.social=THREE.MathUtils.clamp(row.social,0,1);
+      if (row.selected_destination) c.selectedDestination=row.selected_destination;
+      if (row.travel_purpose) c.travelPurpose=row.travel_purpose;
+      c.root.userData.world=c.world;
+      c.root.userData.persistentGoal=row.goal ?? c.root.userData.persistentGoal;
+      c.root.userData.travelHistory=Array.isArray(row.travel_history)?row.travel_history.slice(-8):c.root.userData.travelHistory;
+    }
+  }
+
   private chooseState(c:Citizen,event:string,phase:string,pressure=0,stability=1) {
     if (pressure > .72 && c.role === 'RANGER') return 'TRAVEL';
     if (stability < .4 && c.energy < .6) return 'REST';
