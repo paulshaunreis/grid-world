@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { EcologyWorld, EcologySnapshot } from './CreatureEcologySystem';
+import { traversalHit, steerAround } from './TraversalSystem';
 
 export type CitizenState = 'WORK'|'TRAVEL'|'GATHER'|'TALK'|'REST'|'CELEBRATE';
 export type CitizenRole = 'NAVIGATOR'|'GARDENER'|'ARTISAN'|'KEEPER'|'RANGER';
@@ -98,6 +99,14 @@ export class NPCSocietySystem {
       if(c.state==='GATHER') gathering++;
       const destination=(c.state==='REST'||c.state==='TALK'||c.state==='CELEBRATE')?c.home:c.workplace;
       c.target.copy(destination);
+      const hit=traversalHit(c.root.position,c.target,.32);
+      if(hit) {
+        if(hit.height<=1.15 && c.state!=='REST') {
+          c.jumpCooldown=Math.min(c.jumpCooldown,.15);
+        } else {
+          steerAround(c.root.position,c.target,hit,c.target);
+        }
+      }
       const dx=c.target.x-c.root.position.x,dz=c.target.z-c.root.position.z,len=Math.hypot(dx,dz);
       if(len>.2){const speed=c.state==='TRAVEL'?1.45:c.state==='WORK'?.42:.7;const step=Math.min(len,speed*delta);c.root.position.x+=dx/len*step;c.root.position.z+=dz/len*step;c.root.rotation.y=Math.atan2(dx,dz);}
       c.jumpCooldown-=delta;
