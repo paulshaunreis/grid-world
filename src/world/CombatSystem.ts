@@ -273,5 +273,15 @@ export class CombatSystem {
     this.updateHud();
   }
 
+  applyAuthoritativeCreatureState(id:string, health:number, maxHealth:number, alive:boolean){
+    const root=this.root.parent?.getObjectByProperty('userData.combatId',id);
+    if(root){
+      root.userData.health=Math.max(0,Math.min(maxHealth,health));
+      root.userData.maxHealth=maxHealth;
+      root.visible=alive && health>0;
+    }
+    this.updateHud();
+  }
+
   getSnapshot(){return this.snapshot;}
 }
