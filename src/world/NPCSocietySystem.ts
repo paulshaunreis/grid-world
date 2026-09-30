@@ -29,6 +29,8 @@ type Citizen = {
   merchantStock:number;
   merchantStress:number;
   merchantMood:string;
+  merchantOpen:boolean;
+  merchantSchedule:number;
 };
 
 export interface SocietySnapshot {
@@ -83,7 +85,7 @@ export class NPCSocietySystem {
       root.add(canopy,counter,sigil);
     }
     this.root.add(root);
-    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0,merchant,merchantStock:merchant?0:0,merchantStress:0,merchantMood:'CALM'});
+    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0,merchant,merchantStock:merchant?0:0,merchantStress:0,merchantMood:'CALM',merchantOpen:true,merchantSchedule:name.length%6});
   }
 
   private chooseState(c:Citizen,event:string,phase:string,pressure=0,stability=1) {
@@ -117,7 +119,21 @@ export class NPCSocietySystem {
       active++;
       c.stateTimer-=delta;
       if(c.stateTimer<=0){ c.state=this.chooseState(c,event.toUpperCase(),phase,pressure,stability); c.stateTimer=5+(c.phase%6); }
-      if(c.merchant && c.merchantStress > .72 && c.state === 'WORK') c.state='GATHER';
+      if(c.merchant) {
+        const clock = performance.now() / 1000 + c.merchantSchedule * 11;
+        const cycle = (clock % 120) / 120;
+        const scheduleOpen = phase === 'NIGHT' ? cycle > .18 && cycle < .78 : true;
+        c.merchantOpen = scheduleOpen && c.merchantStress < .9;
+        c.root.userData.merchantOpen = c.merchantOpen;
+        if (!c.merchantOpen) {
+          c.root.userData.marketPrompt = c.merchantStress > .72 ? 'RESTOCKING' : 'CLOSED';
+          c.state = c.merchantStress > .5 ? 'GATHER' : 'REST';
+        } else if (c.merchantStress > .72 && c.state === 'WORK') {
+          c.state = 'GATHER';
+        } else if (c.state === 'REST' && c.energy > .65 && c.social < .7) {
+          c.state = event.toUpperCase() === 'MARKET' ? 'TALK' : 'WORK';
+        }
+      }
       if(c.merchant) {
         c.root.userData.marketPrompt = c.merchantMood === 'WORRIED' ? 'SUPPLIES LOW' : c.merchantMood === 'BUSY' ? 'MARKET ACTIVE' : 'TRADE';
         const sigil = c.root.children.find(child => child instanceof THREE.Mesh && child.geometry instanceof THREE.TorusGeometry) as THREE.Mesh | undefined;
