@@ -67,6 +67,23 @@ export class CombatSystem {
   }
 
   unregister(id:string){this.combatants.delete(id);if(this.targetId===id)this.targetId='';}
+  syncScene(scene:THREE.Object3D){
+    scene.traverse(obj=>{
+      const id=String(obj.userData.combatId??'');
+      const faction=obj.userData.combatFaction as CombatFaction|undefined;
+      if(id&&faction&&!this.combatants.has(id))this.register({id,faction,root:obj,maxHealth:Number(obj.userData.maxHealth??100),damage:Number(obj.userData.damage??10),respawnPosition:obj.position});
+    });
+  }
+  selectNearest(attackerId:string,maxDistance=10){
+    const a=this.combatants.get(attackerId);if(!a)return '';
+    let best='',distance=maxDistance;
+    for(const t of this.combatants.values()){
+      if(t.id===attackerId||!t.alive||!this.canDamage(attackerId,t.id))continue;
+      const d=a.root.position.distanceTo(t.root.position);if(d<distance){distance=d;best=t.id;}
+    }
+    if(best)this.targetId=best;
+    return best;
+  }
 
   canDamage(attackerId:string,targetId:string){
     if(this.mode==='SAFE') return false;
