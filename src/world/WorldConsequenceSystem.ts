@@ -123,5 +123,8 @@ export class WorldConsequenceSystem {
   }
 
   getSnapshot(){return this.snapshot;}
+  recordResourceGathered(world:EcologyWorld, kind:string, amount:number){
+    this.add('ECOLOGY_SHIFT',world,this.lastEvent.split(':')[1]??'QUIET',`Resource flow: +${amount} ${kind.replaceAll('_',' ')}`,.04,Date.now()/1000);
+  }
   getRecentHistory(){return this.history.slice(-MAX_HISTORY);}
 }
