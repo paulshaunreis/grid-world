@@ -26,6 +26,7 @@ export class WorldResourceSystem {
   private nodes:WorldResourceNode[]=[];
   private pulse=0;
   private snapshot:WorldResourceNode[]=[];
+  private inventory:Partial<Record<WorldResourceKind,number>>={};
   constructor(){
     this.root.name='grid-world-resources';
     this.root.userData.system='world-specific-resource-layer';
@@ -67,11 +68,18 @@ export class WorldResourceSystem {
     this.root.userData.snapshot=this.snapshot;
   }
   getSnapshot(){ return this.snapshot.map(node=>({...node,position:node.position.clone()})); }
+  getInventory(){ return {...this.inventory}; }
   collect(id:string,amount=10){
     const node=this.nodes.find(item=>item.id===id);
     if(!node)return null;
     const taken=Math.min(Math.max(1,amount),node.amount);
     node.amount-=taken;
+    this.inventory[node.kind]=(this.inventory[node.kind]??0)+taken;
     return {id:node.id,world:node.world,kind:node.kind,amount:taken,remaining:node.amount};
+  }
+  spend(kind:WorldResourceKind,amount:number){
+    const have=this.inventory[kind]??0;
+    if(have<amount)return false;
+    this.inventory[kind]=have-amount; return true;
   }
 }
