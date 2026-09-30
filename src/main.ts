@@ -52,6 +52,8 @@ import { CombatSystem } from './world/CombatSystem';
 import { DynamicQuestSystem } from './world/DynamicQuestSystem';
 import { WorldConsequenceSystem } from './world/WorldConsequenceSystem';
 import { mountQuestPanel } from './ui/QuestPanel';
+import { WorldResourceSystem } from './world/WorldResourceSystem';
+import { mountWorldAtlas } from './ui/WorldAtlas';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
@@ -297,7 +299,9 @@ const traversalSystem = new TraversalSystem();
 const questSystem = new QuestSystem(identity.id);
 const dynamicQuestSystem = new DynamicQuestSystem(questSystem);
 const worldConsequences = new WorldConsequenceSystem();
+const worldResources = new WorldResourceSystem();
 const questPanel = mountQuestPanel(questSystem);
+const worldAtlas = mountWorldAtlas(() => ({ world: (livingWorld.getSnapshot().world as EcologyWorld), event: livingWorld.getSnapshot().event, consequences: worldConsequences.getSnapshot(), resources: worldResources.getSnapshot() }));
 let lastStoryId = '';
 let lastCombatKills = 0;
 let lastConsequenceId = '';
@@ -309,6 +313,7 @@ world.scene.add(traversalSystem.root);
 world.scene.add(questSystem.root);
 world.scene.add(dynamicQuestSystem.root);
 world.scene.add(worldConsequences.root);
+world.scene.add(worldResources.root);
 world.scene.add(starterZone.group);
 const omniGuard = new GridOmniGuard();
 const sentinels = [new GridSentinel('Omni Sentinel · First Light')];
@@ -1295,6 +1300,8 @@ function animate(now: number) {
   }
   relationshipStories.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, societySnapshot, player.avatar.position.x, player.avatar.position.z);
   worldConsequences.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.activity, ecologySnapshot, societySnapshot);
+  const consequenceSnapshotForResources = worldConsequences.getSnapshot();
+  worldResources.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, consequenceSnapshotForResources);
   const consequenceSnapshotAfterUpdate = worldConsequences.getSnapshot();
   if (consequenceSnapshot.history.length > 0) {
     const latestConsequence = consequenceSnapshotAfterUpdate.history.at(-1)!;
