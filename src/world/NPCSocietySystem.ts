@@ -67,7 +67,17 @@ export class NPCSocietySystem {
     const badge=new THREE.Mesh(new THREE.TorusGeometry(.17,.025,5,10),new THREE.MeshBasicMaterial({color:0x7fe7ff}));
     badge.rotation.x=Math.PI/2; badge.position.y=1.02;
     root.add(body,head,badge); root.position.set(hx,0,hz);
-    root.userData={gridObjectKind:'npc',interactable:true,interactionName:name,role,world,combatFaction:'NPC',maxHealth:120,damage:6};
+    const merchant = ['Mara','Sela','Caro','Orin','Rook'].includes(name);
+    root.userData={gridObjectKind:'npc',interactable:true,interactionName:name,role,world,combatFaction:'NPC',maxHealth:120,damage:6,merchant,marketWorld:merchant?world:undefined};
+    if (merchant) {
+      const canopy=new THREE.Mesh(new THREE.ConeGeometry(.62,.38,8),new THREE.MeshStandardMaterial({color:0x263d49,roughness:.6,metalness:.15}));
+      canopy.position.y=1.45;
+      const counter=new THREE.Mesh(new THREE.BoxGeometry(1.15,.32,.62),new THREE.MeshStandardMaterial({color:0x6a5540,roughness:.8}));
+      counter.position.set(0,.48,.38);
+      const sigil=new THREE.Mesh(new THREE.TorusGeometry(.16,.035,6,12),new THREE.MeshBasicMaterial({color:0x71dfff}));
+      sigil.rotation.x=Math.PI/2; sigil.position.set(0,.9,.42);
+      root.add(canopy,counter,sigil);
+    }
     this.root.add(root);
     this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0});
   }
