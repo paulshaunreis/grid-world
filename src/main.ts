@@ -1047,7 +1047,7 @@ function animate(now: number) {
   questSystem.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, societySnapshot, player.avatar.position.x, player.avatar.position.z);
   relationshipStories.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, societySnapshot, player.avatar.position.x, player.avatar.position.z);
   const latestStory = relationshipStories.getLatestStory();
-  dynamicQuestSystem.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, societySnapshot, latestStory, player.avatar.position.x, player.avatar.position.z);
+  if (dynamicQuestSystem.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, societySnapshot, latestStory, player.avatar.position.x, player.avatar.position.z)) questPanel.render();
   if (latestStory && latestStory.id !== lastStoryId) {
     lastStoryId = latestStory.id;
     addChatMessage('WORLD STORY', latestStory.text, 'system');
