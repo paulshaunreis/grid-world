@@ -99,3 +99,22 @@ function starterMap(seed: string, base: string, roughness: number) {
   textureCache.set(seed + base, pair);
   return pair;
 }
+
+
+export function createStarterPBRMaterial(
+  family: GridPBRFamily,
+  options: { color?: string | number; roughness?: number; metalness?: number; emissive?: string | number; emissiveIntensity?: number } = {},
+): THREE.MeshStandardMaterial {
+  const base = baseColors[family];
+  const material = new THREE.MeshStandardMaterial({
+    color: options.color ?? base,
+    roughness: options.roughness ?? .72,
+    metalness: options.metalness ?? (family === 'metal' || family === 'technical' ? .58 : 0),
+    emissive: options.emissive ?? '#000000',
+    emissiveIntensity: options.emissiveIntensity ?? 0,
+  });
+  const maps = starterMap(family, typeof options.color === 'string' ? options.color : base, material.roughness);
+  material.map = maps.color;
+  material.normalMap = maps.normal;
+  return material;
+}
