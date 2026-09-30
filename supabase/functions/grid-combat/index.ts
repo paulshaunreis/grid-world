@@ -176,6 +176,28 @@ Deno.serve(async (req: Request) => {
       return json({ok:true,action,memory:await writeNpcMemory(user.id,body)});
     }
 
+    if (action === "market_merchants") {
+      const {data:merchants,error}=await admin.from("grid_npc_market_state").select("*").order("world");
+      if(error) throw error;
+      const defs:Record<string,{world:string;item:string;base:number}> = {
+        HARBOR:{world:"HARBOR",item:"TIDE_SALT",base:4}, GARDENS:{world:"GARDENS",item:"BLOOM_RESIN",base:5},
+        CITADEL:{world:"CITADEL",item:"CROWN_RELIC",base:8}, ARTS:{world:"ARTS",item:"MUSE_INK",base:6}, WILDS:{world:"WILDS",item:"FRONTIER_ORE",base:7}
+      };
+      const enriched=[];
+      for(const merchant of merchants??[]){
+        const def=defs[String(merchant.world)];
+        const {data:nodes}=await admin.from("grid_world_resource_state").select("amount,max_amount").eq("world",merchant.world).eq("kind",merchant.resource_kind).limit(20);
+        const supply=(nodes??[]).reduce((s,row)=>s+Number(row.amount),0);
+        const capacity=(nodes??[]).reduce((s,row)=>s+Number(row.max_amount),0)||1;
+        const scarcity=Math.max(.55,Math.min(1.8,1.45-supply/capacity));
+        const stockRatio=Math.max(.45,Math.min(1.8,Number(merchant.stock)/Math.max(1,Number(merchant.desired_stock))));
+        const buyPrice=Math.max(.5,Math.round((def?.base??5)*scarcity*Number(merchant.buy_multiplier)*100)/100);
+        const sellPrice=Math.max(.5,Math.round((def?.base??5)*(2-stockRatio)*Number(merchant.sell_multiplier)*100)/100);
+        enriched.push({...merchant,supply,capacity,scarcity,buy_price:buyPrice,sell_price:sellPrice});
+      }
+      return json({ok:true,action,merchants:enriched});
+    }
+
     if (action === "market_quote") {
       const world=String(body.world ?? "");
       const item=String(body.item_id ?? "");
