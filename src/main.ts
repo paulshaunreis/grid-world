@@ -954,6 +954,9 @@ setControlStatus();
 let firstPerson = false;
 let cameraYaw = 0;
 let cameraPitch = 0.32;
+let cameraPanX = 0;
+let cameraPanY = 0;
+let cameraPanning = false;
 let cameraInitialized = false;
 let presenceTimer = 0;
 let saveTimer = 0;
@@ -979,8 +982,36 @@ function savePlayer() {
 renderer.domElement.addEventListener('click', () => renderer.domElement.requestPointerLock());
 
 addEventListener('mousemove', event => {
-  if (document.pointerLockElement === renderer.domElement) player.rotate(event.movementX);
+  if (cameraPanning) {
+    const panSensitivity = 0.012;
+    cameraPanX += event.movementX * panSensitivity;
+    cameraPanY -= event.movementY * panSensitivity;
+    cameraPanX = THREE.MathUtils.clamp(cameraPanX, -4, 4);
+    cameraPanY = THREE.MathUtils.clamp(cameraPanY, -3, 3);
+    return;
+  }
+  if (document.pointerLockElement !== renderer.domElement) return;
+  const sensitivity = 0.0025;
+  cameraYaw -= event.movementX * sensitivity;
+  cameraPitch -= event.movementY * sensitivity;
+  cameraPitch = THREE.MathUtils.clamp(cameraPitch, -0.85, 1.15);
+  player.heading = cameraYaw;
 });
+
+renderer.domElement.addEventListener('pointerdown', event => {
+  if (event.button === 2) {
+    cameraPanning = true;
+    renderer.domElement.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  }
+});
+renderer.domElement.addEventListener('pointerup', event => {
+  if (event.button === 2) {
+    cameraPanning = false;
+    renderer.domElement.releasePointerCapture(event.pointerId);
+  }
+});
+renderer.domElement.addEventListener('contextmenu', event => event.preventDefault());
 
 addEventListener('keydown', event => {
   if (document.activeElement === chatInput || document.activeElement === identityName) return;
@@ -1361,6 +1392,8 @@ function animate(now: number) {
     Math.cos(cameraYaw) * distance
   );
   const cameraTarget = pivot.clone().add(cameraOffset);
+  cameraTarget.x += cameraPanX;
+  cameraTarget.y += cameraPanY;
   camera.position.lerp(cameraTarget, 1 - Math.pow(0.001, dt));
   const lookDistance = firstPerson ? 8 : 10;
   const lookTarget = pivot.clone().add(new THREE.Vector3(
