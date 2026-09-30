@@ -43,6 +43,7 @@ import { createWorldSkinDirector } from './world/WorldSkinDirector';
 import { createTeamWorkSystem } from './world/TeamWorkSystem';
 import { CreatureEcologySystem, type EcologyWorld } from './world/CreatureEcologySystem';
 import { NPCSocietySystem } from './world/NPCSocietySystem';
+import { RelationshipStorySystem } from './world/RelationshipStorySystem';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
@@ -282,9 +283,12 @@ const starterZone = new StarterZone();
 const livingWorld = new GridLivingWorld();
 const creatureEcology = new CreatureEcologySystem();
 const npcSociety = new NPCSocietySystem();
+const relationshipStories = new RelationshipStorySystem();
+let lastStoryId = '';
 world.scene.add(livingWorld.root);
 world.scene.add(creatureEcology.root);
 world.scene.add(npcSociety.root);
+world.scene.add(relationshipStories.root);
 world.scene.add(starterZone.group);
 const omniGuard = new GridOmniGuard();
 const sentinels = [new GridSentinel('Omni Sentinel · First Light')];
@@ -1015,10 +1019,17 @@ function animate(now: number) {
   const ecologySnapshot = creatureEcology.getSnapshot();
   npcSociety.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, ecologySnapshot);
   const societySnapshot = npcSociety.getSnapshot();
+  relationshipStories.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, societySnapshot, player.avatar.position.x, player.avatar.position.z);
+  const latestStory = relationshipStories.getLatestStory();
+  if (latestStory && latestStory.id !== lastStoryId) {
+    lastStoryId = latestStory.id;
+    addChatMessage('WORLD STORY', latestStory.text, 'system');
+  }
+  const storySnapshot = relationshipStories.getSnapshot();
   const hudWorldState = document.querySelector<HTMLElement>('#hud-world-state');
   const hudWorldSignal = document.querySelector<HTMLElement>('#hud-world-signal');
   if (hudWorldState) hudWorldState.textContent = livingSnapshot.world + ' · ' + livingSnapshot.phase;
-  if (hudWorldSignal) hudWorldSignal.textContent = livingSnapshot.event + ' · ' + livingSnapshot.weather + ' · ' + ecologySnapshot.active + '/' + ecologySnapshot.population + ' CREATURES · ' + societySnapshot.working + ' WORKING · ' + societySnapshot.talking + ' TALKING';
+  if (hudWorldSignal) hudWorldSignal.textContent = livingSnapshot.event + ' · ' + livingSnapshot.weather + ' · ' + ecologySnapshot.active + '/' + ecologySnapshot.population + ' CREATURES · ' + societySnapshot.working + ' WORKING · ' + societySnapshot.talking + ' TALKING · ' + storySnapshot.activeStories + ' STORIES';
   artDirector.update(dt, player.avatar.position.x, player.avatar.position.z);
   worldSkins.update(dt, player.avatar.position.x, player.avatar.position.z);
   teamWork.update(dt, frame.elapsedSeconds);
