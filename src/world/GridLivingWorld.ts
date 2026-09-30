@@ -170,10 +170,8 @@ export class GridLivingWorld {
     const eventSlot = Math.floor(epochSeconds / 70);
     if (eventSlot !== this.worldEventSlot) {
       this.worldEventSlot = eventSlot;
-      const eventByWorld: Record<string, 'quiet' | 'tide' | 'migration' | 'market' | 'bloom' | 'aurora' | 'storm'> = {
-        HARBOR: 'tide', GARDENS: 'bloom', CITADEL: 'aurora', ARTS: 'market', WILDS: 'migration',
-      };
-      this.worldEvent = eventByWorld[this.activeWorld] ?? 'quiet';
+      const worldDef = worlds.find(candidate => candidate.id === this.activeWorld);
+      this.worldEvent = worldDef?.event ?? 'quiet';
       this.root.userData.worldEvent = this.worldEvent;
       this.root.userData.worldEventStartedAt = epochSeconds;
     }
