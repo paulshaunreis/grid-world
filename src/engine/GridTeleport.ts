@@ -171,6 +171,18 @@ export function createTeleportGate(definition: GridTeleportNodeDefinition) {
   return group;
 }
 
+export function setTeleportGateState(group: THREE.Group, state: 'idle'|'selecting'|'transit'|'arrival', destinationName?: string) {
+  group.userData.transitState = state;
+  group.userData.transitDestination = destinationName ?? '';
+  const portal = group.children.find(child => child instanceof THREE.Mesh && child.geometry instanceof THREE.TorusGeometry) as THREE.Mesh | undefined;
+  const core = group.children.find(child => child instanceof THREE.Mesh && child.geometry instanceof THREE.PlaneGeometry) as THREE.Mesh | undefined;
+  const portalMaterial = portal?.material as THREE.MeshStandardMaterial | undefined;
+  const coreMaterial = core?.material as THREE.MeshBasicMaterial | undefined;
+  if (portalMaterial) portalMaterial.emissiveIntensity = state === 'transit' ? 5 : state === 'arrival' ? 3.2 : state === 'selecting' ? 2.4 : 1.6;
+  if (coreMaterial) coreMaterial.opacity = state === 'transit' ? .48 : state === 'arrival' ? .34 : state === 'selecting' ? .26 : .18;
+  group.scale.setScalar(state === 'transit' ? 1.06 : state === 'arrival' ? 1.035 : 1);
+}
+
 export function createTeleportPylon(definition: GridTeleportNodeDefinition) {
   const group = new THREE.Group();
   group.name = definition.displayName;
