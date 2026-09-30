@@ -30,11 +30,11 @@ export class QuestSystem{
       const position=q.status==='TURN_IN'?GIVERS[q.giver]?.position:q.objectivePosition;
       if(position)this.marker(q.id,position,q.status==='TURN_IN'?'RETURN · '+q.giver:'OBJECTIVE');
     }}
- update(_delta:number,world:EcologyWorld,event:string,_society:SocietySnapshot,_playerX:number,_playerZ:number){if(world!==this.lastWorld){this.visited.add(world);this.lastWorld=world;}const ev=event.toUpperCase();for(const q of this.quests){if(q.status!=='ACTIVE')continue;if(q.type==='EXPLORE')q.progress=Math.min(q.target,this.visited.size);if(q.type==='WORLD_EVENT'&&q.world===world&&ev!=='QUIET'&&ev!==this.lastEvent)q.observed=true;if(q.type==='CREATURE'&&q.world===world)q.progress=Math.min(q.target,[...this.interacted].filter(v=>v.startsWith('creature:')).length);
-      if(q.type==='COMBAT'&&q.world===world)q.progress=Math.min(q.target,[...this.interacted].filter(v=>v.startsWith('combat-kill:')).length);if(q.type==='DISCOVER')q.progress=Math.min(q.target,this.interacted.size);
+ update(_delta:number,world:EcologyWorld,event:string,_society:SocietySnapshot,playerX:number,playerZ:number){if(world!==this.lastWorld){this.visited.add(world);this.lastWorld=world;}const ev=event.toUpperCase();for(const q of this.quests){if(q.status!=='ACTIVE')continue;if(q.type==='EXPLORE')q.progress=Math.min(q.target,this.visited.size);if(q.type==='WORLD_EVENT'&&q.world===world&&ev!=='QUIET'&&ev!==this.lastEvent)q.observed=true;if(q.type==='CREATURE'&&q.world===world)q.progress=Math.min(q.target,[...this.interacted].filter(v=>v.startsWith('creature:')).length);
+      if(q.type==='COMBAT'&&q.world===world)q.progress=Math.min(q.target,[...this.interacted].filter(v=>v.startsWith('combat-kill:'+world+':')).length);if(q.type==='DISCOVER')q.progress=Math.min(q.target,this.interacted.size);
       if(q.type==='WORLD_EVENT'&&q.observed&&q.objectivePosition){const dx=playerX-q.objectivePosition[0],dz=playerZ-q.objectivePosition[1];if(dx*dx+dz*dz<16)q.progress=q.target;}if(q.progress>=q.target){q.status='TURN_IN';}}if(ev!==this.lastEvent)this.lastEvent=ev;this.syncMarkers();this.save();this.root.userData.quests=this.getSnapshot();}
 recordCombatKill(species:string,world:EcologyWorld){
-    this.interacted.add('combat-kill:'+species+':'+Date.now());
+    this.interacted.add('combat-kill:'+world+':'+species+':'+Date.now());
     for(const q of this.quests.filter(q=>q.status==='ACTIVE'&&q.type==='COMBAT'&&q.world===world)){
       q.progress=Math.min(q.target,[...this.interacted].filter(v=>v.startsWith('combat-kill:')).length);
       if(q.progress>=q.target)q.status='TURN_IN';
@@ -62,6 +62,13 @@ recordCombatKill(species:string,world:EcologyWorld){
     }
  return {handled:false};}
  private dialogue(name:string,world:EcologyWorld,event:string){const lines:Record<string,string>={Mara:'The tide changes the harbor routes. Watch the water, not just the roads.',Sela:'The gardens are listening. Stay a moment and the creatures will come closer.',Caro:'Muse is never finished. Every strange detail can become part of the next work.',Rook:'Frontier paths belong to the migration. Sometimes the best route is the one the animals choose.',Orin:'The Crown records signals older than our maps. The aurora is worth watching.',Lyra:'Two worlds are enough to start. After that, the Grid tends to reveal itself.',Aurora:'Build with the world, not merely on top of it.'};return lines[name]??(event!=='QUIET'?name+' is watching the '+event+' signal in '+world+'.':name+' has no new request right now.');}
+  addDynamicQuest(seed: Omit<Quest,'progress'|'status'> | Quest){
+    if(this.quests.some(q=>q.id===seed.id)) return false;
+    const quest:Quest={...seed,progress:0,status:'AVAILABLE'};
+    this.quests.push(quest);
+    this.syncMarkers();this.save();this.root.userData.quests=this.getSnapshot();
+    return true;
+  }
  getSnapshot(){return {active:this.quests.filter(q=>q.status==='ACTIVE').length,available:this.quests.filter(q=>q.status==='AVAILABLE').length,turnIn:this.quests.filter(q=>q.status==='TURN_IN').length,completed:this.quests.filter(q=>q.status==='COMPLETE').length,total:this.quests.length,reward:this.rewardBank};}
  getQuests(){return this.quests.map(q=>({...q}));}
 }
