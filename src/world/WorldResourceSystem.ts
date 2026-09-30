@@ -29,6 +29,7 @@ export class WorldResourceSystem {
   private snapshot:WorldResourceNode[]=[];
   private inventory:Partial<Record<WorldResourceKind,number>>={};
   private lastSave=0;
+  private lastCollectedId='';
   constructor(){
     this.root.name='grid-world-resources';
     this.root.userData.system='world-specific-resource-layer';
