@@ -29,6 +29,9 @@ export interface AuthoritativeCreatureState {
   last_attack_at:string|null;
   respawn_at:string|null;
   updated_at:string;
+  ai_state?: 'ROAM'|'PURSUIT'|'ATTACK';
+  target_user_id?: string | null;
+  last_ai_at?: string | null;
 }
 
 export interface CombatServerResult {
@@ -110,6 +113,14 @@ export class GridCombatAuthority {
   async creatureState(creatureIds:string[]): Promise<CombatServerResult | null> {
     const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', {
       body: { action:'creature_state', creatureIds },
+    });
+    if (error) throw error;
+    return data;
+  }
+
+  async tickCreatures(): Promise<CombatServerResult | null> {
+    const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', {
+      body: { action:'tick_creatures' },
     });
     if (error) throw error;
     return data;
