@@ -77,6 +77,8 @@ export class WorldConsequenceSystem {
   }
 
   private add(kind:WorldConsequenceKind,world:EcologyWorld,event:string,text:string,impact:number,at:number){
+    if (this.pressure[world] === undefined) this.pressure[world]=0;
+    if (this.stability[world] === undefined) this.stability[world]=1;
     const item:WorldConsequence={id:'wc-'+at.toString(36)+'-'+Math.random().toString(36).slice(2,7),kind,world,event,text,impact,at};
     this.history=[...this.history,item].slice(-MAX_HISTORY);
     this.pressure[world]=THREE.MathUtils.clamp(this.pressure[world]+Math.abs(impact)*.08,0,1);
