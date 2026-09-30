@@ -107,6 +107,32 @@ app.innerHTML = `
       </div>
     </section>
 
+    <section class="combat-feature" id="combat">
+      <div class="combat-art"><img src="/art/combat-system.svg" alt="Grid Combat system concept art"></div>
+      <div class="combat-copy">
+        <div class="section-label">GRID COMBAT · NEW</div>
+        <h2>Conflict has<br><span>rules.</span></h2>
+        <p>Combat is becoming part of the living world without turning every world into a battlefield. Protected spaces, PVE regions, and dedicated PVP arenas let each place have its own social contract.</p>
+        <div class="combat-modes">
+          <article><b>SAFE</b><span>Build · socialize · create</span><small>Protected social and construction space.</small></article>
+          <article><b>PVE</b><span>Creatures · guardians · events</span><small>Wildlife and world threats respond to the living simulation.</small></article>
+          <article><b>PVP</b><span>Arena · duels · teams</span><small>Server-validated player combat in designated spaces.</small></article>
+        </div>
+        <div class="combat-authority"><span class="combat-live-dot"></span><strong>GRID AUTHORITY</strong><span>health · range · cooldown · damage validated server-side</span></div>
+        <a class="secondary large" href="/play.html">ENTER FIRST LIGHT</a>
+      </div>
+    </section>
+
+    <section class="combat-loop">
+      <div><div class="section-label">LIVING WORLD COMBAT LOOP</div><h2>Fight with the world.<br><span>Not against it.</span></h2><p>Ecology, NPC society, quests and world events can now feed combat encounters—migration hazards, territory defense, cooperative objectives, arena matches, and event guardians.</p></div>
+      <div class="combat-loop-grid">
+        <article><strong>01</strong><b>DISCOVER</b><span>World event changes the encounter.</span></article>
+        <article><strong>02</strong><b>ENGAGE</b><span>Choose PVE or enter a sanctioned arena.</span></article>
+        <article><strong>03</strong><b>RESOLVE</b><span>Server validates the outcome.</span></article>
+        <article><strong>04</strong><b>REMEMBER</b><span>Quests, stories and society react.</span></article>
+      </div>
+    </section>
+
     <section class="sound-feature" id="sound"><div><div class="section-label">GRID OMNI SOUND</div><h2>Your worlds<br><span>have a soundtrack.</span></h2><p>Music, radio, live sets, podcasts and spatial soundscapes become first-class Grid World media.</p><a class="secondary large" href="/sound.html">OPEN GRID OMNI SOUND</a></div><div class="sound-wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></section>\n\n    <section class="social-layout" id="discover">
       <aside class="side-card profile-card">
         <div class="profile-avatar">G</div><h3>Your Grid Identity</h3><p>Traveler · Creator · Explorer</p>
@@ -143,6 +169,18 @@ app.innerHTML = `
         <a href="#events"><strong>04</strong><span>Events</span><small>Concerts · classes · gatherings</small></a>
         <a href="/profile.html"><strong>05</strong><span>Identity</span><small>Profile · avatar · relationships</small></a>
         <a href="/play.html"><strong>06</strong><span>Enter World</span><small>3D · HUD · inventory · map</small></a>
+      </div>
+    </section>
+
+    <section class="world-contracts">
+      <div class="section-label">MANY WORLDS · DIFFERENT RULES</div>
+      <h2>Every world can<br><span>define its own rhythm.</span></h2>
+      <div class="contract-grid">
+        <article><b>TIDELINE</b><span>Tides · wildlife · exploration</span><small>Ocean hazards and creature encounters.</small></article>
+        <article><b>VERDANT</b><span>Ecology · bloom · companionship</span><small>Living habitats and protective creatures.</small></article>
+        <article><b>CROWN</b><span>Signals · guardians · mystery</span><small>World events can awaken powerful encounters.</small></article>
+        <article><b>MUSE</b><span>Art · gatherings · arenas</span><small>Social space stays protected while events can become competitive.</small></article>
+        <article><b>FRONTIER</b><span>Migration · territory · survival</span><small>Wild systems create movement and danger.</small></article>
       </div>
     </section>
 
