@@ -80,6 +80,7 @@ export class PlayerController {
 
   rotate(deltaX: number) { this.yaw -= deltaX * 0.0025; }
   get heading() { return this.yaw; }
+  setHeading(yaw: number) { this.yaw = yaw; this.avatar.rotation.y = this.yaw; }
 
   getTransform(): PlayerTransform {
     return { x: this.avatar.position.x, y: this.avatar.position.y, z: this.avatar.position.z, yaw: this.yaw };
