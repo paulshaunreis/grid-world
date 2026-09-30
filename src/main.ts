@@ -962,6 +962,7 @@ let cameraPitch = 0.32;
 let cameraPanX = 0;
 let cameraPanY = 0;
 let cameraPanning = false;
+let cameraDistance = 7;
 let cameraInitialized = false;
 let presenceTimer = 0;
 let saveTimer = 0;
@@ -1017,6 +1018,12 @@ renderer.domElement.addEventListener('pointerup', event => {
   }
 });
 renderer.domElement.addEventListener('contextmenu', event => event.preventDefault());
+renderer.domElement.addEventListener('wheel', event => {
+  if (document.pointerLockElement === renderer.domElement || cameraPanning) {
+    cameraDistance = THREE.MathUtils.clamp(cameraDistance + event.deltaY * 0.012, 2.2, 16);
+    event.preventDefault();
+  }
+}, { passive: false });
 
 addEventListener('keydown', event => {
   if (document.activeElement === chatInput || document.activeElement === identityName) return;
@@ -1386,7 +1393,7 @@ function animate(now: number) {
     cameraYaw = player.heading;
     cameraInitialized = true;
   }
-  const distance = firstPerson ? 0.05 : 7;
+  const distance = firstPerson ? 0.05 : cameraDistance;
   const height = firstPerson ? 1.55 : 3.2;
   const pivot = new THREE.Vector3(
     player.avatar.position.x,
@@ -1408,6 +1415,8 @@ function animate(now: number) {
     Math.sin(cameraPitch) * lookDistance,
     Math.cos(cameraYaw) * lookDistance
   ));
+  lookTarget.x += cameraPanX;
+  lookTarget.y += cameraPanY;
   camera.lookAt(lookTarget);
 
   const targetObject = interaction.findTarget();
