@@ -59,15 +59,7 @@ async function ensureCreature(id:string,species:string,x:number,y:number,z:numbe
   const existing=await admin.from("grid_creature_combat_state").select("*").eq("creature_id",id).maybeSingle();
   if(existing.error) throw existing.error;
   if(existing.data) {
-    const previousAt=new Date(existing.data.updated_at).getTime();
-    const elapsed=Math.max(.05,Math.min(2.0,(Date.now()-previousAt)/1000));
-    const moved=distance({x,y,z},{x:Number(existing.data.x),y:Number(existing.data.y),z:Number(existing.data.z)});
-    const maxDistance=7.5*elapsed+1.25;
-    const next=moved<=maxDistance ? {x,y,z} : {x:Number(existing.data.x),y:Number(existing.data.y),z:Number(existing.data.z)};
-    const patch={...next,updated_at:new Date().toISOString()};
-    const {data,error}=await admin.from("grid_creature_combat_state").update(patch).eq("creature_id",id).select("*").single();
-    if(error) throw error;
-    return data;
+    return existing.data;
   }
   const {data,error}=await admin.from("grid_creature_combat_state").insert({
     creature_id:id,species,world:rule.world,x,y,z,health:rule.maxHealth,max_health:rule.maxHealth,updated_at:new Date().toISOString()
