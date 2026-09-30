@@ -152,7 +152,7 @@ export class NPCSocietySystem {
     for(const [gateWorld,gate] of this.gates){
       this.gateBusy.set(gateWorld, Math.max(0, (this.gateBusy.get(gateWorld) ?? 0) - delta));
       gate.visible=true;
-      const pulse=this.citizens.some(c=>c.travelWorld===gateWorld && Number(c.root.userData.gatePulse??0)>0);
+      const pulse=this.citizens.some(c=>c.world===gateWorld && c.travelStage==='APPROACH_GATE' && Number(c.root.userData.gatePulse??0)>0);
       gate.position.set(...({
         HARBOR:[-24,0,27],GARDENS:[20,0,27],CITADEL:[-19,0,-18],ARTS:[17,0,-15],WILDS:[-25,0,22]
       } as {[key:string]:[number,number,number]})[gateWorld]);
@@ -217,8 +217,8 @@ export class NPCSocietySystem {
           c.travelTarget.copy(c.gatePosition);
           c.root.userData.travelPurpose = c.travelPurpose;
           c.root.userData.travelWorld = c.travelWorld;
-          c.root.userData.travelEffect = 'ARRIVED';
-          c.root.userData.destinationSelected = false;
+          c.root.userData.travelEffect = 'APPROACHING_GATE';
+          c.root.userData.destinationSelected = true;
           c.root.userData.selectedDestination = c.selectedDestination;
           c.root.userData.gateDestination = c.selectedDestination;
           c.root.userData.gateArrival = true;
