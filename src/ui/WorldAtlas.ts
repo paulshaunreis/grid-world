@@ -1,14 +1,9 @@
 import type { EcologyWorld } from '../world/CreatureEcologySystem';
 import type { WorldConsequenceSnapshot } from '../world/WorldConsequenceSystem';
 import type { WorldResourceNode } from '../world/WorldResourceSystem';
+import { getWorlds } from '../world/GridWorldRegistry';
 
-const WORLDS:Record<EcologyWorld,{name:string;tag:string;description:string}> = {
- HARBOR:{name:'Tideline',tag:'TIDAL WORLD',description:'Water, navigation, shoreline life and industrial glass.'},
- GARDENS:{name:'Verdant',tag:'LIVING WORLD',description:'Canopy, bloom cycles, pollinators and cultivated wilderness.'},
- CITADEL:{name:'Crown',tag:'ANCIENT WORLD',description:'Monoliths, relics, keepers and aurora signals.'},
- ARTS:{name:'Muse',tag:'CREATIVE WORLD',description:'Galleries, markets, performances and living art.'},
- WILDS:{name:'Frontier',tag:'WILDERNESS WORLD',description:'Migration, predators, weather and deep ecology.'},
-};
+
 
 export function mountWorldAtlas(
  getState:()=>{world:EcologyWorld;event:string;consequences:WorldConsequenceSnapshot;resources:WorldResourceNode[];inventory?:Partial<Record<string,number>>;market?:Array<{world:string;item_id:string;unit_price:number;currency_id:string;scarcity:number;demand:number}>;transit?:Array<{nodeId:string;displayName:string;regionId:string;departures:number;arrivals:number;activity:number}>}
@@ -23,8 +18,9 @@ export function mountWorldAtlas(
  const economy=document.createElement('div'); economy.className='grid-atlas-economy'; panel.querySelector('.grid-atlas-card')!.appendChild(economy);
  const render=()=>{
    const state=getState();
-   worlds.innerHTML=(Object.keys(WORLDS) as EcologyWorld[]).map(world=>{
-     const meta=WORLDS[world];
+   const registry=getWorlds();
+   worlds.innerHTML=registry.map(meta=>{
+     const world=meta.id as EcologyWorld;
      const resource=state.resources.find(node=>node.world===world);
      const stability=Math.round((state.consequences.world===world?state.consequences.stability:1)*100);
      const active=world===state.world;
