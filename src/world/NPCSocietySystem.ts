@@ -31,6 +31,7 @@ type Citizen = {
   merchantMood:string;
   merchantOpen:boolean;
   merchantSchedule:number;
+  schedulePhase:number;
   travelTimer:number;
   travelTarget:THREE.Vector3;
   travelMode:'WALK'|'TELEPORT';
@@ -129,7 +130,7 @@ export class NPCSocietySystem {
       root.add(canopy,counter,sigil);
     }
     this.root.add(root);
-    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0,merchant,merchantStock:merchant?0:0,merchantStress:0,merchantMood:'CALM',merchantOpen:true,merchantSchedule:name.length%6,travelTimer:8+name.length%9,travelTarget:new THREE.Vector3(wx,0,wz),travelMode:'WALK',travelPurpose:'WORK',travelWorld:world,selectedDestination:world,gateCooldown:0,travelStage:'IDLE',gatePosition:new THREE.Vector3(hx,0,hz)});
+    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0,merchant,merchantStock:merchant?0:0,merchantStress:0,merchantMood:'CALM',merchantOpen:true,merchantSchedule:name.length%6,schedulePhase:(name.length%10)/10,travelTimer:8+name.length%9,travelTarget:new THREE.Vector3(wx,0,wz),travelMode:'WALK',travelPurpose:'WORK',travelWorld:world,selectedDestination:world,gateCooldown:0,travelStage:'IDLE',gatePosition:new THREE.Vector3(hx,0,hz)});
   }
 
   private chooseState(c:Citizen,event:string,phase:string,pressure=0,stability=1) {
@@ -263,7 +264,8 @@ export class NPCSocietySystem {
           sigil.material.opacity = c.merchantMood === 'WORRIED' ? .72 : 1;
           sigil.material.transparent = true;
         }
-        c.root.userData.merchantOpen = c.merchantMood !== 'WORRIED';
+        c.root.userData.merchantOpen = c.merchantOpen;
+        c.root.userData.marketPrompt = c.merchantOpen ? (c.merchantMood === 'WORRIED' ? 'SUPPLIES LOW' : c.merchantMood === 'BUSY' ? 'MARKET ACTIVE' : 'TRADE') : (c.merchantStress > .72 ? 'RESTOCKING' : 'CLOSED');
       }
       c.energy=Math.max(0,c.energy-delta*(c.state==='WORK'?.012:.005));
       c.social=Math.max(0,c.social-delta*.006);
@@ -291,12 +293,14 @@ export class NPCSocietySystem {
             ({HARBOR:[-24,27],GARDENS:[20,27],CITADEL:[-19,-18],ARTS:[17,-15],WILDS:[-25,22]} as {[key:string]:[number,number]})[c.selectedDestination][1]
           );
           c.root.visible=true;
-          c.root.userData.travelEffect='ARRIVED';
+          c.root.userData.travelEffect='ARRIVAL';
           c.root.userData.gateArrival=true;
           c.root.userData.gatePulse=1;
           c.root.userData.gateQueuePosition = 0;
           this.transitTrafficRecorder?.(c.world, c.selectedDestination, Number(c.root.userData.gateQueuePosition ?? 0));
           c.world = c.selectedDestination;
+          c.home.set(c.root.position.x,0,c.root.position.z);
+          c.root.userData.travelHistory = [...((c.root.userData.travelHistory as string[]|undefined) ?? []), c.world].slice(-8);
           c.root.userData.world = c.world;
           c.travelStage='IDLE';
           c.gateCooldown=10;
