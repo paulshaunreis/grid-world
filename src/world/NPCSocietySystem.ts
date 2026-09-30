@@ -386,6 +386,18 @@ export class NPCSocietySystem {
     this.root.userData.society=this.snapshot;
   }
 
+  applyTransitInfluence(flowByWorld:Record<string,number>) {
+    for (const c of this.citizens) {
+      const flow=Math.min(10,Number(flowByWorld[c.world] ?? 0));
+      c.root.userData.transitInfluence=flow;
+      if (flow > 2.5 && c.energy > .35) {
+        if (c.merchant) c.root.userData.marketPrompt='MARKET ACTIVE';
+        if (c.state === 'REST') c.state='GATHER';
+        c.social=Math.min(1,c.social+0.004*flow);
+      }
+    }
+  }
+
   setTransitTrafficRecorder(recorder: (source:EcologyWorld,destination:EcologyWorld,queueDepth:number)=>void) { this.transitTrafficRecorder = recorder; }
 
   getSnapshot(){return this.snapshot;}
