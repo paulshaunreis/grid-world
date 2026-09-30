@@ -62,13 +62,45 @@ const CITIZENS = [
   ['Edda','RANGER','WILDS',-18,28,-27,19],
 ] as const;
 
+function createGateVFX(world:EcologyWorld) {
+  const group=new THREE.Group();
+  group.name='npc-gate-network';
+  const palette:{[key:string]:number}={HARBOR:0x52d9e8,GARDENS:0x9be27b,CITADEL:0xd7b46a,ARTS:0xd28cff,WILDS:0xc9a36a};
+  const color=palette[world];
+  for(let i=0;i<3;i++){
+    const ring=new THREE.Mesh(
+      new THREE.TorusGeometry(1.35+i*.22,.035,8,48),
+      new THREE.MeshBasicMaterial({color,transparent:true,opacity:.32})
+    );
+    ring.rotation.y=Math.PI/2;
+    ring.position.y=.95;
+    ring.userData.baseScale=1+i*.08;
+    group.add(ring);
+  }
+  const core=new THREE.Mesh(
+    new THREE.CircleGeometry(1.15,40),
+    new THREE.MeshBasicMaterial({color,transparent:true,opacity:.08,side:THREE.DoubleSide})
+  );
+  core.rotation.y=Math.PI/2;
+  core.position.y=.95;
+  group.add(core);
+  group.userData.world=world;
+  return group;
+}
+
 export class NPCSocietySystem {
   readonly root = new THREE.Group();
   private citizens: Citizen[] = [];
+  private gates=new Map<EcologyWorld,THREE.Group>();
   private snapshot: SocietySnapshot = { population:0, active:0, working:0, gathering:0, talking:0, world:'HARBOR', signal:'QUIET' };
 
   constructor() {
     this.root.name='grid-npc-society';
+    for(const world of ['HARBOR','GARDENS','CITADEL','ARTS','WILDS'] as EcologyWorld[]){
+      const gate=createGateVFX(world);
+      this.gates.set(world,gate);
+      this.root.add(gate);
+    }
     for (const [name,role,world,hx,hz,wx,wz] of CITIZENS) this.spawn(name,role,world,hx,hz,wx,wz);
   }
 
@@ -110,6 +142,20 @@ export class NPCSocietySystem {
   update(delta:number,playerX=0,playerZ=0,world:EcologyWorld='HARBOR',event='QUIET',phase='DAY',ecology?:EcologySnapshot,consequences?:WorldConsequenceSnapshot) {
     const pressure=consequences?.pressure ?? 0;
     const stability=consequences?.stability ?? 1;
+    const now=performance.now()*.001;
+    for(const [gateWorld,gate] of this.gates){
+      gate.visible=true;
+      const pulse=this.citizens.some(c=>c.travelWorld===gateWorld && Number(c.root.userData.gatePulse??0)>0);
+      gate.position.set(...({
+        HARBOR:[-24,0,27],GARDENS:[20,0,27],CITADEL:[-19,0,-18],ARTS:[17,0,-15],WILDS:[-25,0,22]
+      } as {[key:string]:[number,number,number]})[gateWorld]);
+      gate.rotation.y=now*.18;
+      gate.scale.setScalar(pulse?1.12+Math.sin(now*8)*.08:1);
+      gate.children.forEach((child,i)=>{
+        const mat=(child as THREE.Mesh).material as THREE.MeshBasicMaterial;
+        if(mat) mat.opacity=(pulse?.62:.22)+Math.sin(now*2+i)*.05;
+      });
+    }
     for (const c of this.citizens) {
       if (!c.merchant) continue;
       c.merchantStress = THREE.MathUtils.clamp(pressure*.7 + (1-stability)*.8, 0, 1);
