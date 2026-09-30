@@ -1445,6 +1445,7 @@ function animate(now: number) {
   relationshipStories.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, societySnapshot, player.avatar.position.x, player.avatar.position.z);
   if (performance.now()/1000-lastTransitPoll>10) { lastTransitPoll=performance.now()/1000; void refreshPersistentTransit(); }
   worldConsequences.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.activity, ecologySnapshot, societySnapshot, Date.now()/1000, persistentTransitFlow);
+  npcSociety.applyTransitInfluence(persistentTransitByWorld);
   for(const [transitWorld,flow] of Object.entries(persistentTransitByWorld)) worldConsequences.recordTransitSurge(transitWorld as EcologyWorld,flow);
   const consequenceSnapshotForResources = worldConsequences.getSnapshot();
   const nearestResource = worldResources.getSnapshot().filter(node => node.world === livingSnapshot.world).sort((a,b) => a.position.distanceTo(player.avatar.position)-b.position.distanceTo(player.avatar.position))[0];
