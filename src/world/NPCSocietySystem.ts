@@ -357,6 +357,18 @@ export class NPCSocietySystem {
       if(gatePulse>0) c.root.userData.gatePulse=Math.max(0,gatePulse-delta*1.8);
       c.root.userData.gateDeparture=false;
       c.root.userData.gateArrival=false;
+      const stateLabel = c.travelStage==='APPROACH_GATE' ? 'TRAVELING' : c.state;
+      c.root.userData.statusLabel = c.travelStage==='APPROACH_GATE'
+        ? 'TRAVELING → '+c.selectedDestination
+        : stateLabel;
+      c.root.userData.currentGoal = c.root.userData.persistentGoal ?? (
+        c.state==='WORK' ? 'Continue daily work' :
+        c.state==='GATHER' ? 'Collect world resources' :
+        c.state==='TALK' ? 'Connect with another citizen' :
+        c.state==='REST' ? 'Recover energy' :
+        c.state==='CELEBRATE' ? 'Join the world event' : 'Travel between worlds'
+      );
+      c.root.userData.worldIdentity = c.world;
       c.phase+=delta*.5;
     }
     const signal=event.toUpperCase()!=='QUIET'?event.toUpperCase():(ecology?.state||'QUIET');
