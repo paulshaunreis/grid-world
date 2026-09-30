@@ -17,6 +17,9 @@ type Citizen = {
   stateTimer: number;
   phase: number;
   target: THREE.Vector3;
+  jumpVelocity: number;
+  jumpCooldown: number;
+  jumpPhase: number;
 };
 
 export interface SocietySnapshot {
@@ -61,7 +64,7 @@ export class NPCSocietySystem {
     root.add(body,head,badge); root.position.set(hx,0,hz);
     root.userData={gridObjectKind:'npc',interactable:true,interactionName:name,role,world};
     this.root.add(root);
-    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz)});
+    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7});
   }
 
   private chooseState(c:Citizen,event:string,phase:string) {
@@ -94,7 +97,13 @@ export class NPCSocietySystem {
       c.target.copy(destination);
       const dx=c.target.x-c.root.position.x,dz=c.target.z-c.root.position.z,len=Math.hypot(dx,dz);
       if(len>.2){const speed=c.state==='TRAVEL'?1.45:c.state==='WORK'?.42:.7;const step=Math.min(len,speed*delta);c.root.position.x+=dx/len*step;c.root.position.z+=dz/len*step;c.root.rotation.y=Math.atan2(dx,dz);}
-      c.root.position.y=Math.sin(performance.now()*.002+c.phase)*.015;
+      c.jumpCooldown-=delta;
+      if(c.jumpCooldown<=0 && len>.8 && c.state!=='REST') { c.jumpVelocity=2.7; c.jumpCooldown=3.5+(c.phase%4)*1.2; }
+      c.jumpVelocity-=delta*7.8;
+      c.root.position.y=Math.max(0,c.root.position.y+c.jumpVelocity*delta);
+      if(c.root.position.y===0 && c.jumpVelocity<0) c.jumpVelocity=0;
+      c.root.rotation.x = c.root.position.y>0.05 ? Math.min(.18,c.jumpVelocity*.05) : 0;
+      c.root.rotation.z = c.state==='CELEBRATE' ? Math.sin(performance.now()*.004+c.phase)*.12 : 0;
       if(c.state==='CELEBRATE') c.root.rotation.z=Math.sin(performance.now()*.004+c.phase)*.12;
       c.phase+=delta*.5;
     }
