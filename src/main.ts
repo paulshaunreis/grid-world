@@ -46,6 +46,7 @@ import { NPCSocietySystem } from './world/NPCSocietySystem';
 import { RelationshipStorySystem } from './world/RelationshipStorySystem';
 import { TraversalSystem } from './world/TraversalSystem';
 import { QuestSystem } from './world/QuestSystem';
+import { DynamicQuestSystem } from './world/DynamicQuestSystem';
 import { mountQuestPanel } from './ui/QuestPanel';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -290,6 +291,7 @@ const npcSociety = new NPCSocietySystem();
 const relationshipStories = new RelationshipStorySystem();
 const traversalSystem = new TraversalSystem();
 const questSystem = new QuestSystem(identity.id);
+const dynamicQuestSystem = new DynamicQuestSystem(questSystem);
 const questPanel = mountQuestPanel(questSystem);
 let lastStoryId = '';
 world.scene.add(livingWorld.root);
@@ -298,6 +300,7 @@ world.scene.add(npcSociety.root);
 world.scene.add(relationshipStories.root);
 world.scene.add(traversalSystem.root);
 world.scene.add(questSystem.root);
+world.scene.add(dynamicQuestSystem.root);
 world.scene.add(starterZone.group);
 const omniGuard = new GridOmniGuard();
 const sentinels = [new GridSentinel('Omni Sentinel · First Light')];
@@ -1044,6 +1047,7 @@ function animate(now: number) {
   questSystem.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, societySnapshot, player.avatar.position.x, player.avatar.position.z);
   relationshipStories.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, societySnapshot, player.avatar.position.x, player.avatar.position.z);
   const latestStory = relationshipStories.getLatestStory();
+  dynamicQuestSystem.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, societySnapshot, latestStory, player.avatar.position.x, player.avatar.position.z);
   if (latestStory && latestStory.id !== lastStoryId) {
     lastStoryId = latestStory.id;
     addChatMessage('WORLD STORY', latestStory.text, 'system');
