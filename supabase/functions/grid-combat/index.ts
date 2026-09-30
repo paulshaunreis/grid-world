@@ -247,8 +247,24 @@ Deno.serve(async (req: Request) => {
       const q=await quoteAction;
       const {data:trade,error:tradeError}=await admin.rpc("grid_execute_resource_sale",{p_user_id:user.id,p_world:q.def.world,p_item_id:item,p_amount:amount,p_currency_id:q.currencyId,p_unit_price:q.unitPrice});
       if(tradeError) throw tradeError;
-      await recordWorldEvent("MARKET_TRADE","A world market moved",user.id.slice(0,8)+" sold "+amount+" "+item.replaceAll("_"," ")+" in "+q.def.world+".",{world:q.def.world,item,amount,unit_price:q.unitPrice,currency:q.currencyId});
-      return json({ok:true,action,quote:{world:q.def.world,item_id:item,amount,unit_price:q.unitPrice,total:Number(trade?.total??q.unitPrice*amount),currency_id:q.currencyId},trade});
+      const merchantNames:Record<string,string> = {HARBOR:"Mara",GARDENS:"Sela",ARTS:"Caro",CITADEL:"Orin",WILDS:"Rook"};
+      const merchantId=merchantNames[q.def.world];
+      if(merchantId){
+        const merchantRow=await admin.from("grid_npc_market_state").select("stock,desired_stock").eq("npc_id",merchantId).maybeSingle();
+        if(merchantRow.error) throw merchantRow.error;
+        if(merchantRow.data){
+          const nextStock=Math.min(Number(merchantRow.data.desired_stock)*1.8,Number(merchantRow.data.stock)+amount);
+          await admin.from("grid_npc_market_state").update({stock:nextStock,updated_at:new Date().toISOString()}).eq("npc_id",merchantId);
+          await admin.from("grid_npc_memories").insert({
+            npc_id:merchantId,subject_type:"player",subject_id:user.id,event_type:"MARKET_TRADE",
+            summary:merchantId+" acquired "+amount+" "+item.replaceAll("_"," ")+" from a traveler.",
+            valence:.35,importance:.55,confidence:1,visibility:"public",source:"market_trade",
+            details:{actor_user_id:user.id,world:q.def.world,item,amount,unit_price:q.unitPrice}
+          });
+        }
+      }
+      await recordWorldEvent("MARKET_TRADE","A world market moved",user.id.slice(0,8)+" sold "+amount+" "+item.replaceAll("_"," ")+" in "+q.def.world+".",{world:q.def.world,item,amount,unit_price:q.unitPrice,currency:q.currencyId,merchant:merchantId});
+      return json({ok:true,action,merchant:merchantId,quote:{world:q.def.world,item_id:item,amount,unit_price:q.unitPrice,total:Number(trade?.total??q.unitPrice*amount),currency_id:q.currencyId},trade});
     }
 
     if (action === "inventory_read") {
