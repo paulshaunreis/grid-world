@@ -305,6 +305,18 @@ let marketPanel: ReturnType<typeof mountMarketPanel> | null = null;
 const questPanel = mountQuestPanel(questSystem);
 mountWorldAtlas(() => ({ world: (livingWorld.getSnapshot().world as EcologyWorld), event: livingWorld.getSnapshot().event, consequences: worldConsequences.getSnapshot(), resources: worldResources.getSnapshot(), inventory: worldResources.getInventory(), market: marketQuotes }));
 marketPanel = mountMarketPanel(() => worldResources.getInventory(), () => marketQuotes, () => combatAuthority);
+let merchantRefreshTimer = 0;
+async function refreshMerchantMarket(){
+  if(!combatAuthority) return;
+  try {
+    const result = await combatAuthority.marketMerchants();
+    const merchants = (result as any)?.merchants ?? [];
+    for(const m of merchants) {
+      const existing = marketQuotes.find((q:any)=>q.item_id===m.resource_kind);
+      if(existing) { existing.unit_price = Number(m.buy_price); existing.demand = Number(m.demand ?? 1); }
+    }
+  } catch {}
+}
 let lastStoryId = '';
 let lastCombatKills = 0;
 let lastConsequenceId = '';
@@ -1249,6 +1261,8 @@ function animate(now: number) {
   world.updateStreaming(player.avatar.position.x, player.avatar.position.z);
   world.update();
   livingWorld.update(dt, player.avatar.position.x, player.avatar.position.z, worldConsequences.getSnapshot());
+    merchantRefreshTimer += dt;
+    if(merchantRefreshTimer > 12) { merchantRefreshTimer = 0; void refreshMerchantMarket(); }
   const livingSnapshot = livingWorld.getSnapshot();
   const consequenceSnapshot = worldConsequences.getSnapshot();
   creatureEcology.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, consequenceSnapshot);
