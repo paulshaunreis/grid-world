@@ -64,6 +64,17 @@ export class WorldConsequenceSystem {
     try{localStorage.setItem(STORAGE_KEY,JSON.stringify({history:this.history.slice(-MAX_HISTORY),pressure:this.pressure,stability:this.stability}));}catch{}
   }
 
+  private eventText(world:EcologyWorld,event:string){
+    const texts:Record<string,string>={
+      HARBOR:'Tidal systems are shifting through the Harbor. Navigation routes and shoreline life are responding.',
+      GARDENS:'A bloom signal is moving through the Gardens. Pollinators and caretakers are changing their routines.',
+      CITADEL:'An aurora signal is crossing the Crown. Keepers are watching the old structures for changes.',
+      ARTS:'The Muse market is active. Artists, visitors, and local creatures are converging on the galleries.',
+      WILDS:'A migration is moving through the Frontier. Rangers and wildlife are changing course.',
+    };
+    return texts[world] ?? ('The '+event.toLowerCase()+' signal is changing local life.');
+  }
+
   private add(kind:WorldConsequenceKind,world:EcologyWorld,event:string,text:string,impact:number,at:number){
     const item:WorldConsequence={id:'wc-'+at.toString(36)+'-'+Math.random().toString(36).slice(2,7),kind,world,event,text,impact,at};
     this.history=[...this.history,item].slice(-MAX_HISTORY);
