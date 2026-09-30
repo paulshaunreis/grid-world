@@ -136,5 +136,13 @@ export class CombatSystem {
     this.root.userData.combat=this.snapshot;
   }
 
+  applyAuthoritativeHealth(id:string, health:number) {
+    const combatant=this.combatants.get(id);
+    if (!combatant) return;
+    combatant.health=Math.max(0,Math.min(combatant.maxHealth,health));
+    combatant.root.userData.health=combatant.health;
+    if (combatant.health<=0) combatant.alive=false;
+  }
+
   getSnapshot(){return this.snapshot;}
 }
