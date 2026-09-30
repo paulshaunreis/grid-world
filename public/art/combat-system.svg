@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700">
+<defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#07121d"/><stop offset=".55" stop-color="#152b3a"/><stop offset="1" stop-color="#321d45"/></linearGradient><radialGradient id="r"><stop stop-color="#7ff"/><stop offset="1" stop-color="#7ff" stop-opacity="0"/></radialGradient></defs>
+<rect width="1200" height="700" fill="url(#g)"/><circle cx="600" cy="350" r="270" fill="url(#r)" opacity=".18"/>
+<g fill="none" stroke="#6fe9ff" stroke-opacity=".65"><circle cx="600" cy="350" r="245"/><circle cx="600" cy="350" r="190"/><path d="M120 500 Q600 80 1080 500M120 200 Q600 620 1080 200"/></g>
+<g fill="#d9f7ff"><circle cx="340" cy="350" r="20"/><circle cx="860" cy="350" r="20"/></g>
+<g fill="#ff70dc" opacity=".85"><path d="M330 350 l-90 0 25-12-25-12z"/><path d="M870 350 l90 0-25-12 25-12z"/></g>
+<g fill="#8ff" font-family="Arial" letter-spacing="8"><text x="600" y="325" text-anchor="middle" font-size="30">GRID COMBAT</text><text x="600" y="365" text-anchor="middle" font-size="15">SERVER AUTHORITY · MANY WORLDS</text></g>
+<g fill="#fff" opacity=".8" font-family="Arial"><text x="115" y="90" font-size="18">SAFE</text><text x="530" y="90" font-size="18">PVE</text><text x="1000" y="90" font-size="18">PVP ARENA</text></g>
+</svg>
