@@ -54,6 +54,7 @@ import { WorldConsequenceSystem } from './world/WorldConsequenceSystem';
 import { mountQuestPanel } from './ui/QuestPanel';
 import { WorldResourceSystem } from './world/WorldResourceSystem';
 import { mountWorldAtlas } from './ui/WorldAtlas';
+import { mountMarketPanel } from './ui/MarketPanel';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
@@ -300,8 +301,10 @@ const questSystem = new QuestSystem(identity.id);
 const dynamicQuestSystem = new DynamicQuestSystem(questSystem);
 const worldConsequences = new WorldConsequenceSystem();
 const worldResources = new WorldResourceSystem();
+let marketPanel: ReturnType<typeof mountMarketPanel> | null = null;
 const questPanel = mountQuestPanel(questSystem);
 mountWorldAtlas(() => ({ world: (livingWorld.getSnapshot().world as EcologyWorld), event: livingWorld.getSnapshot().event, consequences: worldConsequences.getSnapshot(), resources: worldResources.getSnapshot(), inventory: worldResources.getInventory(), market: marketQuotes }));
+marketPanel = mountMarketPanel(() => worldResources.getInventory(), () => marketQuotes, () => combatAuthority);
 let lastStoryId = '';
 let lastCombatKills = 0;
 let lastConsequenceId = '';
@@ -1150,6 +1153,11 @@ addEventListener('keydown', event => {
       prompt.textContent = `E · ${String(result.name)} ✓`;
       const npcBrain = result.object.userData.gridNpcBrain as { remember?: (memory: { subjectId?: string; eventType: string; summary: string; valence: number; importance: number; confidence: number }) => void; thought?: () => string } | undefined;
       const npcId = (result.object.userData.gridActorId as string | undefined) ?? String(result.object.userData.interactionName ?? result.name ?? '');
+      if (result.object.userData.merchant === true && marketPanel) {
+        marketPanel.open();
+        prompt.textContent = 'E · Merchant Exchange';
+        audio.play('ui.confirm');
+      }
       if (npcBrain?.remember) {
         npcBrain.remember({
           subjectId: identity.id,
