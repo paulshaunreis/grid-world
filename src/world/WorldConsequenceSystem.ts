@@ -8,7 +8,8 @@ export type WorldConsequenceKind =
   | 'CREATURE_DEFEATED'
   | 'PLAYER_DISCOVERY'
   | 'NPC_RESPONSE'
-  | 'ECOLOGY_SHIFT';
+  | 'ECOLOGY_SHIFT'
+  | 'TRANSIT_FLOW';
 
 export interface WorldConsequence {
   id:string;
@@ -121,6 +122,18 @@ export class WorldConsequenceSystem {
 
   recordDiscovery(world:EcologyWorld,text:string){
     this.add('PLAYER_DISCOVERY',world,this.lastEvent.split(':')[1]??'QUIET',text,.08,Date.now()/1000);
+  }
+
+  recordTransitSurge(world:EcologyWorld,flow:number){
+    if(flow < 2.5) return;
+    const now=Date.now()/1000;
+    if(now-this.lastStoryAt < 12) return;
+    const text = world==='ARTS' ? 'A transit surge is drawing artists, visitors, and merchants toward the Muse.' :
+      world==='GARDENS' ? 'Traveler traffic is carrying new activity into the living terraces.' :
+      world==='WILDS' ? 'Travel activity is intersecting frontier migration routes.' :
+      world==='CITADEL' ? 'Increased passage is waking dormant systems around the Crown.' :
+      'Transit traffic is increasing commerce and movement along the Tideline.';
+    this.add('TRANSIT_FLOW',world,'TRANSIT',text,Math.min(.24,flow*.025),now);
   }
 
   getSnapshot(){return this.snapshot;}
