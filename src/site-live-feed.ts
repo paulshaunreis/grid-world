@@ -23,6 +23,28 @@ const TYPE_LABELS: Record<string, string> = {
   omni: 'OMNI',
 };
 
+const LOCAL_WORLD_EVENTS = [
+  ['Tideline', 'TIDE', 'The harbor current is shifting and wildlife is moving with it.'],
+  ['Verdant', 'BLOOM', 'A garden growth cycle is opening new paths through the canopy.'],
+  ['Crown', 'AURORA', 'A luminous signal is crossing the Crown sky.'],
+  ['Muse', 'MARKET', 'Artists and makers are gathering in the Muse district.'],
+  ['Frontier', 'MIGRATION', 'Wildlife is crossing the Frontier habitat corridor.'],
+] as const;
+
+function localWorldEvent(): GridWorldEvent {
+  const slot = Math.floor(Date.now() / 70000);
+  const [region, type, summary] = LOCAL_WORLD_EVENTS[slot % LOCAL_WORLD_EVENTS.length];
+  return {
+    id: 'local-world-' + slot,
+    event_type: type.toLowerCase(),
+    region_id: region,
+    title: region + ' · ' + type,
+    summary,
+    visibility: 'public',
+    created_at: new Date(slot * 70000).toISOString(),
+  };
+}
+
 function formatAge(iso: string) {
   const seconds = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
   if (seconds < 10) return 'NOW';
@@ -62,8 +84,11 @@ export function mountGridLiveFeed(root: HTMLElement) {
   };
 
   if (!supabaseConfigured || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-    if (status) status.textContent = 'LOCAL MODE';
-    return () => {};
+    const local = () => render([localWorldEvent()]);
+    local();
+    if (status) status.textContent = 'LOCAL WORLD CLOCK';
+    const timer = window.setInterval(local, 10_000);
+    return () => window.clearInterval(timer);
   }
 
   const client = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
@@ -101,7 +126,10 @@ export function mountGridLiveFeed(root: HTMLElement) {
     })
     .subscribe();
 
-  const clock = window.setInterval(() => render(events), 15_000);
+  const clock = window.setInterval(() => {
+    const worldEvent = localWorldEvent();
+    render([worldEvent, ...events.filter(event => event.id !== worldEvent.id)]);
+  }, 10_000);
 
   return () => {
     window.clearInterval(clock);
