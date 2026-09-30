@@ -1151,7 +1151,7 @@ function animate(now: number) {
   }
   world.updateStreaming(player.avatar.position.x, player.avatar.position.z);
   world.update();
-  livingWorld.update(dt, player.avatar.position.x, player.avatar.position.z);
+  livingWorld.update(dt, player.avatar.position.x, player.avatar.position.z, worldConsequences.getSnapshot());
   const livingSnapshot = livingWorld.getSnapshot();
   const consequenceSnapshot = worldConsequences.getSnapshot();
   creatureEcology.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, consequenceSnapshot);
