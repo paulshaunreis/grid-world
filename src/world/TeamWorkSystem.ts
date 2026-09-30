@@ -15,11 +15,11 @@ type WorkTask = {
 const SEED_TASKS: WorkTask[] = [
   { memberId:'tessera', title:'Texturing + PBR pass', status:'Applying world materials', zone:'All worlds', progress:78, visible:true, public:true, position:{x:24,z:20} },
   { memberId:'waypoint', title:'Terrain + ecology', status:'Shaping terrain and habitats', zone:'Frontier', progress:64, visible:true, public:true, position:{x:0,z:25} },
-  { memberId:'atlas', title:'Living-world simulation', status:'Tuning creature behavior', zone:'Frontier', progress:71, visible:true, position:{x:-24,z:20} },
-  { memberId:'link', title:'Performance + streaming', status:'Profiling frame time', zone:'Grid systems', progress:86, visible:true, position:{x:3.2,z:-12.2} },
-  { memberId:'aurora', title:'World direction', status:'Composing zone transitions', zone:'Many Worlds', progress:69, visible:true, position:{x:-2.4,z:-6.2} },
-  { memberId:'orin', title:'World connections', status:'Mapping dependencies', zone:'All worlds', progress:58, visible:true, position:{x:-9,z:-17} },
-  { memberId:'echo', title:'Playtest + QA', status:'Walking the world and finding breaks', zone:'All worlds', progress:82, visible:true, position:{x:-18,z:-8} },
+  { memberId:'atlas', title:'Living-world simulation', status:'Tuning creature behavior', zone:'Frontier', progress:71, visible:true, public:true, position:{x:-24,z:20} },
+  { memberId:'link', title:'Performance + streaming', status:'Profiling frame time', zone:'Grid systems', progress:86, visible:true, public:true, position:{x:3.2,z:-12.2} },
+  { memberId:'aurora', title:'World direction', status:'Composing zone transitions', zone:'Many Worlds', progress:69, visible:true, public:true, position:{x:-2.4,z:-6.2} },
+  { memberId:'orin', title:'World connections', status:'Mapping dependencies', zone:'All worlds', progress:58, visible:true, public:true, position:{x:-9,z:-17} },
+  { memberId:'echo', title:'Playtest + QA', status:'Walking the world and finding breaks', zone:'All worlds', progress:82, visible:true, public:true, position:{x:-18,z:-8} },
   { memberId:'nyxen', title:'Foundation security', status:'Checking access boundaries', zone:'Grid Foundation', progress:74, visible:true, public:false, position:{x:8,z:-16} },
 ];
 
