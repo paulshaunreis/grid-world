@@ -49,6 +49,7 @@ import { TraversalSystem } from './world/TraversalSystem';
 import { QuestSystem } from './world/QuestSystem';
 import { CombatSystem } from './world/CombatSystem';
 import { DynamicQuestSystem } from './world/DynamicQuestSystem';
+import { WorldConsequenceSystem } from './world/WorldConsequenceSystem';
 import { mountQuestPanel } from './ui/QuestPanel';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -294,9 +295,11 @@ const relationshipStories = new RelationshipStorySystem();
 const traversalSystem = new TraversalSystem();
 const questSystem = new QuestSystem(identity.id);
 const dynamicQuestSystem = new DynamicQuestSystem(questSystem);
+const worldConsequences = new WorldConsequenceSystem();
 const questPanel = mountQuestPanel(questSystem);
 let lastStoryId = '';
 let lastCombatKills = 0;
+let lastConsequenceId = '';
 world.scene.add(livingWorld.root);
 world.scene.add(creatureEcology.root);
 world.scene.add(npcSociety.root);
@@ -304,6 +307,7 @@ world.scene.add(relationshipStories.root);
 world.scene.add(traversalSystem.root);
 world.scene.add(questSystem.root);
 world.scene.add(dynamicQuestSystem.root);
+world.scene.add(worldConsequences.root);
 world.scene.add(starterZone.group);
 const omniGuard = new GridOmniGuard();
 const sentinels = [new GridSentinel('Omni Sentinel · First Light')];
@@ -1008,7 +1012,9 @@ addEventListener('keydown', event => {
           combatSystem.applyAuthoritativeCreatureState(targetId, Number(creature?.health ?? 0), Number(creature?.max_health ?? 100), !result.defeated);
           if (result.defeated) {
             const species=String(target?.userData.species ?? 'creature');
-            questSystem.recordCombatKill(species,livingWorld.getSnapshot().world as EcologyWorld);
+            const defeatedWorld=livingWorld.getSnapshot().world as EcologyWorld;
+            questSystem.recordCombatKill(species,defeatedWorld);
+            worldConsequences.recordCreatureDefeat(defeatedWorld,species);
             addChatMessage('COMBAT', species.replaceAll('-', ' ') + ' defeated. The field remembers.', 'system');
             questPanel.render();
           }
@@ -1064,6 +1070,7 @@ addEventListener('keydown', event => {
         questPanel.render();
         return;
       }
+      worldConsequences.recordDiscovery(livingWorld.getSnapshot().world as EcologyWorld, 'A traveler interacted with '+result.name+'. The discovery is now part of local history.');
       prompt.textContent = `E · ${result.name} ✓`;
       const npcBrain = result.object.userData.gridNpcBrain as { remember?: (memory: { subjectId?: string; eventType: string; summary: string; valence: number; importance: number; confidence: number }) => void; thought?: () => string } | undefined;
       if (npcBrain?.remember) {
@@ -1191,7 +1198,6 @@ function animate(now: number) {
     }
   }
   npcSociety.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, ecologySnapshot);
-  const societySnapshot = npcSociety.getSnapshot();
   traversalSystem.update(dt);
   combatSystem.syncScene(world.scene);
   combatSystem.update(dt, identity.id);
@@ -1204,6 +1210,16 @@ function animate(now: number) {
     questPanel.render();
   }
   relationshipStories.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, societySnapshot, player.avatar.position.x, player.avatar.position.z);
+  const societySnapshot = npcSociety.getSnapshot();
+  worldConsequences.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.activity, ecologySnapshot, societySnapshot);
+  const consequenceSnapshot = worldConsequences.getSnapshot();
+  if (consequenceSnapshot.history.length > 0) {
+    const latestConsequence = consequenceSnapshot.history.at(-1)!;
+    if (latestConsequence.id !== lastConsequenceId) {
+      lastConsequenceId = latestConsequence.id;
+      if (latestConsequence.kind === 'EVENT_STARTED' || latestConsequence.kind === 'CREATURE_DEFEATED' || latestConsequence.kind === 'ECOLOGY_SHIFT') addChatMessage('GRID HISTORY', latestConsequence.text, 'system');
+    }
+  }
   const latestStory = relationshipStories.getLatestStory();
   if (dynamicQuestSystem.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, societySnapshot, latestStory, player.avatar.position.x, player.avatar.position.z)) questPanel.render();
   if (latestStory && latestStory.id !== lastStoryId) {
@@ -1214,7 +1230,7 @@ function animate(now: number) {
   const hudWorldState = document.querySelector<HTMLElement>('#hud-world-state');
   const hudWorldSignal = document.querySelector<HTMLElement>('#hud-world-signal');
   if (hudWorldState) hudWorldState.textContent = livingSnapshot.world + ' · ' + livingSnapshot.phase;
-  if (hudWorldSignal) hudWorldSignal.textContent = livingSnapshot.event + ' · ' + livingSnapshot.weather + ' · ' + ecologySnapshot.active + '/' + ecologySnapshot.population + ' CREATURES · ' + societySnapshot.working + ' WORKING · ' + societySnapshot.talking + ' TALKING · ' + storySnapshot.activeStories + ' STORIES';
+  if (hudWorldSignal) hudWorldSignal.textContent = livingSnapshot.event + ' · ' + livingSnapshot.weather + ' · ' + ecologySnapshot.active + '/' + ecologySnapshot.population + ' CREATURES · ' + societySnapshot.working + ' WORKING · ' + societySnapshot.talking + ' TALKING · ' + storySnapshot.activeStories + ' STORIES · STABILITY ' + Math.round(consequenceSnapshot.stability*100) + '%';
   artDirector.update(dt, player.avatar.position.x, player.avatar.position.z);
   worldSkins.update(dt, player.avatar.position.x, player.avatar.position.z);
   teamWork.update(dt, frame.elapsedSeconds);
