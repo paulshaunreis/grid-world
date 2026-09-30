@@ -35,7 +35,7 @@ import { createGridOmniGuardLayer } from './world/GridOmniGuardPylon';
 import { GridVoiceSystem } from './audio/GridVoiceSystem';
 import { GridAudioSystem } from './audio/GridAudioSystem';
 import { createGridFreeObject } from './engine/GridFreeObjectLibrary';
-import { GridTeleportSystem, createTeleportGate, createTeleportPylon } from './engine/GridTeleport';
+import { GridTeleportSystem, createTeleportGate, createTeleportPylon, setTeleportGateState } from './engine/GridTeleport';
 import { GridLivingWorld } from './world/GridLivingWorld';
 import { GRID_MODEL_SOURCES } from './engine/GridModelLibrary';
 import { installGridWorldArtDirector } from './world-art-director';
@@ -761,8 +761,11 @@ function handleTeleportNode(result: ReturnType<InteractionSystem['findTarget']>)
     return true;
   }
 
+  const sourceVisual = teleportVisuals.find(v => v.userData.gridTeleportNodeId === nodeId);
+  if (sourceVisual) setTeleportGateState(sourceVisual, 'selecting');
   void transitPanel.choose(result.name, destinations).then(destinationId => {
     if (!destinationId) {
+      if (sourceVisual) setTeleportGateState(sourceVisual, 'idle');
       prompt.textContent = 'E · Transit cancelled';
       return;
     }
@@ -781,6 +784,7 @@ function handleTeleportNode(result: ReturnType<InteractionSystem['findTarget']>)
         : teleport.reason === 'access-denied'
           ? 'This transit node is access controlled.'
           : 'Selected destination is unavailable; Grid Omni is holding the route.';
+      if (sourceVisual) setTeleportGateState(sourceVisual, 'idle');
       prompt.textContent = 'E · ' + message;
       addChatMessage('GRID OMNI', message, 'system');
       audio.play('ui.error');
@@ -792,6 +796,7 @@ function handleTeleportNode(result: ReturnType<InteractionSystem['findTarget']>)
     const backward = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), destination.yaw);
     arrival.addScaledVector(backward, Math.max(2.5, destination.clearanceRadius));
 
+    if (sourceVisual) setTeleportGateState(sourceVisual, 'transit', destination.displayName);
     prompt.textContent = 'E · Entering ' + destination.displayName + '…';
     addChatMessage('GRID TRANSIT', 'Route locked: ' + destination.displayName + '. Gate transit engaged.', 'system');
     audio.play('world.portal', .8);
@@ -804,6 +809,7 @@ function handleTeleportNode(result: ReturnType<InteractionSystem['findTarget']>)
         yaw: destination.yaw,
       });
       audio.play('world.portal', 1);
+      if (sourceVisual) setTeleportGateState(sourceVisual, 'idle');
       prompt.textContent = 'E · Arrived at ' + destination.displayName + ' ✓';
       addChatMessage('GRID TRANSIT', 'Arrived at ' + destination.displayName + '. Safe arrival clearance applied.', 'system');
       if (cloudPersistence) {
