@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import type { EcologyWorld } from './CreatureEcologySystem';
 import type { WorldConsequenceSnapshot } from './WorldConsequenceSystem';
-import { createClient } from '@supabase/supabase-js';
 
 export type WorldResourceKind = 'TIDE_SALT' | 'BLOOM_RESIN' | 'CROWN_RELIC' | 'MUSE_INK' | 'FRONTIER_ORE';
 
@@ -30,7 +29,6 @@ export class WorldResourceSystem {
   private snapshot:WorldResourceNode[]=[];
   private inventory:Partial<Record<WorldResourceKind,number>>={};
   private lastSave=0;
-  private readonly supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
   constructor(){
     this.root.name='grid-world-resources';
     this.root.userData.system='world-specific-resource-layer';
