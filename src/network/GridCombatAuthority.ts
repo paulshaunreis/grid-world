@@ -156,6 +156,18 @@ export class GridCombatAuthority {
     return data;
   }
 
+  async npcMemoryRead(npcId:string, limit=12): Promise<CombatServerResult | null> {
+    const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', { body:{action:'npc_memory_read',npc_id:npcId,limit} });
+    if(error) throw error;
+    return data;
+  }
+
+  async npcMemoryWrite(memory:{npc_id:string;subject_type?:string;subject_id?:string;event_type?:string;summary:string;valence?:number;importance?:number;confidence?:number;visibility?:string}): Promise<CombatServerResult | null> {
+    const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', { body:{action:'npc_memory_write',...memory} });
+    if(error) throw error;
+    return data;
+  }
+
   async state(): Promise<CombatServerResult | null> {
     const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', {
       body: { action: 'state' },
