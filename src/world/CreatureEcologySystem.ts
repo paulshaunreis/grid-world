@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { createStarterPBRMaterial } from '../engine/GridPBRLibrary';
+import { traversalHit, steerAround } from './TraversalSystem';
 
 export type EcologyWorld = 'HARBOR' | 'GARDENS' | 'CITADEL' | 'ARTS' | 'WILDS';
 export type CreatureLifeState = 'FORAGE' | 'REST' | 'SOCIALIZE' | 'EXPLORE' | 'MIGRATE' | 'PLAY';
@@ -173,6 +174,8 @@ export class CreatureEcologySystem {
         );
       }
 
+      const hit=traversalHit(c.root.position,c.target,.25);
+      if(hit && hit.height>.25) steerAround(c.root.position,c.target,hit,c.target);
       const speedFactor = c.state === 'REST' ? .08 : c.state === 'MIGRATE' ? 1.8 : c.state === 'EXPLORE' ? 1.2 : c.state === 'PLAY' ? 1.35 : .7;
       if (worldMatch) active++;
       const speed = c.species.speed * speedFactor * (worldMatch ? 1 : .42);
