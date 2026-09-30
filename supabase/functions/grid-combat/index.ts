@@ -194,6 +194,128 @@ Deno.serve(async (req: Request) => {
       return json({ok:true,action,creatures:states});
     }
 
+    if (action === "tick_creatures") {
+      const now = Date.now();
+      const nowIso = new Date(now).toISOString();
+      const { data: players, error: playersError } = await admin
+        .from("grid_combat_state")
+        .select("user_id,x,y,z,health,mode,updated_at")
+        .eq("region_id", "first-light")
+        .limit(80);
+      if (playersError) throw playersError;
+
+      const { data: rows, error: rowsError } = await admin
+        .from("grid_creature_combat_state")
+        .select("*")
+        .limit(80);
+      if (rowsError) throw rowsError;
+
+      const nextStates = [];
+      for (const row of rows ?? []) {
+        const rule = creatureRule(String(row.species));
+        if (!rule) continue;
+
+        let x = Number(row.x), y = Number(row.y), z = Number(row.z);
+        let health = Number(row.health);
+        let targetUserId: string | null = row.target_user_id ?? null;
+        let aiState = String(row.ai_state ?? "ROAM");
+        const respawnAt = row.respawn_at ? new Date(row.respawn_at).getTime() : 0;
+
+        if (health <= 0 && respawnAt && respawnAt <= now) {
+          x = rule.center.x;
+          y = 0;
+          z = rule.center.z;
+          health = Number(row.max_health);
+          targetUserId = null;
+          aiState = "ROAM";
+        } else if (health <= 0) {
+          nextStates.push(row);
+          continue;
+        }
+
+        const candidates = (players ?? [])
+          .filter(p => Number(p.health) > 0 && String(p.mode) !== "SAFE")
+          .map(p => ({ ...p, d: Math.hypot(x-Number(p.x), z-Number(p.z)) }))
+          .filter(p => p.d <= 14)
+          .sort((a,b) => a.d-b.d);
+        const target = candidates[0];
+
+        if (target) {
+          targetUserId = String(target.user_id);
+          if (target.d <= 2.8) {
+            aiState = "ATTACK";
+            const lastAttack = row.last_attack_at ? new Date(row.last_attack_at).getTime() : 0;
+            if (now-lastAttack >= 1400) {
+              const { data: targetState } = await admin.from("grid_combat_state")
+                .select("health")
+                .eq("user_id", target.user_id)
+                .maybeSingle();
+              if (targetState && Number(targetState.health) > 0) {
+                const nextHealth = Math.max(0, Number(targetState.health) - rule.damage);
+                await admin.from("grid_combat_state")
+                  .update({ health: nextHealth, updated_at: nowIso })
+                  .eq("user_id", target.user_id)
+                  .eq("health", Number(targetState.health));
+                await admin.from("grid_creature_combat_state")
+                  .update({ last_attack_at: nowIso })
+                  .eq("creature_id", row.creature_id);
+              }
+            }
+          } else {
+            aiState = "PURSUIT";
+            const dx = Number(target.x)-x;
+            const dz = Number(target.z)-z;
+            const len = Math.max(.001, Math.hypot(dx,dz));
+            const speed = rule.world === "WILDS" ? 1.65 : 1.25;
+            const step = Math.min(target.d-.8, speed * .65);
+            if (step > 0) {
+              x += dx/len*step;
+              z += dz/len*step;
+            }
+          }
+        } else {
+          targetUserId = null;
+          aiState = "ROAM";
+          const seed = String(row.creature_id).split("").reduce((a,c)=>a+c.charCodeAt(0),0);
+          const angle = now/9000 + seed*.17;
+          const roamRadius = rule.radius * .72;
+          const tx = rule.center.x + Math.cos(angle)*roamRadius;
+          const tz = rule.center.z + Math.sin(angle*1.17)*roamRadius;
+          const dx = tx-x, dz = tz-z, len = Math.max(.001, Math.hypot(dx,dz));
+          const step = Math.min(len, .55);
+          x += dx/len*step;
+          z += dz/len*step;
+        }
+
+        const maxRadius = rule.radius * 2.4;
+        const fromCenter = Math.hypot(x-rule.center.x,z-rule.center.z);
+        if (fromCenter > maxRadius) {
+          const pull = Math.min(1, (fromCenter-maxRadius)/Math.max(1,fromCenter));
+          x += (rule.center.x-x)*pull;
+          z += (rule.center.z-z)*pull;
+        }
+
+        const patch = {
+          x,y,z,health,
+          ai_state: aiState,
+          target_user_id: targetUserId,
+          last_ai_at: nowIso,
+          updated_at: nowIso,
+          respawn_at: health > 0 ? null : row.respawn_at,
+        };
+        const { data: updated, error: updateError } = await admin
+          .from("grid_creature_combat_state")
+          .update(patch)
+          .eq("creature_id", row.creature_id)
+          .eq("updated_at", row.updated_at)
+          .select("*")
+          .maybeSingle();
+        nextStates.push(updated ?? row);
+        if (updateError) console.error("creature_ai_update_failed", updateError);
+      }
+      return json({ok:true,action,creatures:nextStates});
+    }
+
     if (action === "attack_creature") {
       const creatureId=String(body.creatureId ?? "");
       const creature=await admin.from("grid_creature_combat_state").select("*").eq("creature_id",creatureId).maybeSingle();
