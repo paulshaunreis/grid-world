@@ -56,6 +56,8 @@ import { WorldResourceSystem } from './world/WorldResourceSystem';
 import { mountWorldAtlas } from './ui/WorldAtlas';
 import { mountMarketPanel } from './ui/MarketPanel';
 import { mountTransitPanel } from './ui/TransitPanel';
+import { WorldArchitectureSystem } from './world/WorldArchitectureSystem';
+import { getWorlds, getWorldConnections } from './world/GridWorldRegistry';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
@@ -285,7 +287,9 @@ const teamArea = mountTeamArea();
 const questButton = document.createElement('button'); questButton.className='toolbar-button'; questButton.textContent='QUESTS'; questButton.type='button'; questButton.addEventListener('click',()=>questPanel.open()); document.body.appendChild(questButton);
 const artDirector = installGridWorldArtDirector(world.scene);
 const worldSkins = createWorldSkinDirector();
+const worldArchitecture = new WorldArchitectureSystem();
 world.scene.add(worldSkins.root);
+world.scene.add(worldArchitecture.root);
 const engine = new GridEngine('client', world.scene);
 engine.register(new GridEngineCore());
 engine.register(new GridEntitySystem());
@@ -458,6 +462,29 @@ const teleportVisuals = teleportDefinitions.map(definition => {
   world.scene.add(visual);
   return visual;
 });
+
+// Any newly registered world gets a transit node automatically. Its gate is styled from World DNA.
+for (const worldDefinition of getWorlds()) {
+  if (teleportVisuals.some(v => v.userData.worldId === worldDefinition.id)) continue;
+  const nodeId = 'world-gate:' + worldDefinition.id.toLowerCase();
+  const destinations = getWorldConnections(worldDefinition.id).map(c => 'world-gate:' + c.destination.toLowerCase());
+  const definition = {
+    id: nodeId,
+    kind: 'gate' as const,
+    displayName: worldDefinition.label + ' · World Gate',
+    regionId: 'grid-world',
+    position: { x: worldDefinition.center.x, y: worldDefinition.center.y, z: worldDefinition.center.z },
+    yaw: 0,
+    clearanceRadius: 3,
+    destinationIds: destinations,
+    access: 'public' as const,
+    worldId: worldDefinition.id,
+  };
+  teleportSystem.register(definition);
+  const visual = createTeleportGate(definition);
+  world.scene.add(visual);
+  teleportVisuals.push(visual);
+}
 
 const crowdActors = crowdDefinitions.map(definition => new GridCrowdActor(definition));
 for (const actor of crowdActors) world.scene.add(actor.group);
@@ -1505,6 +1532,7 @@ function animate(now: number) {
   if (hudWorldSignal) hudWorldSignal.textContent = livingSnapshot.event + ' · ' + livingSnapshot.weather + ' · ' + ecologySnapshot.active + '/' + ecologySnapshot.population + ' CREATURES · ' + societySnapshot.working + ' WORKING · ' + societySnapshot.talking + ' TALKING · ' + storySnapshot.activeStories + ' STORIES · STABILITY ' + Math.round(consequenceSnapshotAfterUpdate.stability*100) + '%';
   artDirector.update(dt, player.avatar.position.x, player.avatar.position.z);
   worldSkins.update(dt, player.avatar.position.x, player.avatar.position.z);
+  worldArchitecture.update(dt);
   teamWork.update(dt, frame.elapsedSeconds);
   foundationLayer.update(dt, frame.elapsedSeconds);
   for (const remote of remotePlayers.values()) remote.update(dt);
