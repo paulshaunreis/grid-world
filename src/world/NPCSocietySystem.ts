@@ -118,7 +118,16 @@ export class NPCSocietySystem {
       c.stateTimer-=delta;
       if(c.stateTimer<=0){ c.state=this.chooseState(c,event.toUpperCase(),phase,pressure,stability); c.stateTimer=5+(c.phase%6); }
       if(c.merchant && c.merchantStress > .72 && c.state === 'WORK') c.state='GATHER';
-      if(c.merchant) c.root.userData.marketPrompt = c.merchantMood === 'WORRIED' ? 'SUPPLIES LOW' : c.merchantMood === 'BUSY' ? 'MARKET ACTIVE' : 'TRADE';
+      if(c.merchant) {
+        c.root.userData.marketPrompt = c.merchantMood === 'WORRIED' ? 'SUPPLIES LOW' : c.merchantMood === 'BUSY' ? 'MARKET ACTIVE' : 'TRADE';
+        const sigil = c.root.children.find(child => child instanceof THREE.Mesh && child.geometry instanceof THREE.TorusGeometry) as THREE.Mesh | undefined;
+        if (sigil && sigil.material instanceof THREE.MeshBasicMaterial) {
+          sigil.material.color.setHex(c.merchantMood === 'WORRIED' ? 0xffb45e : c.merchantMood === 'BUSY' ? 0xffe36e : 0x71dfff);
+          sigil.material.opacity = c.merchantMood === 'WORRIED' ? .72 : 1;
+          sigil.material.transparent = true;
+        }
+        c.root.userData.merchantOpen = c.merchantMood !== 'WORRIED';
+      }
       c.energy=Math.max(0,c.energy-delta*(c.state==='WORK'?.012:.005));
       c.social=Math.max(0,c.social-delta*.006);
       if(c.state==='REST') c.energy=Math.min(1,c.energy+delta*.045);
