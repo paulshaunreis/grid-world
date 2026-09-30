@@ -296,12 +296,13 @@ const starterZone = new StarterZone();
 const livingWorld = new GridLivingWorld();
 const creatureEcology = new CreatureEcologySystem();
 const npcSociety = new NPCSocietySystem();
-npcSociety.setTransitTrafficRecorder((source, destination) => {
+npcSociety.setTransitTrafficRecorder((source, destination, queueDepth) => {
   const transitNodeByWorld: Record<string,string> = { HARBOR:'gate:civic-to-gallery', GARDENS:'pylon:market', CITADEL:'gate:wilds-to-creator', ARTS:'pylon:gallery', WILDS:'pylon:wilds' };
   const sourceNode = transitNodeByWorld[source];
   const destinationNode = transitNodeByWorld[destination];
   if (sourceNode && destinationNode) teleportSystem.recordTraffic(sourceNode, destinationNode);
-  addChatMessage('GRID TRANSIT', source + ' → ' + destination + ' · NPC transit route completed.', 'system');
+  addChatMessage('GRID TRANSIT', source + ' → ' + destination + ' · NPC route completed · queue ' + queueDepth + '.', 'system');
+  void cloudPersistence?.getClient().rpc('grid_record_transit', { p_source_world: source, p_destination_world: destination, p_departures: 1, p_arrivals: 1, p_queue_depth: queueDepth });
 });
 const relationshipStories = new RelationshipStorySystem();
 const traversalSystem = new TraversalSystem();
