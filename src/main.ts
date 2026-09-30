@@ -1252,6 +1252,10 @@ function animate(now: number) {
   saveTimer += dt;
   worldEventPollTimer += dt;
 
+  if (combatAuthority && Math.floor(now / 1000) % 20 === 0 && Math.floor((now - dt*1000) / 1000) % 20 !== 0) {
+    void combatAuthority.marketTick().then(() => refreshMerchantMarket()).catch(() => undefined);
+  }
+
   if (worldEventStream && worldEventPollTimer >= 4) {
     worldEventStream.poll(12).then(events => {
       if (!events.length) return;
