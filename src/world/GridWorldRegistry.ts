@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 
+/** Grid World is an open-ended network: there is no hard-coded maximum number of worlds. */
 export type GridWorldId = string;
+export const GRID_WORLD_CAPACITY = Infinity;
+export const GRID_WORLD_NETWORK_PRINCIPLE = 'UNLIMITED WORLDS — register, connect, and grow without a fixed world-count limit.';
 export type GridWorldEvent = 'quiet' | 'tide' | 'migration' | 'market' | 'bloom' | 'aurora' | 'storm';
 
 export interface GridWorldDefinition {
@@ -56,7 +59,9 @@ export function getWorldCenter(id: GridWorldId) {
   return worlds.get(id)?.center.clone() ?? new THREE.Vector3();
 }
 
-/** Register a new world and connect it without modifying existing world code. */
+/** Register a new world and connect it without modifying existing world code.
+ * The registry intentionally has no numeric world-count cap; new worlds are data, not engine branches.
+ */
 export function registerNetworkWorld(definition: GridWorldDefinition, destinations: readonly GridWorldId[] = []) {
   const world = upsertWorld(definition);
   for (const destination of destinations) {
