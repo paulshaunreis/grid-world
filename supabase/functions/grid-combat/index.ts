@@ -97,6 +97,30 @@ async function recordWorldEvent(eventType:string,title:string,summary:string,met
   }catch(error){ console.error("world_event_log_failed",error); }
 }
 
+async function npcMemories(npcId:string, limit=12){
+  const {data,error}=await admin.from("grid_npc_memories").select("*").eq("npc_id",npcId).order("memory_at",{ascending:false}).limit(Math.min(Math.max(limit,1),32));
+  if(error) throw error;
+  return data ?? [];
+}
+async function writeNpcMemory(userId:string, body:Record<string,unknown>){
+  const npcId=String(body.npc_id ?? "");
+  const subjectType=String(body.subject_type ?? "player");
+  const subjectId=body.subject_id == null ? null : String(body.subject_id);
+  const eventType=String(body.event_type ?? "INTERACTION");
+  const summary=String(body.summary ?? "").slice(0,500);
+  if(!npcId || !summary) throw new Error("invalid_memory");
+  const visibility=String(body.visibility ?? "public")==="public" ? "public" : "private";
+  const {data,error}=await admin.from("grid_npc_memories").insert({
+    npc_id:npcId,subject_type:subjectType,subject_id:subjectId,event_type:eventType,summary,
+    valence:Math.max(-1,Math.min(1,Number(body.valence ?? 0))),
+    importance:Math.max(0,Math.min(1,Number(body.importance ?? .5))),
+    confidence:Math.max(0,Math.min(1,Number(body.confidence ?? 1))),
+    visibility,source:"player_interaction",details:{actor_user_id:userId}
+  }).select("*").single();
+  if(error) throw error;
+  return data;
+}
+
 async function ensureState(userId: string) {
   const { data } = await admin.from("grid_combat_state").select("*").eq("user_id", userId).maybeSingle();
   if (data) return data;
@@ -141,6 +165,16 @@ Deno.serve(async (req: Request) => {
     const body = await req.json();
     const action = String(body.action ?? "state");
     const state = await ensureState(user.id);
+
+    if (action === "npc_memory_read") {
+      const npcId=String(body.npc_id ?? "");
+      if(!npcId) return json({error:"invalid_npc_id"},400);
+      return json({ok:true,action,memories:await npcMemories(npcId,Number(body.limit ?? 12))});
+    }
+
+    if (action === "npc_memory_write") {
+      return json({ok:true,action,memory:await writeNpcMemory(user.id,body)});
+    }
 
     if (action === "sync") {
       const result = await syncState(user.id, body.transform ?? body);
