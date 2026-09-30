@@ -188,6 +188,12 @@ export class GridCombatAuthority {
     return data;
   }
 
+  async marketMerchants(): Promise<CombatServerResult | null> {
+    const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', { body:{action:'market_merchants'} });
+    if(error) throw error;
+    return data;
+  }
+
   async npcMemoryRead(npcId:string, limit=12): Promise<CombatServerResult | null> {
     const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', { body:{action:'npc_memory_read',npc_id:npcId,limit} });
     if(error) throw error;
