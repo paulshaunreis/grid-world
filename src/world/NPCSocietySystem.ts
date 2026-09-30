@@ -67,8 +67,7 @@ const CITIZENS = [
   ['Edda','RANGER','WILDS',-18,28,-27,19],
 ] as const;
 
-function worldCenter(id: string) {
-  return getWorlds().find(w => w.id === id)?.center ?? new THREE.Vector3();
-}
+function worldCenter(id: string) { return getWorlds().find(w => w.id === id)?.center ?? new THREE.Vector3(); }
+function connectedWorldIds(id: string) { return getWorlds().filter(w => w.id !== id).map(w => w.id); }
 
 
