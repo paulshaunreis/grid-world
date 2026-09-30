@@ -1133,7 +1133,8 @@ function animate(now: number) {
   world.update();
   livingWorld.update(dt, player.avatar.position.x, player.avatar.position.z);
   const livingSnapshot = livingWorld.getSnapshot();
-  creatureEcology.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase);
+  const consequenceSnapshot = worldConsequences.getSnapshot();
+  creatureEcology.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, consequenceSnapshot);
   const ecologySnapshot = creatureEcology.getSnapshot();
 
   if (combatAuthority) {
@@ -1197,7 +1198,7 @@ function animate(now: number) {
       creatureAttackTimer=0;
     }
   }
-  npcSociety.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, ecologySnapshot);
+  npcSociety.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, ecologySnapshot, consequenceSnapshot);
   traversalSystem.update(dt);
   combatSystem.syncScene(world.scene);
   combatSystem.update(dt, identity.id);
