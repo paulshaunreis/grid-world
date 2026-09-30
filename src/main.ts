@@ -958,6 +958,7 @@ let creatureCombatSyncTimer = 0;
 let creatureCombatStateTimer = 0;
 let creatureCombatAiTimer = 0;
 let creatureAttackTimer = 0;
+let lastCreatureThreatAt = 0;
 
 function savePlayer() {
   const transform = player.getTransform();
@@ -1206,8 +1207,9 @@ function animate(now: number) {
             Number(state.max_health),
             Number(state.health)>0 && !respawning
           );
-          if (state.ai_state === 'ATTACK' && state.target_user_id === identity.id) {
+          if (state.ai_state === 'ATTACK' && state.target_user_id === identity.id && performance.now() - lastCreatureThreatAt > 5000) {
             addChatMessage('WORLD', 'A nearby creature is reacting to your presence.', 'system');
+            lastCreatureThreatAt = performance.now();
           }
         }
       }).catch(error => console.warn('Server creature AI tick failed.', error));
