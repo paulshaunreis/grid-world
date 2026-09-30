@@ -296,6 +296,12 @@ const starterZone = new StarterZone();
 const livingWorld = new GridLivingWorld();
 const creatureEcology = new CreatureEcologySystem();
 const npcSociety = new NPCSocietySystem();
+npcSociety.setTransitTrafficRecorder((source, destination) => {
+  const sourceNode = teleportSystem.all().find(node => node.regionId.toUpperCase() === source && node.kind === 'gate')?.id;
+  const destinationNode = teleportSystem.all().find(node => node.regionId.toUpperCase() === destination)?.id;
+  if (sourceNode && destinationNode) teleportSystem.recordTraffic(sourceNode, destinationNode);
+  addChatMessage('GRID TRANSIT', source + ' → ' + destination + ' · NPC transit route completed.', 'system');
+});
 const relationshipStories = new RelationshipStorySystem();
 const traversalSystem = new TraversalSystem();
 const questSystem = new QuestSystem(identity.id);
