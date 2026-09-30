@@ -18,7 +18,11 @@ type Species = {
   speed: number;
   social: number;
   nocturnal?: boolean;
-  center: { x: number; z: number };
+  center: { x: number; y?: number; z: number };
+  locomotion?: string[];
+  bodyPlans?: string[];
+  adaptations?: string[];
+  habitatHeight?: number;
   radius: number;
 };
 
@@ -78,10 +82,10 @@ export class CreatureEcologySystem {
       const dna = deriveWorldDNA(world.tags ?? []);
       const base = '#' + world.color.toString(16).padStart(6,'0');
       const accent = '#' + world.secondary.toString(16).padStart(6,'0');
-      const center = { x: world.center.x, z: world.center.z };
+      const center = { x: world.center.x, y: world.center.y, z: world.center.z };
       const generated: Species[] = [
-        { id:world.id.toLowerCase()+'-wanderer', name:world.label+' Wanderer', world:world.id, color:base, accent, size:.55 + dna.ambientLife*.08, speed:.7 + dna.ambientLife*.18, social:.55, center, radius:7 },
-        { id:world.id.toLowerCase()+'-native', name:world.label+' Native', world:world.id, color:accent, accent:base, size:.42 + dna.ambientLife*.1, speed:.85 + dna.ambientLife*.22, social:.72, center, radius:9, nocturnal:dna.ecology.environmentalForces.includes('night') },
+        { id:world.id.toLowerCase()+'-wanderer', name:world.label+' Wanderer', world:world.id, color:base, accent, size:.55 + dna.ambientLife*.08, speed:.7 + dna.ambientLife*.18, social:.55, center, radius:7, locomotion:dna.creatureMorphology.locomotion, bodyPlans:dna.creatureMorphology.bodyPlans, adaptations:dna.creatureMorphology.adaptations, habitatHeight:world.tags?.includes('aerial')||world.tags?.includes('cloud')?4:world.tags?.includes('growth')?1.5:0 },
+        { id:world.id.toLowerCase()+'-native', name:world.label+' Native', world:world.id, color:accent, accent:base, size:.42 + dna.ambientLife*.1, speed:.85 + dna.ambientLife*.22, social:.72, center, radius:9, nocturnal:dna.ecology.environmentalForces.includes('night'), locomotion:dna.creatureMorphology.locomotion, bodyPlans:dna.creatureMorphology.bodyPlans, adaptations:dna.creatureMorphology.adaptations, habitatHeight:world.tags?.includes('aerial')||world.tags?.includes('cloud')?5:world.tags?.includes('growth')?1.5:0 },
       ];
       for (const species of generated) this.spawnSpecies(species, dna.ecology.lifeDensity > 1.3 ? 3 : 2);
     }
@@ -93,7 +97,7 @@ export class CreatureEcologySystem {
       const angle = (i / count) * Math.PI * 2 + species.id.length;
       root.position.set(
         species.center.x + Math.cos(angle) * species.radius * .45,
-        species.id.includes('moth') || species.id.includes('swallow') || species.id.includes('kite') ? 2.2 : 0,
+        (species.center.y ?? 0) + (species.habitatHeight ?? (species.id.includes('moth') || species.id.includes('swallow') || species.id.includes('kite') ? 2.2 : 0)),
         species.center.z + Math.sin(angle) * species.radius * .45,
       );
       root.userData.gridObjectKind = 'creature';
@@ -114,28 +118,24 @@ export class CreatureEcologySystem {
   }
 
   private createCreatureMesh(species: Species) {
-    const root = new THREE.Group();
-    const body = new THREE.Mesh(
-      new THREE.SphereGeometry(.42 * species.size, 10, 7),
-      createStarterPBRMaterial('skin', { color:species.color, roughness:.78 }),
-    );
-    body.scale.set(1.35, .78, .82);
-    body.position.y = .52 * species.size + (species.nocturnal ? .02 : 0);
-
-    const head = new THREE.Mesh(
-      new THREE.SphereGeometry(.3 * species.size, 9, 7),
-      createStarterPBRMaterial('skin', { color:species.color, roughness:.74 }),
-    );
-    head.position.set(0, .68 * species.size, -.43 * species.size);
-
-    const marker = new THREE.Mesh(
-      new THREE.TorusGeometry(.18 * species.size, .035 * species.size, 5, 12),
-      createStarterPBRMaterial('technical', { color:species.accent, emissive:species.accent, emissiveIntensity:.4 }),
-    );
-    marker.rotation.x = Math.PI / 2;
-    marker.position.y = .74 * species.size;
-
-    root.add(body, head, marker);
+    const root=new THREE.Group();
+    const plan=(species.bodyPlans?.[0] ?? 'native').toLowerCase();
+    const locomotion=(species.locomotion?.[0] ?? 'walk').toLowerCase();
+    const skin=createStarterPBRMaterial('skin',{color:species.color,roughness:.78});
+    const accent=createStarterPBRMaterial('technical',{color:species.accent,emissive:species.accent,emissiveIntensity:.4});
+    const body=new THREE.Mesh(new THREE.SphereGeometry(.42*species.size,10,7),skin);
+    body.scale.set(plan.includes('streamlined')?1.7:plan.includes('armored')?1.5:1.35,plan.includes('six')?1:.78,plan.includes('finned')?1.05:.82);
+    body.position.y=.52*species.size;
+    const head=new THREE.Mesh(new THREE.SphereGeometry(.3*species.size,9,7),skin);
+    head.position.set(0,.68*species.size,-.43*species.size);
+    if(plan.includes('finned')){const fin=new THREE.Mesh(new THREE.ConeGeometry(.16*species.size,.65*species.size,6),accent);fin.rotation.z=Math.PI/2;fin.position.set(0,.5*species.size,.48*species.size);root.add(fin);}
+    if(plan.includes('winged')||plan.includes('feathered')) for(const side of [-1,1]){const wing=new THREE.Mesh(new THREE.PlaneGeometry(.9*species.size,.42*species.size),accent);wing.position.set(side*.52*species.size,.75*species.size,0);wing.rotation.set(side*.25,0,side*.35);root.add(wing);}
+    if(plan.includes('ribboned')) for(const side of [-1,1]){const ribbon=new THREE.Mesh(new THREE.TorusGeometry(.45*species.size,.035*species.size,5,18),accent);ribbon.position.set(side*.5*species.size,.55*species.size,.2*species.size);ribbon.rotation.y=side*.5;root.add(ribbon);}
+    if(plan.includes('antlered')) for(const side of [-1,1]){const antler=new THREE.Mesh(new THREE.TorusGeometry(.16*species.size,.035*species.size,5,12),accent);antler.position.set(side*.2*species.size,.95*species.size,-.35*species.size);antler.rotation.y=side*.7;root.add(antler);}
+    if(plan.includes('six-limbed')||locomotion.includes('climb')) for(let i=0;i<(plan.includes('six')?6:4);i++){const side=i%2===0?-1:1;const leg=new THREE.Mesh(new THREE.CylinderGeometry(.035*species.size,.06*species.size,.55*species.size,6),skin);leg.position.set(side*(.3+.08*Math.floor(i/2))*species.size,.25*species.size,(i%3-1)*.22*species.size);leg.rotation.z=side*.55;root.add(leg);}
+    const marker=new THREE.Mesh(new THREE.TorusGeometry(.18*species.size,.035*species.size,5,12),accent);marker.rotation.x=Math.PI/2;marker.position.y=.74*species.size;
+    root.add(body,head,marker);
+    root.userData.bodyPlan=plan;root.userData.locomotion=species.locomotion ?? ['walk'];root.userData.adaptations=species.adaptations ?? [];
     return root;
   }
 
@@ -196,7 +196,7 @@ export class CreatureEcologySystem {
       if (c.stateTimer < .8 || c.target.distanceTo(c.root.position) < .5) {
         c.target.set(
           c.species.center.x + Math.cos(targetAngle) * targetRadius,
-          c.root.position.y,
+          (c.species.center.y ?? 0) + (c.species.habitatHeight ?? 0),
           c.species.center.z + Math.sin(targetAngle*1.23) * targetRadius * .72,
         );
       }
@@ -223,7 +223,7 @@ export class CreatureEcologySystem {
       }
       const hopping = c.state==='PLAY' || c.state==='MIGRATE' || c.state==='EXPLORE';
       const hopWave = Math.sin(c.phase*2.7 + performance.now()*.002 + c.species.id.length);
-      const baseY = c.species.id.includes('moth') || c.species.id.includes('swallow') || c.species.id.includes('kite') ? 2.2 : 0;
+      const baseY = (c.species.center.y ?? 0) + (c.species.habitatHeight ?? (c.species.id.includes('moth') || c.species.id.includes('swallow') || c.species.id.includes('kite') ? 2.2 : 0));
       const hopHeight = hopping && hopWave > .82 ? (hopWave-.82)*3.2 : 0;
       if (!serverOwned) {
         c.root.position.y = baseY + hopHeight + Math.sin(c.phase + performance.now()*.0015) * (c.species.nocturnal ? .06 : .025);
@@ -232,7 +232,7 @@ export class CreatureEcologySystem {
     }
 
     const state = (Object.entries(this.activeStates).sort((a,b)=>b[1]-a[1])[0]?.[0] ?? 'EXPLORE') as CreatureLifeState;
-    this.snapshot = { population:this.creatures.length, visible, active, state, species:SPECIES.length, world };
+    this.snapshot = { population:this.creatures.length, visible, active, state, species:new Set(this.creatures.map(c=>c.species.id)).size, world };
     this.root.userData.ecology = this.snapshot;
   }
 
