@@ -1312,7 +1312,7 @@ function animate(now: number) {
   if (nearestResource && nearestResource.position.distanceTo(player.avatar.position) < 2.2 && input.isDown('KeyE')) {
     const gathered = worldResources.collect(nearestResource.id, 8);
     if (gathered) {
-      worldConsequences.recordDiscovery(livingSnapshot.world as EcologyWorld, `Gathered ${gathered.amount} ${gathered.kind.replaceAll('_',' ').toLowerCase()}`);
+      worldConsequences.recordResourceGathered(livingSnapshot.world as EcologyWorld, gathered.kind, gathered.amount);
     }
   }
   worldResources.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, consequenceSnapshotForResources);
