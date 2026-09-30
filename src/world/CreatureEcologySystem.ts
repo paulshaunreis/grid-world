@@ -185,7 +185,11 @@ export class CreatureEcologySystem {
         c.root.position.z += tz/length*step;
         c.root.rotation.y = Math.atan2(tx,tz);
       }
-      c.root.position.y += Math.sin(c.phase + performance.now()*.0015) * delta * (c.species.nocturnal ? .16 : .05);
+      const hopping = c.state==='PLAY' || c.state==='MIGRATE' || c.state==='EXPLORE';
+      const hopWave = Math.sin(c.phase*2.7 + performance.now()*.002 + c.species.id.length);
+      const baseY = c.species.id.includes('moth') || c.species.id.includes('swallow') || c.species.id.includes('kite') ? 2.2 : 0;
+      const hopHeight = hopping && hopWave > .82 ? (hopWave-.82)*3.2 : 0;
+      c.root.position.y = baseY + hopHeight + Math.sin(c.phase + performance.now()*.0015) * (c.species.nocturnal ? .06 : .025);
       c.phase += delta * .5;
     }
 
