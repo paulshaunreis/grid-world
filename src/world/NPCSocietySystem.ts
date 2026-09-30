@@ -31,6 +31,9 @@ type Citizen = {
   merchantMood:string;
   merchantOpen:boolean;
   merchantSchedule:number;
+  travelTimer:number;
+  travelTarget:THREE.Vector3;
+  travelMode:'WALK'|'TELEPORT';
 };
 
 export interface SocietySnapshot {
@@ -85,7 +88,7 @@ export class NPCSocietySystem {
       root.add(canopy,counter,sigil);
     }
     this.root.add(root);
-    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0,merchant,merchantStock:merchant?0:0,merchantStress:0,merchantMood:'CALM',merchantOpen:true,merchantSchedule:name.length%6});
+    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0,merchant,merchantStock:merchant?0:0,merchantStress:0,merchantMood:'CALM',merchantOpen:true,merchantSchedule:name.length%6,travelTimer:8+name.length%9,travelTarget:new THREE.Vector3(wx,0,wz),travelMode:'WALK'});
   }
 
   private chooseState(c:Citizen,event:string,phase:string,pressure=0,stability=1) {
@@ -118,6 +121,30 @@ export class NPCSocietySystem {
       if(!c.root.visible) continue;
       active++;
       c.stateTimer-=delta;
+      c.travelTimer-=delta;
+      if (c.travelTimer <= 0) {
+        c.travelTimer = 18 + (c.phase % 11);
+        const destination = c.state === 'TRAVEL' || c.role === 'NAVIGATOR' || c.role === 'COURIER'
+          ? (c.phase % 2 > 1 ? c.workplace : c.home)
+          : c.workplace;
+        const longJump = Math.hypot(destination.x-c.root.position.x,destination.z-c.root.position.z) > 20;
+        if (longJump) {
+          // Long-distance NPC travel can use Grid gates: preserve continuity
+          // while avoiding an expensive cross-world walk.
+          c.travelMode = 'TELEPORT';
+          c.root.userData.travelEffect = 'GATE_TRANSIT';
+          c.root.visible = false;
+          c.root.position.set(destination.x, destination.y, destination.z);
+          c.root.visible = true;
+          c.root.userData.travelEffect = 'ARRIVED';
+          c.target.copy(destination);
+        } else {
+          c.travelMode = 'WALK';
+          c.root.userData.travelEffect = 'WALKING';
+          c.travelTarget.copy(destination);
+          c.target.copy(destination);
+        }
+      }
       if(c.stateTimer<=0){ c.state=this.chooseState(c,event.toUpperCase(),phase,pressure,stability); c.stateTimer=5+(c.phase%6); }
       if(c.merchant) {
         const clock = performance.now() / 1000 + c.merchantSchedule * 11;
