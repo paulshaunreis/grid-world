@@ -191,6 +191,17 @@ export function createTeleportGate(definition: GridTeleportNodeDefinition) {
   return group;
 }
 
+export function applyTeleportTraffic(group: THREE.Group, activity: number) {
+  const pulse = 1 + Math.min(0.045, activity * 0.045);
+  group.userData.trafficActivity = activity;
+  group.scale.setScalar(pulse);
+  group.traverse(object => {
+    const material = (object as THREE.Mesh).material as THREE.MeshBasicMaterial | THREE.MeshStandardMaterial | undefined;
+    if (!material || typeof material !== 'object' || !('opacity' in material)) return;
+    if ('emissiveIntensity' in material) material.emissiveIntensity = 1.6 + activity * 2.2;
+  });
+}
+
 export function setTeleportGateState(group: THREE.Group, state: 'idle'|'selecting'|'transit'|'arrival', destinationName?: string) {
   group.userData.transitState = state;
   group.userData.transitDestination = destinationName ?? '';
