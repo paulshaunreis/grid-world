@@ -4,7 +4,7 @@ import type { SocietySnapshot } from './NPCSocietySystem';
 
 export type QuestType='EXPLORE'|'MEET'|'CREATURE'|'WORLD_EVENT'|'DELIVER'|'BUILD'|'DISCOVER';
 export type QuestStatus='AVAILABLE'|'ACTIVE'|'TURN_IN'|'COMPLETE';
-export interface Quest { id:string; title:string; description:string; type:QuestType; world:EcologyWorld|'ANY'; target:number; progress:number; reward:number; giver:string; status:QuestStatus; objective?:string; targetId?:string; objectivePosition?:[number,number]; }
+export interface Quest { id:string; title:string; description:string; type:QuestType; world:EcologyWorld|'ANY'; target:number; progress:number; reward:number; giver:string; status:QuestStatus; objective?:string; targetId?:string; objectivePosition?:[number,number]; observed?:boolean; }
 type QuestState=Record<string,{progress:number;status:QuestStatus}>;
 const SEEDS:Omit<Quest,'progress'|'status'>[]=[
 {id:'first-steps',title:'Walk the Living World',description:'Visit two different worlds and learn how their environments change.',type:'EXPLORE',world:'ANY',target:2,reward:100,giver:'Lyra',objective:'Visit 2 different worlds.',objectivePosition:[0,-7]},
@@ -29,7 +29,7 @@ export class QuestSystem{
       const position=q.status==='TURN_IN'?GIVERS[q.giver]?.position:q.objectivePosition;
       if(position)this.marker(q.id,position,q.status==='TURN_IN'?'RETURN · '+q.giver:'OBJECTIVE');
     }}
- update(_delta:number,world:EcologyWorld,event:string,_society:SocietySnapshot,_playerX:number,_playerZ:number){if(world!==this.lastWorld){this.visited.add(world);this.lastWorld=world;}const ev=event.toUpperCase();for(const q of this.quests){if(q.status!=='ACTIVE')continue;if(q.type==='EXPLORE')q.progress=Math.min(q.target,this.visited.size);if(q.type==='WORLD_EVENT'&&q.world===world&&ev!=='QUIET'&&ev!==this.lastEvent)q.progress=Math.min(q.target,q.progress+1);if(q.type==='CREATURE'&&q.world===world)q.progress=Math.min(q.target,this.interacted.size);if(q.type==='DISCOVER')q.progress=Math.min(q.target,this.interacted.size);if(q.progress>=q.target){q.status='TURN_IN';}}if(ev!==this.lastEvent)this.lastEvent=ev;this.syncMarkers();this.save();this.root.userData.quests=this.getSnapshot();}
+ update(_delta:number,world:EcologyWorld,event:string,_society:SocietySnapshot,_playerX:number,_playerZ:number){if(world!==this.lastWorld){this.visited.add(world);this.lastWorld=world;}const ev=event.toUpperCase();for(const q of this.quests){if(q.status!=='ACTIVE')continue;if(q.type==='EXPLORE')q.progress=Math.min(q.target,this.visited.size);if(q.type==='WORLD_EVENT'&&q.world===world&&ev!=='QUIET'&&ev!==this.lastEvent)q.observed=true;if(q.type==='CREATURE'&&q.world===world)q.progress=Math.min(q.target,this.interacted.size);if(q.type==='DISCOVER')q.progress=Math.min(q.target,this.interacted.size);if(q.progress>=q.target){q.status='TURN_IN';}}if(ev!==this.lastEvent)this.lastEvent=ev;this.syncMarkers();this.save();this.root.userData.quests=this.getSnapshot();}
  interact(target:THREE.Object3D,world:EcologyWorld,event:string){const kind=String(target.userData.gridObjectKind??'');const name=String(target.userData.interactionName??target.name??'');const isTeamAvatar=Boolean(target.userData.teamAvatarId);if(kind==='npc'||isTeamAvatar){
       const turnIn=this.quests.find(q=>q.giver===name&&q.status==='TURN_IN');
       if(turnIn){turnIn.status='COMPLETE';this.rewardBank+=turnIn.reward;this.syncMarkers();this.save();return {handled:true,message:name+': “'+turnIn.title+'” complete. +'+turnIn.reward+' GRID.' ,quest:turnIn};}const available=this.quests.find(q=>q.giver===name&&q.status==='AVAILABLE');if(available){available.status='ACTIVE';this.syncMarkers();this.save();return {handled:true,message:name+' offers “'+available.title+'”. Mission accepted.',quest:available};}const active=this.quests.find(q=>q.giver===name&&q.status==='ACTIVE');if(active)return {handled:true,message:name+' says: “'+active.objective+'”',quest:active};const done=this.quests.find(q=>q.giver===name&&q.status==='COMPLETE');if(done)return {handled:true,message:name+' remembers your work on “'+done.title+'”.'};return {handled:true,message:this.dialogue(name,world,event)};}
@@ -41,6 +41,7 @@ export class QuestSystem{
       this.interacted.add(objectId);
       for(const q of this.quests.filter(q=>q.status==='ACTIVE'&&(q.type==='DISCOVER'||q.type==='WORLD_EVENT'))){
         if(q.targetId&&q.targetId!==objectId)continue;
+        if(q.type==='WORLD_EVENT'&&!q.observed)continue;
         q.progress=Math.min(q.target,q.progress+1);
         if(q.progress>=q.target)q.status='TURN_IN';
       }
