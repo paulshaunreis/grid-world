@@ -946,6 +946,9 @@ setControlStatus();
 let firstPerson = false;
 let presenceTimer = 0;
 let saveTimer = 0;
+let creatureCombatSyncTimer = 0;
+let creatureCombatStateTimer = 0;
+let creatureAttackTimer = 0;
 
 function savePlayer() {
   const transform = player.getTransform();
@@ -998,7 +1001,30 @@ addEventListener('keydown', event => {
     const targetId=combatSystem.selectNearest(identity.id,3.8);
     const target = targetId ? world.scene.getObjectByProperty('userData.combatId', targetId) : null;
     const targetFaction = target?.userData.combatFaction;
-    if (targetId && combatSystem.getMode()==='PVP' && targetFaction==='PLAYER' && combatAuthority) {
+    if (targetId && targetFaction==='CREATURE' && combatAuthority) {
+      combatAuthority.attackCreature(targetId).then(result => {
+        if (result?.ok) {
+          const creature=result.creature;
+          combatSystem.applyAuthoritativeCreatureState(targetId, Number(creature?.health ?? 0), Number(creature?.max_health ?? 100), !result.defeated);
+          if (result.defeated) {
+            const species=String(target?.userData.species ?? 'creature');
+            questSystem.recordCombatKill(species,livingWorld.getSnapshot().world as EcologyWorld);
+            addChatMessage('COMBAT', species.replaceAll('-', ' ') + ' defeated. The field remembers.', 'system');
+            questPanel.render();
+          }
+          combatSystem.applyAuthoritativeHealth(identity.id, Number(result.attacker?.health ?? 100));
+          prompt.textContent=result.defeated ? 'F · Creature defeated' : 'F · Strike confirmed';
+          audio.play('ui.confirm');
+        } else {
+          prompt.textContent='F · ' + (result?.error ?? 'No strike');
+          audio.play('ui.error');
+        }
+      }).catch(error => {
+        console.warn('Authoritative creature attack failed.', error);
+        prompt.textContent='F · Authority unavailable';
+        audio.play('ui.error');
+      });
+    } else if (targetId && combatSystem.getMode()==='PVP' && targetFaction==='PLAYER' && combatAuthority) {
       combatAuthority.attack(targetId).then(result => {
         if (result?.ok) {
           combatSystem.applyAuthoritativeHealth(targetId, Number(result.target?.health ?? 0));
@@ -1102,6 +1128,68 @@ function animate(now: number) {
   const livingSnapshot = livingWorld.getSnapshot();
   creatureEcology.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase);
   const ecologySnapshot = creatureEcology.getSnapshot();
+
+  if (combatAuthority) {
+    creatureCombatSyncTimer += dt;
+    creatureCombatStateTimer += dt;
+    creatureAttackTimer += dt;
+
+    if (creatureCombatSyncTimer >= .65) {
+      const creatures = world.scene.children
+        .flatMap(root => {
+          const found:THREE.Object3D[] = [];
+          root.traverse(obj => {
+            if (obj.userData.combatFaction === 'CREATURE' && obj.userData.combatId) found.push(obj);
+          });
+          return found;
+        })
+        .filter(obj => obj.visible)
+        .slice(0, 40)
+        .map(obj => ({
+          id:String(obj.userData.combatId),
+          species:String(obj.userData.species ?? ''),
+          x:obj.position.x,
+          y:obj.position.y,
+          z:obj.position.z,
+        }));
+      combatAuthority.syncCreatures(creatures).then(result => {
+        for (const state of result?.creatures ?? []) {
+          combatSystem.applyAuthoritativeCreatureState(state.creature_id, Number(state.health), Number(state.max_health), Number(state.health)>0 && !(state.respawn_at && new Date(state.respawn_at).getTime()>Date.now()));
+        }
+      }).catch(error => console.warn('Creature combat sync failed.', error));
+      creatureCombatSyncTimer=0;
+    }
+
+    if (creatureCombatStateTimer >= 1.25) {
+      const creatureIds = world.scene.children.flatMap(root => {
+        const found:string[]=[];
+        root.traverse(obj => { if (obj.userData.combatFaction==='CREATURE' && obj.userData.combatId) found.push(String(obj.userData.combatId)); });
+        return found;
+      }).slice(0,60);
+      combatAuthority.creatureState(creatureIds).then(result => {
+        for (const state of result?.creatures ?? []) {
+          const respawning=Boolean(state.respawn_at && new Date(state.respawn_at).getTime()>Date.now());
+          combatSystem.applyAuthoritativeCreatureState(state.creature_id, Number(state.health), Number(state.max_health), Number(state.health)>0 && !respawning);
+        }
+      }).catch(error => console.warn('Creature combat state failed.', error));
+      creatureCombatStateTimer=0;
+    }
+
+    if (creatureAttackTimer >= 1.45 && combatSystem.getMode()==='PVE') {
+      const targetId=combatSystem.selectNearest(identity.id,2.75);
+      const target=targetId ? world.scene.getObjectByProperty('userData.combatId',targetId) : null;
+      if (targetId && target?.userData.combatFaction==='CREATURE') {
+        combatAuthority.creatureAttack(targetId).then(result => {
+          if (result?.ok) {
+            combatSystem.applyAuthoritativeHealth(identity.id, Number(result.attacker?.health ?? 0));
+            const species=String(target?.userData.species ?? 'creature').replaceAll('-', ' ');
+            addChatMessage('COMBAT', species + ' struck back. The wilds are reacting.', 'system');
+          }
+        }).catch(() => undefined);
+      }
+      creatureAttackTimer=0;
+    }
+  }
   npcSociety.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, ecologySnapshot);
   const societySnapshot = npcSociety.getSnapshot();
   traversalSystem.update(dt);
