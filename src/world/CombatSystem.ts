@@ -56,6 +56,11 @@ export class CombatSystem {
   private hudFeed!: HTMLDivElement;
   private arenaRoot=new THREE.Group();
   private arenaPulse=0;
+  private cooldownRemaining=0;
+  private cooldownTotal=.8;
+  private fxRoot=new THREE.Group();
+  private lastHealth=100;
+  private lastTargetHealth=0;
 
   constructor(){
     this.root.name='grid-combat-system';
@@ -88,6 +93,8 @@ export class CombatSystem {
       }
     }
     this.root.add(this.arenaRoot);
+    this.fxRoot.name='combat-feedback-vfx';
+    this.root.add(this.fxRoot);
   }
 
   private buildHud(){
@@ -120,7 +127,7 @@ export class CombatSystem {
     const state=this.snapshot.mode==='SAFE' ? 'SAFE · BUILD / SOCIAL / CREATE'
       : this.snapshot.mode==='PVP' ? 'PVP ARENA · SERVER VALIDATED'
       : 'PVE · CREATURES / EVENTS';
-    this.hudFeed.textContent=`${state} · K ${this.snapshot.kills} · D ${this.snapshot.defeats}`;
+    this.hudFeed.textContent=`${state} · K ${this.snapshot.kills} · D ${this.snapshot.defeats} · CD ${this.cooldownRemaining>0?this.cooldownRemaining.toFixed(1)+'s':'READY'}`;
     this.hud.style.opacity=this.snapshot.mode==='SAFE' ? '.68' : '.94';
   }
 
@@ -173,12 +180,39 @@ export class CombatSystem {
     if(!a||!t||!this.canDamage(attackerId,targetId)||a.attackTimer>0||this.now<a.invulnerableUntil)return false;
     if(a.root.position.distanceTo(t.root.position)>a.range+1.2)return false;
     a.attackTimer=a.attackCooldown;
+    this.cooldownRemaining=a.attackCooldown;
+    this.cooldownTotal=a.attackCooldown;
     t.health=Math.max(0,t.health-a.damage);
+    this.spawnHitFx(t.root.position, false);
     t.invulnerableUntil=this.now+.18;
     t.root.userData.health=t.health;
     this.recentDamage=a.damage;
-    if(t.health<=0)this.defeat(t,a);
+    if(t.health<=0){
+      this.spawnHitFx(t.root.position, true);
+      this.defeat(t,a);
+    }
     return true;
+  }
+
+  private spawnHitFx(position:THREE.Vector3, defeat:boolean){
+    const group=new THREE.Group();
+    group.position.copy(position);
+    const ring=new THREE.Mesh(
+      new THREE.TorusGeometry(defeat?.7:.42,.035,8,32),
+      new THREE.MeshBasicMaterial({color:defeat?0xffd36a:0x7fe9ff,transparent:true,opacity:.9})
+    );
+    ring.rotation.x=Math.PI/2;
+    group.add(ring);
+    for(let i=0;i<6;i++){
+      const shard=new THREE.Mesh(new THREE.BoxGeometry(.035,.035,defeat?.42:.24),new THREE.MeshBasicMaterial({color:defeat?0xffd36a:0x7fe9ff,transparent:true,opacity:.85}));
+      const a=i*Math.PI/3;
+      shard.position.set(Math.cos(a)*.12,.15,Math.sin(a)*.12);
+      shard.userData.vx=Math.cos(a)*(defeat?.9:.55);
+      shard.userData.vz=Math.sin(a)*(defeat?.9:.55);
+      group.add(shard);
+    }
+    group.userData.life=defeat?.55:.32;
+    this.fxRoot.add(group);
   }
 
   private defeat(target:Combatant,killer:Combatant){
@@ -194,7 +228,23 @@ export class CombatSystem {
   }
 
   update(dt:number,playerId='player'){
-    this.now+=dt;this.recentDamage*=Math.max(0,1-dt*5);
+    this.now+=dt;
+    this.recentDamage*=Math.max(0,1-dt*5);
+    this.cooldownRemaining=Math.max(0,this.cooldownRemaining-dt);
+    for(const fx of [...this.fxRoot.children]){
+      const life=Number(fx.userData.life??0)-dt;
+      fx.userData.life=life;
+      fx.scale.multiplyScalar(1+dt*3);
+      for(const child of fx.children){
+        const mesh=child as THREE.Mesh;
+        mesh.position.y+=dt*(.35+Number(mesh.userData.vz??0)*.08);
+        mesh.position.x+=dt*Number(mesh.userData.vx??0);
+        mesh.position.z+=dt*Number(mesh.userData.vz??0);
+        const mat=mesh.material as THREE.MeshBasicMaterial;
+        mat.opacity=Math.max(0,life*2.2);
+      }
+      if(life<=0)this.fxRoot.remove(fx);
+    }
     for(const c of this.combatants.values()){
       c.attackTimer=Math.max(0,c.attackTimer-dt);
       if(!c.alive&&this.now>=c.respawnAt)this.respawn(c);
@@ -203,6 +253,10 @@ export class CombatSystem {
     const t=this.combatants.get(this.targetId);
     this.snapshot={mode:this.mode,inCombat:Boolean(p&&t&&p.alive&&t.alive&&p.root.position.distanceTo(t.root.position)<12),playerHealth:p?.health??0,playerMaxHealth:p?.maxHealth??0,target:t?.id??'',targetHealth:t?.health??0,recentDamage:this.recentDamage,kills:this.kills,defeats:this.defeats};
     this.root.userData.combat=this.snapshot;
+    if(this.snapshot.playerHealth<this.lastHealth) this.spawnHitFx(p?.root.position??new THREE.Vector3(), false);
+    if(this.snapshot.targetHealth<this.lastTargetHealth && t) this.spawnHitFx(t.root.position, false);
+    this.lastHealth=this.snapshot.playerHealth;
+    this.lastTargetHealth=this.snapshot.targetHealth;
     this.updateHud();
     this.arenaRoot.visible=this.mode==='PVP';
     this.arenaPulse+=dt;
