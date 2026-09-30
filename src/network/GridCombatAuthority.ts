@@ -176,6 +176,18 @@ export class GridCombatAuthority {
     return data;
   }
 
+  async marketQuote(world:string,item_id:string,amount=1): Promise<CombatServerResult | null> {
+    const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', { body:{action:'market_quote',world,item_id,amount} });
+    if(error) throw error;
+    return data;
+  }
+
+  async marketSell(world:string,item_id:string,amount=1): Promise<CombatServerResult | null> {
+    const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', { body:{action:'market_sell',world,item_id,amount} });
+    if(error) throw error;
+    return data;
+  }
+
   async npcMemoryRead(npcId:string, limit=12): Promise<CombatServerResult | null> {
     const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', { body:{action:'npc_memory_read',npc_id:npcId,limit} });
     if(error) throw error;
