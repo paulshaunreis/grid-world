@@ -301,7 +301,7 @@ const dynamicQuestSystem = new DynamicQuestSystem(questSystem);
 const worldConsequences = new WorldConsequenceSystem();
 const worldResources = new WorldResourceSystem();
 const questPanel = mountQuestPanel(questSystem);
-mountWorldAtlas(() => ({ world: (livingWorld.getSnapshot().world as EcologyWorld), event: livingWorld.getSnapshot().event, consequences: worldConsequences.getSnapshot(), resources: worldResources.getSnapshot(), inventory: worldResources.getInventory() }));
+mountWorldAtlas(() => ({ world: (livingWorld.getSnapshot().world as EcologyWorld), event: livingWorld.getSnapshot().event, consequences: worldConsequences.getSnapshot(), resources: worldResources.getSnapshot(), inventory: worldResources.getInventory(), market: marketQuotes }));
 let lastStoryId = '';
 let lastCombatKills = 0;
 let lastConsequenceId = '';
@@ -614,6 +614,27 @@ if (cloudPersistence) {
 }
 
 let combatAuthority: GridCombatAuthority | null = null;
+type MarketQuote = {world:string;item_id:string;unit_price:number;currency_id:string;scarcity:number;demand:number};
+let marketQuotes:MarketQuote[] = [];
+async function refreshMarketQuotes() {
+  if (!combatAuthority) return;
+  const items:[string,string][] = [
+    ['HARBOR','TIDE_SALT'],['GARDENS','BLOOM_RESIN'],['CITADEL','CROWN_RELIC'],['ARTS','MUSE_INK'],['WILDS','FRONTIER_ORE']
+  ];
+  try {
+    const results = await Promise.all(items.map(([world,item]) => combatAuthority!.marketQuote(world,item,1)));
+    marketQuotes = results.filter((r): r is NonNullable<typeof r> => !!r && !!r.ok).map(r => ({
+      world:String((r as any).world ?? ''),
+      item_id:String((r as any).item_id ?? ''),
+      unit_price:Number((r as any).unit_price ?? 0),
+      currency_id:String((r as any).currency_id ?? ''),
+      scarcity:Number((r as any).scarcity ?? 1),
+      demand:Number((r as any).demand ?? 1),
+    }));
+  } catch (error) {
+    console.warn('Market quote refresh unavailable.', error);
+  }
+}
 const worldEventStream = cloudPersistence ? new GridWorldEventStream(cloudPersistence.getClient()) : null;
 let worldEventPollTimer = 0;
 let lastRemoteWorldEventId = '';
@@ -635,6 +656,7 @@ const cloudReady = cloudPersistence
 
       if (authenticated) {
         combatAuthority = new GridCombatAuthority(cloudPersistence.getClient());
+        void refreshMarketQuotes();
         presence?.setIdentity(cloudIdentity);
         try {
           const cloudState = await cloudPersistence.load(cloudIdentity);
