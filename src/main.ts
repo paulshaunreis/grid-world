@@ -10,6 +10,7 @@ import { PlayerController } from './core/PlayerController';
 import { World } from './world/World';
 import { SupabasePresence } from './network/SupabasePresence';
 import { GridCombatAuthority } from './network/GridCombatAuthority';
+import { GridWorldEventStream } from './network/GridWorldEventStream';
 import { RemotePlayer } from './world/RemotePlayer';
 import { GridScriptRegistry } from './scripting/GridScriptRegistry';
 import { parseGridScript } from './scripting/GridScript';
@@ -606,6 +607,9 @@ if (cloudPersistence) {
 }
 
 let combatAuthority: GridCombatAuthority | null = null;
+const worldEventStream = cloudPersistence ? new GridWorldEventStream(cloudPersistence.getClient()) : null;
+let worldEventPollTimer = 0;
+let lastRemoteWorldEventId = '';
 
 const cloudReady = cloudPersistence
   ? (async () => {
@@ -1122,6 +1126,19 @@ function animate(now: number) {
   last = now;
   presenceTimer += dt;
   saveTimer += dt;
+  worldEventPollTimer += dt;
+
+  if (worldEventStream && worldEventPollTimer >= 4) {
+    worldEventStream.poll(12).then(events => {
+      for (const event of [...events].reverse()) {
+        if (!lastRemoteWorldEventId) { lastRemoteWorldEventId = event.id; continue; }
+        if (event.id === lastRemoteWorldEventId) break;
+        addChatMessage('WORLD EVENT', event.title + ' · ' + event.summary, 'system');
+        lastRemoteWorldEventId = event.id;
+      }
+    }).catch(error => console.warn('World event stream unavailable.', error));
+    worldEventPollTimer = 0;
+  }
 
   const frame = engine.update(dt);
   player.update(dt);
