@@ -138,9 +138,10 @@ export class CreatureEcologySystem {
     return c.curiosity > .62 ? 'EXPLORE' : 'FORAGE';
   }
 
-  update(delta:number, playerX=0, playerZ=0, world:EcologyWorld='HARBOR', event='QUIET', phase:'DAWN'|'DAY'|'DUSK'|'NIGHT'='DAY', consequences?:WorldConsequenceSnapshot) {
+  update(delta:number, playerX=0, playerZ=0, world:EcologyWorld='HARBOR', event='QUIET', phase:'DAWN'|'DAY'|'DUSK'|'NIGHT'='DAY', consequences?:WorldConsequenceSnapshot, transitFlow=0) {
     const pressure=consequences?.pressure ?? 0;
     const stability=consequences?.stability ?? 1;
+    const transitBoost=THREE.MathUtils.clamp(transitFlow*.08,0,.45);
     const eventName = event.toUpperCase();
     for (const key of Object.keys(this.activeStates) as CreatureLifeState[]) this.activeStates[key] = 0;
     let visible = 0;
@@ -185,12 +186,14 @@ export class CreatureEcologySystem {
 
       const hit=traversalHit(c.root.position,c.target,.25);
       if(hit && hit.height>.25) steerAround(c.root.position,c.target,hit,c.target);
-      const consequenceSpeed = stability < .45 ? .82 : pressure > .6 ? 1.12 : 1;
+        const consequenceSpeed = stability < .45 ? .82 : pressure > .6 ? 1.12 : 1;
+      const trafficSpeed = worldMatch ? 1 + transitBoost : 1;
+      if (worldMatch && transitBoost > .12 && c.state === 'REST' && c.energy > .55) c.state = c.species.world === 'WILDS' ? 'MIGRATE' : 'EXPLORE';
       const speedFactor = c.state === 'REST' ? .08 : c.state === 'MIGRATE' ? 1.8 : c.state === 'EXPLORE' ? 1.2 : c.state === 'PLAY' ? 1.35 : .7;
       if (worldMatch) active++;
       const serverOwned = Boolean(c.root.userData.serverOwned);
       if (!serverOwned) {
-        const speed = c.species.speed * speedFactor * consequenceSpeed * (worldMatch ? 1 : .42);
+        const speed = c.species.speed * speedFactor * consequenceSpeed * trafficSpeed * (worldMatch ? 1 : .42);
         const tx = c.target.x - c.root.position.x;
         const tz = c.target.z - c.root.position.z;
         const length = Math.hypot(tx,tz);
