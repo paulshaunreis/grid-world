@@ -9,6 +9,7 @@ import { writeVersioned } from './core/VersionedStorage';
 import { PlayerController } from './core/PlayerController';
 import { World } from './world/World';
 import { SupabasePresence } from './network/SupabasePresence';
+import { GridCombatAuthority } from './network/GridCombatAuthority';
 import { RemotePlayer } from './world/RemotePlayer';
 import { GridScriptRegistry } from './scripting/GridScriptRegistry';
 import { parseGridScript } from './scripting/GridScript';
@@ -599,6 +600,8 @@ if (cloudPersistence) {
   });
 }
 
+let combatAuthority: GridCombatAuthority | null = null;
+
 const cloudReady = cloudPersistence
   ? (async () => {
       let authenticated = false;
@@ -615,6 +618,7 @@ const cloudReady = cloudPersistence
       }
 
       if (authenticated) {
+        combatAuthority = new GridCombatAuthority(cloudPersistence.getClient());
         presence?.setIdentity(cloudIdentity);
         try {
           const cloudState = await cloudPersistence.load(cloudIdentity);
@@ -967,14 +971,54 @@ addEventListener('keydown', event => {
 
   if (event.code === 'KeyP' && !event.repeat) {
     const next=combatSystem.getMode()==='PVP'?'PVE':'PVP';
-    combatSystem.setMode(next);
-    addChatMessage('COMBAT', next==='PVP'?'PVP enabled for this client prototype. Server authority will govern live matches.':'PVE mode enabled. Player-vs-player damage is disabled.', 'system');
+    if (combatAuthority) {
+      combatAuthority.setMode(next).then(result => {
+        const applied=result?.mode ?? next;
+        combatSystem.setMode(applied);
+        if (result?.allowed === false) {
+          addChatMessage('COMBAT', 'PVP is restricted to the Grid Arena. Returning to ' + applied + ' mode.', 'system');
+          audio.play('ui.error');
+        } else {
+          addChatMessage('COMBAT', applied + ' mode confirmed by Grid Authority.', 'system');
+          audio.play('ui.confirm');
+        }
+      }).catch(error => {
+        console.warn('Authoritative combat mode change failed.', error);
+        addChatMessage('COMBAT', 'Combat authority is unavailable; staying in ' + combatSystem.getMode() + ' mode.', 'system');
+        audio.play('ui.error');
+      });
+    } else {
+      combatSystem.setMode(next);
+      addChatMessage('COMBAT', next + ' mode enabled locally. Cloud authority is unavailable.', 'system');
+    }
   }
 
   if (event.code === 'KeyF' && !event.repeat) {
     const targetId=combatSystem.selectNearest(identity.id,3.8);
-    if(targetId && combatSystem.attack(identity.id,targetId)){ prompt.textContent='F · Strike'; audio.play('ui.confirm'); }
-    else prompt.textContent='F · No target';
+    const target = targetId ? world.scene.getObjectByProperty('userData.combatId', targetId) : null;
+    const targetFaction = target?.userData.combatFaction;
+    if (targetId && combatSystem.getMode()==='PVP' && targetFaction==='PLAYER' && combatAuthority) {
+      combatAuthority.attack(targetId).then(result => {
+        if (result?.ok) {
+          combatSystem.applyAuthoritativeHealth(targetId, Number(result.target?.health ?? 0));
+          combatSystem.applyAuthoritativeHealth(identity.id, Number(result.attacker?.health ?? 100));
+          prompt.textContent=result.defeated ? 'F · Target defeated' : 'F · Strike confirmed';
+          audio.play('ui.confirm');
+        } else {
+          prompt.textContent='F · ' + (result?.error ?? 'No strike');
+          audio.play('ui.error');
+        }
+      }).catch(error => {
+        console.warn('Authoritative attack failed.', error);
+        prompt.textContent='F · Authority unavailable';
+        audio.play('ui.error');
+      });
+    } else if (targetId && combatSystem.attack(identity.id,targetId)) {
+      prompt.textContent='F · Strike';
+      audio.play('ui.confirm');
+    } else {
+      prompt.textContent='F · No target';
+    }
   }
 
   if (event.code === 'KeyE' && !event.repeat) {
@@ -1112,7 +1156,23 @@ function animate(now: number) {
   }
   minimap.update();
   if (presenceTimer >= 0.25) {
-    presence?.update(player.getTransform()).catch(console.error);
+    const transform = player.getTransform();
+    presence?.update(transform).catch(console.error);
+    combatAuthority?.sync(transform, 'first-light').then(result => {
+      if (!result) return;
+      if (result.state) {
+        combatSystem.setMode(result.mode ?? result.state.mode);
+        combatSystem.applyAuthoritativeHealth(identity.id, Number(result.state.health));
+        if (!result.accepted) {
+          player.restoreTransform({
+            x: Number(result.state.x),
+            y: Number(result.state.y),
+            z: Number(result.state.z),
+            yaw: Number(result.state.yaw),
+          });
+        }
+      }
+    }).catch(error => console.warn('Combat authority sync failed.', error));
     presenceTimer = 0;
   }
   if (saveTimer >= 2) {
