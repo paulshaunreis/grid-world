@@ -188,21 +188,26 @@ export class CreatureEcologySystem {
       const consequenceSpeed = stability < .45 ? .82 : pressure > .6 ? 1.12 : 1;
       const speedFactor = c.state === 'REST' ? .08 : c.state === 'MIGRATE' ? 1.8 : c.state === 'EXPLORE' ? 1.2 : c.state === 'PLAY' ? 1.35 : .7;
       if (worldMatch) active++;
-      const speed = c.species.speed * speedFactor * consequenceSpeed * (worldMatch ? 1 : .42);
-      const tx = c.target.x - c.root.position.x;
-      const tz = c.target.z - c.root.position.z;
-      const length = Math.hypot(tx,tz);
-      if (length > .05) {
-        const step = Math.min(length,speed*delta);
-        c.root.position.x += tx/length*step;
-        c.root.position.z += tz/length*step;
-        c.root.rotation.y = Math.atan2(tx,tz);
+      const serverOwned = Boolean(c.root.userData.serverOwned);
+      if (!serverOwned) {
+        const speed = c.species.speed * speedFactor * consequenceSpeed * (worldMatch ? 1 : .42);
+        const tx = c.target.x - c.root.position.x;
+        const tz = c.target.z - c.root.position.z;
+        const length = Math.hypot(tx,tz);
+        if (length > .05) {
+          const step = Math.min(length,speed*delta);
+          c.root.position.x += tx/length*step;
+          c.root.position.z += tz/length*step;
+          c.root.rotation.y = Math.atan2(tx,tz);
+        }
       }
       const hopping = c.state==='PLAY' || c.state==='MIGRATE' || c.state==='EXPLORE';
       const hopWave = Math.sin(c.phase*2.7 + performance.now()*.002 + c.species.id.length);
       const baseY = c.species.id.includes('moth') || c.species.id.includes('swallow') || c.species.id.includes('kite') ? 2.2 : 0;
       const hopHeight = hopping && hopWave > .82 ? (hopWave-.82)*3.2 : 0;
-      c.root.position.y = baseY + hopHeight + Math.sin(c.phase + performance.now()*.0015) * (c.species.nocturnal ? .06 : .025);
+      if (!serverOwned) {
+        c.root.position.y = baseY + hopHeight + Math.sin(c.phase + performance.now()*.0015) * (c.species.nocturnal ? .06 : .025);
+      }
       c.phase += delta * .5;
     }
 
