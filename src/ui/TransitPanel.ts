@@ -34,8 +34,8 @@ export function mountTransitPanel() {
         button.className = 'transit-destination';
         button.innerHTML = '<b></b><span></span><p></p><small></small>';
         button.querySelector('b')!.textContent = destination.displayName;
-        button.querySelector('span')!.textContent = info.tag;
         const info = worldInfo[destination.regionId.toUpperCase()] ?? {tag:destination.regionId.toUpperCase(),description:'Grid transit destination.'};
+        button.querySelector('span')!.textContent = info.tag;
         button.querySelector('small')!.textContent = 'CONFIRM ROUTE';
         button.querySelector('p')!.textContent = info.description;
         button.addEventListener('click', () => close(destination.id));
