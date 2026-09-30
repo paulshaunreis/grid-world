@@ -63,7 +63,7 @@ hud.innerHTML = `
   <div class="hud-frame hud-frame-bottom"></div>
   <div class="hud-topbar" aria-label="Grid runtime status">
     <div class="hud-system"><span class="hud-signal"></span><b>GRID ENGINE 0.1</b><small>FIRST LIGHT</small></div>
-    <div class="hud-telemetry"><span>WORLD <b>ONLINE</b></span><span>TRANSIT <b>READY</b></span><span>OMNI <b>GUARDED</b></span></div>
+    <div class="hud-telemetry"><span>WORLD <b id="hud-world-state">ONLINE</b></span><span>TRANSIT <b>READY</b></span><span>OMNI <b>GUARDED</b></span><span>SIGNAL <b id="hud-world-signal">SYNC</b></span></div>
   </div>
   <div class="crosshair"><span></span></div>
   <button class="identity-button" id="identity-button" type="button">✦ ${identity.displayName}</button>
@@ -1003,7 +1003,12 @@ function animate(now: number) {
   }
   world.updateStreaming(player.avatar.position.x, player.avatar.position.z);
   world.update();
-  livingWorld.update(dt);
+  livingWorld.update(dt, player.avatar.position.x, player.avatar.position.z);
+  const livingSnapshot = livingWorld.getSnapshot();
+  const hudWorldState = document.querySelector<HTMLElement>('#hud-world-state');
+  const hudWorldSignal = document.querySelector<HTMLElement>('#hud-world-signal');
+  if (hudWorldState) hudWorldState.textContent = livingSnapshot.world + ' · ' + livingSnapshot.phase;
+  if (hudWorldSignal) hudWorldSignal.textContent = livingSnapshot.event + ' · ' + livingSnapshot.weather;
   artDirector.update(dt, player.avatar.position.x, player.avatar.position.z);
   worldSkins.update(dt, player.avatar.position.x, player.avatar.position.z);
   teamWork.update(dt, frame.elapsedSeconds);
