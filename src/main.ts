@@ -952,6 +952,9 @@ identityName.addEventListener('keydown', event => {
 setControlStatus();
 
 let firstPerson = false;
+let cameraYaw = 0;
+let cameraPitch = 0.32;
+let cameraInitialized = false;
 let presenceTimer = 0;
 let saveTimer = 0;
 let creatureCombatSyncTimer = 0;
@@ -1341,22 +1344,31 @@ function animate(now: number) {
     saveTimer = 0;
   }
 
+  if (!cameraInitialized) {
+    cameraYaw = player.heading;
+    cameraInitialized = true;
+  }
   const distance = firstPerson ? 0.05 : 7;
-  const height = firstPerson ? 2.0 : 3.2;
-  const target = new THREE.Vector3(
+  const height = firstPerson ? 1.55 : 3.2;
+  const pivot = new THREE.Vector3(
     player.avatar.position.x,
-    player.avatar.position.y + height,
-    player.avatar.position.z + distance
-  ).applyAxisAngle(new THREE.Vector3(0, 1, 0), player.heading);
-
-  // Camera is always active; V remains only as an optional first/third-person toggle.
-  const cameraTarget = new THREE.Vector3(player.avatar.position.x, player.avatar.position.y + (firstPerson ? 1.35 : 2.9), player.avatar.position.z + (firstPerson ? 0.08 : 6.5));
-  camera.position.lerp(cameraTarget, 1 - Math.pow(0.001, dt));
-  camera.lookAt(
-    player.avatar.position.x,
-    player.avatar.position.y + (firstPerson ? 1.65 : 1.2),
+    player.avatar.position.y + (firstPerson ? 1.55 : 1.15),
     player.avatar.position.z
   );
+  const cameraOffset = new THREE.Vector3(
+    Math.sin(cameraYaw) * distance,
+    Math.sin(cameraPitch) * distance + (firstPerson ? 0 : 0.8),
+    Math.cos(cameraYaw) * distance
+  );
+  const cameraTarget = pivot.clone().add(cameraOffset);
+  camera.position.lerp(cameraTarget, 1 - Math.pow(0.001, dt));
+  const lookDistance = firstPerson ? 8 : 10;
+  const lookTarget = pivot.clone().add(new THREE.Vector3(
+    Math.sin(cameraYaw) * lookDistance,
+    Math.sin(cameraPitch) * lookDistance,
+    Math.cos(cameraYaw) * lookDistance
+  ));
+  camera.lookAt(lookTarget);
 
   const targetObject = interaction.findTarget();
   prompt.classList.toggle('visible', Boolean(targetObject));
