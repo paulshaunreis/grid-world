@@ -46,6 +46,7 @@ import { NPCSocietySystem } from './world/NPCSocietySystem';
 import { RelationshipStorySystem } from './world/RelationshipStorySystem';
 import { TraversalSystem } from './world/TraversalSystem';
 import { QuestSystem } from './world/QuestSystem';
+import { CombatSystem } from './world/CombatSystem';
 import { DynamicQuestSystem } from './world/DynamicQuestSystem';
 import { mountQuestPanel } from './ui/QuestPanel';
 
@@ -456,6 +457,9 @@ try {
 }
 const input = new Input();
 const player = new PlayerController(input);
+const combatSystem = new CombatSystem();
+world.scene.add(combatSystem.root);
+combatSystem.register({id:identity.id,faction:'PLAYER',root:player.avatar,maxHealth:100,damage:18,range:2.7,respawnPosition:new THREE.Vector3(0,0,7)});
 world.scene.add(player.avatar);
 
 const savedState = persistence.loadPlayerState();
@@ -961,6 +965,12 @@ addEventListener('keydown', event => {
   if (document.activeElement === chatInput || document.activeElement === identityName) return;
   if (event.code === 'KeyV' && !event.repeat) firstPerson = !firstPerson;
 
+  if (event.code === 'KeyF' && !event.repeat) {
+    const targetId=combatSystem.selectNearest(identity.id,3.8);
+    if(targetId && combatSystem.attack(identity.id,targetId)){ prompt.textContent='F · Strike'; audio.play('ui.confirm'); }
+    else prompt.textContent='F · No target';
+  }
+
   if (event.code === 'KeyE' && !event.repeat) {
     const result = interaction.interact();
     if (result) {
@@ -1044,6 +1054,8 @@ function animate(now: number) {
   npcSociety.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, ecologySnapshot);
   const societySnapshot = npcSociety.getSnapshot();
   traversalSystem.update(dt);
+  combatSystem.syncScene(world.scene);
+  combatSystem.update(dt, identity.id);
   questSystem.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, societySnapshot, player.avatar.position.x, player.avatar.position.z);
   relationshipStories.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, societySnapshot, player.avatar.position.x, player.avatar.position.z);
   const latestStory = relationshipStories.getLatestStory();
