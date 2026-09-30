@@ -52,6 +52,8 @@ export interface CombatServerResult {
   range?: number;
   creatures?: AuthoritativeCreatureState[];
   creature?: AuthoritativeCreatureState;
+  memories?: Array<Record<string,unknown>>;
+  memory?: Record<string,unknown>;
 }
 
 export class GridCombatAuthority {
