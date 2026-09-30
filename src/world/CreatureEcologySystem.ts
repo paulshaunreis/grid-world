@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { createStarterPBRMaterial } from '../engine/GridPBRLibrary';
 import { traversalHit, steerAround } from './TraversalSystem';
+import type { WorldConsequenceSnapshot } from './WorldConsequenceSystem';
 
 export type EcologyWorld = 'HARBOR' | 'GARDENS' | 'CITADEL' | 'ARTS' | 'WILDS';
 export type CreatureLifeState = 'FORAGE' | 'REST' | 'SOCIALIZE' | 'EXPLORE' | 'MIGRATE' | 'PLAY';
@@ -121,7 +122,9 @@ export class CreatureEcologySystem {
     return root;
   }
 
-  private chooseState(c: Creature, event: string, phase: 'DAWN'|'DAY'|'DUSK'|'NIGHT') {
+  private chooseState(c: Creature, event: string, phase: 'DAWN'|'DAY'|'DUSK'|'NIGHT', pressure=0, stability=1) {
+    if (pressure > .72 && c.species.world === 'WILDS') return 'MIGRATE';
+    if (stability < .35 && c.energy < .55) return 'REST';
     const nocturnal = c.species.nocturnal && (phase === 'NIGHT' || phase === 'DUSK');
     if (event === 'MIGRATION' && c.species.world === 'WILDS') return 'MIGRATE';
     if (event === 'BLOOM' && c.species.world === 'GARDENS') return c.curiosity > .45 ? 'FORAGE' : 'SOCIALIZE';
@@ -135,7 +138,9 @@ export class CreatureEcologySystem {
     return c.curiosity > .62 ? 'EXPLORE' : 'FORAGE';
   }
 
-  update(delta:number, playerX=0, playerZ=0, world:EcologyWorld='HARBOR', event='QUIET', phase:'DAWN'|'DAY'|'DUSK'|'NIGHT'='DAY') {
+  update(delta:number, playerX=0, playerZ=0, world:EcologyWorld='HARBOR', event='QUIET', phase:'DAWN'|'DAY'|'DUSK'|'NIGHT'='DAY', consequences?:WorldConsequenceSnapshot) {
+    const pressure=consequences?.pressure ?? 0;
+    const stability=consequences?.stability ?? 1;
     const eventName = event.toUpperCase();
     for (const key of Object.keys(this.activeStates) as CreatureLifeState[]) this.activeStates[key] = 0;
     let visible = 0;
@@ -152,7 +157,7 @@ export class CreatureEcologySystem {
 
       c.stateTimer -= delta;
       if (c.stateTimer <= 0) {
-        c.state = this.chooseState(c,eventName,phase);
+        c.state = this.chooseState(c,eventName,phase,pressure,stability);
         c.stateTimer = 4 + ((c.phase * 13) % 7);
         this.activeStates[c.state]++;
       }
@@ -180,9 +185,10 @@ export class CreatureEcologySystem {
 
       const hit=traversalHit(c.root.position,c.target,.25);
       if(hit && hit.height>.25) steerAround(c.root.position,c.target,hit,c.target);
+      const consequenceSpeed = stability < .45 ? .82 : pressure > .6 ? 1.12 : 1;
       const speedFactor = c.state === 'REST' ? .08 : c.state === 'MIGRATE' ? 1.8 : c.state === 'EXPLORE' ? 1.2 : c.state === 'PLAY' ? 1.35 : .7;
       if (worldMatch) active++;
-      const speed = c.species.speed * speedFactor * (worldMatch ? 1 : .42);
+      const speed = c.species.speed * speedFactor * consequenceSpeed * (worldMatch ? 1 : .42);
       const tx = c.target.x - c.root.position.x;
       const tz = c.target.z - c.root.position.z;
       const length = Math.hypot(tx,tz);
