@@ -17,6 +17,20 @@ export interface AuthoritativeCombatState {
   updated_at: string;
 }
 
+export interface AuthoritativeCreatureState {
+  creature_id:string;
+  species:string;
+  world:string;
+  x:number;
+  y:number;
+  z:number;
+  health:number;
+  max_health:number;
+  last_attack_at:string|null;
+  respawn_at:string|null;
+  updated_at:string;
+}
+
 export interface CombatServerResult {
   ok: boolean;
   action: string;
@@ -32,6 +46,8 @@ export interface CombatServerResult {
   error?: string;
   retryAfterMs?: number;
   range?: number;
+  creatures?: AuthoritativeCreatureState[];
+  creature?: AuthoritativeCreatureState;
 }
 
 export class GridCombatAuthority {
@@ -80,6 +96,52 @@ export class GridCombatAuthority {
     } finally {
       this.attackInFlight = false;
     }
+  }
+
+  async syncCreatures(creatures:Array<{id:string;species:string;x:number;y:number;z:number}>): Promise<CombatServerResult | null> {
+    const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', {
+      body: { action:'sync_creatures', creatures },
+    });
+    if (error) throw error;
+    return data;
+  }
+
+  async creatureState(creatureIds:string[]): Promise<CombatServerResult | null> {
+    const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', {
+      body: { action:'creature_state', creatureIds },
+    });
+    if (error) throw error;
+    return data;
+  }
+
+  async attackCreature(creatureId:string): Promise<CombatServerResult | null> {
+    if (this.attackInFlight) return null;
+    this.attackInFlight = true;
+    try {
+      const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', {
+        body: { action:'attack_creature', creatureId },
+      });
+      if (error) {
+        const response = (error as { context?: Response }).context;
+        if (response) { try { return await response.json() as CombatServerResult; } catch { /* fall through */ } }
+        throw error;
+      }
+      return data;
+    } finally {
+      this.attackInFlight = false;
+    }
+  }
+
+  async creatureAttack(creatureId:string): Promise<CombatServerResult | null> {
+    const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', {
+      body: { action:'creature_attack', creatureId },
+    });
+    if (error) {
+      const response = (error as { context?: Response }).context;
+      if (response) { try { return await response.json() as CombatServerResult; } catch { /* fall through */ } }
+      throw error;
+    }
+    return data;
   }
 
   async state(): Promise<CombatServerResult | null> {
