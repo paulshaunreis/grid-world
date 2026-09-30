@@ -55,7 +55,8 @@ export class DynamicQuestSystem {
     story:LocalStory|null,
     playerX:number,
     playerZ:number,
-  ) {
+  ): boolean {
+    let changed=false;
     const normalized=event.toUpperCase();
     this.timer-=delta;
 
@@ -65,7 +66,7 @@ export class DynamicQuestSystem {
       const giver=WORLD_GIVER[world];
       const position=WORLD_POSITION[world];
       this.serial++;
-      this.add({
+      if(this.add({
         id:'dynamic-event-'+world.toLowerCase()+'-'+this.serial,
         title:world==='WILDS'?'Guide the Migration':world==='GARDENS'?'Protect the Bloom':world==='ARTS'?'Carry the Signal':world==='CITADEL'?'Read the Crown Signal':'Trace the Tide',
         description:'A live world event has changed the local routine. Follow the signal and report what you find.',
@@ -76,7 +77,7 @@ export class DynamicQuestSystem {
         giver,
         objective:'Reach the local event route while '+normalized+' is active.',
         objectivePosition:position,
-      });
+      })) changed=true;
       this.lastEvent=normalized;
     }
 
@@ -87,7 +88,7 @@ export class DynamicQuestSystem {
       const giver=story.participants[0] ?? WORLD_GIVER[story.world];
       const position=WORLD_POSITION[story.world];
       this.serial++;
-      this.add({
+      if(this.add({
         id:'dynamic-story-'+story.id,
         title:'Follow the Story',
         description:story.text,
@@ -99,7 +100,7 @@ export class DynamicQuestSystem {
         objective:'Visit the place where this local story is unfolding and record what you learn.',
         objectivePosition:position,
         targetId:'story:'+story.id,
-      });
+      })) changed=true;
     }
 
     // Society pressure creates a small civic mission when a world is unusually active.
@@ -108,7 +109,7 @@ export class DynamicQuestSystem {
       if (society.talking>=3) {
         const giver=WORLD_GIVER[world];
         this.serial++;
-        this.add({
+        if(this.add({
           id:'dynamic-social-'+world.toLowerCase()+'-'+this.serial,
           title:'Listen to the Neighborhood',
           description:'Several citizens are talking at once. Learn what the neighborhood is coordinating.',
@@ -119,11 +120,11 @@ export class DynamicQuestSystem {
           giver,
           objective:'Meet 2 local citizens and learn what they are coordinating.',
           objectivePosition:WORLD_POSITION[world],
-        });
+        })) changed=true;
       } else if (society.working>=4) {
         const giver=WORLD_GIVER[world];
         this.serial++;
-        this.add({
+        if(this.add({
           id:'dynamic-work-'+world.toLowerCase()+'-'+this.serial,
           title:'Lend a Hand',
           description:'The local work crews are active. Find the current work and help move it forward.',
@@ -134,12 +135,13 @@ export class DynamicQuestSystem {
           giver,
           objective:'Visit the local work route and inspect what is being built.',
           objectivePosition:WORLD_POSITION[world],
-        });
+        })) changed=true;
       }
     }
 
     this.root.userData.world=world;
     this.root.userData.event=normalized;
     this.root.userData.playerDistance=Math.round(Math.hypot(playerX-WORLD_POSITION[world][0],playerZ-WORLD_POSITION[world][1]));
+    return changed;
   }
 }
