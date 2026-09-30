@@ -20,6 +20,9 @@ type Citizen = {
   jumpVelocity: number;
   jumpCooldown: number;
   jumpPhase: number;
+  jumpStyle: number;
+  jumpTargetY: number;
+  jumpCount: number;
 };
 
 export interface SocietySnapshot {
@@ -64,7 +67,7 @@ export class NPCSocietySystem {
     root.add(body,head,badge); root.position.set(hx,0,hz);
     root.userData={gridObjectKind:'npc',interactable:true,interactionName:name,role,world};
     this.root.add(root);
-    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7});
+    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0});
   }
 
   private chooseState(c:Citizen,event:string,phase:string) {
@@ -98,11 +101,20 @@ export class NPCSocietySystem {
       const dx=c.target.x-c.root.position.x,dz=c.target.z-c.root.position.z,len=Math.hypot(dx,dz);
       if(len>.2){const speed=c.state==='TRAVEL'?1.45:c.state==='WORK'?.42:.7;const step=Math.min(len,speed*delta);c.root.position.x+=dx/len*step;c.root.position.z+=dz/len*step;c.root.rotation.y=Math.atan2(dx,dz);}
       c.jumpCooldown-=delta;
-      if(c.jumpCooldown<=0 && len>.8 && c.state!=='REST') { c.jumpVelocity=2.7; c.jumpCooldown=3.5+(c.phase%4)*1.2; }
-      c.jumpVelocity-=delta*7.8;
-      c.root.position.y=Math.max(0,c.root.position.y+c.jumpVelocity*delta);
+      const canJump = len>.8 && c.state!=='REST' && c.energy>.34;
+      if(c.jumpCooldown<=0 && canJump) {
+        c.jumpVelocity = c.jumpStyle===0 ? 2.5 : c.jumpStyle===1 ? 2.9 : 3.25;
+        c.jumpCooldown = 3.2 + (c.phase%4)*1.15;
+        c.jumpCount++;
+        c.jumpTargetY = c.jumpStyle===2 ? .82 : c.jumpStyle===1 ? .68 : .55;
+      }
+      // Small traversal hops become taller during travel, giving citizens a readable
+      // ability to clear low lips/steps without turning movement into flight.
+      c.jumpVelocity -= delta*8.2;
+      c.root.position.y = Math.max(0,c.root.position.y+c.jumpVelocity*delta);
       if(c.root.position.y===0 && c.jumpVelocity<0) c.jumpVelocity=0;
-      c.root.rotation.x = c.root.position.y>0.05 ? Math.min(.18,c.jumpVelocity*.05) : 0;
+      const airborne=c.root.position.y>0.05;
+      c.root.rotation.x = airborne ? THREE.MathUtils.clamp(-c.jumpVelocity*.045,-.18,.18) : 0;
       c.root.rotation.z = c.state==='CELEBRATE' ? Math.sin(performance.now()*.004+c.phase)*.12 : 0;
       if(c.state==='CELEBRATE') c.root.rotation.z=Math.sin(performance.now()*.004+c.phase)*.12;
       c.phase+=delta*.5;
