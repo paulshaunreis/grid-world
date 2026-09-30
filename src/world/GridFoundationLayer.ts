@@ -127,7 +127,7 @@ export function createGridFoundationLayer(): GridFoundationLayer {
     if (currentWeather === 'aurora') {
       nodes.children.forEach((node, i) => {
         const pulse = .35 + Math.sin(time * 1.8 + i * .4) * .2;
-        (node.material as THREE.MeshBasicMaterial).opacity = pulse;
+        ((node as THREE.Mesh).material as THREE.MeshBasicMaterial).opacity = pulse;
       });
     }
   }
