@@ -45,6 +45,7 @@ import { CreatureEcologySystem, type EcologyWorld } from './world/CreatureEcolog
 import { NPCSocietySystem } from './world/NPCSocietySystem';
 import { RelationshipStorySystem } from './world/RelationshipStorySystem';
 import { TraversalSystem } from './world/TraversalSystem';
+import { QuestSystem } from './world/QuestSystem';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
@@ -286,12 +287,14 @@ const creatureEcology = new CreatureEcologySystem();
 const npcSociety = new NPCSocietySystem();
 const relationshipStories = new RelationshipStorySystem();
 const traversalSystem = new TraversalSystem();
+const questSystem = new QuestSystem();
 let lastStoryId = '';
 world.scene.add(livingWorld.root);
 world.scene.add(creatureEcology.root);
 world.scene.add(npcSociety.root);
 world.scene.add(relationshipStories.root);
 world.scene.add(traversalSystem.root);
+world.scene.add(questSystem.root);
 world.scene.add(starterZone.group);
 const omniGuard = new GridOmniGuard();
 const sentinels = [new GridSentinel('Omni Sentinel · First Light')];
@@ -1023,6 +1026,7 @@ function animate(now: number) {
   npcSociety.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, ecologySnapshot);
   const societySnapshot = npcSociety.getSnapshot();
   traversalSystem.update(dt);
+  questSystem.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, societySnapshot, player.avatar.position.x, player.avatar.position.z);
   relationshipStories.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, societySnapshot, player.avatar.position.x, player.avatar.position.z);
   const latestStory = relationshipStories.getLatestStory();
   if (latestStory && latestStory.id !== lastStoryId) {
