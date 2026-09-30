@@ -176,6 +176,60 @@ Deno.serve(async (req: Request) => {
       return json({ok:true,action,memory:await writeNpcMemory(user.id,body)});
     }
 
+    if (action === "inventory_read") {
+      const { data: inventory, error } = await admin.from("grid_player_inventory").select("item_id,quantity,updated_at").eq("user_id",user.id).order("item_id");
+      if(error) throw error;
+      return json({ok:true,action,inventory:inventory??[]});
+    }
+
+    if (action === "resource_gather") {
+      const resourceId=String(body.resourceId ?? "");
+      const node=await admin.from("grid_world_resource_state").select("*").eq("node_id",resourceId).maybeSingle();
+      if(node.error) throw node.error;
+      if(!node.data) return json({ok:false,error:"resource_not_found"},404);
+      const target=node.data;
+      const range=Math.hypot(Number(state.x)-Number(target.x),Number(state.z)-Number(target.z));
+      if(range>2.8) return json({ok:false,error:"out_of_range",range},403);
+      if(Number(target.amount)<=0) return json({ok:false,error:"resource_depleted"},409);
+      const amount=Math.min(8,Number(target.amount));
+      const updated=await admin.from("grid_world_resource_state").update({amount:Number(target.amount)-amount,updated_at:new Date().toISOString()}).eq("node_id",resourceId).eq("amount",Number(target.amount)).select("*").single();
+      if(updated.error) return json({ok:false,error:"resource_conflict"},409);
+      const existing=await admin.from("grid_player_inventory").select("quantity").eq("user_id",user.id).eq("item_id",String(target.kind)).maybeSingle();
+      if(existing.error) throw existing.error;
+      const saved=await admin.from("grid_player_inventory").upsert({user_id:user.id,item_id:String(target.kind),quantity:Number(existing.data?.quantity??0)+amount,updated_at:new Date().toISOString()}).select("*").single();
+      if(saved.error) throw saved.error;
+      await recordWorldEvent("ECOLOGY_SHIFT","A resource was gathered",String(target.kind).replaceAll("_"," ")+" was gathered in "+String(target.world)+".",{world:target.world,kind:target.kind,amount});
+      return json({ok:true,action,resource:{node_id:resourceId,world:target.world,kind:target.kind,amount,remaining:Number(updated.data.amount)},inventory:saved.data});
+    }
+
+    if (action === "craft") {
+      const recipes:Record<string,{inputs:Record<string,number>;output:string;amount:number}> = {
+        TIDELINE_GLASS:{inputs:{TIDE_SALT:5},output:"TIDELINE_GLASS",amount:1},
+        BLOOM_THREAD:{inputs:{BLOOM_RESIN:5},output:"BLOOM_THREAD",amount:1},
+        CROWN_RELIC_FRAGMENT:{inputs:{CROWN_RELIC:4},output:"CROWN_RELIC_FRAGMENT",amount:1},
+        MUSE_PIGMENT:{inputs:{MUSE_INK:3},output:"MUSE_PIGMENT",amount:1},
+        FRONTIER_ALLOY:{inputs:{FRONTIER_ORE:5},output:"FRONTIER_ALLOY",amount:1},
+      };
+      const recipe=recipes[String(body.recipeId ?? "")];
+      if(!recipe) return json({ok:false,error:"unknown_recipe"},400);
+      for(const [item,needed] of Object.entries(recipe.inputs)){
+        const row=await admin.from("grid_player_inventory").select("quantity").eq("user_id",user.id).eq("item_id",item).maybeSingle();
+        if(row.error) throw row.error;
+        if(Number(row.data?.quantity??0)<needed) return json({ok:false,error:"insufficient_materials",item,needed,have:Number(row.data?.quantity??0)},409);
+      }
+      for(const [item,needed] of Object.entries(recipe.inputs)){
+        const row=await admin.from("grid_player_inventory").select("quantity").eq("user_id",user.id).eq("item_id",item).maybeSingle();
+        const saved=await admin.from("grid_player_inventory").upsert({user_id:user.id,item_id:item,quantity:Math.max(0,Number(row.data?.quantity??0)-needed),updated_at:new Date().toISOString()});
+        if(saved.error) throw saved.error;
+      }
+      const outRow=await admin.from("grid_player_inventory").select("quantity").eq("user_id",user.id).eq("item_id",recipe.output).maybeSingle();
+      if(outRow.error) throw outRow.error;
+      const saved=await admin.from("grid_player_inventory").upsert({user_id:user.id,item_id:recipe.output,quantity:Number(outRow.data?.quantity??0)+recipe.amount,updated_at:new Date().toISOString()}).select("*").single();
+      if(saved.error) throw saved.error;
+      await recordWorldEvent("CRAFTING","A new world material was crafted",recipe.output.replaceAll("_"," ")+" entered the living economy.",{recipeId:String(body.recipeId),output:recipe.output,amount:recipe.amount});
+      return json({ok:true,action,recipeId:String(body.recipeId),output:saved.data});
+    }
+
     if (action === "sync") {
       const result = await syncState(user.id, body.transform ?? body);
       return json({ ok:true, action, zone:result.zone, mode:result.state.mode, state:result.state, accepted:result.accepted });
