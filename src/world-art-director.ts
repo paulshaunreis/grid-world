@@ -46,7 +46,7 @@ export function installGridWorldArtDirector(scene: THREE.Scene): GridWorldArtDir
   motes.geometry.setAttribute('position', new THREE.BufferAttribute(positions,3));
   ambient.add(motes); root.add(ambient);
 
-  const districtGroups: Record<DistrictKey, THREE.Group> = {} as Record<DistrictKey, THREE.Group;
+  const districtGroups: Record<DistrictKey, THREE.Group> = {} as Record<DistrictKey, THREE.Group>;
   (Object.keys(DISTRICT_VISUALS) as DistrictKey[]).forEach(key => {
     const group = buildDistrictAssets(key);
     districtGroups[key] = group;
