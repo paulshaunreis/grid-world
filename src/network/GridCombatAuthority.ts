@@ -43,6 +43,7 @@ export interface CombatServerResult {
   damage?: number;
   defeated?: boolean;
   accepted?: boolean;
+  allowed?: boolean;
   error?: string;
   retryAfterMs?: number;
   range?: number;
