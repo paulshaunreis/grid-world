@@ -36,6 +36,7 @@ type Citizen = {
   travelMode:'WALK'|'TELEPORT';
   travelPurpose:'WORK'|'TRADE'|'FESTIVAL'|'EMERGENCY'|'RELATIONSHIP';
   travelWorld:EcologyWorld;
+  selectedDestination:EcologyWorld;
   gateCooldown:number;
 };
 
@@ -123,7 +124,7 @@ export class NPCSocietySystem {
       root.add(canopy,counter,sigil);
     }
     this.root.add(root);
-    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0,merchant,merchantStock:merchant?0:0,merchantStress:0,merchantMood:'CALM',merchantOpen:true,merchantSchedule:name.length%6,travelTimer:8+name.length%9,travelTarget:new THREE.Vector3(wx,0,wz),travelMode:'WALK',travelPurpose:'WORK',travelWorld:world,gateCooldown:0});
+    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0,merchant,merchantStock:merchant?0:0,merchantStress:0,merchantMood:'CALM',merchantOpen:true,merchantSchedule:name.length%6,travelTimer:8+name.length%9,travelTarget:new THREE.Vector3(wx,0,wz),travelMode:'WALK',travelPurpose:'WORK',travelWorld:world,selectedDestination:world,gateCooldown:0});
   }
 
   private chooseState(c:Citizen,event:string,phase:string,pressure=0,stability=1) {
@@ -184,6 +185,9 @@ export class NPCSocietySystem {
         if (purpose !== 'WORK') travelWorld = worlds[(worlds.indexOf(c.world) + 1 + Math.floor(c.phase)) % worlds.length];
         c.travelPurpose = purpose;
         c.travelWorld = travelWorld;
+        // NPCs choose a destination before beginning a gate journey.
+        // The choice remains stable for this trip rather than changing mid-route.
+        c.selectedDestination = travelWorld;
         const worldOffset:{[key:string]:[number,number]} = { HARBOR:[-24,27], GARDENS:[20,27], CITADEL:[-19,-18], ARTS:[17,-15], WILDS:[-25,22] };
         const remote = worldOffset[travelWorld];
         const destination = purpose === 'WORK'
@@ -195,6 +199,9 @@ export class NPCSocietySystem {
           // while avoiding an expensive cross-world walk.
           c.travelMode = 'TELEPORT';
           c.root.userData.travelEffect = 'GATE_TRANSIT';
+          c.root.userData.destinationSelected = true;
+          c.root.userData.selectedDestination = c.selectedDestination;
+          c.root.userData.gateDestination = c.selectedDestination;
           c.root.userData.gatePulse = 1;
           c.root.userData.gateDeparture = true;
           c.gateCooldown = 10;
@@ -204,6 +211,9 @@ export class NPCSocietySystem {
           c.root.position.set(destination.x, destination.y, destination.z);
           c.root.visible = true;
           c.root.userData.travelEffect = 'ARRIVED';
+          c.root.userData.destinationSelected = false;
+          c.root.userData.selectedDestination = c.selectedDestination;
+          c.root.userData.gateDestination = c.selectedDestination;
           c.root.userData.gateArrival = true;
           c.root.userData.gatePulse = 1;
           c.root.userData.travelPurpose = c.travelPurpose;
