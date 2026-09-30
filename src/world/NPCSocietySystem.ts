@@ -96,6 +96,8 @@ export class NPCSocietySystem {
   readonly root = new THREE.Group();
   private citizens: Citizen[] = [];
   private gates=new Map<EcologyWorld,THREE.Group>();
+  private gateBusy=new Map<EcologyWorld,number>();
+  private transitTrafficRecorder: ((source:EcologyWorld,destination:EcologyWorld)=>void) | null = null;
   private snapshot: SocietySnapshot = { population:0, active:0, working:0, gathering:0, talking:0, world:'HARBOR', signal:'QUIET' };
 
   constructor() {
@@ -148,6 +150,7 @@ export class NPCSocietySystem {
     const stability=consequences?.stability ?? 1;
     const now=performance.now()*.001;
     for(const [gateWorld,gate] of this.gates){
+      this.gateBusy.set(gateWorld, Math.max(0, (this.gateBusy.get(gateWorld) ?? 0) - delta));
       gate.visible=true;
       const pulse=this.citizens.some(c=>c.travelWorld===gateWorld && Number(c.root.userData.gatePulse??0)>0);
       gate.position.set(...({
@@ -229,6 +232,12 @@ export class NPCSocietySystem {
           c.target.copy(destination);
         }
       }
+      if(c.travelStage==='APPROACH_GATE' && (this.gateBusy.get(c.travelWorld) ?? 0) > 0) {
+        const queue = this.citizens.filter(other => other !== c && other.travelStage==='APPROACH_GATE' && other.travelWorld===c.travelWorld).length;
+        c.root.userData.gateQueuePosition = queue + 1;
+        const side = (queue % 2 === 0 ? 1 : -1) * (1.8 + Math.floor(queue/2)*1.2);
+        c.target.set(c.gatePosition.x + side, 0, c.gatePosition.z + 2.2 + Math.floor(queue/2)*1.1);
+      }
       if(c.stateTimer<=0){ c.state=this.chooseState(c,event.toUpperCase(),phase,pressure,stability); c.stateTimer=5+(c.phase%6); }
       if(c.merchant) {
         const clock = performance.now() / 1000 + c.merchantSchedule * 11;
@@ -265,8 +274,11 @@ export class NPCSocietySystem {
         c.state='TRAVEL';
         c.target.copy(c.gatePosition);
         const gateDistance=Math.hypot(c.root.position.x-c.gatePosition.x,c.root.position.z-c.gatePosition.z);
-        if(gateDistance<1.35 && c.gateCooldown<=0){
+        const gateBusy = this.gateBusy.get(c.travelWorld) ?? 0;
+        if(gateDistance<1.35 && c.gateCooldown<=0 && gateBusy<=0){
           c.travelStage='TRANSIT';
+          this.gateBusy.set(c.travelWorld, 1.25);
+          c.root.userData.gateQueuePosition = 0;
           c.root.userData.destinationSelected=true;
           c.root.userData.gateDeparture=true;
           c.root.userData.travelEffect='GATE_TRANSIT';
@@ -281,6 +293,10 @@ export class NPCSocietySystem {
           c.root.userData.travelEffect='ARRIVED';
           c.root.userData.gateArrival=true;
           c.root.userData.gatePulse=1;
+          c.root.userData.gateQueuePosition = 0;
+          this.transitTrafficRecorder?.(c.world, c.selectedDestination);
+          c.world = c.selectedDestination;
+          c.root.userData.world = c.world;
           c.travelStage='IDLE';
           c.gateCooldown=10;
         }
@@ -326,6 +342,8 @@ export class NPCSocietySystem {
     this.snapshot={population:this.citizens.length,active,working,gathering,talking,world,signal};
     this.root.userData.society=this.snapshot;
   }
+
+  setTransitTrafficRecorder(recorder: (source:EcologyWorld,destination:EcologyWorld)=>void) { this.transitTrafficRecorder = recorder; }
 
   getSnapshot(){return this.snapshot;}
 }
