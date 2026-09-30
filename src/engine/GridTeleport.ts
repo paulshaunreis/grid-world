@@ -42,6 +42,7 @@ export class GridTeleportSystem implements GridEngineSubsystem {
   readonly id = 'grid.teleport-system';
   private readonly nodes = new Map<string, GridTeleportNodeDefinition>();
   private readonly cooldowns = new Map<string, number>();
+  private readonly traffic = new Map<string, {departures:number; arrivals:number; lastActivity:number}>();
 
   start(engine: GridEngine) {
     void engine;
@@ -112,6 +113,25 @@ export class GridTeleportSystem implements GridEngineSubsystem {
         clearanceRadius: destination.clearanceRadius,
       },
     };
+  }
+
+  recordTraffic(sourceNodeId: string, destinationNodeId: string, nowSeconds = performance.now() / 1000) {
+    const source = this.traffic.get(sourceNodeId) ?? { departures: 0, arrivals: 0, lastActivity: 0 };
+    source.departures += 1;
+    source.lastActivity = nowSeconds;
+    this.traffic.set(sourceNodeId, source);
+    const destination = this.traffic.get(destinationNodeId) ?? { departures: 0, arrivals: 0, lastActivity: 0 };
+    destination.arrivals += 1;
+    destination.lastActivity = nowSeconds;
+    this.traffic.set(destinationNodeId, destination);
+  }
+
+  trafficSnapshot(nowSeconds = performance.now() / 1000) {
+    return this.all().map(node => {
+      const item = this.traffic.get(node.id) ?? { departures: 0, arrivals: 0, lastActivity: 0 };
+      const recency = item.lastActivity ? Math.max(0, 1 - (nowSeconds - item.lastActivity) / 300) : 0;
+      return { nodeId: node.id, displayName: node.displayName, regionId: node.regionId, departures: item.departures, arrivals: item.arrivals, activity: Math.min(1, recency + Math.min(0.7, (item.departures + item.arrivals) * 0.04)) };
+    });
   }
 
   snapshot() {
