@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { createStarterPBRMaterial } from '../engine/GridPBRLibrary';
+import type { WorldConsequenceSnapshot } from './WorldConsequenceSystem';
 
 interface LivingPlant { root: THREE.Group; sway: number; }
 interface LivingCreature { root: THREE.Group; phase: number; radius: number; speed: number; center: THREE.Vector3; habitat: 'HARBOR' | 'GARDENS' | 'CITADEL' | 'ARTS' | 'WILDS'; }
@@ -156,7 +157,7 @@ export class GridLivingWorld {
     }
   }
 
-  update(delta:number, playerX = 0, playerZ = 0) {
+  update(delta:number, playerX = 0, playerZ = 0, consequences?:WorldConsequenceSnapshot) {
     this.time+=delta;
     const epochSeconds = Date.now() / 1000;
     if (playerX < -16 && playerZ > 8) this.activeWorld = 'WILDS';
@@ -180,6 +181,9 @@ export class GridLivingWorld {
     const weather: LivingWorldSnapshot['weather'] = this.worldEvent === 'storm' ? 'STORM' : this.worldEvent === 'aurora' ? 'AURORA' : this.worldEvent === 'migration' ? 'MIST' : this.worldEvent === 'tide' ? 'RAIN' : 'CLEAR';
     this.snapshot = { world: this.activeWorld, event: this.worldEvent.toUpperCase(), phase, weather, activity: this.worldEvent === 'migration' ? 1.8 : this.worldEvent === 'bloom' ? 1.35 : this.worldEvent === 'storm' ? .72 : 1, ecology: this.activeWorld === 'WILDS' || this.activeWorld === 'GARDENS' ? 96 : this.activeWorld === 'HARBOR' ? 68 : 61 };
     const activity = this.worldEvent === 'migration' ? 1.8 : this.worldEvent === 'bloom' ? 1.35 : this.worldEvent === 'storm' ? .72 : 1;
+    const pressure = consequences?.pressure ?? 0;
+    const stability = consequences?.stability ?? 1;
+    const consequenceFactor = stability < .4 ? .7 : pressure > .6 ? 1.18 : 1;
     this.root.userData.worldActivity = activity;
     this.root.userData.worldPulse = eventPhase;
     const eventColors: Record<typeof this.worldEvent, number> = {
@@ -198,14 +202,15 @@ export class GridLivingWorld {
     this.eventSignal.scale.setScalar(signalScale + Math.sin(this.time * 2.4) * .035);
     for(let i=0;i<this.plants.length;i++){
       const p=this.plants[i];
-      const bloom = this.worldEvent === 'bloom' ? .11 : .045;
+      const bloom = this.worldEvent === 'bloom' ? .11 : stability < .4 ? .025 : .045;
       p.root.rotation.z=Math.sin(this.time*p.sway+i)*bloom;
       p.root.rotation.x=Math.cos(this.time*p.sway*.7+i)*.025;
     }
     for(let i=0;i<this.creatures.length;i++){
       const c=this.creatures[i];
       const migration = c.habitat === this.activeWorld && this.worldEvent === 'migration' ? 1.8 : 1;
-      const angle=this.time*c.speed*migration+c.phase;
+      const consequenceMigration = c.habitat === this.activeWorld ? consequenceFactor : 1;
+      const angle=this.time*c.speed*migration*consequenceMigration+c.phase;
       c.root.position.x=c.center.x+Math.cos(angle)*c.radius;
       c.root.position.z=c.center.z+Math.sin(angle*1.17)*c.radius*.7;
       c.root.rotation.y=Math.atan2(Math.cos(angle*1.17),-Math.sin(angle))+Math.PI;
@@ -217,7 +222,8 @@ export class GridLivingWorld {
       f.position.y += Math.sin(this.time*.6+i)*.0012;
       const fireflyMaterial = f.material as THREE.MeshBasicMaterial;
       const auroraBoost = this.worldEvent === 'aurora' ? .2 : 0;
-      fireflyMaterial.opacity=Math.min(.95,.35+auroraBoost+.35*(.5+.5*Math.sin(this.time*2.2+i)));
+      const pressureBoost = pressure > .55 ? .12 : 0;
+      fireflyMaterial.opacity=Math.min(.95,.35+auroraBoost+pressureBoost+.35*(.5+.5*Math.sin(this.time*2.2+i)));
     }
     for(let i=0;i<this.waterRipples.length;i++){
       const r=this.waterRipples[i];
@@ -225,7 +231,7 @@ export class GridLivingWorld {
       const s=.8+.35*(.5+.5*Math.sin(this.time*.8+i))+tidePulse;
       r.scale.setScalar(s);
       const rippleMaterial = r.material as THREE.MeshBasicMaterial;
-      rippleMaterial.opacity=.08+.1*(.5+.5*Math.sin(this.time*1.3+i));
+      rippleMaterial.opacity=(.08+.1*(.5+.5*Math.sin(this.time*1.3+i)))*(stability<.4?.75:1);
     }
   }
 
