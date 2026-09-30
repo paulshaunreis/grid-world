@@ -90,6 +90,8 @@ function createGateVFX(world:EcologyWorld) {
   core.position.y=.95;
   group.add(core);
   group.userData.world=world;
+  group.userData.transitState='IDLE';
+  group.userData.transitActivity=0;
   return group;
 }
 
@@ -353,6 +355,14 @@ export class NPCSocietySystem {
       c.root.rotation.x = airborne ? THREE.MathUtils.clamp(-c.jumpVelocity*.045,-.18,.18) : 0;
       c.root.rotation.z = c.state==='CELEBRATE' ? Math.sin(performance.now()*.004+c.phase)*.12 : 0;
       if(c.state==='CELEBRATE') c.root.rotation.z=Math.sin(performance.now()*.004+c.phase)*.12;
+      const gate=this.gates.get(c.world);
+      if (gate) {
+        const queueCount=this.citizens.filter(other=>other!==c && other.world===c.world && other.travelStage==='APPROACH_GATE').length;
+        const busy=(this.gateBusy.get(c.world) ?? 0)>0;
+        gate.userData.transitState=busy?'TRANSIT':queueCount>0?'ACTIVE':'IDLE';
+        gate.userData.transitActivity=Math.min(1,queueCount*.18+(busy?.7:0));
+        gate.scale.setScalar(1+Number(gate.userData.transitActivity||0)*.08);
+      }
       const gatePulse=Number(c.root.userData.gatePulse ?? 0);
       if(gatePulse>0) c.root.userData.gatePulse=Math.max(0,gatePulse-delta*1.8);
       c.root.userData.gateDeparture=false;
