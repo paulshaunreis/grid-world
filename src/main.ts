@@ -35,7 +35,7 @@ import { createGridOmniGuardLayer } from './world/GridOmniGuardPylon';
 import { GridVoiceSystem } from './audio/GridVoiceSystem';
 import { GridAudioSystem } from './audio/GridAudioSystem';
 import { createGridFreeObject } from './engine/GridFreeObjectLibrary';
-import { GridTeleportSystem, createTeleportGate, createTeleportPylon, setTeleportGateState } from './engine/GridTeleport';
+import { GridTeleportSystem, createTeleportGate, createTeleportPylon, setTeleportGateState, applyTeleportTraffic } from './engine/GridTeleport';
 import { GridLivingWorld } from './world/GridLivingWorld';
 import { GRID_MODEL_SOURCES } from './engine/GridModelLibrary';
 import { installGridWorldArtDirector } from './world-art-director';
@@ -1307,6 +1307,10 @@ function animate(now: number) {
   }
   world.updateStreaming(player.avatar.position.x, player.avatar.position.z);
   world.update();
+  for (const visual of teleportVisuals) {
+    const signal = teleportSystem.trafficSnapshot().find(item => item.nodeId === visual.userData.gridTeleportNodeId);
+    applyTeleportTraffic(visual, signal?.activity ?? 0);
+  }
   livingWorld.update(dt, player.avatar.position.x, player.avatar.position.z, worldConsequences.getSnapshot());
     merchantRefreshTimer += dt;
     if(merchantRefreshTimer > 12) { merchantRefreshTimer = 0; void refreshMerchantMarket(); }
