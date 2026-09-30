@@ -97,7 +97,7 @@ export class NPCSocietySystem {
   private citizens: Citizen[] = [];
   private gates=new Map<EcologyWorld,THREE.Group>();
   private gateBusy=new Map<EcologyWorld,number>();
-  private transitTrafficRecorder: ((source:EcologyWorld,destination:EcologyWorld)=>void) | null = null;
+  private transitTrafficRecorder: ((source:EcologyWorld,destination:EcologyWorld,queueDepth:number)=>void) | null = null;
   private snapshot: SocietySnapshot = { population:0, active:0, working:0, gathering:0, talking:0, world:'HARBOR', signal:'QUIET' };
 
   constructor() {
@@ -295,7 +295,7 @@ export class NPCSocietySystem {
           c.root.userData.gateArrival=true;
           c.root.userData.gatePulse=1;
           c.root.userData.gateQueuePosition = 0;
-          this.transitTrafficRecorder?.(c.world, c.selectedDestination);
+          this.transitTrafficRecorder?.(c.world, c.selectedDestination, Number(c.root.userData.gateQueuePosition ?? 0));
           c.world = c.selectedDestination;
           c.root.userData.world = c.world;
           c.travelStage='IDLE';
@@ -344,7 +344,7 @@ export class NPCSocietySystem {
     this.root.userData.society=this.snapshot;
   }
 
-  setTransitTrafficRecorder(recorder: (source:EcologyWorld,destination:EcologyWorld)=>void) { this.transitTrafficRecorder = recorder; }
+  setTransitTrafficRecorder(recorder: (source:EcologyWorld,destination:EcologyWorld,queueDepth:number)=>void) { this.transitTrafficRecorder = recorder; }
 
   getSnapshot(){return this.snapshot;}
 }
