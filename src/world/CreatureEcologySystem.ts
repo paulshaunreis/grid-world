@@ -82,6 +82,9 @@ export class CreatureEcologySystem {
       root.userData.species = species.id;
       root.userData.interactable = true;
       root.userData.interactionName = species.name;
+      root.userData.combatFaction = 'CREATURE';
+      root.userData.maxHealth = species.nocturnal ? 70 : 100;
+      root.userData.damage = 8;
       this.root.add(root);
       this.creatures.push({
         root, species, state:'EXPLORE', stateTimer:2 + i,
