@@ -198,6 +198,35 @@ Deno.serve(async (req: Request) => {
       return json({ok:true,action,merchants:enriched});
     }
 
+    if (action === "market_tick") {
+      const {data:merchants,error:merchantError}=await admin.from("grid_npc_market_state").select("*");
+      if(merchantError) throw merchantError;
+      const updates=[];
+      for(const merchant of merchants ?? []) {
+        const world=String(merchant.world);
+        const {data:nodes,error:nodeError}=await admin.from("grid_world_resource_state").select("id,amount,max_amount").eq("world",world).eq("kind",merchant.resource_kind).limit(20);
+        if(nodeError) throw nodeError;
+        const supply=(nodes??[]).reduce((s,row)=>s+Number(row.amount),0);
+        const capacity=(nodes??[]).reduce((s,row)=>s+Number(row.max_amount),0)||1;
+        const ratio=Number(merchant.stock)/Math.max(1,Number(merchant.desired_stock));
+        const availability=supply/capacity;
+        const replenishment=availability>.55 ? Math.max(0,Math.min(3,Math.ceil((1-ratio)*2))) : 0;
+        const depletion=availability<.25 ? Math.max(0,Math.min(2,Math.ceil(ratio*.5))) : 0;
+        const nextStock=Math.max(0,Math.min(Number(merchant.desired_stock)*1.8,Number(merchant.stock)+replenishment-depletion));
+        const demand=Math.max(.55,Math.min(1.8,Number(merchant.desired_stock)/Math.max(1,nextStock)));
+        await admin.from("grid_npc_market_state").update({
+          stock:nextStock,
+          updated_at:new Date().toISOString()
+        }).eq("npc_id",merchant.npc_id);
+        await admin.from("grid_world_market_state").update({
+          demand:Math.max(.55,Math.min(1.8,Number((Number(merchant.updated_at ? demand : 1) * .92 + demand * .08).toFixed(3)))),
+          updated_at:new Date().toISOString()
+        }).eq("world",world);
+        updates.push({npc_id:merchant.npc_id,world,stock:nextStock,demand});
+      }
+      return json({ok:true,action,updates});
+    }
+
     if (action === "market_quote") {
       const world=String(body.world ?? "");
       const item=String(body.item_id ?? "");
