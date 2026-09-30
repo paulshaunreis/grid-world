@@ -1308,6 +1308,13 @@ function animate(now: number) {
   relationshipStories.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, societySnapshot, player.avatar.position.x, player.avatar.position.z);
   worldConsequences.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.activity, ecologySnapshot, societySnapshot);
   const consequenceSnapshotForResources = worldConsequences.getSnapshot();
+  const nearestResource = worldResources.getSnapshot().filter(node => node.world === livingSnapshot.world).sort((a,b) => a.position.distanceTo(player.avatar.position)-b.position.distanceTo(player.avatar.position))[0];
+  if (nearestResource && nearestResource.position.distanceTo(player.avatar.position) < 2.2 && input.isDown('KeyE')) {
+    const gathered = worldResources.collect(nearestResource.id, 8);
+    if (gathered) {
+      worldConsequences.recordDiscovery(livingSnapshot.world as EcologyWorld, `Gathered ${gathered.amount} ${gathered.kind.replaceAll('_',' ').toLowerCase()}`);
+    }
+  }
   worldResources.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, consequenceSnapshotForResources);
   const consequenceSnapshotAfterUpdate = worldConsequences.getSnapshot();
   if (consequenceSnapshot.history.length > 0) {
