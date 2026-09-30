@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { getWorld } from '../world/GridWorldRegistry';
+import { deriveWorldDNA } from '../world/WorldDNA';
 import { createStarterPBRMaterial } from './GridPBRLibrary';
 import type { GridEngine, GridEngineFrame, GridEngineSubsystem } from './GridEngine';
 
@@ -20,6 +22,7 @@ export interface GridTeleportNodeDefinition extends GridTeleportDestination {
   status?: GridTeleportNodeStatus;
   cooldownSeconds?: number;
   access: 'public' | 'friends' | 'owner';
+  worldId?: string;
 }
 
 export interface GridTeleportRequest {
@@ -152,16 +155,22 @@ export function createTeleportGate(definition: GridTeleportNodeDefinition) {
   group.userData.interactionName = 'Teleport Gate · ' + definition.displayName;
   group.userData.gridTeleportNodeId = definition.id;
   group.userData.gridTeleportKind = definition.kind;
+  group.userData.worldId = definition.worldId ?? '';
+
+  const world = definition.worldId ? getWorld(definition.worldId) : undefined;
+  const dna = deriveWorldDNA(world?.tags ?? []);
+  const primary = world?.color ?? 0x397f9d;
+  const secondary = world?.secondary ?? 0x1a2a3b;
 
   const frameMaterial = createStarterPBRMaterial('metal', {
-    color: '#1a2a3b',
+    color: '#' + secondary.toString(16).padStart(6,'0'),
     metalness: .82,
     roughness: .24,
   });
   const energyMaterial = createStarterPBRMaterial('glass', {
-    color: '#397f9d',
+    color: '#' + primary.toString(16).padStart(6,'0'),
     roughness: .08,
-    emissive: '#42d9ff',
+    emissive: '#' + primary.toString(16).padStart(6,'0'),
     emissiveIntensity: 1.6,
   });
 
@@ -176,15 +185,49 @@ export function createTeleportGate(definition: GridTeleportNodeDefinition) {
   const portal = new THREE.Mesh(new THREE.TorusGeometry(1.88, .11, 12, 64), energyMaterial);
   portal.position.y = 2.9;
   const core = new THREE.Mesh(new THREE.PlaneGeometry(3.7, 5.3), new THREE.MeshBasicMaterial({
-    color: 0x163c5a,
+    color: primary,
     transparent: true,
     opacity: .18,
     side: THREE.DoubleSide,
     depthWrite: false,
   }));
   core.position.set(0, 2.9, 0);
+
+  // World-DNA ornamentation makes the same Grid transit protocol look native to its world.
+  if (dna.transit.gateLanguage.includes('living') || world?.tags?.includes('growth')) {
+    const vines = new THREE.Group();
+    for (let i=0;i<8;i++) {
+      const vine = new THREE.Mesh(new THREE.TorusGeometry(.65 + i*.06, .035, 6, 24), energyMaterial);
+      vine.position.set((i%2 ? -1 : 1)*1.35, .8 + i*.55, .15);
+      vine.rotation.x = Math.PI/2;
+      vines.add(vine);
+    }
+    group.add(vines);
+  } else if (world?.tags?.includes('ancient')) {
+    for (const x of [-1.45,1.45]) {
+      const rune = new THREE.Mesh(new THREE.OctahedronGeometry(.22,0), energyMaterial);
+      rune.position.set(x,4.9,0);
+      group.add(rune);
+    }
+  } else if (world?.tags?.includes('art') || world?.tags?.includes('culture')) {
+    for (let i=0;i<4;i++) {
+      const ribbon = new THREE.Mesh(new THREE.TorusGeometry(2.45+i*.22,.025,6,48), energyMaterial);
+      ribbon.position.y = 2.9;
+      ribbon.rotation.set(Math.PI/2, i*.35, i*.2);
+      group.add(ribbon);
+    }
+  } else if (world?.tags?.includes('wildlife')) {
+    for (let i=0;i<3;i++) {
+      const stone = new THREE.Mesh(new THREE.DodecahedronGeometry(.35,0), frameMaterial);
+      stone.position.set((i-1)*1.7,.45,Math.sin(i)*.4);
+      group.add(stone);
+    }
+  }
+
   group.add(left, right, top, portal, core);
-  addGlow(group, 0x55ddff, 14, 3);
+  addGlow(group, primary, 14, 3);
+  group.userData.transitLanguage = dna.transit.gateLanguage;
+  group.userData.transitEffects = [...dna.transit.effects];
 
   group.position.set(definition.position.x, definition.position.y, definition.position.z);
   group.rotation.y = definition.yaw;
