@@ -305,6 +305,8 @@ mountWorldAtlas(() => ({ world: (livingWorld.getSnapshot().world as EcologyWorld
 let lastStoryId = '';
 let lastCombatKills = 0;
 let lastConsequenceId = '';
+let resourceInteractLatched = false;
+let lastNpcMemoryAt = 0;
 world.scene.add(livingWorld.root);
 world.scene.add(creatureEcology.root);
 world.scene.add(npcSociety.root);
@@ -1125,8 +1127,8 @@ addEventListener('keydown', event => {
       worldConsequences.recordDiscovery(livingWorld.getSnapshot().world as EcologyWorld, 'A traveler interacted with '+result.name+'. The discovery is now part of local history.');
       prompt.textContent = `E · ${String(result.name)} ✓`;
       const npcBrain = result.object.userData.gridNpcBrain as { remember?: (memory: { subjectId?: string; eventType: string; summary: string; valence: number; importance: number; confidence: number }) => void; thought?: () => string } | undefined;
+      const npcId = (result.object.userData.gridActorId as string | undefined) ?? String(result.object.userData.interactionName ?? result.name ?? '');
       if (npcBrain?.remember) {
-        const npcId = result.object.userData.gridActorId as string | undefined;
         npcBrain.remember({
           subjectId: identity.id,
           eventType: 'player-interaction',
@@ -1136,6 +1138,23 @@ addEventListener('keydown', event => {
           confidence: .95,
         });
         addChatMessage(result.name, npcBrain.thought?.() ?? 'I remember meeting you.', 'team');
+      }
+      if (npcId && combatAuthority && performance.now() - lastNpcMemoryAt > 2500) {
+        lastNpcMemoryAt = performance.now();
+        void combatAuthority.npcMemoryWrite({
+          npc_id: npcId,
+          subject_type: 'player',
+          subject_id: identity.id,
+          event_type: 'player-interaction',
+          summary: identity.displayName + ' interacted with me in First Light.',
+          valence: .45,
+          importance: .7,
+          confidence: .95,
+          visibility: 'public',
+        }).then(() => combatAuthority?.npcMemoryRead(npcId, 6)).then(memoryResult => {
+          const latest = memoryResult?.memories?.[0];
+          if (latest?.summary) addChatMessage(String(result.name), String(latest.summary), 'team');
+        }).catch(error => console.warn('Persistent NPC memory unavailable.', error));
       }
       const teamAvatarId = result.object.userData.teamAvatarId as string | undefined;
       if (teamAvatarId) {
@@ -1309,10 +1328,16 @@ function animate(now: number) {
   worldConsequences.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.activity, ecologySnapshot, societySnapshot);
   const consequenceSnapshotForResources = worldConsequences.getSnapshot();
   const nearestResource = worldResources.getSnapshot().filter(node => node.world === livingSnapshot.world).sort((a,b) => a.position.distanceTo(player.avatar.position)-b.position.distanceTo(player.avatar.position))[0];
-  if (nearestResource && nearestResource.position.distanceTo(player.avatar.position) < 2.2 && input.isDown('KeyE')) {
+  const resourceNear = !!nearestResource && nearestResource.position.distanceTo(player.avatar.position) < 2.2;
+  const resourceDown = input.isDown('KeyE');
+  if (resourceNear) prompt.textContent = resourceDown ? 'E · Gather' : 'E · Gather';
+  if (!resourceDown) resourceInteractLatched = false;
+  if (nearestResource && resourceNear && resourceDown && !resourceInteractLatched) {
+    resourceInteractLatched = true;
     const gathered = worldResources.collect(nearestResource.id, 8);
     if (gathered) {
       worldConsequences.recordResourceGathered(livingSnapshot.world as EcologyWorld, gathered.kind, gathered.amount);
+      addChatMessage('RESOURCE', 'Gathered +' + gathered.amount + ' ' + gathered.kind.replaceAll('_',' ') + '.', 'system');
     }
   }
   worldResources.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, consequenceSnapshotForResources);
