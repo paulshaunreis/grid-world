@@ -752,7 +752,7 @@ function handleOmniSignal(kind: string, severity: 'info'|'notice'|'warning'|'cri
 }
 
 function setControlStatus() {
-  status.textContent = `FIRST LIGHT · ${identity.displayName} · WASD move · Shift sprint · Space jump · E interact · V camera`;
+  status.textContent = `FIRST LIGHT · ${identity.displayName} · WASD move · Shift sprint · Space jump · E interact · F attack · P PVP/PVE · V camera`;
 }
 
 function setMultiplayerStatus(label: string) {
@@ -964,6 +964,12 @@ addEventListener('mousemove', event => {
 addEventListener('keydown', event => {
   if (document.activeElement === chatInput || document.activeElement === identityName) return;
   if (event.code === 'KeyV' && !event.repeat) firstPerson = !firstPerson;
+
+  if (event.code === 'KeyP' && !event.repeat) {
+    const next=combatSystem.getMode()==='PVP'?'PVE':'PVP';
+    combatSystem.setMode(next);
+    addChatMessage('COMBAT', next==='PVP'?'PVP enabled for this client prototype. Server authority will govern live matches.':'PVE mode enabled. Player-vs-player damage is disabled.', 'system');
+  }
 
   if (event.code === 'KeyF' && !event.repeat) {
     const targetId=combatSystem.selectNearest(identity.id,3.8);
