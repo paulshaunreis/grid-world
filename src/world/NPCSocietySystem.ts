@@ -34,6 +34,8 @@ type Citizen = {
   travelTimer:number;
   travelTarget:THREE.Vector3;
   travelMode:'WALK'|'TELEPORT';
+  travelPurpose:'WORK'|'TRADE'|'FESTIVAL'|'EMERGENCY'|'RELATIONSHIP';
+  travelWorld:EcologyWorld;
 };
 
 export interface SocietySnapshot {
@@ -88,7 +90,7 @@ export class NPCSocietySystem {
       root.add(canopy,counter,sigil);
     }
     this.root.add(root);
-    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0,merchant,merchantStock:merchant?0:0,merchantStress:0,merchantMood:'CALM',merchantOpen:true,merchantSchedule:name.length%6,travelTimer:8+name.length%9,travelTarget:new THREE.Vector3(wx,0,wz),travelMode:'WALK'});
+    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0,merchant,merchantStock:merchant?0:0,merchantStress:0,merchantMood:'CALM',merchantOpen:true,merchantSchedule:name.length%6,travelTimer:8+name.length%9,travelTarget:new THREE.Vector3(wx,0,wz),travelMode:'WALK',travelPurpose:'WORK',travelWorld:world});
   }
 
   private chooseState(c:Citizen,event:string,phase:string,pressure=0,stability=1) {
@@ -124,19 +126,35 @@ export class NPCSocietySystem {
       c.travelTimer-=delta;
       if (c.travelTimer <= 0) {
         c.travelTimer = 18 + (c.phase % 11);
-        const destination = c.state === 'TRAVEL' || c.role === 'NAVIGATOR' || c.role === 'COURIER'
-          ? (c.phase % 2 > 1 ? c.workplace : c.home)
-          : c.workplace;
+        const worlds:EcologyWorld[] = ['HARBOR','GARDENS','CITADEL','ARTS','WILDS'];
+        let purpose:'WORK'|'TRADE'|'FESTIVAL'|'EMERGENCY'|'RELATIONSHIP' = 'WORK';
+        let travelWorld:EcologyWorld = c.world;
+        if (event.toUpperCase() === 'MARKET') purpose = c.merchant ? 'TRADE' : 'FESTIVAL';
+        else if (event.toUpperCase() === 'AURORA') purpose = 'FESTIVAL';
+        else if (pressure > .72) purpose = 'EMERGENCY';
+        else if (c.social > .72) purpose = 'RELATIONSHIP';
+        if (purpose !== 'WORK') travelWorld = worlds[(worlds.indexOf(c.world) + 1 + Math.floor(c.phase)) % worlds.length];
+        c.travelPurpose = purpose;
+        c.travelWorld = travelWorld;
+        const worldOffset:{[key:string]:[number,number]} = { HARBOR:[-24,27], GARDENS:[20,27], CITADEL:[-19,-18], ARTS:[17,-15], WILDS:[-25,22] };
+        const remote = worldOffset[travelWorld];
+        const destination = purpose === 'WORK'
+          ? (c.state === 'TRAVEL' ? (c.phase % 2 > 1 ? c.workplace : c.home) : c.workplace)
+          : new THREE.Vector3(remote[0] + ((c.phase % 3)-1)*3, 0, remote[1] + ((c.phase % 4)-1)*3);
         const longJump = Math.hypot(destination.x-c.root.position.x,destination.z-c.root.position.z) > 20;
         if (longJump) {
           // Long-distance NPC travel can use Grid gates: preserve continuity
           // while avoiding an expensive cross-world walk.
           c.travelMode = 'TELEPORT';
           c.root.userData.travelEffect = 'GATE_TRANSIT';
+          c.root.userData.travelPurpose = c.travelPurpose;
+          c.root.userData.travelWorld = c.travelWorld;
           c.root.visible = false;
           c.root.position.set(destination.x, destination.y, destination.z);
           c.root.visible = true;
           c.root.userData.travelEffect = 'ARRIVED';
+          c.root.userData.travelPurpose = c.travelPurpose;
+          c.root.userData.travelWorld = c.travelWorld;
           c.target.copy(destination);
         } else {
           c.travelMode = 'WALK';
