@@ -38,6 +38,8 @@ type Citizen = {
   travelWorld:EcologyWorld;
   selectedDestination:EcologyWorld;
   gateCooldown:number;
+  travelStage:'IDLE'|'APPROACH_GATE'|'TRANSIT';
+  gatePosition:THREE.Vector3;
 };
 
 export interface SocietySnapshot {
@@ -78,6 +80,7 @@ function createGateVFX(world:EcologyWorld) {
     ring.userData.baseScale=1+i*.08;
     group.add(ring);
   }
+  const labelCanvas=document.createElement('canvas'); labelCanvas.width=512; labelCanvas.height=128; const labelCtx=labelCanvas.getContext('2d')!; labelCtx.clearRect(0,0,512,128); labelCtx.fillStyle='#ffffff'; labelCtx.font='700 34px sans-serif'; labelCtx.textAlign='center'; labelCtx.fillText(world+' GATE',256,48); labelCtx.font='18px sans-serif'; labelCtx.fillStyle='rgba(210,245,255,.72)'; labelCtx.fillText('DESTINATION SELECT',256,82); const label=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(labelCanvas),transparent:true,depthWrite:false})); label.scale.set(3.8,.95,1); label.position.set(0,2.85,0); group.add(label);
   const core=new THREE.Mesh(
     new THREE.CircleGeometry(1.15,40),
     new THREE.MeshBasicMaterial({color,transparent:true,opacity:.08,side:THREE.DoubleSide})
@@ -124,7 +127,7 @@ export class NPCSocietySystem {
       root.add(canopy,counter,sigil);
     }
     this.root.add(root);
-    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0,merchant,merchantStock:merchant?0:0,merchantStress:0,merchantMood:'CALM',merchantOpen:true,merchantSchedule:name.length%6,travelTimer:8+name.length%9,travelTarget:new THREE.Vector3(wx,0,wz),travelMode:'WALK',travelPurpose:'WORK',travelWorld:world,selectedDestination:world,gateCooldown:0});
+    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0,merchant,merchantStock:merchant?0:0,merchantStress:0,merchantMood:'CALM',merchantOpen:true,merchantSchedule:name.length%6,travelTimer:8+name.length%9,travelTarget:new THREE.Vector3(wx,0,wz),travelMode:'WALK',travelPurpose:'WORK',travelWorld:world,selectedDestination:world,gateCooldown:0,travelStage:'IDLE',gatePosition:new THREE.Vector3(hx,0,hz)});
   }
 
   private chooseState(c:Citizen,event:string,phase:string,pressure=0,stability=1) {
@@ -203,13 +206,13 @@ export class NPCSocietySystem {
           c.root.userData.selectedDestination = c.selectedDestination;
           c.root.userData.gateDestination = c.selectedDestination;
           c.root.userData.gatePulse = 1;
-          c.root.userData.gateDeparture = true;
+          c.root.userData.gateDeparture = false;
           c.gateCooldown = 10;
+          c.travelStage = 'APPROACH_GATE';
+          c.gatePosition.set(remote[0],0,remote[1]);
+          c.travelTarget.copy(c.gatePosition);
           c.root.userData.travelPurpose = c.travelPurpose;
           c.root.userData.travelWorld = c.travelWorld;
-          c.root.visible = false;
-          c.root.position.set(destination.x, destination.y, destination.z);
-          c.root.visible = true;
           c.root.userData.travelEffect = 'ARRIVED';
           c.root.userData.destinationSelected = false;
           c.root.userData.selectedDestination = c.selectedDestination;
@@ -258,8 +261,33 @@ export class NPCSocietySystem {
       if(c.state==='TALK') { c.social=Math.min(1,c.social+delta*.035); talking++; }
       if(c.state==='WORK') working++;
       if(c.state==='GATHER') gathering++;
-      const destination=(c.state==='REST'||c.state==='TALK'||c.state==='CELEBRATE')?c.home:c.workplace;
-      c.target.copy(destination);
+      if(c.travelStage==='APPROACH_GATE'){
+        c.state='TRAVEL';
+        c.target.copy(c.gatePosition);
+        const gateDistance=Math.hypot(c.root.position.x-c.gatePosition.x,c.root.position.z-c.gatePosition.z);
+        if(gateDistance<1.35 && c.gateCooldown<=0){
+          c.travelStage='TRANSIT';
+          c.root.userData.destinationSelected=true;
+          c.root.userData.gateDeparture=true;
+          c.root.userData.travelEffect='GATE_TRANSIT';
+          c.root.userData.gatePulse=1;
+          c.root.visible=false;
+          c.root.position.set(
+            ({HARBOR:[-24,27],GARDENS:[20,27],CITADEL:[-19,-18],ARTS:[17,-15],WILDS:[-25,22]} as {[key:string]:[number,number]})[c.selectedDestination][0],
+            0,
+            ({HARBOR:[-24,27],GARDENS:[20,27],CITADEL:[-19,-18],ARTS:[17,-15],WILDS:[-25,22]} as {[key:string]:[number,number]})[c.selectedDestination][1]
+          );
+          c.root.visible=true;
+          c.root.userData.travelEffect='ARRIVED';
+          c.root.userData.gateArrival=true;
+          c.root.userData.gatePulse=1;
+          c.travelStage='IDLE';
+          c.gateCooldown=10;
+        }
+      } else {
+        const destination=(c.state==='REST'||c.state==='TALK'||c.state==='CELEBRATE')?c.home:c.workplace;
+        c.target.copy(destination);
+      }
       const hit=traversalHit(c.root.position,c.target,.32);
       if(hit) {
         if(hit.height<=1.15 && c.state!=='REST') {
