@@ -956,6 +956,7 @@ let presenceTimer = 0;
 let saveTimer = 0;
 let creatureCombatSyncTimer = 0;
 let creatureCombatStateTimer = 0;
+let creatureCombatAiTimer = 0;
 let creatureAttackTimer = 0;
 
 function savePlayer() {
@@ -1160,6 +1161,7 @@ function animate(now: number) {
   if (combatAuthority) {
     creatureCombatSyncTimer += dt;
     creatureCombatStateTimer += dt;
+    creatureCombatAiTimer += dt;
     creatureAttackTimer += dt;
 
     if (creatureCombatSyncTimer >= .65) {
@@ -1186,6 +1188,30 @@ function animate(now: number) {
         }
       }).catch(error => console.warn('Creature combat sync failed.', error));
       creatureCombatSyncTimer=0;
+    }
+
+    if (creatureCombatAiTimer >= 0.85) {
+      combatAuthority.tickCreatures().then(result => {
+        for (const state of result?.creatures ?? []) {
+          const object = world.scene.getObjectByProperty('userData.combatId', state.creature_id);
+          if (object) {
+            object.position.set(Number(state.x), Number(state.y), Number(state.z));
+            object.userData.serverAiState = state.ai_state;
+            object.userData.serverTargetUserId = state.target_user_id ?? null;
+          }
+          const respawning=Boolean(state.respawn_at && new Date(state.respawn_at).getTime()>Date.now());
+          combatSystem.applyAuthoritativeCreatureState(
+            state.creature_id,
+            Number(state.health),
+            Number(state.max_health),
+            Number(state.health)>0 && !respawning
+          );
+          if (state.ai_state === 'ATTACK' && state.target_user_id === identity.id) {
+            addChatMessage('WORLD', 'A nearby creature is reacting to your presence.', 'system');
+          }
+        }
+      }).catch(error => console.warn('Server creature AI tick failed.', error));
+      creatureCombatAiTimer=0;
     }
 
     if (creatureCombatStateTimer >= 1.25) {
