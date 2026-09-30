@@ -212,7 +212,8 @@ export class NPCSocietySystem {
           c.root.userData.gateDeparture = false;
           c.gateCooldown = 10;
           c.travelStage = 'APPROACH_GATE';
-          c.gatePosition.set(remote[0],0,remote[1]);
+          const sourceGate = worldOffset[c.world];
+          c.gatePosition.set(sourceGate[0],0,sourceGate[1]);
           c.travelTarget.copy(c.gatePosition);
           c.root.userData.travelPurpose = c.travelPurpose;
           c.root.userData.travelWorld = c.travelWorld;
@@ -274,10 +275,10 @@ export class NPCSocietySystem {
         c.state='TRAVEL';
         c.target.copy(c.gatePosition);
         const gateDistance=Math.hypot(c.root.position.x-c.gatePosition.x,c.root.position.z-c.gatePosition.z);
-        const gateBusy = this.gateBusy.get(c.travelWorld) ?? 0;
+        const gateBusy = this.gateBusy.get(c.world) ?? 0;
         if(gateDistance<1.35 && c.gateCooldown<=0 && gateBusy<=0){
           c.travelStage='TRANSIT';
-          this.gateBusy.set(c.travelWorld, 1.25);
+          this.gateBusy.set(c.world, 1.25);
           c.root.userData.gateQueuePosition = 0;
           c.root.userData.destinationSelected=true;
           c.root.userData.gateDeparture=true;
