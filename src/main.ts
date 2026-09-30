@@ -304,7 +304,7 @@ const worldConsequences = new WorldConsequenceSystem();
 const worldResources = new WorldResourceSystem();
 let marketPanel: ReturnType<typeof mountMarketPanel> | null = null;
 const questPanel = mountQuestPanel(questSystem);
-mountWorldAtlas(() => ({ world: (livingWorld.getSnapshot().world as EcologyWorld), event: livingWorld.getSnapshot().event, consequences: worldConsequences.getSnapshot(), resources: worldResources.getSnapshot(), inventory: worldResources.getInventory(), market: marketQuotes }));
+mountWorldAtlas(() => ({ world: (livingWorld.getSnapshot().world as EcologyWorld), event: livingWorld.getSnapshot().event, consequences: worldConsequences.getSnapshot(), resources: worldResources.getSnapshot(), inventory: worldResources.getInventory(), market: marketQuotes, transit: teleportSystem.trafficSnapshot() }));
 marketPanel = mountMarketPanel(() => worldResources.getInventory(), () => marketQuotes, () => combatAuthority);
 const transitPanel = mountTransitPanel();
 let merchantRefreshTimer = 0;
@@ -792,6 +792,7 @@ function handleTeleportNode(result: ReturnType<InteractionSystem['findTarget']>)
     }
 
     const destination = teleport.destination;
+    teleportSystem.recordTraffic(teleport.sourceNodeId ?? nodeId, destination.id);
     const arrival = new THREE.Vector3(destination.position.x, Math.max(0, destination.position.y), destination.position.z);
     const backward = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), destination.yaw);
     arrival.addScaledVector(backward, Math.max(2.5, destination.clearanceRadius));
