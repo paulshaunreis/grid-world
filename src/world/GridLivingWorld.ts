@@ -13,7 +13,7 @@ export class GridLivingWorld {
   private readonly waterRipples: THREE.Mesh[] = [];
   private time = 0;
   private worldEventSlot = -1;
-  private worldEvent: 'quiet' | 'migration' | 'market' | 'bloom' | 'aurora' | 'storm' = 'quiet';
+  private worldEvent: 'quiet' | 'tide' | 'migration' | 'market' | 'bloom' | 'aurora' | 'storm' = 'quiet';
   private readonly eventSignal: THREE.Mesh;
   private activeWorld = 'HARBOR';
   private snapshot: LivingWorldSnapshot = { world: 'HARBOR', event: 'QUIET', phase: 'DAY', weather: 'CLEAR', activity: 1, ecology: 70 };
@@ -167,15 +167,10 @@ export class GridLivingWorld {
     const eventSlot = Math.floor(epochSeconds / 70);
     if (eventSlot !== this.worldEventSlot) {
       this.worldEventSlot = eventSlot;
-      const eventByWorld: Record<string, readonly ['quiet' | 'migration' | 'market' | 'bloom' | 'aurora' | 'storm', string, 'CLEAR' | 'RAIN' | 'MIST' | 'STORM' | 'AURORA']> = {
-        HARBOR: [['tide' as never, 'Tide surge', 'RAIN']],
-        GARDENS: [['bloom', 'Canopy bloom', 'CLEAR']],
-        CITADEL: [['aurora', 'Crown aurora', 'AURORA']],
-        ARTS: [['market', 'Open studios', 'CLEAR']],
-        WILDS: [['migration', 'Wildlife migration', 'MIST']],
+      const eventByWorld: Record<string, 'quiet' | 'tide' | 'migration' | 'market' | 'bloom' | 'aurora' | 'storm'> = {
+        HARBOR: 'tide', GARDENS: 'bloom', CITADEL: 'aurora', ARTS: 'market', WILDS: 'migration',
       };
-      const worldEvent = eventByWorld[this.activeWorld]?.[0] ?? ['quiet', 'The world is breathing', 'CLEAR'];
-      this.worldEvent = worldEvent[0] as typeof this.worldEvent;
+      this.worldEvent = eventByWorld[this.activeWorld] ?? 'quiet';
       this.root.userData.worldEvent = this.worldEvent;
       this.root.userData.worldEventStartedAt = epochSeconds;
     }
@@ -189,6 +184,7 @@ export class GridLivingWorld {
     this.root.userData.worldPulse = eventPhase;
     const eventColors: Record<typeof this.worldEvent, number> = {
       quiet: 0x65dded,
+      tide: 0x65dded,
       migration: 0x9cf2c1,
       market: 0xffd36a,
       bloom: 0x8fe388,
@@ -225,7 +221,7 @@ export class GridLivingWorld {
     }
     for(let i=0;i<this.waterRipples.length;i++){
       const r=this.waterRipples[i];
-      const tidePulse = this.worldEvent === 'storm' ? .22 : 0;
+      const tidePulse = this.worldEvent === 'storm' || this.worldEvent === 'tide' ? .22 : 0;
       const s=.8+.35*(.5+.5*Math.sin(this.time*.8+i))+tidePulse;
       r.scale.setScalar(s);
       const rippleMaterial = r.material as THREE.MeshBasicMaterial;
