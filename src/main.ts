@@ -1001,7 +1001,7 @@ addEventListener('mousemove', event => {
   cameraYaw -= event.movementX * sensitivity;
   cameraPitch -= event.movementY * sensitivity;
   cameraPitch = THREE.MathUtils.clamp(cameraPitch, -0.85, 1.15);
-  player.heading = cameraYaw;
+  player.setHeading(cameraYaw);
 });
 
 renderer.domElement.addEventListener('pointerdown', event => {
