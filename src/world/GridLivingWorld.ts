@@ -13,6 +13,7 @@ export class GridLivingWorld {
   private time = 0;
   private worldEventSlot = -1;
   private worldEvent: 'quiet' | 'migration' | 'market' | 'bloom' | 'aurora' | 'storm' = 'quiet';
+  private readonly eventSignal: THREE.Mesh;
 
   constructor() {
     this.root.name = 'grid-living-world';
@@ -21,6 +22,16 @@ export class GridLivingWorld {
     this.createFireflies();
     this.createWaterRipples();
     this.createAtmosphericStructures();
+    this.eventSignal = new THREE.Mesh(
+      new THREE.TorusGeometry(1.15, .035, 8, 64),
+      new THREE.MeshBasicMaterial({ color: 0x65dded, transparent: true, opacity: .42 }),
+    );
+    this.eventSignal.rotation.x = -Math.PI / 2;
+    this.eventSignal.position.set(0, .18, 0);
+    this.eventSignal.userData.gridObjectId = 'world-event-signal';
+    this.eventSignal.userData.interactable = true;
+    this.eventSignal.userData.interactionName = 'World Event Signal';
+    this.root.add(this.eventSignal);
   }
 
   private createFlora() {
@@ -156,6 +167,19 @@ export class GridLivingWorld {
     const activity = this.worldEvent === 'migration' ? 1.8 : this.worldEvent === 'bloom' ? 1.35 : this.worldEvent === 'storm' ? .72 : 1;
     this.root.userData.worldActivity = activity;
     this.root.userData.worldPulse = eventPhase;
+    const eventColors: Record<typeof this.worldEvent, number> = {
+      quiet: 0x65dded,
+      migration: 0x9cf2c1,
+      market: 0xffd36a,
+      bloom: 0x8fe388,
+      aurora: 0xc6a6ff,
+      storm: 0x76b9ff,
+    };
+    const eventMaterial = this.eventSignal.material as THREE.MeshBasicMaterial;
+    eventMaterial.color.setHex(eventColors[this.worldEvent]);
+    eventMaterial.opacity = .26 + eventPhase * .34;
+    const signalScale = this.worldEvent === 'storm' ? 1.15 : this.worldEvent === 'migration' ? 1.05 : 1;
+    this.eventSignal.scale.setScalar(signalScale + Math.sin(this.time * 2.4) * .035);
     for(let i=0;i<this.plants.length;i++){
       const p=this.plants[i];
       const bloom = this.worldEvent === 'bloom' ? .11 : .045;
