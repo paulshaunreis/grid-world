@@ -765,7 +765,7 @@ function handleOmniSignal(kind: string, severity: 'info'|'notice'|'warning'|'cri
 }
 
 function setControlStatus() {
-  status.textContent = `FIRST LIGHT · ${identity.displayName} · WASD move · Shift sprint · Space jump · E interact · F attack · P PVP/PVE · V camera`;
+  status.textContent = `FIRST LIGHT · ${identity.displayName} · WASD move · Shift sprint · Space jump · E interact · F attack · P PVP/PVE · mouse camera`;
 }
 
 function setMultiplayerStatus(label: string) {
@@ -1349,7 +1349,9 @@ function animate(now: number) {
     player.avatar.position.z + distance
   ).applyAxisAngle(new THREE.Vector3(0, 1, 0), player.heading);
 
-  camera.position.lerp(target, 1 - Math.pow(0.001, dt));
+  // Camera is always active; V remains only as an optional first/third-person toggle.
+  const cameraTarget = new THREE.Vector3(player.avatar.position.x, player.avatar.position.y + (firstPerson ? 1.35 : 2.9), player.avatar.position.z + (firstPerson ? 0.08 : 6.5));
+  camera.position.lerp(cameraTarget, 1 - Math.pow(0.001, dt));
   camera.lookAt(
     player.avatar.position.x,
     player.avatar.position.y + (firstPerson ? 1.65 : 1.2),
