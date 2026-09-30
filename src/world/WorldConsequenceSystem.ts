@@ -85,7 +85,7 @@ export class WorldConsequenceSystem {
     this.root.userData.lastConsequence=item;
   }
 
-  update(delta:number,world:EcologyWorld,event:string,activity:number,ecology:EcologySnapshot,society:SocietySnapshot,now=Date.now()/1000){
+  update(delta:number,world:EcologyWorld,event:string,activity:number,ecology:EcologySnapshot,society:SocietySnapshot,now=Date.now()/1000,transitFlow=0){
     const normalized=event.toUpperCase();
     if(world!==this.lastWorld){
       this.lastWorld=world;
@@ -109,7 +109,8 @@ export class WorldConsequenceSystem {
 
     const p=this.pressure[world];
     const s=this.stability[world];
-    this.snapshot={world,event:normalized,pressure:p,stability:s,activity:activity*(1+p*.35),history:this.history.slice(-8),last:this.history.at(-1)?.text ?? 'The Grid is quiet.'};
+    const flowBoost=THREE.MathUtils.clamp(transitFlow*.12,0,.3);
+    this.snapshot={world,event:normalized,pressure:p,stability:s,activity:activity*(1+p*.35+flowBoost),history:this.history.slice(-8),last:this.history.at(-1)?.text ?? 'The Grid is quiet.'};
     this.root.userData.snapshot=this.snapshot;
   }
 
