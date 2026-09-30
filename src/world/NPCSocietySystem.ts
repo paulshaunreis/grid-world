@@ -36,6 +36,7 @@ type Citizen = {
   travelMode:'WALK'|'TELEPORT';
   travelPurpose:'WORK'|'TRADE'|'FESTIVAL'|'EMERGENCY'|'RELATIONSHIP';
   travelWorld:EcologyWorld;
+  gateCooldown:number;
 };
 
 export interface SocietySnapshot {
@@ -90,7 +91,7 @@ export class NPCSocietySystem {
       root.add(canopy,counter,sigil);
     }
     this.root.add(root);
-    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0,merchant,merchantStock:merchant?0:0,merchantStress:0,merchantMood:'CALM',merchantOpen:true,merchantSchedule:name.length%6,travelTimer:8+name.length%9,travelTarget:new THREE.Vector3(wx,0,wz),travelMode:'WALK',travelPurpose:'WORK',travelWorld:world});
+    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0,merchant,merchantStock:merchant?0:0,merchantStress:0,merchantMood:'CALM',merchantOpen:true,merchantSchedule:name.length%6,travelTimer:8+name.length%9,travelTarget:new THREE.Vector3(wx,0,wz),travelMode:'WALK',travelPurpose:'WORK',travelWorld:world,gateCooldown:0});
   }
 
   private chooseState(c:Citizen,event:string,phase:string,pressure=0,stability=1) {
@@ -124,6 +125,7 @@ export class NPCSocietySystem {
       active++;
       c.stateTimer-=delta;
       c.travelTimer-=delta;
+      c.gateCooldown=Math.max(0,c.gateCooldown-delta);
       if (c.travelTimer <= 0) {
         c.travelTimer = 18 + (c.phase % 11);
         const worlds:EcologyWorld[] = ['HARBOR','GARDENS','CITADEL','ARTS','WILDS'];
@@ -147,12 +149,17 @@ export class NPCSocietySystem {
           // while avoiding an expensive cross-world walk.
           c.travelMode = 'TELEPORT';
           c.root.userData.travelEffect = 'GATE_TRANSIT';
+          c.root.userData.gatePulse = 1;
+          c.root.userData.gateDeparture = true;
+          c.gateCooldown = 10;
           c.root.userData.travelPurpose = c.travelPurpose;
           c.root.userData.travelWorld = c.travelWorld;
           c.root.visible = false;
           c.root.position.set(destination.x, destination.y, destination.z);
           c.root.visible = true;
           c.root.userData.travelEffect = 'ARRIVED';
+          c.root.userData.gateArrival = true;
+          c.root.userData.gatePulse = 1;
           c.root.userData.travelPurpose = c.travelPurpose;
           c.root.userData.travelWorld = c.travelWorld;
           c.target.copy(destination);
@@ -225,6 +232,10 @@ export class NPCSocietySystem {
       c.root.rotation.x = airborne ? THREE.MathUtils.clamp(-c.jumpVelocity*.045,-.18,.18) : 0;
       c.root.rotation.z = c.state==='CELEBRATE' ? Math.sin(performance.now()*.004+c.phase)*.12 : 0;
       if(c.state==='CELEBRATE') c.root.rotation.z=Math.sin(performance.now()*.004+c.phase)*.12;
+      const gatePulse=Number(c.root.userData.gatePulse ?? 0);
+      if(gatePulse>0) c.root.userData.gatePulse=Math.max(0,gatePulse-delta*1.8);
+      c.root.userData.gateDeparture=false;
+      c.root.userData.gateArrival=false;
       c.phase+=delta*.5;
     }
     const signal=event.toUpperCase()!=='QUIET'?event.toUpperCase():(ecology?.state||'QUIET');
