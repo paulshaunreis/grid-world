@@ -1075,7 +1075,7 @@ addEventListener('keydown', event => {
         return;
       }
       worldConsequences.recordDiscovery(livingWorld.getSnapshot().world as EcologyWorld, 'A traveler interacted with '+result.name+'. The discovery is now part of local history.');
-      prompt.textContent = `E · ${result.name} ✓`;
+      prompt.textContent = `E · ${String(result.name)} ✓`;
       const npcBrain = result.object.userData.gridNpcBrain as { remember?: (memory: { subjectId?: string; eventType: string; summary: string; valence: number; importance: number; confidence: number }) => void; thought?: () => string } | undefined;
       if (npcBrain?.remember) {
         const npcId = result.object.userData.gridActorId as string | undefined;
@@ -1219,6 +1219,7 @@ function animate(now: number) {
     }
   }
   npcSociety.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, ecologySnapshot, consequenceSnapshot);
+  const societySnapshot = npcSociety.getSnapshot();
   traversalSystem.update(dt);
   combatSystem.syncScene(world.scene);
   combatSystem.update(dt, identity.id);
@@ -1231,11 +1232,10 @@ function animate(now: number) {
     questPanel.render();
   }
   relationshipStories.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, societySnapshot, player.avatar.position.x, player.avatar.position.z);
-  const societySnapshot = npcSociety.getSnapshot();
   worldConsequences.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.activity, ecologySnapshot, societySnapshot);
-  const consequenceSnapshot = worldConsequences.getSnapshot();
+  const consequenceSnapshotAfterUpdate = worldConsequences.getSnapshot();
   if (consequenceSnapshot.history.length > 0) {
-    const latestConsequence = consequenceSnapshot.history.at(-1)!;
+    const latestConsequence = consequenceSnapshotAfterUpdate.history.at(-1)!;
     if (latestConsequence.id !== lastConsequenceId) {
       lastConsequenceId = latestConsequence.id;
       if (latestConsequence.kind === 'EVENT_STARTED' || latestConsequence.kind === 'CREATURE_DEFEATED' || latestConsequence.kind === 'ECOLOGY_SHIFT') addChatMessage('GRID HISTORY', latestConsequence.text, 'system');
@@ -1251,7 +1251,7 @@ function animate(now: number) {
   const hudWorldState = document.querySelector<HTMLElement>('#hud-world-state');
   const hudWorldSignal = document.querySelector<HTMLElement>('#hud-world-signal');
   if (hudWorldState) hudWorldState.textContent = livingSnapshot.world + ' · ' + livingSnapshot.phase;
-  if (hudWorldSignal) hudWorldSignal.textContent = livingSnapshot.event + ' · ' + livingSnapshot.weather + ' · ' + ecologySnapshot.active + '/' + ecologySnapshot.population + ' CREATURES · ' + societySnapshot.working + ' WORKING · ' + societySnapshot.talking + ' TALKING · ' + storySnapshot.activeStories + ' STORIES · STABILITY ' + Math.round(consequenceSnapshot.stability*100) + '%';
+  if (hudWorldSignal) hudWorldSignal.textContent = livingSnapshot.event + ' · ' + livingSnapshot.weather + ' · ' + ecologySnapshot.active + '/' + ecologySnapshot.population + ' CREATURES · ' + societySnapshot.working + ' WORKING · ' + societySnapshot.talking + ' TALKING · ' + storySnapshot.activeStories + ' STORIES · STABILITY ' + Math.round(consequenceSnapshotAfterUpdate.stability*100) + '%';
   artDirector.update(dt, player.avatar.position.x, player.avatar.position.z);
   worldSkins.update(dt, player.avatar.position.x, player.avatar.position.z);
   teamWork.update(dt, frame.elapsedSeconds);
