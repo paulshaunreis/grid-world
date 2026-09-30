@@ -1130,12 +1130,15 @@ function animate(now: number) {
 
   if (worldEventStream && worldEventPollTimer >= 4) {
     worldEventStream.poll(12).then(events => {
-      for (const event of [...events].reverse()) {
-        if (!lastRemoteWorldEventId) { lastRemoteWorldEventId = event.id; continue; }
+      if (!events.length) return;
+      if (!lastRemoteWorldEventId) { lastRemoteWorldEventId = events[0].id; return; }
+      const fresh = [];
+      for (const event of events) {
         if (event.id === lastRemoteWorldEventId) break;
-        addChatMessage('WORLD EVENT', event.title + ' · ' + event.summary, 'system');
-        lastRemoteWorldEventId = event.id;
+        fresh.push(event);
       }
+      for (const event of fresh.reverse()) addChatMessage('WORLD EVENT', event.title + ' · ' + event.summary, 'system');
+      lastRemoteWorldEventId = events[0].id;
     }).catch(error => console.warn('World event stream unavailable.', error));
     worldEventPollTimer = 0;
   }
