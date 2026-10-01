@@ -287,6 +287,17 @@ app.innerHTML = `
       <div><div class="section-label">GRID ELEMENT FORGE</div><h2>Known elements in.<br><span>New Grid elements out.</span></h2><p>Grid can model fictional transmutation beyond the 118-element real-world periodic table. These are Grid-universe synthetic elements, not claims about newly discovered real elements.</p></div>
       <div class="forge-chain"><b>Au + Ag + C</b><i>→</i><strong>AURORIUM · Ao · 119</strong><b>Cu + Si + O</b><i>→</i><strong>LUMINITE · LuG · 120</strong><b>Fe + C + Si + O</b><i>→</i><strong>VERDANIUM · Vd · 121</strong></div>
     </section>
+    <section class="grid-economy-model" id="join">
+      <div class="section-label">GRID WORLD · ACCESS + ECONOMY</div>
+      <h2>Enter free. <span>Earn your place. Build the economy.</span></h2>
+      <div class="economy-model-grid">
+        <article><b>FREE START</b><h3>Starter Land</h3><p>Verified members can claim one starter parcel from the available world pool.</p></article>
+        <article><b>EARN</b><h3>World Charter</h3><p>Build, contribute, complete missions and grow your server-tracked creation score toward a world charter.</p></article>
+        <article><b>CREATE</b><h3>Creator Economy</h3><p>Sell legitimate creations, services and media through Grid marketplaces while ownership and transactions remain server-authoritative.</p></article>
+        <article><b>SUPPORT</b><h3>Optional Premium</h3><p>Future subscriptions, private hosted worlds, advanced creator tools, events and cosmetic packs can fund Grid without charging for basic access.</p></article>
+      </div>
+      <div class="revenue-principle"><strong>GRID PRINCIPLE:</strong> the platform should make money because it creates useful value—not by blocking the basic ability to enter the world.</div>
+    </section>
   </main>
 
   <section class="legal-strip" id="terms">
