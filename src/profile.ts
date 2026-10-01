@@ -1,4 +1,11 @@
 import './profile.css';
+import { createClient } from '@supabase/supabase-js';
+import { GridProfileAuthority, type GridProfileMedia } from './social/GridProfileAuthority';
+const profileSupabaseUrl=import.meta.env.VITE_SUPABASE_URL as string|undefined;
+const profileSupabaseKey=import.meta.env.VITE_SUPABASE_ANON_KEY as string|undefined;
+const profileClient=profileSupabaseUrl&&profileSupabaseKey?createClient(profileSupabaseUrl,profileSupabaseKey):null;
+const profileAuthority=profileClient?new GridProfileAuthority(profileClient):null;
+let cloudMedia:GridProfileMedia[]=[];
 
 type ProfileTheme = {
   preset: string;
@@ -67,10 +74,11 @@ const sectionLabels: Record<string, string> = {
   events: 'Events',
 };
 
-function save() {
+async function save() {
   localStorage.setItem(key, JSON.stringify(draft));
-  const status = document.querySelector('#save-status');
-  if (status) status.textContent = 'Saved locally · ready for Grid Identity';
+  if(profileAuthority&&profileClient){try{const {data:{user}}=await profileClient.auth.getUser();if(user){await profileAuthority.save({handle:draft.handle,displayName:draft.displayName,bio:draft.bio,status:draft.status,theme:draft.theme,layout:draft.layout});cloudMedia=await profileAuthority.media(user.id);render();
+void hydrateCloudProfile();return;}}catch(error){console.warn('Cloud profile save unavailable; local profile retained.',error);}}
+  const status=document.querySelector('#save-status');if(status)status.textContent='Saved locally · ready for Grid Identity';
 }
 
 function render() {
@@ -112,7 +120,7 @@ function render() {
         <div class="control-section">
           <div class="section-title">PROFILE MODULES</div>
           <div class="module-list">
-            ${draft.layout.sections.map(section => `<button class="module" data-remove="${section}"><span>⠿</span>${sectionLabels[section]}<b>×</b></button>`).join('')}
+            ${draft.layout.sections.map((section,index) => `<button class="module" draggable="true" data-module-index="${index}" data-remove="${section}"><span>⠿</span>${sectionLabels[section]}<b>×</b></button>`).join('')}
           </div>
         </div>
 
@@ -149,7 +157,7 @@ function moduleMarkup(section: string, data: ProfileDraft): string {
     about: `<article class="module-card"><span class="module-label">ABOUT</span><h3>Who I am</h3><p>${escapeHtml(data.bio)}</p><div class="chips"><span>Explorer</span><span>Creator</span><span>${data.favoriteEmoji} Dreamer</span></div></article>`,
     worlds: `<article class="module-card"><span class="module-label">WORLDS</span><h3>Currently exploring</h3><div class="world-pill"><i></i><b>First Light</b><small>Online now</small></div><div class="world-pill"><i></i><b>Neon District</b><small>Visited 3h ago</small></div></article>`,
     creations: `<article class="module-card"><span class="module-label">CREATIONS</span><h3>Made in the Grid</h3><div class="creation-grid"><div>◈</div><div>◇</div><div>✦</div></div></article>`,
-    gallery: `<article class="module-card"><span class="module-label">GALLERY</span><h3>Moments</h3><div class="gallery-grid"><div>🌌</div><div>🌲</div><div>🌃</div><div>🪐</div></div></article>`,
+    gallery: `<article class="module-card"><span class="module-label">GALLERY</span><h3>Moments</h3><div class="gallery-grid">${cloudMedia.length?cloudMedia.slice(0,8).map(m=>m.kind==='VIDEO'?`<video src="${escapeHtml(m.url)}" controls muted></video>`:`<img src="${escapeHtml(m.url)}" alt="${escapeHtml(m.caption||'Grid World post')}">`).join(''):'<div>🌌</div><div>🌲</div><div>🌃</div><div>🪐</div>'}</div></article>`,
     communities: `<article class="module-card"><span class="module-label">COMMUNITIES</span><h3>Places I belong</h3><p>World Builders · First Light Residents · Grid Creators</p></article>`,
     events: `<article class="module-card"><span class="module-label">EVENTS</span><h3>Next up</h3><div class="event-row"><b>NEON NIGHTS</b><small>Tonight · Virtual</small></div><div class="event-row"><b>CREATOR CAMP</b><small>Saturday · Hybrid</small></div></article>`,
   };
@@ -162,6 +170,16 @@ function bind() {
   document.querySelector<HTMLInputElement>('#status')?.addEventListener('input', e => { draft.status=(e.target as HTMLInputElement).value; renderPreviewOnly(); });
   document.querySelector<HTMLTextAreaElement>('#bio')?.addEventListener('input', e => { draft.bio=(e.target as HTMLTextAreaElement).value; renderPreviewOnly(); });
   document.querySelector('#save')?.addEventListener('click', save);
+  document.querySelector('#upload-media')?.addEventListener('click', async()=>{
+    const input=document.querySelector<HTMLInputElement>('#profile-media');const files=[...(input?.files??[])];
+    if(!files.length||!profileClient){return;}
+    const {data:{user}}=await profileClient.auth.getUser();if(!user)return;
+    try{
+      const {data:post,error:postError}=await profileClient.from('grid_profile_posts').insert({user_id:user.id,body:'Profile media',visibility:'public'}).select('*').single();if(postError)throw postError;
+      for(const file of files){const safe=file.name.replace(/[^A-Za-z0-9._-]/g,'_');const path=user.id+'/'+crypto.randomUUID()+'-'+safe;const up=await profileClient.storage.from('profile-media').upload(path,file,{upsert:false,contentType:file.type});if(up.error)throw up.error;const pub=profileClient.storage.from('profile-media').getPublicUrl(path).data.publicUrl;await profileClient.from('grid_profile_media').insert({user_id:user.id,post_id:post.id,kind:file.type.startsWith('video/')?'VIDEO':'IMAGE',url:pub,caption:file.name,metadata:{mime:file.type,size:file.size}});}
+      cloudMedia=await profileAuthority!.media(user.id);localStorage.setItem(key,JSON.stringify(draft));render();
+    }catch(error){console.warn('Profile media upload failed.',error);}
+  });
   document.querySelector<HTMLButtonElement>('#follow-button')?.addEventListener('click', () => {
     following = !following;
     localStorage.setItem('grid-world:profile-following', String(following));
@@ -185,7 +203,12 @@ function bind() {
     draft.layout.sections = draft.layout.sections.filter(item => item !== section);
     render();
   }));
+  document.querySelectorAll<HTMLElement>('[data-module-index]').forEach(item=>item.addEventListener('dragstart',e=>{(e as DragEvent).dataTransfer?.setData('text/plain',item.dataset.moduleIndex??'');}));
+  document.querySelectorAll<HTMLElement>('[data-module-index]').forEach(item=>item.addEventListener('dragover',e=>e.preventDefault()));
+  document.querySelectorAll<HTMLElement>('[data-module-index]').forEach(item=>item.addEventListener('drop',e=>{e.preventDefault();const from=Number((e as DragEvent).dataTransfer?.getData('text/plain'));const to=Number(item.dataset.moduleIndex);if(Number.isInteger(from)&&Number.isInteger(to)&&from!==to){const moved=draft.layout.sections.splice(from,1)[0];draft.layout.sections.splice(to,0,moved);render();}}));
 }
+
+async function hydrateCloudProfile(){if(!profileAuthority||!profileClient)return;try{const {data:{user}}=await profileClient.auth.getUser();if(!user)return;const profile=await profileAuthority.get(user.id);if(profile){draft={...draft,displayName:profile.display_name,handle:profile.handle,bio:profile.bio,status:profile.status,theme:{...draft.theme,...profile.profile_theme},layout:{...draft.layout,...profile.profile_layout} as ProfileLayout};}cloudMedia=await profileAuthority.media(user.id);render();}catch(error){console.warn('Cloud profile load unavailable.',error);}}
 
 function renderPreviewOnly() {
   const preview = document.querySelector('.profile-preview');
