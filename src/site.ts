@@ -328,6 +328,22 @@ app.innerHTML = `
       <div class="revenue-principle"><strong>GRID PRINCIPLE:</strong> the platform should make money because it creates useful value—not by blocking the basic ability to enter the world.</div>
     </section>
     <section class="grid-community-section" id="community-safety"><div class="grid-site-kicker">GRID WORLD · COMMUNITY + SAFETY</div><h2>A social world with clear boundaries.</h2><p>Every account has a persistent profile, avatar identity, account age, presence status and privacy controls. Friends, follows, likes and forum participation share the same Grid identity.</p><div class="grid-community-grid"><article><b>E · EVERYONE</b><h3>Open community</h3><p>General spaces, starter worlds and family-friendly discussion.</p></article><article><b>CHILD · TEEN · ADULT</b><h3>Age-aware access</h3><p>Age-restricted destinations are gated before entry. Adult, Graphic and Restricted areas require an adult account.</p></article><article><b>LGBTQ+ INCLUSIVE</b><h3>Identity is yours</h3><p>Gender identity, pronouns and orientation are optional profile data with privacy controls and no gameplay penalties.</p></article><article><b>VOICE</b><h3>Optional voice shaping</h3><p>A separate Grid Voice layer provides optional microphone processing without making voice participation mandatory.</p></article></div></section>
+  <section class="world-charter" id="world-charter">
+    <div class="section-label">GRID WORLD · CURRENT BUILD CHARTER</div>
+    <div class="world-charter-head"><h2>Everything we are building.<br><span>Visible in one system.</span></h2><img src="/art/grid-page-atlas.svg" alt="Grid World visual atlas"></div>
+    <div class="charter-grid">
+      <article><b>WORLDS</b><span>09 starter regions · unlimited expandable worlds · custom generation · teleport gates and pylons</span></article>
+      <article><b>LIVING LIFE</b><span>Weather · seasons · plants · trees · creatures · habitats · NPC memory and relationships</span></article>
+      <article><b>CREATION</b><span>Primitives · advanced building · terrain sculpting · material harvesting · craftable creator tools</span></article>
+      <article><b>PEOPLE</b><span>Custom avatars · staff personas · social profiles · chat · voice · communities · media · events</span></article>
+      <article><b>PLAY</b><span>Missions · quests · mysteries · PvE · PvP · arenas · pets · mounts · achievements · progression</span></article>
+      <article><b>ECONOMY</b><span>Grid Coin · multiple currency types · marketplace · barter · merchants · economy telemetry · Omni Bank foundation</span></article>
+      <article><b>OMNI</b><span>Grid Omni Core · Security · Guards · Grid Code · permissions · diagnostics · protected world layers</span></article>
+      <article><b>MEDIA</b><span>Images · video · sound · creator galleries · stages · concerts · recording · live world signals</span></article>
+      <article><b>EVERYWHERE</b><span>Desktop world · responsive UI · mobile functions · QR · optional location features · persistent state</span></article>
+    </div>
+  </section>
+
   </main>
 
   <section class="legal-strip" id="terms">
