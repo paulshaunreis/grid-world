@@ -91,6 +91,20 @@ export class CreatureEcologySystem {
     }
   }
 
+  /** Add native life for a world created after the ecology system was constructed. */
+  registerWorld(world: { id:string; label:string; center:THREE.Vector3; color:number; secondary:number; tags?:readonly string[] }) {
+    if (this.creatures.some(creature => creature.species.world === world.id)) return;
+    const dna = deriveWorldDNA(world.tags ?? []);
+    const base = '#' + world.color.toString(16).padStart(6,'0');
+    const accent = '#' + world.secondary.toString(16).padStart(6,'0');
+    const center = { x:world.center.x, y:world.center.y, z:world.center.z };
+    const generated: Species[] = [
+      { id:world.id.toLowerCase()+'-wanderer', name:world.label+' Wanderer', world:world.id, color:base, accent, size:.55+dna.ambientLife*.08, speed:.7+dna.ambientLife*.18, social:.55, center, radius:7, locomotion:dna.creatureMorphology.locomotion, bodyPlans:dna.creatureMorphology.bodyPlans, adaptations:dna.creatureMorphology.adaptations, habitatHeight:world.tags?.includes('aerial')||world.tags?.includes('cloud')?4:world.tags?.includes('growth')?1.5:0 },
+      { id:world.id.toLowerCase()+'-native', name:world.label+' Native', world:world.id, color:accent, accent:base, size:.42+dna.ambientLife*.1, speed:.85+dna.ambientLife*.22, social:.72, center, radius:9, locomotion:dna.creatureMorphology.locomotion, bodyPlans:dna.creatureMorphology.bodyPlans, adaptations:dna.creatureMorphology.adaptations, habitatHeight:world.tags?.includes('aerial')||world.tags?.includes('cloud')?5:world.tags?.includes('growth')?1.5:0 },
+    ];
+    for (const species of generated) this.spawnSpecies(species, dna.ecology.lifeDensity > 1.3 ? 3 : 2);
+  }
+
   private spawnSpecies(species: Species, count: number) {
     for (let i=0;i<count;i++) {
       const root = this.createCreatureMesh(species);
