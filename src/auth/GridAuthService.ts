@@ -34,6 +34,8 @@ export class GridAuthService {
 
   async claimStarterGrant(){ const {data,error}=await this.client.rpc('grid_claim_starter_currency'); if(error) throw error; return data; }
 
+  async ensureStarterGrant(){ return this.claimStarterGrant(); }
+
   async completeProfile(input:{firstName:string;middleName:string;lastName:string;handle:string;displayName:string;nameVisibility:string}){
     const {data,error}=await this.client.rpc('grid_complete_profile',{
       p_first_name:input.firstName,p_middle_name:input.middleName,p_last_name:input.lastName,
