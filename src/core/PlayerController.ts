@@ -123,9 +123,11 @@ export class PlayerController {
   setAvatarStyle(style: AvatarStyle) { this.setAvatarAppearance(style); }
 
   update(dt: number) {
+    this.input.update();
     const speed = this.input.isDown('ShiftLeft') || this.input.isDown('ShiftRight') ? 8 : 4;
-    const forward = Number(this.input.isDown('KeyW')) - Number(this.input.isDown('KeyS'));
-    const strafe = Number(this.input.isDown('KeyD')) - Number(this.input.isDown('KeyA'));
+    const move=this.input.moveVector();
+    const forward = move.y;
+    const strafe = move.x;
     const direction = new THREE.Vector3(strafe, 0, -forward);
 
     const moving=direction.lengthSq()>0;
@@ -138,7 +140,7 @@ export class PlayerController {
     const airborne=!this.grounded;
     this.body.position.y=1.0+(moving?Math.abs(Math.sin(this.animationTime*1.0))*.025:Math.sin(this.animationTime)*.008)+(airborne?.04:0);
 
-    if (this.input.isDown('Space') && this.grounded) { this.velocityY = 7; this.grounded = false; }
+    if ((this.input.isDown('Space') || this.input.isActionDown('jump')) && this.grounded) { this.velocityY = 7; this.grounded = false; }
     this.velocityY -= 18 * dt;
     this.avatar.position.y += this.velocityY * dt;
 
