@@ -76,7 +76,8 @@ export class DynamicQuestSystem {
   ): boolean {
     let changed=false;
     const consequenceKind=consequence?.world===world ? consequence.kind.toUpperCase() : '';
-    const normalized=consequenceKind || event.toUpperCase();
+    const ecologyMissionKinds=new Set(['MIGRATION_WAVE','POLLINATOR_BLOOM','POPULATION_BOOM','POPULATION_COLLAPSE','NEW_SPECIES','SEASONAL_SHIFT']);
+    const normalized=ecologyMissionKinds.has(consequenceKind) ? consequenceKind : event.toUpperCase();
     this.timer-=delta;
 
     // World events create temporary-feeling but persistent mission offers.
