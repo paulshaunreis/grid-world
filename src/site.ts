@@ -59,6 +59,16 @@ app.innerHTML = `
       <div class="hero-orb"><div class="orb-ring r1"></div><div class="orb-ring r2"></div><div class="orb-core">GRID<br><small>FIRST LIGHT</small></div></div>
     </section>
 
+    <section class="concept-gallery" id="concept-art">
+      <div class="section-label">GRID WORLD · CONCEPT ATLAS</div>
+      <div class="concept-gallery-head"><h2>Real places.<br><span>Real visual language.</span></h2><p>Grid World now carries its concept art directly through the public surface and into the 3D world. These local assets are part of the product—not decorative placeholders.</p></div>
+      <div class="concept-gallery-grid">
+        <figure><img src="/grid-concept-first-light.svg" alt="First Light concept art"><figcaption><b>FIRST LIGHT</b><span>Entry world · living systems</span></figcaption></figure>
+        <figure><img src="/grid-concept-living-wilds.svg" alt="Living Wilds concept art"><figcaption><b>LIVING WILDS</b><span>Ecology · creatures · terrain</span></figcaption></figure>
+        <figure><img src="/grid-concept-civic.svg" alt="Civic concept art"><figcaption><b>CIVIC</b><span>Architecture · community · transit</span></figcaption></figure>
+      </div>
+    </section>
+
     <section class="build-atlas" id="build-system">
   <div class="section-label">GRID BUILDER · OBJECT LIBRARY</div>
   <h2>Start with a primitive.<br><span>Build anything.</span></h2>
