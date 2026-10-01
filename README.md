@@ -13,6 +13,8 @@ Grid World is a persistent 3D social-world project. The first milestone is **Fir
 - Mouse-look pointer lock
 - Directional + hemisphere lighting
 - Fog and large world grid
+- Procedural environment layer: terrain fields, habitat bands, atmosphere, weather motion, and climate-driven particles
+- World-DNA-driven architecture, flora, creatures, ecology, migration, and evolution
 - Basic trees and landmark geometry
 
 ## Run locally
@@ -35,3 +37,7 @@ npm run dev
 9. Regions — streaming, instancing, scalable servers
 
 The architecture should stay modular so networking and persistence can be introduced without rebuilding the client.
+
+## Living World principle
+
+A world description is treated as environmental DNA. Generated worlds can receive their own architecture, climate, atmosphere, habitat bands, flora, fauna, weather, ecological interactions, seasonal changes, and emergent life without a fixed world-count limit. The public website mirrors this direction with a living-world visual atlas and live Grid signals.
