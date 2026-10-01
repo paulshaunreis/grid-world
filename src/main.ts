@@ -458,7 +458,7 @@ function mountBuildRegionStatus() {
   const panel = document.createElement('section');
   panel.id = 'grid-build-region-status';
   panel.setAttribute('aria-live','polite');
-  panel.innerHTML = '<strong>GRID BUILD REGION</strong><span data-region-state>Connecting…</span><span data-region-role></span><button type="button" data-region-manage hidden>MANAGE REGION</button>';
+  panel.innerHTML = '<strong>GRID BUILD REGION</strong><span data-region-state>Connecting…</span><span data-region-role></span><span data-region-collaborators>COLLABORATORS · 0</span><button type="button" data-region-manage hidden>MANAGE REGION</button>';
   Object.assign(panel.style,{position:'fixed',right:'18px',bottom:'18px',zIndex:'80',display:'grid',gap:'6px',padding:'10px 12px',minWidth:'240px',fontFamily:'IBM Plex Mono,monospace',fontSize:'11px',letterSpacing:'.08em',background:'rgba(8,12,24,.88)',border:'1px solid rgba(120,220,255,.35)',borderRadius:'8px',color:'#dff7ff',backdropFilter:'blur(8px)'});
   document.body.appendChild(panel);
   return {
@@ -884,6 +884,8 @@ uiEditButton.addEventListener('click', () => {
 });
 
 let presence: SupabasePresence | null = null;
+let currentBuildRole = 'viewer';
+let regionCollaborators: Array<{id:string;displayName:string;role?:string;activeObjectId?:string}> = [];
 
 if (cloudPersistence) {
   presence = new SupabasePresence(cloudPersistence.getClient(), identity, {
@@ -899,6 +901,12 @@ if (cloudPersistence) {
       if (!remote) return;
       world.scene.remove(remote.group);
       remotePlayers.delete(id);
+    },
+    onSnapshot: players => {
+      regionCollaborators = players.map(p => ({ id:p.id, displayName:p.displayName, role:p.regionRole, activeObjectId:p.activeObjectId }));
+      const active = regionCollaborators.filter(p => p.activeObjectId).length;
+      const summary = regionCollaborators.length ? `COLLABORATORS · ${regionCollaborators.length}${active ? ` · BUILDING ${active}` : ''}` : 'COLLABORATORS · 0';
+      document.querySelector<HTMLElement>('[data-region-collaborators]')?.replaceChildren(document.createTextNode(summary));
     },
     onStatus: state => {
       const labels = {
@@ -987,7 +995,8 @@ const cloudReady = cloudPersistence
           const region = await cloudPersistence.ensureBuildRegion('first-light', 'first-light', 'collaborative');
           buildRegionStatus.set('LIVE · '+region.accessMode.toUpperCase(),'');
           const buildAccess = await cloudPersistence.getBuildAccess(region.worldId, region.regionId);
-          buildRegionStatus.set(buildAccess?.canBuild ? 'LIVE · BUILD ENABLED' : 'LIVE · VIEW ONLY', buildAccess?.role ?? 'viewer', Boolean(buildAccess?.canManage), () => {
+          currentBuildRole = buildAccess?.role ?? 'viewer';
+          buildRegionStatus.set(buildAccess?.canBuild ? 'LIVE · BUILD ENABLED' : 'LIVE · VIEW ONLY', currentBuildRole, Boolean(buildAccess?.canManage), () => {
             const panel = document.createElement('div');
             panel.id='grid-region-manager';
             panel.innerHTML='<strong>REGION MANAGEMENT</strong><span>OWNER / MANAGER CONTROLS</span><label>User ID <input data-member-user placeholder="auth user id"></label><label>Role <select data-member-role><option value="viewer">Viewer</option><option value="builder">Builder</option><option value="manager">Manager</option></select></label><button data-member-save>GRANT ACCESS</button><button data-member-close>CLOSE</button>';
@@ -1489,7 +1498,7 @@ function savePlayer() {
       }).catch(error => console.warn('Cloud build persistence unavailable; local recovery remains active.', error));
     }
   }
-  presence?.update(transform).catch(console.error);
+  presence?.update(transform, { regionRole: currentBuildRole, activeObjectId: easyBuildSystem.getSelectedObjectId() }).catch(console.error);
 }
 
 // Second Life-style camera: RMB orbit, wheel zoom, M mouselook.
