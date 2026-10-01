@@ -88,6 +88,9 @@ import { GridGuardCommandSystem } from './world/GridGuardCommandSystem';
 import { GridGuildSystem } from './social/GridGuildSystem';
 import { GridSocialAuthority } from './social/GridSocialAuthority';
 import { GridFriendSystem } from './social/GridFriendSystem';
+import { GridPartySystem } from './social/GridPartySystem';
+import { mountGridPartyHud } from './ui/GridPartyHud';
+import { mountTeleportExperience, createTeleportAvatarEffect } from './ui/GridTeleportExperience';
 import { GridWorldMediaSystem } from './media/GridWorldMediaSystem';
 import { GridWorldRecordSystem } from './media/GridWorldRecordSystem';
 import { GridShopSystem } from './market/GridShopSystem';
@@ -116,6 +119,9 @@ const worldSnapshotManager = new GridWorldSnapshotManager('first-light');
 const cloudPersistence = supabaseConfigured ? new SupabasePersistence(SUPABASE_URL!, SUPABASE_PUBLISHABLE_KEY!) : null;
 const socialAuthority = supabaseConfigured ? new GridSocialAuthority(cloudPersistence!.getClient()) : null;
 const friendSystem = new GridFriendSystem();
+const partySystem = cloudPersistence ? new GridPartySystem(cloudPersistence.getClient()) : null;
+const partyHud = mountGridPartyHud();
+const teleportExperience = mountTeleportExperience();
 
 
 type HudTheme = 'cyan' | 'violet' | 'magenta' | 'emerald' | 'amber' | 'white';
@@ -952,6 +958,8 @@ let marketQuotes:MarketQuote[] = [];
 let persistentTransitFlow = 0;
 let persistentTransitByWorld:Record<string,number> = {};
 let lastTransitPoll = 0;
+let lastPartyPoll = 0;
+let lastVitalsPublish = 0;
 async function refreshPersistentTransit(){
   if(!cloudPersistence) return;
   try {
@@ -1229,6 +1237,8 @@ function handleTeleportNode(result: ReturnType<InteractionSystem['findTarget']>)
     }
 
     const destination = teleport.destination;
+    teleportExperience.show(destination,'departing');
+    createTeleportAvatarEffect(player.avatar,850);
     teleportSystem.recordTraffic(teleport.sourceNodeId ?? nodeId, destination.id);
     const arrival = new THREE.Vector3(destination.position.x, Math.max(0, destination.position.y), destination.position.z);
     const backward = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), destination.yaw);
@@ -1246,6 +1256,8 @@ function handleTeleportNode(result: ReturnType<InteractionSystem['findTarget']>)
         z: arrival.z,
         yaw: destination.yaw,
       });
+      teleportExperience.show(destination,'arriving');
+      createTeleportAvatarEffect(player.avatar,700);
       audio.play('world.portal', 1);
       if (sourceVisual) setTeleportGateState(sourceVisual, 'idle');
       prompt.textContent = 'E · Arrived at ' + destination.displayName + ' ✓';
@@ -1929,6 +1941,8 @@ function animate(now: number) {
   combatSystem.syncScene(world.scene);
   combatSystem.update(dt, identity.id);
   const combatSnapshot = combatSystem.getSnapshot();
+  if (partySystem && performance.now()/1000-lastPartyPoll>3) { lastPartyPoll=performance.now()/1000; void partySystem.current().then(members=>partyHud.render(members, Object.fromEntries(regionCollaborators.map(p=>[p.id,p.displayName])))).catch(()=>undefined); }
+  if (presence && performance.now()/1000-lastVitalsPublish>1) { lastVitalsPublish=performance.now()/1000; void presence.update(player.getTransform(), { health:combatSnapshot.playerHealth, maxHealth:combatSnapshot.playerMaxHealth, regionRole:currentBuildRole }); }
   questSystem.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, societySnapshot, player.avatar.position.x, player.avatar.position.z);
   if (combatSnapshot.kills > lastCombatKills) {
     const defeated = combatSnapshot.kills - lastCombatKills;
