@@ -53,3 +53,13 @@ A world description is treated as environmental DNA. Generated worlds can receiv
 - Elemental laboratory worlds include Emberforge, Azurevault, Aetherion, Verdantium and Primordia for testing world generation and emergent geology.
 
 The project uses these systems as independent layers so future worlds can combine chemistry, geology, ecology, energy, narrative consequence and sandbox gameplay without introducing a fixed world-count ceiling.
+
+## NPC profiles, Bazaar, Omni Bank and Vault
+
+Grid World NPCs are first-class profile entities with role, archetype, personality, autonomy, schedules and persistent public memory logs. Merchant NPCs participate in the economy and can have Bazaar listings.
+
+The economy now includes three dedicated worlds: **Grid Bazaar** for user/NPC trading, **Grid World Omni Bank** for wallets and ledger services, and **Grid World Vault** for persistent mined-asset storage. Mined minerals are reflected in the player's inventory with authoritative quantities and are also secured in the Vault.
+
+Bazaar listing, purchase, mining and transmutation operations are server-authoritative. User listings reserve inventory before publication; purchases transfer currency and assets atomically; NPC sales create trade/memory records. Client-side controls are not treated as economic authority.
+
+Grid Element Forge supports fictional Grid-universe synthetic elements beyond the real 118-element periodic table: **Aurorium (Ao, 119)**, **Luminite (LuG, 120)** and **Verdanium (Vd, 121)**. These are gameplay elements, not claims about newly discovered real-world elements.
