@@ -121,3 +121,16 @@ This creates two complementary economic layers:
 **Currency economy:** apple → GRID → orange.
 
 The existence of an item's value therefore does not require Grid Corporation to inject matching real-world money. Value can emerge from exchange between participants, while the Omni Bank supplies only a controlled amount of initial/approved virtual liquidity.
+
+## Social, Identity, and Content Safety
+
+Grid accounts now share one identity across the world and website. The community layer includes:
+
+- **Age-aware content:** E, CHILD, TEEN, ADULT, GRAPHIC, and RESTRICTED ratings. Teleport requests can carry a content rating and an account age band; adult/graphic/restricted destinations require an adult account. New accounts default to the child-safe access tier until an age band is configured.
+- **Inclusive identity:** gender/presentation and pronoun choices are independent from species, lineage, body shape, clothing, or gameplay attributes. Gender identity, pronouns, and optional orientation can be separately privacy-controlled.
+- **Social graph:** friend/unfriend and follow/unfollow controls with privacy settings for profiles, friend requests, follows, online status, and voice.
+- **Forums:** multiple topic categories, user-created topics/posts, likes/unlikes, age-rating filtering, and NPC-authored forum content support.
+- **Profiles:** starter avatar imagery, account age, and Online/Offline presence are part of the same account experience.
+- **Voice:** a separate GridVoiceModifierSystem supports optional microphone capture, voice coloration presets, effect amount, and local processed-audio preview. Voice participation remains optional.
+
+The database layer uses Supabase RLS and authenticated RPCs for social preferences, content access checks, and presence. The client still needs a full browser/WebRTC voice transport before processed microphone audio can be transmitted to other players; the voice layer already exposes the processed media stream for that next transport stage.
