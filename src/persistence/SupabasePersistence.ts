@@ -97,3 +97,5 @@ export class SupabasePersistence {
     } satisfies PersistedPlayerState;
   }
 }
+
+// Grid construction persistence remains client-fallback safe when cloud sync is unavailable.
