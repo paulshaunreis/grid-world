@@ -29,6 +29,7 @@ export class EvolutionaryPopulationSystem {
   private readonly emergentVisuals=new Map<string,THREE.Object3D>();
   private elapsed=0;
   private phenotypeElapsed=0;
+  private visualState=new Map<string,number>();
 
   constructor(){
     this.root.name='grid-evolutionary-populations';
@@ -108,7 +109,11 @@ export class EvolutionaryPopulationSystem {
       object.userData.evolutionSocial=p.genome.social;
       object.userData.evolutionCuriosity=p.genome.curiosity;
       object.userData.evolutionGenome=p.genome;
-      object.scale.setScalar(THREE.MathUtils.lerp(.86,1.18,p.genome.size));
+      const abundance=Math.sqrt(THREE.MathUtils.clamp(p.population/40,.05,4));
+      const abundanceScale=THREE.MathUtils.clamp(.86+Math.log2(abundance+1)*.08,.82,1.12);
+      object.userData.evolutionAbundance=p.population;
+      object.userData.evolutionPopulationState=p.population<5?'SCARCE':p.population>32?'ABUNDANT':'STABLE';
+      object.scale.setScalar(THREE.MathUtils.lerp(.86,1.18,p.genome.size)*abundanceScale);
       if(object.userData.evolutionColorApplied!==p.genome.colorShift){
         object.userData.evolutionColorApplied=p.genome.colorShift;
         object.traverse(child=>{
@@ -144,6 +149,15 @@ export class EvolutionaryPopulationSystem {
     visual.position.copy(parent.position).add(new THREE.Vector3(1.8,0,1.8));
     visual.scale.setScalar(THREE.MathUtils.lerp(.86,1.18,species.genome.size));
     visual.userData.evolutionSpeed=THREE.MathUtils.lerp(.72,1.55,species.genome.speed);
+    visual.userData.emergentSignature=true;
+    visual.traverse(child=>{
+      const mesh=child as THREE.Mesh;
+      const material=mesh.material as THREE.MeshStandardMaterial|undefined;
+      if(material?.emissive){
+        material.emissiveIntensity=.35;
+        material.emissive.offsetHSL?.((species.genome.colorShift-.5)*.12,0,.05);
+      }
+    });
     scene.add(visual);
     this.emergentVisuals.set(species.speciesId,visual);
   }
