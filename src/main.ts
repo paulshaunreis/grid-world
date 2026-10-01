@@ -59,6 +59,7 @@ import { mountTransitPanel } from './ui/TransitPanel';
 import { WorldArchitectureSystem } from './world/WorldArchitectureSystem';
 import { WorldEnvironmentSystem } from './world/WorldEnvironmentSystem';
 import { GridMatterTerrainSystem } from './world/GridMatterTerrainSystem';
+import { GridMineralSystem } from './world/GridMineralSystem';
 import { WorldEvolutionSystem } from './world/WorldEvolutionSystem';
 import { EvolutionaryPopulationSystem } from './world/EvolutionaryPopulationSystem';
 import { EcologicalWebSystem } from './world/EcologicalWebSystem';
@@ -329,6 +330,8 @@ const ecologicalInteractions = new EcologicalInteractionSystem();
 world.scene.add(ecologicalWeb.root);
 world.scene.add(ecologicalInteractions.root);
 const worldResources = new WorldResourceSystem();
+const gridMinerals = new GridMineralSystem();
+world.scene.add(gridMinerals.root);
 const worldFactoryPanel = mountWorldFactoryPanel({
   onCreate: (name, description) => {
     const result = createWorldFromDescription({ name, description });
