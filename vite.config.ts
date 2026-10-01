@@ -8,6 +8,8 @@ export default defineConfig({
         play: 'play.html',
         profile: 'profile.html',
         shop: 'shop.html',
+        classifieds: 'classifieds.html',
+        meetups: 'meetups.html',
         economics: 'economics.html',
         docs: 'docs.html',
         directory: 'directory.html',
