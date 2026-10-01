@@ -892,6 +892,13 @@ function handleTeleportNode(result: ReturnType<InteractionSystem['findTarget']>)
       return;
     }
 
+    if (!gridSecurity.allow('TELEPORT_REQUEST', cloudIdentity.id)) {
+      if (sourceVisual) setTeleportGateState(sourceVisual, 'idle');
+      prompt.textContent = 'E · Transit request rate-limited';
+      addChatMessage('GRID OMNI', 'Transit request rate-limited by Grid Security.', 'system');
+      return;
+    }
+
     const teleport = teleportSystem.request({
       actorId: cloudIdentity.id,
       nodeId,
@@ -1597,6 +1604,10 @@ function animate(now: number) {
   if (!resourceDown) resourceInteractLatched = false;
   if (nearestMineral && mineralNear && resourceDown && !resourceInteractLatched) {
     resourceInteractLatched = true;
+    if (!gridSecurity.allow('MINING_REQUEST', identity.id)) {
+      addChatMessage('GRID OMNI', 'Mining request rate-limited by Grid Security.', 'system');
+      return;
+    }
     const requested = 1;
     if (cloudPersistence) {
       void cloudPersistence.getClient().rpc('grid_mine_mineral', {
