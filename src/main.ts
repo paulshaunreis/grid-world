@@ -222,11 +222,18 @@ hud.innerHTML = `
     </form>
   </section>
   <div class="status" id="status">FIRST LIGHT · Connecting…</div>
+  <div class="social-quick" id="social-quick" aria-label="Social quick actions"><button id="social-open" type="button">SOCIAL</button><button id="social-friend" type="button">ADD FRIEND</button><button id="social-message" type="button">MESSAGE</button><button id="social-teleport" type="button">INVITE / TELEPORT</button></div>
 `;
 app.appendChild(hud);
 installGridAssetHealth(document);
 installGridHealthMonitor(document.body);
 const status = document.querySelector<HTMLDivElement>('#status')!;
+const socialQuick = document.querySelector<HTMLDivElement>('#social-quick')!;
+const socialFriend = document.querySelector<HTMLButtonElement>('#social-friend')!;
+const socialMessage = document.querySelector<HTMLButtonElement>('#social-message')!;
+const socialTeleport = document.querySelector<HTMLButtonElement>('#social-teleport')!;
+const socialOpen = document.querySelector<HTMLButtonElement>('#social-open')!;
+let socialTargetUserId:string|null=null;
 const chatMessages = document.querySelector<HTMLDivElement>('#chat-messages')!;
 const chatCompose = document.querySelector<HTMLFormElement>('#chat-compose')!;
 const chatInput = document.querySelector<HTMLInputElement>('#chat-input')!;
@@ -251,8 +258,15 @@ function addChatMessage(sender: string, message: string, kind: 'player' | 'syste
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
+socialOpen.addEventListener('click',()=>addChatMessage('SOCIAL','Open the Social Manager from the website or HUD SOCIAL tool.','system'));
+socialQuick.style.display='none';
 addChatMessage('GRID', 'Welcome to First Light. Chat is ready. MIC speaks to the object, NPC, or team member in your crosshair.', 'system');
 
+
+function setSocialTarget(userId:string|null){socialTargetUserId=userId;socialQuick.style.display=userId?'flex':'none';if(userId)socialFriend.textContent='ADD FRIEND';}
+socialFriend.addEventListener('click',async()=>{if(!socialAuthority||!socialTargetUserId)return;try{await socialAuthority.requestFriend(socialTargetUserId);addChatMessage('SOCIAL','Friend request sent.','system');}catch(error){addChatMessage('SOCIAL','Friend request could not be sent.','system');console.warn(error);}});
+socialMessage.addEventListener('click',()=>{if(socialTargetUserId){chatInput.focus();chatInput.value='@'+socialTargetUserId+' ';}});
+socialTeleport.addEventListener('click',()=>{if(socialTargetUserId)addChatMessage('SOCIAL','Teleport/invite requires the destination to be selected and confirmed before travel.','system');});
 
 function respondToVoiceTarget(utterance: string) {
   const target = interaction.findTarget();
