@@ -4,6 +4,7 @@ import type { PlayerIdentity } from '../core/PlayerIdentity';
 
 export interface PersistedGridBuild { objectId:string; definitionId:string; position:[number,number,number]; rotation:[number,number,number]; scale:[number,number,number]; ownerUserId?:string; }
 export interface GridBuildRegion { worldId:string; regionId:string; ownerUserId:string; accessMode:'private'|'collaborative'|'public'; }
+export interface GridBuildAccess { role:string; canBuild:boolean; canManage:boolean; accessMode:string; ownerUserId:string; }
 
 export class SupabasePersistence {
   private readonly client: SupabaseClient;
@@ -20,6 +21,18 @@ export class SupabasePersistence {
     const row = Array.isArray(data) ? data[0] : data;
     if (!row) throw new Error('Grid build region authority returned no region.');
     return { worldId:String(row.world_id), regionId:String(row.region_id), ownerUserId:String(row.owner_user_id), accessMode:row.access_mode };
+  }
+
+  async getBuildAccess(worldId:string, regionId:string):Promise<GridBuildAccess|null> {
+    const { data, error } = await this.client.rpc('grid_build_get_access', { p_world_id:worldId, p_region_id:regionId });
+    if (error) throw error;
+    const row = Array.isArray(data) ? data[0] : data;
+    return row ? { role:String(row.role ?? 'viewer'), canBuild:Boolean(row.can_build), canManage:Boolean(row.can_manage), accessMode:String(row.access_mode), ownerUserId:String(row.owner_user_id) } : null;
+  }
+
+  async setBuildMember(worldId:string, regionId:string, userId:string, role:'viewer'|'builder'|'manager'|'owner') {
+    const { error } = await this.client.rpc('grid_build_set_member', { p_world_id:worldId, p_region_id:regionId, p_user_id:userId, p_role:role });
+    if (error) throw error;
   }
 
   async save(identity: PlayerIdentity, state: PersistedPlayerState) {
