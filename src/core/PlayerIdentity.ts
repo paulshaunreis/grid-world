@@ -1,4 +1,5 @@
 import { readVersioned, writeVersioned } from './VersionedStorage';
+import type { AvatarCustomization } from '../ui/GridAvatarCreator';
 
 export type AvatarStyle = 'navigator' | 'muse' | 'explorer' | 'builder' | 'scholar' | 'sentinel' | 'wanderer' | 'artist' | 'ranger' | 'architect' | 'guardian' | 'signal';
 
@@ -6,6 +7,7 @@ export interface PlayerIdentity {
   id: string;
   displayName: string;
   avatarStyle: AvatarStyle;
+  avatarCustomization: AvatarCustomization;
   createdAt: string;
 }
 
@@ -24,6 +26,7 @@ function isIdentity(value: unknown): value is PlayerIdentity {
     && typeof identity.displayName === 'string'
     && /^[A-Za-z0-9 _-]{2,20}$/.test(identity.displayName)
     && isAvatarStyle(identity.avatarStyle)
+    && !!identity.avatarCustomization && typeof identity.avatarCustomization === 'object'
     && typeof identity.createdAt === 'string';
 }
 
@@ -39,6 +42,7 @@ export function loadOrCreateIdentity(): PlayerIdentity {
     id: crypto.randomUUID(),
     displayName: 'Traveler',
     avatarStyle: 'navigator',
+    avatarCustomization: { skin: 0, hair: 0, eyes: 0, build: 0, accent: 0 },
     createdAt: new Date().toISOString(),
   };
   writeVersioned(STORAGE_KEY, SCHEMA_VERSION, created);
