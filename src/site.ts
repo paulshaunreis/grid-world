@@ -215,7 +215,12 @@ app.innerHTML = `
     </section>
 
     <section class="worlds" id="worlds">
-      <div><div class="section-label">FIRST FRONTIER</div><h2>Start somewhere.<br><span>Go anywhere.</span></h2></div>
+      <div>
+        <div class="section-label">FIRST FRONTIER · OPEN-ENDED NETWORK</div>
+        <h2>Start somewhere.<br><span>Go anywhere.</span></h2>
+        <p class="world-network-principle">MANY WORLDS · ONE GRID · <strong>NO FIXED WORLD COUNT</strong></p>
+        <p class="world-network-copy">New worlds are data-driven additions to the Grid. Each can develop its own environment, architecture, ecology, creatures, culture, economy, weather, events and visual identity without requiring a new engine branch.</p>
+      </div>
       <div class="world-cards">
         <div class="world-card first"><img src="/worlds/tideline.svg" alt="Tideline concept art"><div><small>01 · TIDELINE</small><h3>OCEAN WORLD</h3><p>Harbors, moons, sky cities and tidal exploration.</p></div><a href="/play.html">ENTER →</a></div>
         <div class="world-card neon"><img src="/worlds/crown.svg" alt="Crown concept art"><div><small>02 · CROWN</small><h3>CELESTIAL CITADEL</h3><p>Monuments beneath a ringed world and strange skies.</p></div><a href="#discover">DISCOVER →</a></div>
