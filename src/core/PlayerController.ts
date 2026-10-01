@@ -22,6 +22,8 @@ export class PlayerController {
   private readonly hair: THREE.Mesh;
   private readonly eyeL: THREE.Mesh;
   private readonly eyeR: THREE.Mesh;
+  private readonly earL: THREE.Mesh;
+  private readonly earR: THREE.Mesh;
 
   constructor(private readonly input: Input) {
     this.body = new THREE.Mesh(
@@ -54,6 +56,10 @@ export class PlayerController {
     this.eyeL.position.set(-.12, 1.87, .315);
     this.eyeR.position.set(.12, 1.87, .315);
     this.avatar.add(this.eyeL, this.eyeR);
+    const earMaterial=createStarterPBRMaterial('skin',{color:'#e8d0bd',roughness:.72});
+    this.earL=new THREE.Mesh(new THREE.ConeGeometry(.11,.38,12),earMaterial); this.earR=this.earL.clone();
+    this.earL.rotation.z=-Math.PI/2; this.earR.rotation.z=Math.PI/2;
+    this.earL.position.set(-.33,1.88,.02); this.earR.position.set(.33,1.88,.02); this.avatar.add(this.earL,this.earR);
   }
 
   setAvatarAppearance(style: AvatarStyle, customization?: AvatarCustomization) {
@@ -85,8 +91,15 @@ export class PlayerController {
       (this.eyeL.material as THREE.MeshStandardMaterial).emissive.setHex(eyeColor);
       (this.eyeR.material as THREE.MeshStandardMaterial).color.setHex(eyeColor);
       (this.eyeR.material as THREE.MeshStandardMaterial).emissive.setHex(eyeColor);
+      const ageScale=[.72,.88,.98,1.03,.98][Math.max(0,Math.min(4,customization.age??3))];
+      const headScale=[1.08,1.03,1,.98,1.01][Math.max(0,Math.min(4,customization.age??3))];
       const build=1+Math.max(-3,Math.min(3,customization.build))*.045;
-      this.body.scale.set(build,1,build);
+      this.body.scale.set(build*ageScale,ageScale,build*ageScale);
+      this.head.scale.set(headScale,headScale,headScale);
+      this.hair.scale.set(headScale,headScale*(1+Math.max(0,Math.min(4,customization.hairLength??2))*.08),headScale);
+      const elf=(customization.species??0)===1;
+      this.earL.visible=elf; this.earR.visible=elf;
+      this.earL.scale.set(1,elf?1.35:1,1); this.earR.scale.copy(this.earL.scale);
     }
   }
 
