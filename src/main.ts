@@ -82,6 +82,9 @@ import type { GridAgeBand } from './social/GridContentAccess';
 import { GridOperatorService } from './operator/GridOperatorService';
 import { GridOperatorPresence } from './world/GridOperatorPresence';
 import { GridGuardCommandSystem } from './world/GridGuardCommandSystem';
+import { GridGuildSystem } from './social/GridGuildSystem';
+import { GridWorldMediaSystem } from './media/GridWorldMediaSystem';
+import { GridWorldRecordSystem } from './media/GridWorldRecordSystem';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
@@ -380,6 +383,13 @@ const worldFactoryPanel = mountWorldFactoryPanel({
 let marketPanel: ReturnType<typeof mountMarketPanel> | null = null;
 const questPanel = mountQuestPanel(questSystem);
 const guardCommandSystem = new GridGuardCommandSystem();
+const guildSystem = new GridGuildSystem();
+world.scene.add(guildSystem.root);
+const worldMediaSystem = new GridWorldMediaSystem();
+const worldRecordSystem = new GridWorldRecordSystem();
+world.scene.userData.gridMediaFormats = GridWorldMediaSystem.SUPPORTED_FORMATS;
+world.scene.userData.worldRecorder = worldRecordSystem;
+world.scene.userData.guildNetwork = guildSystem;
 world.scene.add(guardCommandSystem.root);
 const operatorService = cloudPersistence ? new GridOperatorService(cloudPersistence.getClient()) : null;
 const operatorPresence = new GridOperatorPresence(operatorService, voice, questSystem, () => { const snap = livingWorld.getSnapshot(); return { world: String(snap.world), event: String(snap.event) }; }, (sender, message) => addChatMessage(sender, message, 'system'));
