@@ -73,6 +73,8 @@ import { createWorldFromDescription, connectFactoryWorldToAll } from './world/Wo
 import { mountWorldFactoryPanel } from './ui/WorldFactoryPanel';
 import { mountCreatorStudio } from './ui/CreatorStudio';
 import { mountGridEconomyPanel } from './ui/GridEconomyPanel';
+import { GridAuthService } from './auth/GridAuthService';
+import { mountGridAuthPanel } from './ui/GridAuthPanel';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
@@ -98,7 +100,7 @@ hud.innerHTML = `
     <div class="hud-telemetry"><span>WORLD <b id="hud-world-state">ONLINE</b></span><span>TRANSIT <b>READY</b></span><span>OMNI <b>GUARDED</b></span><span>SIGNAL <b id="hud-world-signal">SYNC</b></span></div>
   </div>
   <div class="crosshair"><span></span></div>
-  <button class="identity-button" id="identity-button" type="button">✦ ${identity.displayName}</button>
+  <button class="identity-button" id="identity-button" type="button">✦ ${identity.displayName}</button><button class="auth-button" id="auth-button" type="button">JOIN / LOGIN</button>
   <button class="creator-button" id="creator-button" type="button">◇ CREATOR</button>
   <div class="creator-panel" id="creator-panel"><div class="creator-card"><div class="creator-title">Grid Script // Neon Door</div><div class="creator-subtitle">Safe preview · capability-bounded · no arbitrary code</div><pre class="creator-code" id="creator-code"></pre><div class="creator-capabilities" id="creator-capabilities"></div><button class="creator-close" id="creator-close" type="button">Close</button></div></div>
   <div class="identity-panel" id="identity-panel">
@@ -370,7 +372,21 @@ let marketPanel: ReturnType<typeof mountMarketPanel> | null = null;
 const questPanel = mountQuestPanel(questSystem);
 mountWorldAtlas(() => ({ world: (livingWorld.getSnapshot().world as EcologyWorld), event: livingWorld.getSnapshot().event, consequences: worldConsequences.getSnapshot(), resources: worldResources.getSnapshot(), inventory: worldResources.getInventory(), market: marketQuotes, transit: teleportSystem.trafficSnapshot() }));
 marketPanel = mountMarketPanel(() => worldResources.getInventory(), () => marketQuotes, () => combatAuthority);
-const gridEconomyPanel = mountGridEconomyPanel(() => combatAuthority);
+const gridEconomyPanel = mountGridEconomyPanel(() => combatAuthority);\nconst gridAuthPanel = cloudPersistence ? mountGridAuthPanel(new GridAuthService(cloudPersistence.getClient()), profile => {
+  identity = { ...identity, id: profile.id, displayName: profile.display_name };
+  writeVersioned('grid-world:identity', 1, identity);
+  identityButton.textContent = '✦ ' + (profile.handle || profile.display_name);
+  const authButton = document.querySelector<HTMLButtonElement>('#auth-button');
+  if (authButton) authButton.textContent = 'ACCOUNT';
+}) : null;
+const authButton = document.querySelector<HTMLButtonElement>('#auth-button');
+authButton?.addEventListener('click', async () => {
+  if (!gridAuthPanel) return;
+  const auth = new GridAuthService(cloudPersistence!.getClient());
+  const user = await auth.currentUser();
+  gridAuthPanel.open(user ? 'profile' : 'login');
+});
+
 const transitPanel = mountTransitPanel();
 let merchantRefreshTimer = 0;
 let mineralSyncTimer = 0;
@@ -1160,7 +1176,7 @@ function saveIdentityName() {
 creatorButton.addEventListener('click', () => creatorStudio.open());
 document.querySelector<HTMLButtonElement>('#creator-close')!.addEventListener('click', () => creatorPanel.classList.remove('open'));
 creatorPanel.addEventListener('click', event => { if (event.target === creatorPanel) creatorPanel.classList.remove('open'); });
-identityButton.addEventListener('click', openIdentityPanel);
+identityButton.addEventListener('click', () => { if (cloudPersistence) { const auth = new GridAuthService(cloudPersistence.getClient()); void auth.currentUser().then(user => user ? openIdentityPanel() : gridAuthPanel?.open('join')); } else openIdentityPanel(); });
 identityCancel.addEventListener('click', closeIdentityPanel);
 identitySave.addEventListener('click', saveIdentityName);
 identityName.addEventListener('keydown', event => {
