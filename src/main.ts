@@ -379,11 +379,11 @@ const questPanel = mountQuestPanel(questSystem);
 mountWorldAtlas(() => ({ world: (livingWorld.getSnapshot().world as EcologyWorld), event: livingWorld.getSnapshot().event, consequences: worldConsequences.getSnapshot(), resources: worldResources.getSnapshot(), inventory: worldResources.getInventory(), market: marketQuotes, transit: teleportSystem.trafficSnapshot() }));
 marketPanel = mountMarketPanel(() => worldResources.getInventory(), () => marketQuotes, () => combatAuthority);
 const gridEconomyPanel = mountGridEconomyPanel(() => combatAuthority);
-const gridCommunityPanel = cloudPersistence ? mountGridCommunityPanel(new GridSocialService(cloudPersistence.getClient()), { displayName: identity.displayName, id: identity.id }) : null;
+const gridCommunityPanel = cloudPersistence ? mountGridCommunityPanel(new GridSocialService(cloudPersistence.getClient()), { displayName: identity.displayName, id: identity.id, createdAt: identity.createdAt }) : null;
 const gridSocialButton = document.querySelector<HTMLButtonElement>('[data-tool="social"]');
 gridSocialButton?.addEventListener('click',()=>gridCommunityPanel?.open());
 const gridAuthPanel = cloudPersistence ? mountGridAuthPanel(new GridAuthService(cloudPersistence.getClient()), profile => {
-  identity = { ...identity, id: profile.id, displayName: profile.display_name };
+  identity = { ...identity, id: profile.id, displayName: profile.display_name, createdAt: profile.account_created_at || identity.createdAt };
   void cloudPersistence?.getClient().from('grid_account_social').select('age_band').eq('user_id', profile.id).maybeSingle().then(({data})=>{ if(data?.age_band==='child'||data?.age_band==='teen'||data?.age_band==='adult') accountAgeBand=data.age_band; });
   cloudIdentity = { ...cloudIdentity, id: profile.id, displayName: profile.display_name };
   writeVersioned('grid-world:identity', 1, identity);
