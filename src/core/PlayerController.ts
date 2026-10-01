@@ -92,12 +92,16 @@ export class PlayerController {
       (this.eyeR.material as THREE.MeshStandardMaterial).color.setHex(eyeColor);
       (this.eyeR.material as THREE.MeshStandardMaterial).emissive.setHex(eyeColor);
       const ageScale=[.72,.88,.98,1.03,.98][Math.max(0,Math.min(4,customization.age??3))];
+      const raceScale=[1,1.02,1.04,.72,1.12,.82,1,1.03][Math.max(0,Math.min(7,customization.species??0))];
+      const raceBulk=[1,.92,.9,1.35,1.55,.72,1,1.05][Math.max(0,Math.min(7,customization.species??0))];
+      const lineageScale=[1,1.06,.86,.94,.9,1.01][Math.max(-1,Math.min(5,(customization.lineage??-1)))+1] ?? 1;
+      const lineageBulk=[1,1.28,1.12,.8,1.45,1.02][Math.max(-1,Math.min(5,(customization.lineage??-1)))+1] ?? 1;
       const headScale=[1.08,1.03,1,.98,1.01][Math.max(0,Math.min(4,customization.age??3))];
       const build=1+Math.max(-3,Math.min(3,customization.build))*.045;
-      this.body.scale.set(build*ageScale,ageScale,build*ageScale);
+      this.body.scale.set(build*ageScale*raceScale*lineageScale*raceBulk*lineageBulk,ageScale*raceScale*lineageScale,build*ageScale*raceScale*lineageScale*raceBulk*lineageBulk);
       this.head.scale.set(headScale,headScale,headScale);
       this.hair.scale.set(headScale,headScale*(1+Math.max(0,Math.min(4,customization.hairLength??2))*.08),headScale);
-      const elf=(customization.species??0)===1;
+      const elf=[1,2,5].includes(customization.species??0) || (customization.lineage??-1)>=0;
       this.earL.visible=elf; this.earR.visible=elf;
       this.earL.scale.set(1,elf?1.35:1,1); this.earR.scale.copy(this.earL.scale);
     }
