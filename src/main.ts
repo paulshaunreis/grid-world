@@ -57,6 +57,7 @@ import { mountWorldAtlas } from './ui/WorldAtlas';
 import { mountMarketPanel } from './ui/MarketPanel';
 import { mountTransitPanel } from './ui/TransitPanel';
 import { WorldArchitectureSystem } from './world/WorldArchitectureSystem';
+import { WorldEvolutionSystem } from './world/WorldEvolutionSystem';
 import { getWorlds, getWorldConnections } from './world/GridWorldRegistry';
 import { createWorldFromDescription, connectFactoryWorldToAll } from './world/WorldFactory';
 import { mountWorldFactoryPanel } from './ui/WorldFactoryPanel';
@@ -314,6 +315,7 @@ const traversalSystem = new TraversalSystem();
 const questSystem = new QuestSystem(identity.id);
 const dynamicQuestSystem = new DynamicQuestSystem(questSystem);
 const worldConsequences = new WorldConsequenceSystem();
+const worldEvolution = new WorldEvolutionSystem();
 const worldResources = new WorldResourceSystem();
 const worldFactoryPanel = mountWorldFactoryPanel({
   onCreate: (name, description) => {
@@ -325,6 +327,7 @@ const worldFactoryPanel = mountWorldFactoryPanel({
     creatureEcology.registerWorld(result.world);
     worldResources.registerWorld(result.world);
     npcSociety.registerWorld(result.world);
+    worldEvolution.registerWorld(result.world.id);
     addChatMessage('WORLD FACTORY', result.world.label + ' joined the Grid · ' + result.inferredTags.join(' · '), 'system');
     return result;
   },
@@ -359,6 +362,7 @@ world.scene.add(traversalSystem.root);
 world.scene.add(questSystem.root);
 world.scene.add(dynamicQuestSystem.root);
 world.scene.add(worldConsequences.root);
+world.scene.add(worldEvolution.root);
 world.scene.add(worldResources.root);
 world.scene.add(starterZone.group);
 const omniGuard = new GridOmniGuard();
@@ -1498,6 +1502,8 @@ function animate(now: number) {
   worldConsequences.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.activity, ecologySnapshot, societySnapshot, Date.now()/1000, persistentTransitFlow);
   npcSociety.applyTransitInfluence(persistentTransitByWorld);
   for(const [transitWorld,flow] of Object.entries(persistentTransitByWorld)) worldConsequences.recordTransitSurge(transitWorld as EcologyWorld,flow);
+  worldEvolution.update(dt, livingSnapshot, worldConsequences.getSnapshot());
+  const evolutionState = worldEvolution.get(livingSnapshot.world as EcologyWorld);
   const consequenceSnapshotForResources = worldConsequences.getSnapshot();
   const nearestResource = worldResources.getSnapshot().filter(node => node.world === livingSnapshot.world).sort((a,b) => a.position.distanceTo(player.avatar.position)-b.position.distanceTo(player.avatar.position))[0];
   const resourceNear = !!nearestResource && nearestResource.position.distanceTo(player.avatar.position) < 2.2;
@@ -1544,7 +1550,7 @@ function animate(now: number) {
   const hudWorldState = document.querySelector<HTMLElement>('#hud-world-state');
   const hudWorldSignal = document.querySelector<HTMLElement>('#hud-world-signal');
   if (hudWorldState) hudWorldState.textContent = livingSnapshot.world + ' · ' + livingSnapshot.phase + ' · ' + livingSnapshot.season;
-  if (hudWorldSignal) hudWorldSignal.textContent = livingSnapshot.event + ' · ' + livingSnapshot.weather + ' · ' + Math.round(livingSnapshot.temperatureC) + '°C · HUM ' + Math.round(livingSnapshot.humidity*100) + '% · ' + ecologySnapshot.active + '/' + ecologySnapshot.population + ' CREATURES · ' + societySnapshot.working + ' WORKING · ' + societySnapshot.talking + ' TALKING · ' + storySnapshot.activeStories + ' STORIES · STABILITY ' + Math.round(consequenceSnapshotAfterUpdate.stability*100) + '%';
+  if (hudWorldSignal) hudWorldSignal.textContent = livingSnapshot.event + ' · ' + livingSnapshot.weather + ' · ' + Math.round(livingSnapshot.temperatureC) + '°C · HUM ' + Math.round(livingSnapshot.humidity*100) + '% · ' + ecologySnapshot.active + '/' + ecologySnapshot.population + ' CREATURES · ' + societySnapshot.working + ' WORKING · ' + societySnapshot.talking + ' TALKING · ' + storySnapshot.activeStories + ' STORIES · STABILITY ' + Math.round(consequenceSnapshotAfterUpdate.stability*100) + '% · ECO GEN ' + evolutionState.generation;
   artDirector.update(dt, player.avatar.position.x, player.avatar.position.z);
   worldSkins.update(dt, player.avatar.position.x, player.avatar.position.z);
   worldArchitecture.update(dt);
