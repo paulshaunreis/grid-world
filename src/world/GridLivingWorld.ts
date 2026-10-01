@@ -250,7 +250,7 @@ export class GridLivingWorld {
       material.opacity = active ? (weather === 'SNOW' ? .58 : .38) : 0;
       if (active) {
         const fall = weather === 'SNOW' ? .7 : 2.8;
-        particle.position.y -= fall * .016;
+        particle.position.y -= fall * delta;
         particle.position.x += windX * .018;
         particle.position.z += windZ * .018;
         if (particle.position.y < .15) {
