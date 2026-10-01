@@ -18,3 +18,12 @@ body.grid-world-page>*{position:relative;z-index:1}
 .grid-page-ui-strip>div{min-height:110px;border:1px solid rgba(90,225,255,.2);border-radius:12px;background:linear-gradient(135deg,rgba(9,24,39,.84),rgba(17,9,29,.7)),url("/art/grid-ui-atlas.svg") center/cover;color:#eaf8ff;padding:14px;box-shadow:inset 0 0 30px rgba(80,220,255,.06)}
 .grid-page-ui-strip b{display:block;font:700 9px monospace;letter-spacing:.16em;color:#61eaff;margin-bottom:10px}.grid-page-ui-strip span{font:600 12px/1.5 system-ui;color:rgba(234,248,255,.78)}
 @media(max-width:760px){.grid-page-ui-strip{grid-template-columns:1fr}.grid-page-artbar{min-height:135px}}
+
+.grid-global-nav{position:relative;z-index:50;min-height:54px;display:flex;align-items:center;gap:18px;padding:0 22px;background:rgba(3,9,16,.88);border-bottom:1px solid rgba(100,220,255,.16);backdrop-filter:blur(14px);font:600 9px/1 "IBM Plex Mono",monospace;letter-spacing:.12em}
+.grid-global-nav nav{display:flex;align-items:center;gap:14px;flex:1;overflow:auto}
+.grid-global-nav a{color:rgba(230,247,255,.72);text-decoration:none;white-space:nowrap}
+.grid-global-nav a:hover{color:#fff}
+.grid-nav-brand{font-weight:800;color:#dffaff!important;letter-spacing:.18em}
+.grid-nav-join{padding:9px 12px;border:1px solid rgba(100,230,255,.45);background:rgba(55,190,230,.12);color:#eaffff!important;box-shadow:0 0 18px rgba(70,220,255,.08)}
+@media(max-width:900px){.grid-global-nav{gap:10px;padding:0 12px}.grid-global-nav nav{gap:10px}.grid-global-nav nav a:nth-child(n+7){display:none}}
+@media(max-width:600px){.grid-global-nav nav{display:none}.grid-nav-brand{flex:1}.grid-nav-join{display:block}}
