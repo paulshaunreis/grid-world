@@ -390,7 +390,7 @@ const createFactoryWorld = (name: string, description: string) => {
   creatureEcology.registerWorld(result.world);
   worldResources.registerWorld(result.world);
   gridMinerals.registerWorld(result.world);
-  void cloudPersistence?.getClient().rpc('grid_seed_world_minerals', { p_world_id: result.world.id }).then(() => syncGridMinerals()).catch(() => undefined);
+  void Promise.resolve(cloudPersistence?.getClient().rpc('grid_seed_world_minerals', { p_world_id: result.world.id })).then(() => syncGridMinerals()).catch(() => undefined);
   npcSociety.registerWorld(result.world);
   worldEvolution.registerWorld(result.world.id);
   evolutionaryPopulations.registerWorld(result.world.id);
