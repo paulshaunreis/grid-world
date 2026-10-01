@@ -21,6 +21,7 @@ export class EcologicalInteractionSystem{
   private propagationClock=0;
   private migrationMarkers=new Map<string,THREE.Mesh>();
   private visualClock=0;
+  private habitatClock=0;
 
   constructor(){this.root.name='grid-ecological-interactions';}
 
@@ -48,6 +49,7 @@ export class EcologicalInteractionSystem{
     this.eventClock+=delta;
     this.propagationClock+=delta;
     this.visualClock+=delta;
+    this.habitatClock+=delta;
     if(this.elapsed<this.interval)return;
     this.elapsed=0;
     const scene=this.root.parent;
@@ -87,12 +89,24 @@ export class EcologicalInteractionSystem{
       }
     }
     const populationFor=(object:THREE.Object3D)=>Math.max(1,Number(object.userData.evolutionAbundance??1));
+    const habitatTarget=(creature:THREE.Object3D, candidates:THREE.Object3D[])=>candidates
+      .filter(candidate=>Number(candidate.userData.floraHealth??1)>.18)
+      .map(candidate=>({candidate,score:Number(candidate.userData.floraHealth??1)*3+this.habitatScore(creature,candidate)*5-distance(creature,candidate)*.045}))
+      .sort((a,b)=>b.score-a.score)[0]?.candidate;
+    const territory=(creature:THREE.Object3D, candidates:THREE.Object3D[])=>{
+      const target=habitatTarget(creature,candidates);
+      if(!target)return;
+      creature.userData.habitatTerritory=target.userData.floraFamily??'native';
+      creature.userData.habitatQuality=THREE.MathUtils.clamp(Number(target.userData.floraHealth??.5)*.55+this.habitatScore(creature,target)*.45,0,1);
+      creature.userData.habitatAnchor=new THREE.Vector3(target.position.x,target.position.y,target.position.z);
+    };
     const weightedTarget=(origin:THREE.Object3D,candidates:THREE.Object3D[])=>candidates
       .map(candidate=>({candidate,distance:distance(origin,candidate),population:populationFor(candidate),habitat:this.habitatScore(origin,candidate)}))
       .sort((a,b)=>((a.distance/(1+Math.log2(a.population)))-(a.habitat*6))-((b.distance/(1+Math.log2(b.population)))-(b.habitat*6)))[0]?.candidate;
     for(const creature of creatures){
       const role=this.roleFor(creature);
       creature.userData.ecologicalRole=role;
+      territory(creature,flora);
       creature.userData.ecologicalTarget=undefined;
       creature.userData.ecologicalInteraction='ROAM';
       let target:THREE.Object3D|undefined;
@@ -146,10 +160,7 @@ export class EcologicalInteractionSystem{
     for(const creature of creatures){
       const role=this.roleFor(creature);
       if(role!=='HERBIVORE') continue;
-      const nearest=flora.slice().sort((a,b)=>{
-        const score=(item:THREE.Object3D)=>distance(creature,item)-this.habitatScore(creature,item)*7-Number(item.userData.floraHealth??1)*2;
-        return score(a)-score(b);
-      })[0];
+      const nearest=habitatTarget(creature,flora);
       const nearestHealth=nearest ? Number(nearest.userData.floraHealth??1) : 0;
       const localForage=flora.filter(plant=>distance(creature,plant)<12).reduce((sum,plant)=>sum+Number(plant.userData.floraHealth??1),0);
       creature.userData.localForageAvailability=localForage;
@@ -159,13 +170,13 @@ export class EcologicalInteractionSystem{
       if(nextPressure>.72){
         creature.userData.ecologicalInteraction='MIGRATE';
         creature.userData.migrationPressure=nextPressure;
+        const destination=habitatTarget(creature,flora);
         const angle=(Number(creature.userData.migrationSeed??0)+this.eventClock*.07)%Math.PI*2;
-        creature.userData.ecologicalTarget=new THREE.Vector3(
-          creature.position.x+Math.cos(angle)*(8+nextPressure*10),
-          creature.position.y,
-          creature.position.z+Math.sin(angle)*(8+nextPressure*10)
-        );
-        creature.userData.ecologicalTargetId='migration:'+world;
+        creature.userData.ecologicalTarget=destination
+          ? new THREE.Vector3(destination.position.x,destination.position.y,destination.position.z)
+          : new THREE.Vector3(creature.position.x+Math.cos(angle)*(8+nextPressure*10),creature.position.y,creature.position.z+Math.sin(angle)*(8+nextPressure*10));
+        creature.userData.ecologicalTargetId=destination?.uuid??('migration:'+world);
+        creature.userData.migrationDestination=destination?.userData.floraFamily??'unknown-habitat';
         events.migrations++;
         migrationIds.add(creature.uuid);
       }
@@ -184,6 +195,8 @@ export class EcologicalInteractionSystem{
         clone.userData.worldId=world;
         clone.userData.gridObjectKind='world-flora';
         clone.userData.floraFamily=parent.userData.floraFamily;
+        clone.userData.habitatTags=Array.isArray(parent.userData.habitatTags)?[...parent.userData.habitatTags]:[];
+        clone.userData.habitatQuality=parent.userData.habitatQuality??.7;
         clone.userData.floraHealth=.65;
         clone.userData.pollination=0;
         clone.userData.seedPotential=0;
