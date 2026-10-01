@@ -59,7 +59,20 @@ app.innerHTML = `
       <div class="hero-orb"><div class="orb-ring r1"></div><div class="orb-ring r2"></div><div class="orb-core">GRID<br><small>FIRST LIGHT</small></div></div>
     </section>
 
-    <section class="grid-pulse" id="grid-pulse">
+    <section class="build-atlas" id="build-system">
+  <div class="section-label">GRID BUILDER · OBJECT LIBRARY</div>
+  <h2>Start with a primitive.<br><span>Build anything.</span></h2>
+  <p>Cube, sphere, cylinder, cone, torus and plane primitives sit beside modular walls, floors, roofs, columns, arches, stairs, platforms, furniture, nature and utility objects. Basic mode keeps placement quick; Advanced mode opens deeper construction.</p>
+  <div class="build-library">
+    <article><b>PRIMITIVES</b><span>Cube · Sphere · Cylinder · Cone · Torus · Plane</span></article>
+    <article><b>ARCHITECTURE</b><span>Walls · Floors · Roofs · Columns · Arches · Stairs · Platforms</span></article>
+    <article><b>LIVING WORLD</b><span>Trees · flora · habitats · creatures · NPC material drops</span></article>
+    <article><b>CRAFT YOUR TOOLS</b><span>Harvest materials and forge better construction tools.</span></article>
+  </div>
+  <a class="primary large" href="/play.html">BUILD IN GRID WORLD</a>
+</section>
+
+<section class="grid-pulse" id="grid-pulse">
       <div class="pulse-art" aria-hidden="true">
         <div class="pulse-orbit pulse-orbit-a"></div>
         <div class="pulse-orbit pulse-orbit-b"></div>
@@ -125,8 +138,8 @@ app.innerHTML = `
           <div class="atlas-copy"><span>02 · OBJECT PROFILE</span><h3>Everything Has a Story</h3><p>Players can inspect people, creatures, plants, places, and creations.</p></div>
         </article>
         <article class="atlas-card atlas-creator">
-          <div class="creator-preview"><div class="cube">◇</div><div class="tool-list"><b>BUILD</b><span>Move</span><span>Rotate</span><span>Carve</span><span>Materials</span><span>Script</span></div><div class="tool-status">ADVANCED MODE · VOXEL 2.0</div></div>
-          <div class="atlas-copy"><span>03 · CREATOR</span><h3>Primitive → Sculpture</h3><p>Simple tools stay approachable while advanced mode opens deeper creation.</p></div>
+          <div class="creator-preview"><div class="cube">◇</div><div class="tool-list"><b>BUILD</b><span>Move</span><span>Rotate</span><span>Carve</span><span>Materials</span><span>Script</span></div><div class="tool-status">GRID MATTER · ADVANCED</div></div>
+          <div class="atlas-copy"><span>03 · CREATOR</span><h3>Primitive → Structure</h3><p>Basic mode keeps building fast; Advanced mode adds finer snapping, rotation, scaling, copy/paste, and Grid Matter construction.</p></div>
         </article>
         <article class="atlas-card atlas-wallet">
           <div class="wallet-panel"><div class="wallet-balance"><small>GRID WALLET</small><strong>12,480 <em>G</em></strong><span>+240 pending</span></div><div class="wallet-actions"><i>Exchange</i><i>Inventory</i><i>Trade</i></div><div class="wallet-chart"><b></b><b></b><b></b><b></b><b></b><b></b></div></div>
