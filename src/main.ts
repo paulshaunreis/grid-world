@@ -49,6 +49,7 @@ import { createTeamWorkSystem } from './world/TeamWorkSystem';
 import { GridSecuritySystem } from './core/GridSecuritySystem';
 import { CreatureEcologySystem, type EcologyWorld } from './world/CreatureEcologySystem';
 import { NPCSocietySystem } from './world/NPCSocietySystem';
+import { hourOfDayFromDayFraction, resolveNpcRoutine, routinePhaseFor } from './npc/NpcDailyRoutine';
 import { RelationshipStorySystem } from './world/RelationshipStorySystem';
 import { TraversalSystem } from './world/TraversalSystem';
 import { QuestSystem } from './world/QuestSystem';
@@ -2039,7 +2040,9 @@ function animate(now: number) {
       creatureAttackTimer=0;
     }
   }
-  npcSociety.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, ecologySnapshot, consequenceSnapshot);
+  // Day-cycle for NPCs: fraction of the real-world 24h day, matching the living-world phase clock.
+  const npcDayFraction = ((((Date.now() / 1000) % 86400) + 86400) % 86400) / 86400;
+  npcSociety.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, ecologySnapshot, consequenceSnapshot, npcDayFraction);
   guardCommandSystem.ensureDefaults(String(livingSnapshot.world));
   npcMaterialDropTimer += dt;
   const societySnapshot = npcSociety.getSnapshot();
@@ -2190,7 +2193,7 @@ function animate(now: number) {
   foundationLayer.update(dt, frame.elapsedSeconds);
   for (const remote of remotePlayers.values()) remote.update(dt);
   for (const avatar of teamAvatars) avatar.update(dt);
-  for (const actor of crowdActors) actor.update(dt);
+  for (const actor of crowdActors) actor.update(dt, { routinePhase: routinePhaseFor(resolveNpcRoutine(), hourOfDayFromDayFraction(npcDayFraction)) });
   for (const pylon of omniLayer.pylons) pylon.update(dt);
   const transitTime = performance.now() / 1000;
   for (const visual of teleportVisuals) {
