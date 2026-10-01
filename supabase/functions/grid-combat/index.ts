@@ -121,55 +121,6 @@ async function writeNpcMemory(userId:string, body:Record<string,unknown>){
   return data;
 }
 
-
-async function getMarketDefinition(itemId?: string, worldId?: string) {
-  let query = admin.from("grid_world_market_config")
-    .select("world_id,resource_kind,currency_id,base_price")
-    .eq("enabled", true);
-  if (itemId) query = query.eq("resource_kind", itemId);
-  if (worldId) query = query.eq("world_id", worldId);
-  const { data: config, error: configError } = await query.limit(1).maybeSingle();
-  if (configError) throw configError;
-
-  if (config) return {
-    world: String(config.world_id),
-    item: String(config.resource_kind),
-    currency: String(config.currency_id || "grid"),
-    base: Number(config.base_price ?? 5),
-  };
-
-  let worldQuery = admin.from("grid_world_definitions")
-    .select("id,resource_kind,enabled")
-    .eq("enabled", true);
-  if (worldId) worldQuery = worldQuery.eq("id", worldId);
-  const { data: world, error: worldError } = await worldQuery.limit(1).maybeSingle();
-  if (worldError) throw worldError;
-  if (!world) return null;
-
-  const item = String(world.resource_kind || itemId || "");
-  if (itemId && item !== itemId) return null;
-  return {
-    world: String(world.id),
-    item,
-    currency: "grid",
-    base: 5,
-  };
-}
-
-async function getMarketSupply(world: string, item: string) {
-  const { data: nodes, error } = await admin
-    .from("grid_world_resource_state")
-    .select("amount,max_amount")
-    .eq("world", world)
-    .eq("kind", item)
-    .limit(100);
-  if (error) throw error;
-  const supply = (nodes ?? []).reduce((sum, row) => sum + Number(row.amount), 0);
-  const capacity = (nodes ?? []).reduce((sum, row) => sum + Number(row.max_amount), 0) || 1;
-  const scarcity = Math.max(.55, Math.min(1.8, 1.45 - supply / capacity));
-  return { supply, capacity, scarcity };
-}
-
 async function ensureState(userId: string) {
   const { data } = await admin.from("grid_combat_state").select("*").eq("user_id", userId).maybeSingle();
   if (data) return data;
@@ -228,98 +179,102 @@ Deno.serve(async (req: Request) => {
     if (action === "market_merchants") {
       const {data:merchants,error}=await admin.from("grid_npc_market_state").select("*").order("world");
       if(error) throw error;
+      const defs:Record<string,{world:string;item:string;base:number}> = {
+        HARBOR:{world:"HARBOR",item:"TIDE_SALT",base:4}, GARDENS:{world:"GARDENS",item:"BLOOM_RESIN",base:5},
+        CITADEL:{world:"CITADEL",item:"CROWN_RELIC",base:8}, ARTS:{world:"ARTS",item:"MUSE_INK",base:6}, WILDS:{world:"WILDS",item:"FRONTIER_ORE",base:7}
+      };
       const enriched=[];
       for(const merchant of merchants??[]){
-        const def=await getMarketDefinition(undefined,String(merchant.world));
-        const item=String(merchant.resource_kind || def?.item || "");
-        const supplyState=def && item ? await getMarketSupply(def.world,item) : {supply:0,capacity:1,scarcity:1};
+        const def=defs[String(merchant.world)];
+        const {data:nodes}=await admin.from("grid_world_resource_state").select("amount,max_amount").eq("world",merchant.world).eq("kind",merchant.resource_kind).limit(20);
+        const supply=(nodes??[]).reduce((s,row)=>s+Number(row.amount),0);
+        const capacity=(nodes??[]).reduce((s,row)=>s+Number(row.max_amount),0)||1;
+        const scarcity=Math.max(.55,Math.min(1.8,1.45-supply/capacity));
         const stockRatio=Math.max(.45,Math.min(1.8,Number(merchant.stock)/Math.max(1,Number(merchant.desired_stock))));
-        const base=def?.base ?? 5;
-        const buyPrice=Math.max(.5,Math.round(base*supplyState.scarcity*Number(merchant.buy_multiplier)*100)/100);
-        const sellPrice=Math.max(.5,Math.round(base*(2-stockRatio)*Number(merchant.sell_multiplier)*100)/100);
-        enriched.push({...merchant,market_world:def?.world ?? String(merchant.world),market_item:item,market_currency:def?.currency ?? "grid",supply:supplyState.supply,capacity:supplyState.capacity,scarcity:supplyState.scarcity,buy_price:buyPrice,sell_price:sellPrice});
+        const buyPrice=Math.max(.5,Math.round((def?.base??5)*scarcity*Number(merchant.buy_multiplier)*100)/100);
+        const sellPrice=Math.max(.5,Math.round((def?.base??5)*(2-stockRatio)*Number(merchant.sell_multiplier)*100)/100);
+        enriched.push({...merchant,supply,capacity,scarcity,buy_price:buyPrice,sell_price:sellPrice});
       }
       return json({ok:true,action,merchants:enriched});
-    }
-
-    if (action === "market_tick") {
-      const {data:merchants,error:merchantError}=await admin.from("grid_npc_market_state").select("*");
-      if(merchantError) throw merchantError;
-      const updates=[];
-      for(const merchant of merchants ?? []) {
-        const def=await getMarketDefinition(undefined,String(merchant.world));
-        if(!def) continue;
-        const supplyState=await getMarketSupply(def.world,String(merchant.resource_kind || def.item));
-        const ratio=Number(merchant.stock)/Math.max(1,Number(merchant.desired_stock));
-        const availability=supplyState.supply/supplyState.capacity;
-        const replenishment=availability>.55 ? Math.max(0,Math.min(3,Math.ceil((1-ratio)*2))) : 0;
-        const depletion=availability<.25 ? Math.max(0,Math.min(2,Math.ceil(ratio*.5))) : 0;
-        const nextStock=Math.max(0,Math.min(Number(merchant.desired_stock)*1.8,Number(merchant.stock)+replenishment-depletion));
-        const demand=Math.max(.55,Math.min(1.8,Number(merchant.desired_stock)/Math.max(1,nextStock)));
-        await admin.from("grid_npc_market_state").update({stock:nextStock,updated_at:new Date().toISOString()}).eq("npc_id",merchant.npc_id);
-        await admin.from("grid_world_market_state").upsert({
-          world:def.world,
-          demand,
-          base_price:def.base,
-          currency_id:def.currency,
-          updated_at:new Date().toISOString()
-        },{onConflict:"world"});
-        updates.push({npc_id:merchant.npc_id,world:def.world,stock:nextStock,demand});
-      }
-      return json({ok:true,action,updates});
     }
 
     if (action === "market_quote") {
       const world=String(body.world ?? "");
       const item=String(body.item_id ?? "");
       const amount=Math.max(1,Math.min(99,Number(body.amount ?? 1)));
-      const def=await getMarketDefinition(item,world || undefined);
+      const defs:Record<string,{world:string;currency:string;base:number}> = {
+        TIDE_SALT:{world:"HARBOR",currency:"tide",base:4},
+        BLOOM_RESIN:{world:"GARDENS",currency:"root",base:5},
+        CROWN_RELIC:{world:"CITADEL",currency:"lumen",base:8},
+        MUSE_INK:{world:"ARTS",currency:"echo",base:6},
+        FRONTIER_ORE:{world:"WILDS",currency:"forge",base:7},
+      };
+      const def=defs[item];
       if(!def || (world && world!==def.world)) return json({ok:false,error:"market_item_not_found"},404);
-      const supplyState=await getMarketSupply(def.world,def.item);
-      const {data:market,error:marketError}=await admin.from("grid_world_market_state").select("demand,base_price,currency_id").eq("world",def.world).maybeSingle();
-      if(marketError) throw marketError;
+      const {data:node,error:nodeError}=await admin.from("grid_world_resource_state").select("amount,max_amount").eq("world",def.world).eq("kind",item).limit(20);
+      if(nodeError) throw nodeError;
+      const supply=(node??[]).reduce((sum,row)=>sum+Number(row.amount),0);
+      const capacity=(node??[]).reduce((sum,row)=>sum+Number(row.max_amount),0) || 1;
+      const scarcity=Math.max(.55,Math.min(1.8,1.45-(supply/capacity)));
+      const {data:market}=await admin.from("grid_world_market_state").select("demand,base_price,currency_id").eq("world",def.world).maybeSingle();
       const demand=Number(market?.demand ?? 1);
-      const base=Number(market?.base_price ?? def.base);
-      const currency=String(market?.currency_id ?? def.currency);
-      const unitPrice=Math.max(.5,Math.round(base*supplyState.scarcity*demand*100)/100);
-      return json({ok:true,action,world:def.world,item_id:def.item,amount,unit_price:unitPrice,total:Math.round(unitPrice*amount*100)/100,currency_id:currency,...supplyState,demand});
+      const stabilityPressure=1;
+      const unitPrice=Math.max(.5,Math.round(Number(market?.base_price ?? def.base)*scarcity*demand*stabilityPressure*100)/100);
+      return json({ok:true,action,world:def.world,item_id:item,amount,unit_price:unitPrice,total:Math.round(unitPrice*amount*100)/100,currency_id:String(market?.currency_id ?? def.currency),supply,capacity,scarcity,demand});
     }
 
     if (action === "market_sell") {
       const world=String(body.world ?? "");
       const item=String(body.item_id ?? "");
       const amount=Math.max(1,Math.min(99,Math.floor(Number(body.amount ?? 1))));
-      const def=await getMarketDefinition(item,world || undefined);
-      if(!def || (world && world!==def.world)) throw new Error("market_item_not_found");
-      const supplyState=await getMarketSupply(def.world,def.item);
-      const {data:market,error:marketError}=await admin.from("grid_world_market_state").select("demand,base_price,currency_id").eq("world",def.world).maybeSingle();
-      if(marketError) throw marketError;
-      const unitPrice=Math.max(.5,Math.round(Number(market?.base_price ?? def.base)*supplyState.scarcity*Number(market?.demand ?? 1)*100)/100);
-      const currencyId=String(market?.currency_id ?? def.currency);
-      const {data:trade,error:tradeError}=await admin.rpc("grid_execute_resource_sale",{p_user_id:user.id,p_world:def.world,p_item_id:def.item,p_amount:amount,p_currency_id:currencyId,p_unit_price:unitPrice});
+      const quoteAction=await (async()=>{
+        const defs:Record<string,{world:string;currency:string;base:number}> = {
+          TIDE_SALT:{world:"HARBOR",currency:"tide",base:4}, BLOOM_RESIN:{world:"GARDENS",currency:"root",base:5},
+          CROWN_RELIC:{world:"CITADEL",currency:"lumen",base:8}, MUSE_INK:{world:"ARTS",currency:"echo",base:6},
+          FRONTIER_ORE:{world:"WILDS",currency:"forge",base:7},
+        };
+        const def=defs[item];
+        if(!def || world!==def.world) throw new Error("market_item_not_found");
+        const {data:node,error:nodeError}=await admin.from("grid_world_resource_state").select("amount,max_amount").eq("world",def.world).eq("kind",item).limit(20);
+        if(nodeError) throw nodeError;
+        const supply=(node??[]).reduce((sum,row)=>sum+Number(row.amount),0);
+        const capacity=(node??[]).reduce((sum,row)=>sum+Number(row.max_amount),0) || 1;
+        const {data:market}=await admin.from("grid_world_market_state").select("demand,base_price,currency_id").eq("world",def.world).maybeSingle();
+        const scarcity=Math.max(.55,Math.min(1.8,1.45-(supply/capacity)));
+        const unitPrice=Math.max(.5,Math.round(Number(market?.base_price ?? def.base)*scarcity*Number(market?.demand ?? 1)*100)/100);
+        return {def,supply,capacity,unitPrice,currencyId:String(market?.currency_id ?? def.currency)};
+      })();
+      const q=await quoteAction;
+      const {data:trade,error:tradeError}=await admin.rpc("grid_execute_resource_sale",{p_user_id:user.id,p_world:q.def.world,p_item_id:item,p_amount:amount,p_currency_id:q.currencyId,p_unit_price:q.unitPrice});
       if(tradeError) throw tradeError;
-
-      const merchantRow=await admin.from("grid_npc_market_state").select("npc_id,stock,desired_stock").eq("world",def.world).limit(1).maybeSingle();
-      if(merchantRow.error) throw merchantRow.error;
-      const merchantId=merchantRow.data?.npc_id ? String(merchantRow.data.npc_id) : null;
-      if(merchantRow.data && merchantId){
-        const nextStock=Math.min(Number(merchantRow.data.desired_stock)*1.8,Number(merchantRow.data.stock)+amount);
-        await admin.from("grid_npc_market_state").update({stock:nextStock,updated_at:new Date().toISOString()}).eq("npc_id",merchantId);
-        await admin.from("grid_npc_memories").insert({
-          npc_id:merchantId,subject_type:"player",subject_id:user.id,event_type:"MARKET_TRADE",
-          summary:merchantId+" acquired "+amount+" "+def.item.replaceAll("_"," ")+" from a traveler.",
-          valence:.35,importance:.55,confidence:1,visibility:"public",source:"market_trade",
-          details:{actor_user_id:user.id,world:def.world,item:def.item,amount,unit_price:unitPrice}
-        });
+      const merchantNames:Record<string,string> = {HARBOR:"Mara",GARDENS:"Sela",ARTS:"Caro",CITADEL:"Orin",WILDS:"Rook"};
+      const merchantId=merchantNames[q.def.world];
+      if(merchantId){
+        const merchantRow=await admin.from("grid_npc_market_state").select("stock,desired_stock").eq("npc_id",merchantId).maybeSingle();
+        if(merchantRow.error) throw merchantRow.error;
+        if(merchantRow.data){
+          const nextStock=Math.min(Number(merchantRow.data.desired_stock)*1.8,Number(merchantRow.data.stock)+amount);
+          await admin.from("grid_npc_market_state").update({stock:nextStock,updated_at:new Date().toISOString()}).eq("npc_id",merchantId);
+          await admin.from("grid_npc_memories").insert({
+            npc_id:merchantId,subject_type:"player",subject_id:user.id,event_type:"MARKET_TRADE",
+            summary:merchantId+" acquired "+amount+" "+item.replaceAll("_"," ")+" from a traveler.",
+            valence:.35,importance:.55,confidence:1,visibility:"public",source:"market_trade",
+            details:{actor_user_id:user.id,world:q.def.world,item,amount,unit_price:q.unitPrice}
+          });
+        }
       }
-      await recordWorldEvent("MARKET_TRADE","A world market moved",user.id.slice(0,8)+" sold "+amount+" "+def.item.replaceAll("_"," ")+" in "+def.world+".",{world:def.world,item:def.item,amount,unit_price:unitPrice,currency:currencyId,merchant:merchantId});
-      return json({ok:true,action,merchant:merchantId,quote:{world:def.world,item_id:def.item,amount,unit_price:unitPrice,total:Number(trade?.total??unitPrice*amount),currency_id:currencyId},trade});
+      await recordWorldEvent("MARKET_TRADE","A world market moved",user.id.slice(0,8)+" sold "+amount+" "+item.replaceAll("_"," ")+" in "+q.def.world+".",{world:q.def.world,item,amount,unit_price:q.unitPrice,currency:q.currencyId,merchant:merchantId});
+      return json({ok:true,action,merchant:merchantId,quote:{world:q.def.world,item_id:item,amount,unit_price:q.unitPrice,total:Number(trade?.total??q.unitPrice*amount),currency_id:q.currencyId},trade});
     }
 
     if (action === "inventory_read") {
       const { data: inventory, error } = await admin.from("grid_player_inventory").select("item_id,quantity,updated_at").eq("user_id",user.id).order("item_id");
       if(error) throw error;
-      return json({ok:true,action,inventory:inventory??[]});
+      const { data: minerals, error: mineralError } = await admin.from("grid_mineral_inventory").select("mineral_kind,amount").eq("user_id",user.id).order("mineral_kind");
+      if(mineralError) throw mineralError;
+      const merged=new Map<string,number>((inventory??[]).map((row:any)=>[String(row.item_id),Number(row.quantity)]));
+      for(const row of minerals??[]) merged.set(String(row.mineral_kind),Number(row.amount));
+      return json({ok:true,action,inventory:[...merged.entries()].map(([item_id,quantity])=>({item_id,quantity}))});
     }
 
     if (action === "resource_gather") {
@@ -368,6 +323,73 @@ Deno.serve(async (req: Request) => {
       if(saved.error) throw saved.error;
       await recordWorldEvent("CRAFTING","A new world material was crafted",recipe.output.replaceAll("_"," ")+" entered the living economy.",{recipeId:String(body.recipeId),output:recipe.output,amount:recipe.amount});
       return json({ok:true,action,recipeId:String(body.recipeId),output:saved.data});
+    }
+
+
+    if (action === "npc_profile") {
+      const npcId=String(body.npc_id ?? "");
+      if(!npcId) return json({ok:false,error:"invalid_npc_id"},400);
+      const {data:profile,error}=await admin.from("grid_npc_profiles").select("*").eq("id",npcId).maybeSingle();
+      if(error) throw error;
+      if(!profile) return json({ok:false,error:"npc_not_found"},404);
+      const {data:market}=await admin.from("grid_npc_market_state").select("*").eq("npc_id",npcId.replace("npc.merchant.","").replace("npc.","")).maybeSingle();
+      return json({ok:true,action,profile,market:market ?? null});
+    }
+
+    if (action === "vault_read") {
+      const {data:vault,error}=await admin.from("grid_vault_inventory").select("item_id,quantity,mined_quantity,updated_at").eq("user_id",user.id).order("item_id");
+      if(error) throw error;
+      return json({ok:true,action,vault:vault ?? []});
+    }
+
+    if (action === "bazaar_list") {
+      const {data:listings,error}=await admin.from("grid_bazaar_listings").select("id,seller_type,seller_user_id,seller_npc_id,world_id,item_id,remaining,currency_id,unit_price,status,created_at").eq("status","ACTIVE").order("created_at",{ascending:false}).limit(120);
+      if(error) throw error;
+      return json({ok:true,action,listings:listings ?? []});
+    }
+
+    if (action === "bazaar_create") {
+      const world=String(body.world ?? "GRID_BAZAAR").slice(0,64);
+      const item=String(body.item_id ?? "").slice(0,96);
+      const amount=Math.floor(Number(body.amount ?? 0));
+      const currency=String(body.currency_id ?? "grid").slice(0,32);
+      const price=Number(body.unit_price ?? 0);
+      if(!Number.isFinite(amount)||!Number.isFinite(price)) return json({ok:false,error:"invalid_listing"},400);
+      const {data,error}=await admin.rpc("grid_bazaar_create_listing",{p_world:world,p_item_id:item,p_quantity:amount,p_currency_id:currency,p_unit_price:price});
+      if(error) throw error;
+      return json({ok:true,action,listing:data});
+    }
+
+    if (action === "bazaar_buy") {
+      const listingId=String(body.listing_id ?? "");
+      const amount=Math.floor(Number(body.amount ?? 1));
+      if(!listingId || !Number.isFinite(amount)) return json({ok:false,error:"invalid_purchase"},400);
+      const {data,error}=await admin.rpc("grid_bazaar_buy",{p_listing_id:listingId,p_amount:amount});
+      if(error) throw error;
+      if((data as any)?.seller_type==="NPC" && (data as any)?.seller_npc_id){
+        const npcId=String((data as any).seller_npc_id).replace("npc.merchant.","");
+        const merchantRow=await admin.from("grid_npc_market_state").select("stock,desired_stock").eq("npc_id",npcId).maybeSingle();
+        if(merchantRow.data){
+          await admin.from("grid_npc_market_state").update({stock:Math.max(0,Number(merchantRow.data.stock)-amount),updated_at:new Date().toISOString()}).eq("npc_id",npcId);
+        }
+        await admin.from("grid_npc_memories").insert({
+          npc_id:String((data as any).seller_npc_id),subject_type:"player",subject_id:user.id,event_type:"MARKET_TRADE",
+          summary:npcId+" sold "+amount+" "+String((data as any).item_id).replaceAll("_"," ")+" to a traveler.",
+          valence:.25,importance:.5,confidence:1,visibility:"public",source:"bazaar_trade",
+          details:{actor_user_id:user.id,listing_id:listingId,amount}
+        });
+      }
+      await recordWorldEvent("BAZAAR_TRADE","Grid Bazaar trade completed",user.id.slice(0,8)+" purchased "+amount+" asset(s) in the Bazaar.",{listing_id:listingId,amount,seller_type:(data as any)?.seller_type,seller_npc_id:(data as any)?.seller_npc_id});
+      return json({ok:true,action,trade:data});
+    }
+
+    if (action === "transmute_element") {
+      const recipeId=String(body.recipe_id ?? "");
+      if(!recipeId) return json({ok:false,error:"invalid_recipe"},400);
+      const {data,error}=await admin.rpc("grid_transmute_element",{p_recipe_id:recipeId});
+      if(error) throw error;
+      await recordWorldEvent("ELEMENT_TRANSMUTATION","A new Grid element was created",user.id.slice(0,8)+" completed "+recipeId+".",{recipe_id:recipeId,result:data});
+      return json({ok:true,action,result:data});
     }
 
     if (action === "sync") {
