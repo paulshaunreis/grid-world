@@ -3,7 +3,7 @@ import type { GridCombatAuthority } from '../network/GridCombatAuthority';
 export function mountGridEconomyPanel(authority:()=>GridCombatAuthority|null){
   const panel=document.createElement('section');
   panel.className='grid-economy-panel';
-  panel.innerHTML='<div class="grid-economy-card"><button class="grid-economy-close">×</button><div class="grid-economy-kicker">GRID OMNI ECONOMY</div><h2>Inventory · Vault · Bazaar · Elements</h2><div class="grid-economy-tabs"><button data-tab="inventory">INVENTORY</button><button data-tab="vault">VAULT</button><button data-tab="bazaar">BAZAAR</button><button data-tab="elements">ELEMENTS</button><button data-tab="npc">NPC PROFILE</button></div><div class="grid-economy-content"></div><div class="grid-economy-status"></div></div></section>';
+  panel.innerHTML='<div class="grid-economy-card"><button class="grid-economy-close">×</button><div class="grid-economy-kicker">GRID OMNI ECONOMY</div><h2>Inventory · Wallet · Vault · Bazaar · Elements</h2><div class="grid-economy-tabs"><button data-tab="wallet">WALLET</button><button data-tab="inventory">INVENTORY</button><button data-tab="vault">VAULT</button><button data-tab="bazaar">BAZAAR</button><button data-tab="elements">ELEMENTS</button><button data-tab="npc">NPC PROFILE</button></div><div class="grid-economy-content"></div><div class="grid-economy-status"></div></div></section>';
   document.body.appendChild(panel);
   const contentBox=panel.querySelector<HTMLDivElement>('.grid-economy-content')!,status=panel.querySelector<HTMLDivElement>('.grid-economy-status')!;
   let current='inventory';
@@ -11,7 +11,8 @@ export function mountGridEconomyPanel(authority:()=>GridCombatAuthority|null){
   async function render(){
     const a=authority(); if(!a){contentBox.innerHTML='<p>Grid authority unavailable.</p>';return;}
     try{
-      if(current==='inventory'){
+      if(current==='wallet'){ const r=await a.walletRead(); const rows=(r as any)?.wallet??[]; contentBox.innerHTML='<div class="grid-economy-list">'+rows.map((x:any)=>'<div class="grid-economy-row"><b>'+esc(String(x.currency_id))+'</b><strong>'+Number(x.balance).toLocaleString()+'</strong><small>authoritative Grid balance</small></div>').join('')+'</div>'; }
+      else if(current==='inventory'){
         const r=await a.inventoryRead(); const rows=(r as any)?.inventory??[];
         contentBox.innerHTML='<div class="grid-economy-list">'+rows.map((x:any)=>'<div class="grid-economy-row"><b>'+esc(String(x.item_id))+'</b><strong>'+Number(x.quantity).toLocaleString()+'</strong><button data-list="'+esc(String(x.item_id))+'">LIST 1</button></div>').join('')+'</div>';
         contentBox.querySelectorAll<HTMLButtonElement>('[data-list]').forEach(b=>b.onclick=async()=>{const price=Number(window.prompt('Unit price in Grid currency:', '5')??'0');if(!Number.isFinite(price)||price<=0)return;b.disabled=true;try{const rr=await a.bazaarCreate('GRID_BAZAAR',b.dataset.list!,1,'grid',price);status.textContent=(rr as any)?.ok?'Asset listed in Grid Bazaar.':'Listing rejected.';await render();}catch{status.textContent='Listing rejected by Grid authority.'}b.disabled=false;});
