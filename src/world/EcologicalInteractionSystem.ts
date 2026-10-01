@@ -211,7 +211,7 @@ export class EcologicalInteractionSystem{
       if(!migrationIds.has(id)){
         markerParent.remove(marker);
         marker.geometry.dispose();
-        marker.material.dispose();
+        (marker.material as THREE.Material).dispose();
         this.migrationMarkers.delete(id);
       }
     }
@@ -225,8 +225,8 @@ export class EcologicalInteractionSystem{
         markerParent.add(marker);
       }
       marker.position.set(creature.position.x,creature.position.y+.08,creature.position.z);
-      marker.scale.setScalar(1+Math.sin(this.visualClock*5+creature.id.length)*.18);
-      marker.material.opacity=.3+.2*(.5+.5*Math.sin(this.visualClock*4));
+      marker.scale.setScalar(1+Math.sin(this.visualClock*5+String(creature.id).length)*.18);
+      (marker.material as THREE.MeshBasicMaterial).opacity=.3+.2*(.5+.5*Math.sin(this.visualClock*4));
     }
 
     this.eventCounts={...events};
