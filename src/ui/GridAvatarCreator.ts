@@ -18,6 +18,8 @@ export interface AvatarCustomization {
   arms: number;
   legs: number;
   hands: number;
+  gender?: number;
+  pronouns?: number;
 }
 
 export interface AvatarSelection {
@@ -81,7 +83,7 @@ export function mountAvatarCreator(
         <h3>Build a starter avatar</h3>
         <p>Your avatar is yours. Start with a Grid archetype, then tune the look before entering the world.</p>
         <div class="grid-avatar-style-grid" id="gav-styles"></div>
-        <div class="grid-avatar-section"><b>AGE / LIFE STAGE</b><div class="grid-avatar-choice-grid" id="gav-age"></div></div><div class="grid-avatar-section"><b>RACE</b><div class="grid-avatar-choice-grid" id="gav-species"></div></div><div class="grid-avatar-section"><b>HALF-RACE / LINEAGE</b><div class="grid-avatar-choice-grid" id="gav-lineage"></div></div><div class="grid-avatar-section"><b>ATTRIBUTES</b><div class="grid-avatar-attributes" id="gav-attributes"></div></div><div class="grid-avatar-section"><b>HAIR STYLE</b><div class="grid-avatar-choice-grid" id="gav-hair-style"></div></div><div class="grid-avatar-section"><b>BODY MORPH</b><div class="grid-avatar-custom-grid" id="gav-body-morph"></div></div><div class="grid-avatar-custom-grid">
+        <div class="grid-avatar-section"><b>GENDER / PRESENTATION</b><div class="grid-avatar-choice-grid" id="gav-gender"></div></div><div class="grid-avatar-section"><b>PRONOUNS</b><div class="grid-avatar-choice-grid" id="gav-pronouns"></div></div><div class="grid-avatar-section"><b>AGE / LIFE STAGE</b><div class="grid-avatar-choice-grid" id="gav-age"></div></div><div class="grid-avatar-section"><b>RACE</b><div class="grid-avatar-choice-grid" id="gav-species"></div></div><div class="grid-avatar-section"><b>HALF-RACE / LINEAGE</b><div class="grid-avatar-choice-grid" id="gav-lineage"></div></div><div class="grid-avatar-section"><b>ATTRIBUTES</b><div class="grid-avatar-attributes" id="gav-attributes"></div></div><div class="grid-avatar-section"><b>HAIR STYLE</b><div class="grid-avatar-choice-grid" id="gav-hair-style"></div></div><div class="grid-avatar-section"><b>BODY MORPH</b><div class="grid-avatar-custom-grid" id="gav-body-morph"></div></div><div class="grid-avatar-custom-grid">
           <label>SKIN <input id="gav-skin" type="range" min="0" max="4" step="1"></label>
           <label>HAIR COLOR <input id="gav-hair" type="range" min="0" max="5" step="1"></label><label>HAIR LENGTH <input id="gav-hair-length" type="range" min="0" max="4" step="1"></label>
           <label>EYES <input id="gav-eyes" type="range" min="0" max="5" step="1"></label>
@@ -134,6 +136,8 @@ export function mountAvatarCreator(
     accent:host.querySelector<HTMLInputElement>('#gav-accent')!,
     hairLength:host.querySelector<HTMLInputElement>('#gav-hair-length')!,
   };
+  const genderGrid=host.querySelector<HTMLDivElement>('#gav-gender')!; const pronounsGrid=host.querySelector<HTMLDivElement>('#gav-pronouns')!;
+  const GENDERS=['Woman','Man','Nonbinary','Genderfluid','Agender','Androgynous','Custom']; const PRONOUNS=['she / her','he / him','they / them','she / they','he / they','xe / xem','custom'];
   const ageGrid=host.querySelector<HTMLDivElement>('#gav-age')!;
   const speciesGrid=host.querySelector<HTMLDivElement>('#gav-species')!;
   const lineageGrid=host.querySelector<HTMLDivElement>('#gav-lineage')!;
@@ -156,6 +160,7 @@ export function mountAvatarCreator(
     shoulderL.material.color.setHex(accent);shoulderR.material.color.setHex(accent);
     label.textContent=preset.label.toUpperCase()+' · '+AGES[clamp(c.age??3,0,4)].label.toUpperCase()+' · '+(half?.name??race.name).toUpperCase();
     Object.entries(inputs).forEach(([k,input])=>input.value=String((c as any)[k]??0));
+    genderGrid.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.classList.toggle('selected',Number(b.dataset.gender)===c.gender)); pronounsGrid.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.classList.toggle('selected',Number(b.dataset.pronouns)===c.pronouns));
     ageGrid.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.classList.toggle('selected',Number(b.dataset.age)===c.age));
     lineageGrid.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.classList.toggle('selected',Number(b.dataset.lineage)===c.lineage));
     speciesGrid.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.classList.toggle('selected',Number(b.dataset.species)===c.species));
@@ -166,6 +171,7 @@ export function mountAvatarCreator(
     hairStyleGrid.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.classList.toggle('selected',Number(b.dataset.hairStyle)===c.hairStyle));
     styleGrid.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.classList.toggle('selected',b.dataset.style===selection.style));
   };
+  GENDERS.forEach((name,i)=>{const b=document.createElement('button');b.type='button';b.dataset.gender=String(i);b.textContent=name;b.onclick=()=>{selection.customization.gender=i;draw();};genderGrid.appendChild(b);}); PRONOUNS.forEach((name,i)=>{const b=document.createElement('button');b.type='button';b.dataset.pronouns=String(i);b.textContent=name;b.onclick=()=>{selection.customization.pronouns=i;draw();};pronounsGrid.appendChild(b);});
   AGES.forEach(a=>{const b=document.createElement('button');b.type='button';b.dataset.age=String(a.id);b.textContent=a.label;b.onclick=()=>{selection.customization.age=a.id;draw();};ageGrid.appendChild(b);});
   RACES.forEach((s,i)=>{const b=document.createElement('button');b.type='button';b.dataset.species=String(i);b.innerHTML='<b>'+s.name+'</b><small>'+s.kind+'</small>';b.onclick=()=>{selection.customization.species=i;selection.customization.lineage=-1;draw();};speciesGrid.appendChild(b);});
   HALF_RACES.forEach(s=>{const b=document.createElement('button');b.type='button';b.dataset.lineage=String(s.id);b.textContent=s.name;b.onclick=()=>{selection.customization.lineage=s.id;draw();};lineageGrid.appendChild(b);});
