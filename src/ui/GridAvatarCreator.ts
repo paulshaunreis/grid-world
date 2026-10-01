@@ -9,6 +9,7 @@ export interface AvatarCustomization {
   accent: number;
   age: number;
   species: number;
+  lineage: number;
   hairStyle: number;
   hairLength: number;
 }
@@ -73,7 +74,7 @@ export function mountAvatarCreator(
         <h3>Build a starter avatar</h3>
         <p>Your avatar is yours. Start with a Grid archetype, then tune the look before entering the world.</p>
         <div class="grid-avatar-style-grid" id="gav-styles"></div>
-        <div class="grid-avatar-section"><b>AGE / LIFE STAGE</b><div class="grid-avatar-choice-grid" id="gav-age"></div></div><div class="grid-avatar-section"><b>SPECIES</b><div class="grid-avatar-choice-grid" id="gav-species"></div></div><div class="grid-avatar-section"><b>HAIR STYLE</b><div class="grid-avatar-choice-grid" id="gav-hair-style"></div></div><div class="grid-avatar-custom-grid">
+        <div class="grid-avatar-section"><b>AGE / LIFE STAGE</b><div class="grid-avatar-choice-grid" id="gav-age"></div></div><div class="grid-avatar-section"><b>RACE</b><div class="grid-avatar-choice-grid" id="gav-species"></div></div><div class="grid-avatar-section"><b>HALF-RACE / LINEAGE</b><div class="grid-avatar-choice-grid" id="gav-lineage"></div></div><div class="grid-avatar-section"><b>ATTRIBUTES</b><div class="grid-avatar-attributes" id="gav-attributes"></div></div><div class="grid-avatar-section"><b>HAIR STYLE</b><div class="grid-avatar-choice-grid" id="gav-hair-style"></div></div><div class="grid-avatar-custom-grid">
           <label>SKIN <input id="gav-skin" type="range" min="0" max="4" step="1"></label>
           <label>HAIR COLOR <input id="gav-hair" type="range" min="0" max="5" step="1"></label><label>HAIR LENGTH <input id="gav-hair-length" type="range" min="0" max="4" step="1"></label>
           <label>EYES <input id="gav-eyes" type="range" min="0" max="5" step="1"></label>
@@ -125,6 +126,8 @@ export function mountAvatarCreator(
   };
   const ageGrid=host.querySelector<HTMLDivElement>('#gav-age')!;
   const speciesGrid=host.querySelector<HTMLDivElement>('#gav-species')!;
+  const lineageGrid=host.querySelector<HTMLDivElement>('#gav-lineage')!;
+  const attributesGrid=host.querySelector<HTMLDivElement>('#gav-attributes')!;
   const hairStyleGrid=host.querySelector<HTMLDivElement>('#gav-hair-style')!;
   const draw=()=>{
     const preset=STYLES.find(x=>x.id===selection.style)??STYLES[0];
@@ -133,14 +136,14 @@ export function mountAvatarCreator(
     head.material.color.setHex(SKINS[clamp(c.skin,0,4)]);
     hair.material.color.setHex(HAIR[clamp(c.hair,0,5)]);
     eyeMat.color.setHex(EYES[clamp(c.eyes,0,5)]);eyeMat.emissive.setHex(EYES[clamp(c.eyes,0,5)]);
-    const age=AGES[clamp(c.age??3,0,4)]; const build=1+c.build*.045; const lifeScale=age.scale; body.scale.set(build*lifeScale,lifeScale,build*lifeScale); head.scale.set(age.head,age.head,age.head); neck.scale.set(age.head,lifeScale,age.head); hair.scale.set(age.head,age.head*(1+(c.hairLength??2)*.08),age.head); shoulderL.scale.set(lifeScale,lifeScale,lifeScale); shoulderR.scale.copy(shoulderL.scale);
-    head.userData.species=SPECIES[clamp(c.species??0,0,4)];
+    const race=RACES[clamp(c.species??0,0,RACES.length-1)]; const half=HALF_RACES.find(x=>x.id===c.lineage); const age=AGES[clamp(c.age??3,0,4)]; const build=1+c.build*.045; const lifeScale=age.scale*race.scale*(half?.scale??1); body.scale.set(build*lifeScale*race.bulk*(half?.bulk??1),lifeScale,build*lifeScale*race.bulk*(half?.bulk??1)); head.scale.set(age.head,age.head,age.head); neck.scale.set(age.head,lifeScale,age.head); hair.scale.set(age.head,age.head*(1+(c.hairLength??2)*.08),age.head); shoulderL.scale.set(lifeScale,lifeScale,lifeScale); shoulderR.scale.copy(shoulderL.scale);
+    head.userData.species=half?.name??race.name;
     hair.userData.hairStyle=HAIR_STYLES[clamp(c.hairStyle??0,0,HAIR_STYLES.length-1)];
     const hairStyle=c.hairStyle??0; const hairX=hairStyle===5?1.25:hairStyle===2?.92:1; const hairZ=hairStyle===1?1.12:hairStyle===6?1.06:1; hair.scale.set(age.head*hairX,age.head*(1+(c.hairLength??2)*.08),age.head*hairZ); hair.rotation.z=hairStyle===5?.12:hairStyle===3?.08:0;
     const accent=0x33ddff + clamp(c.accent,0,5)*0x070707;
     chest.material.color.setHex(preset.accent);collar.material.color.setHex(preset.accent);collar.material.emissive.setHex(preset.accent);
     shoulderL.material.color.setHex(accent);shoulderR.material.color.setHex(accent);
-    label.textContent=preset.label.toUpperCase()+' · '+selection.style.toUpperCase()+' · '+AGES[clamp(c.age??3,0,4)].label.toUpperCase()+' '+SPECIES[clamp(c.species??0,0,4)].toUpperCase();
+    label.textContent=preset.label.toUpperCase()+' · '+AGES[clamp(c.age??3,0,4)].label.toUpperCase()+' · '+(half?.name??race.name).toUpperCase();
     Object.entries(inputs).forEach(([k,input])=>input.value=String((c as any)[k]??0));
     ageGrid.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.classList.toggle('selected',Number(b.dataset.age)===c.age));
     speciesGrid.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.classList.toggle('selected',Number(b.dataset.species)===c.species));
