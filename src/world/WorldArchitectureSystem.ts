@@ -83,6 +83,29 @@ export class WorldArchitectureSystem {
         cloudDeck.rotation.x=-Math.PI/2;cloudDeck.position.y=-1.5;cloudDeck.userData.gridObjectKind='world-cloud-deck';cloudDeck.userData.worldId=world.id;cluster.add(cloudDeck);
       }
       if(wildlife) for(let i=0;i<3;i++){const habitat=new THREE.Mesh(new THREE.CylinderGeometry(.35,.6,1.1,7),secondary);const ha=i*2.1;habitat.position.set(Math.cos(ha)*3.2,.55,Math.sin(ha)*3.2);habitat.userData.gridObjectKind='wildlife-habitat';habitat.userData.worldId=world.id;cluster.add(habitat);}
+
+      // Flora is derived from the same World DNA as architecture, so generated worlds
+      // receive vegetation appropriate to their environment rather than generic decoration.
+      const flora=dna.ecology.floraFamilies;
+      for(let i=0;i<Math.max(6,Math.round(8*dna.ambientLife));i++){
+        const a=i*2.399963;
+        const radius=7+(i%4)*1.35;
+        const family=flora[i%Math.max(1,flora.length)] ?? 'native flora';
+        const stem=new THREE.Mesh(new THREE.CylinderGeometry(.035,.07,.65+organicity*.45,6),secondary);
+        stem.position.set(Math.cos(a)*radius,(aerial?3:0)+.35,Math.sin(a)*radius);
+        if(family.includes('canopy') || family.includes('tree') || family.includes('old growth')){
+          const crown=new THREE.Mesh(new THREE.SphereGeometry(.45+organicity*.3,7,6),primary);
+          crown.position.y=.5; stem.add(crown);
+        } else if(family.includes('floating') || family.includes('ornamental')){
+          const bloom=new THREE.Mesh(new THREE.TorusGeometry(.18,.035,5,12),secondary);
+          bloom.position.y=.42; bloom.rotation.x=Math.PI/2; stem.add(bloom);
+        }
+        stem.userData.gridObjectKind='world-flora';
+        stem.userData.worldId=world.id;
+        stem.userData.floraFamily=family;
+        cluster.add(stem);
+      }
+
       const landmark=new THREE.Mesh(new THREE.TorusGeometry(3.2,.14,8,48),secondary);
       landmark.position.y=(aerial?7:5.5)*verticality;
       landmark.rotation.x=Math.PI/2;
