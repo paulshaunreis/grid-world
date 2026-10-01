@@ -3,6 +3,8 @@ import { getWorlds } from './GridWorldRegistry';
 
 export type GridMatterEditMode = 'CARVE' | 'BUILD';
 
+/** A persisted Grid Matter unit, intentionally distinct from conventional voxel terminology. */
+
 type MatterKey = string;
 
 type WorldMatterState = {
@@ -17,6 +19,7 @@ type WorldMatterState = {
 const keyOf = (x:number,y:number,z:number) => `${x},${y},${z}`;
 
 export class GridMatterTerrainSystem {
+  /** Grid Matter is the editable physical substrate beneath a Grid world. */
   readonly root = new THREE.Group();
   private readonly worlds = new Map<string, WorldMatterState>();
   private readonly raycaster = new THREE.Raycaster();
