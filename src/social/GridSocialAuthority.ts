@@ -11,6 +11,9 @@ export interface GridSocialOrganization {
   metadata:Record<string,unknown>;
 }
 
+export type GridFriendStatus='pending'|'accepted'|'blocked';
+export interface GridFriendship { userId:string; friendUserId:string; status:GridFriendStatus; requestedBy:string; createdAt?:string; updatedAt?:string; }
+
 export interface GridSocialMember {
   organizationId:string;
   actorKind:GridOrganizationActorKind;
@@ -27,6 +30,30 @@ export interface GridSocialRpcClient {
 
 export class GridSocialAuthority {
   constructor(private readonly client:GridSocialRpcClient){}
+
+  async requestFriend(friendUserId:string):Promise<GridFriendship>{
+    const {data,error}=await this.client.rpc('grid_social_friend_request',{p_friend_user_id:friendUserId});
+    if(error)throw error;
+    return (Array.isArray(data)?data[0]:data) as GridFriendship;
+  }
+
+  async respondToFriend(friendUserId:string,status:'accepted'|'blocked'):Promise<GridFriendship>{
+    const {data,error}=await this.client.rpc('grid_social_friend_respond',{p_friend_user_id:friendUserId,p_status:status});
+    if(error)throw error;
+    return (Array.isArray(data)?data[0]:data) as GridFriendship;
+  }
+
+  async removeFriend(friendUserId:string):Promise<void>{
+    const {error}=await this.client.rpc('grid_social_friend_remove',{p_friend_user_id:friendUserId});
+    if(error)throw error;
+  }
+
+  async listFriends():Promise<GridFriendship[]>{
+    if(!this.client.from)throw new Error('GridSocialAuthority requires a query-capable client to list friends');
+    const {data,error}=await this.client.from('grid_social_friendships').select('*').eq('status','accepted').order('updated_at',{ascending:false});
+    if(error)throw error;
+    return (data??[]) as GridFriendship[];
+  }
 
   async upsertOrganization(input:{
     id:string;
