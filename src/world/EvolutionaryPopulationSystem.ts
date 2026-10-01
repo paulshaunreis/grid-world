@@ -138,7 +138,7 @@ export class EvolutionaryPopulationSystem {
   }
 
   update(delta:number,living:LivingWorldSnapshot,state:{fertility:number;biodiversity:number;water:number;environmentalStress:number}){
-    this.elapsed+=delta;this.phenotypeElapsed+=delta;
+    this.elapsed+=delta;this.phenotypeElapsed+=delta;this.updateEmergentVisuals(delta);
     if(this.phenotypeElapsed>=1.5){this.phenotypeElapsed=0;this.syncPhenotypes(living);}
     if(this.elapsed<8)return;
     this.elapsed=0;this.registerWorld(living.world);
