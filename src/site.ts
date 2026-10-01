@@ -75,6 +75,28 @@ app.innerHTML = `
       <div class="studio-live-art"><img src="/art/team-studio.svg" alt="" aria-hidden="true"></div><div class="studio-live-grid" id="studio-live-grid"></div>
     </section>
 
+    <section class="living-atlas" id="living-world">
+      <div class="living-atlas-copy">
+        <div class="section-label">LIVING WORLD SYSTEM</div>
+        <h2>Environment is<br><span>part of the simulation.</span></h2>
+        <p>Worlds are not static backdrops. Their climate, atmosphere, habitat bands, weather motion, flora, creatures, seasons, and local architecture are generated from the same world identity.</p>
+        <div class="living-metrics">
+          <article><b>ATMOSPHERE</b><span>Sky · mist · dust · pollen</span></article>
+          <article><b>HABITAT</b><span>Territories · niches · migration</span></article>
+          <article><b>SEASONS</b><span>Growth · weather · change</span></article>
+          <article><b>LIFE</b><span>Flora · fauna · evolution</span></article>
+        </div>
+        <a class="secondary large" href="/play.html">ENTER A LIVING WORLD</a>
+      </div>
+      <div class="living-visual" aria-label="Procedural living world visualization">
+        <div class="living-sky"></div><div class="living-sun"></div><div class="living-ring ring-a"></div><div class="living-ring ring-b"></div>
+        <div class="living-island island-a"><i></i><i></i><i></i></div>
+        <div class="living-island island-b"><i></i><i></i></div>
+        <div class="living-creature c1"></div><div class="living-creature c2"></div><div class="living-creature c3"></div>
+        <div class="living-readout"><span>ENVIRONMENT // ONLINE</span><b>WEATHER · HABITAT · LIFE</b><small>WORLD COUNT: ∞</small></div>
+      </div>
+    </section>
+
     <section class="visual-atlas" id="visual-system">
       <div class="atlas-heading">
         <div>
