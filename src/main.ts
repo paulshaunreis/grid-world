@@ -887,7 +887,7 @@ function handleTeleportNode(result: ReturnType<InteractionSystem['findTarget']>)
           source_node_id: teleport.sourceNodeId ?? null,
           destination_node_id: destination.id,
           result: 'teleported',
-        }).then(() => undefined).catch(() => undefined);
+        });
       }
     }, 850);
   });
@@ -1502,18 +1502,16 @@ function animate(now: number) {
     resourceInteractLatched = true;
     if (combatAuthority) {
       try {
-        const result = await combatAuthority.gatherResource(nearestResource.id);
-        const resource = result?.resource as { kind?: string; amount?: number } | undefined;
-        if (result?.ok && resource?.kind && resource.amount) {
-          worldResources.collect(nearestResource.id, Number(resource.amount));
-          worldConsequences.recordResourceGathered(livingSnapshot.world as EcologyWorld, resource.kind as any, Number(resource.amount));
-          addChatMessage('RESOURCE', 'Gathered +' + resource.amount + ' ' + resource.kind.replaceAll('_',' ') + ' · secured to inventory.', 'system');
-        } else if (result?.error) {
-          addChatMessage('RESOURCE', String(result.error).replaceAll('_',' '), 'system');
-        }
-      } catch (error) {
-        addChatMessage('RESOURCE', 'Server resource service unavailable.', 'system');
-      }
+        void combatAuthority.gatherResource(nearestResource.id).then(result => {
+          const resource = (result as any)?.resource as { kind?: string; amount?: number } | undefined;
+          if ((result as any)?.ok && resource?.kind && resource.amount) {
+            worldResources.collect(nearestResource.id, Number(resource.amount));
+            worldConsequences.recordResourceGathered(livingSnapshot.world as EcologyWorld, resource.kind as any, Number(resource.amount));
+            addChatMessage('RESOURCE', 'Gathered +' + resource.amount + ' ' + resource.kind.replaceAll('_',' ') + ' · secured to inventory.', 'system');
+          } else if ((result as any)?.error) {
+            addChatMessage('RESOURCE', String((result as any).error).replaceAll('_',' '), 'system');
+          }
+        }).catch(() => addChatMessage('RESOURCE', 'Server resource service unavailable.', 'system'));
     } else {
       const gathered = worldResources.collect(nearestResource.id, 8);
       if (gathered) {
