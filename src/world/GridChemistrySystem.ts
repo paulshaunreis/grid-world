@@ -1,4 +1,4 @@
-import { GRID_MINERALS, type GridMineralKind } from './GridMineralSystem';
+import type { GridMineralKind } from './GridMineralSystem';
 
 /**
  * Grid Chemistry is the elemental foundation beneath minerals, geology,
