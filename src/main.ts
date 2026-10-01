@@ -1718,9 +1718,9 @@ function animate(now: number) {
   }
   npcSociety.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, ecologySnapshot, consequenceSnapshot);
   guardCommandSystem.ensureDefaults(String(livingSnapshot.world));
-  if (Math.floor(performance.now()/1000) % 37 === 0 && societySnapshot?.working) {
-    const npc = npcSociety.getSnapshot().npcs?.[0] as any;
-    if (npc?.id) materialDropSystem.createDrop(String(npc.id),'NPC',String(livingSnapshot.world),player.avatar.position.clone().add(new THREE.Vector3(.7,.25,.7)),npc.id.length);
+  if (Math.floor(performance.now()/1000) % 37 === 0 && societySnapshot.working) {
+    const worker = npcSociety.getWorkingCitizens().find(n=>n.world===livingSnapshot.world);
+    if (worker) materialDropSystem.createDrop(worker.id,'NPC',String(livingSnapshot.world),worker.position.clone().add(new THREE.Vector3(.25,.15,.25)),worker.id.length + Math.round(performance.now()));
   }
   const societySnapshot = npcSociety.getSnapshot();
   traversalSystem.update(dt);
