@@ -5,6 +5,9 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: 'index.html',
+        games: 'games.html',
+        game: 'game.html',
+        diagnostics: 'diagnostics.html',
         play: 'play.html',
         profile: 'profile.html',
         shop: 'shop.html',
