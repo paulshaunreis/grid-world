@@ -78,9 +78,11 @@ import { mountGridAuthPanel } from './ui/GridAuthPanel';
 import { GridSocialService } from './social/GridSocialService';
 import { mountGridCommunityPanel } from './ui/GridCommunityPanel';
 import { GridVoiceModifierSystem } from './audio/GridVoiceModifierSystem';
+import type { GridAgeBand } from './social/GridContentAccess';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
+let accountAgeBand: GridAgeBand = 'child';
 const persistence = new Persistence();
 const cloudPersistence = supabaseConfigured ? new SupabasePersistence(SUPABASE_URL!, SUPABASE_PUBLISHABLE_KEY!) : null;
 
@@ -382,6 +384,7 @@ const gridSocialButton = document.querySelector<HTMLButtonElement>('[data-tool="
 gridSocialButton?.addEventListener('click',()=>gridCommunityPanel?.open());
 const gridAuthPanel = cloudPersistence ? mountGridAuthPanel(new GridAuthService(cloudPersistence.getClient()), profile => {
   identity = { ...identity, id: profile.id, displayName: profile.display_name };
+  void cloudPersistence?.getClient().from('grid_account_social').select('age_band').eq('user_id', profile.id).maybeSingle().then(({data})=>{ if(data?.age_band==='child'||data?.age_band==='teen'||data?.age_band==='adult') accountAgeBand=data.age_band; });
   cloudIdentity = { ...cloudIdentity, id: profile.id, displayName: profile.display_name };
   writeVersioned('grid-world:identity', 1, identity);
   player.setAvatarAppearance(identity.avatarStyle, identity.avatarCustomization);
@@ -964,6 +967,7 @@ function handleTeleportNode(result: ReturnType<InteractionSystem['findTarget']>)
       destinationId,
       nowSeconds: performance.now() / 1000,
       relationship: 'public',
+      ageBand: accountAgeBand,
     });
 
     if (!teleport.ok || !teleport.destination) {
