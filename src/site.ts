@@ -35,9 +35,10 @@ app.innerHTML = `
       <button class="ghost style-trigger" id="style-trigger" type="button">STYLE</button><button class="operator-trigger" id="operator-trigger" type="button">GRID OPERATOR</button>
       <button class="ghost" id="site-qr" type="button">QR</button>
       <a class="ghost" href="/economics.html">ECONOMICS</a><a class="ghost" href="/marketplace.html">MARKET</a><a class="ghost" href="/sound.html">SOUND</a><a class="ghost" href="/grid-world-studio.html">GRID WORLD STUDIO</a><a class="ghost" href="/omni.html">OMNI</a><a class="ghost" href="/directory.html">STAFF</a><a class="ghost" href="/avatars.html">AVATARS</a><a class="ghost" href="/textures.html">TEXTURES</a><a class="ghost" href="/docs.html">DOCS</a><a class="ghost" href="/profile.html">PROFILE</a>
-      <a class="secondary" href="/join.html">JOIN GRID</a><a class="secondary" href="/join.html">JOIN GRID</a><a class="primary" href="/play.html">ENTER WORLD</a>
+      <a class="secondary" href="/join.html">JOIN GRID</a><a class="primary" href="/play.html">ENTER WORLD</a>
     </div>
   </header>
+  <div class="site-live-clock" id="site-live-clock" aria-live="polite">GRID SIGNAL · <span>SYNCING</span></div>
   <div class="style-panel" id="style-panel" aria-label="Website style selector">
     <div class="style-panel-title">SITE VISUAL LANGUAGE</div>
     <p>Try different Grid World surface styles. Your choice is stored locally.</p>
@@ -422,6 +423,11 @@ document.querySelectorAll<HTMLAnchorElement>('nav a').forEach(link => link.addEv
 }));
 
 document.querySelector('#site-qr')?.addEventListener('click', () => qrScanner.open());
+
+const siteClock = document.querySelector<HTMLSpanElement>('#site-live-clock span');
+const updateSiteClock = () => { if (siteClock) siteClock.textContent = 'LIVE · ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }); };
+updateSiteClock();
+window.setInterval(updateSiteClock, 1000);
 
 document.querySelector('#style-trigger')?.addEventListener('click', () => {
   document.querySelector('#style-panel')?.classList.toggle('open');
