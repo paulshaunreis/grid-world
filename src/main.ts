@@ -961,6 +961,18 @@ const cloudReady = cloudPersistence
     })()
   : Promise.resolve(false);
 
+// Render locally first. Cloud persistence is optional and must never prevent the 3D world from booting.
+const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.1, 500);
+camera.position.set(0, 3.2, 7);
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.domElement.setAttribute('aria-label', 'Grid World 3D viewport');
+app.appendChild(renderer.domElement);
+engine.setRenderer(new ThreeGridRenderer(renderer));
+void engine.start();
+
 void cloudReady.then(async () => {
   if (!cloudPersistence) return;
   try {
@@ -1154,17 +1166,6 @@ window.setInterval(() => {
   const diagnosis = watched.diagnose();
   if (diagnosis.status === 'clear') addChatMessage('GRID OMNI', watched.group.userData.interactionName + ' · preflight clear.', 'system');
 }, 15000);
-
-const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.1, 500);
-camera.position.set(0, 3.2, 7);
-
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.setSize(innerWidth, innerHeight);
-renderer.shadowMap.enabled = true;
-app.appendChild(renderer.domElement);
-engine.setRenderer(new ThreeGridRenderer(renderer));
-void engine.start();
 
 const gridMatterTerrain = new GridMatterTerrainSystem(camera, renderer.domElement);
 world.scene.add(gridMatterTerrain.root);
