@@ -84,10 +84,25 @@ export function mountGridLiveFeed(root: HTMLElement) {
   };
 
   if (!supabaseConfigured || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-    const local = () => render([localWorldEvent()]);
+    // The public site still moves without a backend: show several independent world
+    // signals and refresh their ages continuously. The label stays explicit about
+    // being local simulation rather than pretending it is a server feed.
+    const local = () => {
+      const now = Date.now();
+      const events = LOCAL_WORLD_EVENTS.map(([region, type, summary], index) => ({
+        id: 'local-world-' + region,
+        event_type: type.toLowerCase(),
+        region_id: region,
+        title: region + ' · ' + type,
+        summary,
+        visibility: 'public',
+        created_at: new Date(now - index * 17000).toISOString(),
+      }));
+      render(events);
+      if (status) status.textContent = 'LOCAL WORLD CLOCK · LIVE';
+    };
     local();
-    if (status) status.textContent = 'LOCAL WORLD CLOCK';
-    const timer = window.setInterval(local, 10_000);
+    const timer = window.setInterval(local, 1000);
     return () => window.clearInterval(timer);
   }
 
