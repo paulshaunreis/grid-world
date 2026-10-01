@@ -47,7 +47,7 @@ export class WorldResourceSystem {
     if(existing) return;
     definition.points.forEach(([x,z],index)=>{
       const id=world.id.toLowerCase()+':resource:'+index;
-      const material=createStarterPBRMaterial('crystal',{color:definition.color,emissive:definition.color,emissiveIntensity:.7,roughness:.2});
+      const material=createStarterPBRMaterial('technical',{color:definition.color,emissive:definition.color,emissiveIntensity:.7,roughness:.2});
       const mesh=new THREE.Mesh(new THREE.OctahedronGeometry(.22,0),material);
       mesh.position.set(x,0.35+(index%2)*.12,z);
       mesh.userData.gridObjectKind='resource';
