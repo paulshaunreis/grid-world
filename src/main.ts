@@ -59,7 +59,7 @@ import { mountTransitPanel } from './ui/TransitPanel';
 import { WorldArchitectureSystem } from './world/WorldArchitectureSystem';
 import { WorldEnvironmentSystem } from './world/WorldEnvironmentSystem';
 import { GridMatterTerrainSystem } from './world/GridMatterTerrainSystem';
-import { GridMineralSystem } from './world/GridMineralSystem';
+import { GridMineralSystem, GRID_MINERALS, type GridMineralKind } from './world/GridMineralSystem';
 import { WorldEvolutionSystem } from './world/WorldEvolutionSystem';
 import { EvolutionaryPopulationSystem } from './world/EvolutionaryPopulationSystem';
 import { EcologicalWebSystem } from './world/EcologicalWebSystem';
@@ -1567,7 +1567,7 @@ function animate(now: number) {
         const result = Array.isArray(data) ? data[0] : data;
         if (result?.ok) {
           gridMinerals.applyAuthoritativeResult(nearestMineral.id, Number(result.gathered), Number(result.remaining));
-          const definition = (await import('./world/GridMineralSystem')).GRID_MINERALS[result.mineral_kind as import('./world/GridMineralSystem').GridMineralKind];
+          const definition = GRID_MINERALS[result.mineral_kind as GridMineralKind];
           addChatMessage('MINING', 'Mined +' + result.gathered + ' ' + (definition?.name ?? result.mineral_kind) + ' · deposit remaining ' + result.remaining + '.', 'system');
         } else {
           addChatMessage('MINING', 'No mineral extracted. The deposit may be depleted or the request was rejected.', 'system');
