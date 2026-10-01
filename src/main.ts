@@ -372,7 +372,8 @@ let marketPanel: ReturnType<typeof mountMarketPanel> | null = null;
 const questPanel = mountQuestPanel(questSystem);
 mountWorldAtlas(() => ({ world: (livingWorld.getSnapshot().world as EcologyWorld), event: livingWorld.getSnapshot().event, consequences: worldConsequences.getSnapshot(), resources: worldResources.getSnapshot(), inventory: worldResources.getInventory(), market: marketQuotes, transit: teleportSystem.trafficSnapshot() }));
 marketPanel = mountMarketPanel(() => worldResources.getInventory(), () => marketQuotes, () => combatAuthority);
-const gridEconomyPanel = mountGridEconomyPanel(() => combatAuthority);\nconst gridAuthPanel = cloudPersistence ? mountGridAuthPanel(new GridAuthService(cloudPersistence.getClient()), profile => {
+const gridEconomyPanel = mountGridEconomyPanel(() => combatAuthority);
+const gridAuthPanel = cloudPersistence ? mountGridAuthPanel(new GridAuthService(cloudPersistence.getClient()), profile => {
   identity = { ...identity, id: profile.id, displayName: profile.display_name };
   writeVersioned('grid-world:identity', 1, identity);
   identityButton.textContent = '✦ ' + (profile.handle || profile.display_name);
