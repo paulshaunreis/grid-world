@@ -362,14 +362,7 @@ const worldFactoryPanel = mountWorldFactoryPanel({
   onCreate: createFactoryWorld,
 });
 
-const creatorStudio = mountCreatorStudio({
-  terrain: {
-    setMode: mode => gridMatterTerrain.setMode(mode),
-    setEnabled: enabled => gridMatterTerrain.setEnabled(enabled),
-  },
-  onCreateWorld: createFactoryWorld,
-  onMessage: message => addChatMessage('CREATOR STUDIO', message, 'system'),
-});
+
 let marketPanel: ReturnType<typeof mountMarketPanel> | null = null;
 const questPanel = mountQuestPanel(questSystem);
 mountWorldAtlas(() => ({ world: (livingWorld.getSnapshot().world as EcologyWorld), event: livingWorld.getSnapshot().event, consequences: worldConsequences.getSnapshot(), resources: worldResources.getSnapshot(), inventory: worldResources.getInventory(), market: marketQuotes, transit: teleportSystem.trafficSnapshot() }));
@@ -1009,6 +1002,15 @@ void engine.start();
 
 const gridMatterTerrain = new GridMatterTerrainSystem(camera, renderer.domElement);
 world.scene.add(gridMatterTerrain.root);
+
+const creatorStudio = mountCreatorStudio({
+  terrain: {
+    setMode: mode => gridMatterTerrain.setMode(mode),
+    setEnabled: enabled => gridMatterTerrain.setEnabled(enabled),
+  },
+  onCreateWorld: createFactoryWorld,
+  onMessage: message => addChatMessage('CREATOR STUDIO', message, 'system'),
+});
 
 const interaction = new InteractionSystem(camera, world.scene);
 
