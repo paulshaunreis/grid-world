@@ -40,8 +40,8 @@ export class SupabasePersistence {
   }
 
   async saveBuilds(identity: PlayerIdentity, worldId:string, regionId:string, builds:PersistedGridBuild[]) {
-    const scope = this.client.from('grid_build_objects');
-    const { data: existing, error: existingError } = await scope
+    const { data: existing, error: existingError } = await this.client
+      .from('grid_build_objects')
       .select('object_id')
       .eq('user_id', identity.id)
       .eq('world_id', worldId)
@@ -49,47 +49,33 @@ export class SupabasePersistence {
     if (existingError) throw existingError;
 
     const desiredIds = new Set(builds.map(build => build.objectId));
-    const staleIds = (existing ?? [])
-      .map(row => String(row.object_id))
-      .filter(objectId => !desiredIds.has(objectId));
+    const staleIds = (existing ?? []).map(row => String(row.object_id)).filter(id => !desiredIds.has(id));
 
-    if (staleIds.length) {
-      const { error: staleError } = await scope
-        .delete()
-        .eq('user_id', identity.id)
-        .eq('world_id', worldId)
-        .eq('region_id', regionId)
-        .in('object_id', staleIds);
-      if (staleError) throw staleError;
+    for (const objectId of staleIds) {
+      const { error } = await this.client.rpc('grid_build_delete', {
+        p_world_id: worldId, p_region_id: regionId, p_object_id: objectId,
+      });
+      if (error) throw error;
     }
 
-    if (!builds.length) return;
-
-    const updatedAt = new Date().toISOString();
-    const rows = builds.map(build => ({
-      user_id: identity.id,
-      world_id: worldId,
-      region_id: regionId,
-      object_id: build.objectId,
-      definition_id: build.definitionId,
-      position: build.position,
-      rotation: build.rotation,
-      scale: build.scale,
-      schema: 1,
-      updated_at: updatedAt,
-    }));
-
-    const { error } = await scope.upsert(rows, {
-      onConflict: 'user_id,world_id,region_id,object_id',
-    });
-    if (error) throw error;
+    for (const build of builds) {
+      const { error } = await this.client.rpc('grid_build_upsert', {
+        p_world_id: worldId,
+        p_region_id: regionId,
+        p_object_id: build.objectId,
+        p_definition_id: build.definitionId,
+        p_position: build.position,
+        p_rotation: build.rotation,
+        p_scale: build.scale,
+      });
+      if (error) throw error;
+    }
   }
 
   async loadBuilds(identity: PlayerIdentity, worldId:string, regionId:string):Promise<PersistedGridBuild[]> {
     const { data, error } = await this.client
       .from('grid_build_objects')
       .select('object_id,definition_id,position,rotation,scale')
-      .eq('user_id', identity.id)
       .eq('world_id', worldId)
       .eq('region_id', regionId);
     if (error) throw error;
@@ -102,7 +88,7 @@ export class SupabasePersistence {
     });
   }
 
-  async load(identity: PlayerIdentity) {
+  async load(identity: PlayerIdentity: PlayerIdentity) {
     const { data, error } = await this.client
       .from('player_state')
       .select('region_id,x,y,z,yaw,updated_at')
