@@ -25,7 +25,13 @@ export class SupabasePresence {
     private readonly regionId = 'first-light',
   ) {}
 
-  setIdentity(identity: PlayerIdentity) { this.identity = identity; }
+  async setIdentity(identity: PlayerIdentity, initialTransform?: PlayerTransform) {
+    this.identity = identity;
+    if (this.channel) {
+      await this.disconnect();
+      if (initialTransform) await this.connect(initialTransform);
+    }
+  }
 
   async connect(initialTransform: PlayerTransform) {
     this.callbacks.onStatus?.('CONNECTING');
