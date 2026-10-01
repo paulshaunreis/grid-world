@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { AvatarCustomization, AvatarSelection } from '../ui/GridAvatarCreator';
 
 export interface GridAccountProfile {
   id:string;
@@ -9,6 +10,8 @@ export interface GridAccountProfile {
   display_name:string;
   onboarding_complete:boolean;
   name_visibility:string;
+  avatar_style: AvatarSelection['style'];
+  avatar_customization: AvatarCustomization;
 }
 
 export class GridAuthService {
@@ -36,6 +39,12 @@ export class GridAuthService {
 
   async ensureStarterGrant(){ return this.claimStarterGrant(); }
 
+  async saveAvatar(selection:AvatarSelection){
+    const {data,error}=await this.client.rpc('grid_save_avatar_appearance',{p_style:selection.style,p_customization:selection.customization});
+    if(error) throw error;
+    return data;
+  }
+
   async completeProfile(input:{firstName:string;middleName:string;lastName:string;handle:string;displayName:string;nameVisibility:string}){
     const {data,error}=await this.client.rpc('grid_complete_profile',{
       p_first_name:input.firstName,p_middle_name:input.middleName,p_last_name:input.lastName,
@@ -48,7 +57,7 @@ export class GridAuthService {
   async profile(){
     const user=await this.currentUser();
     if(!user) return null;
-    const {data,error}=await this.client.from('profiles').select('id,first_name,middle_name,last_name,handle,display_name,onboarding_complete,name_visibility').eq('id',user.id).maybeSingle();
+    const {data,error}=await this.client.from('profiles').select('id,first_name,middle_name,last_name,handle,display_name,onboarding_complete,name_visibility,avatar_style,avatar_customization').eq('id',user.id).maybeSingle();
     if(error) throw error;
     return data as GridAccountProfile|null;
   }
