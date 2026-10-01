@@ -12,6 +12,12 @@ export interface AvatarCustomization {
   lineage: number;
   hairStyle: number;
   hairLength: number;
+  face: number;
+  shoulders: number;
+  torso: number;
+  arms: number;
+  legs: number;
+  hands: number;
 }
 
 export interface AvatarSelection {
@@ -52,7 +58,8 @@ const HALF_RACES=[
 {id:0,name:'Half-Elf',a:0,b:1,scale:1.01,bulk:.96},{id:1,name:'Half-Orc',a:0,b:4,scale:1.06,bulk:1.28},{id:2,name:'Elf-Dwarf',a:1,b:3,scale:.86,bulk:1.12},{id:3,name:'Fae-Elf',a:1,b:5,scale:.94,bulk:.8},{id:4,name:'Orc-Dwarf',a:4,b:3,scale:.9,bulk:1.45},{id:5,name:'Human-Synth',a:0,b:7,scale:1.01,bulk:1.02},
 ];
 const ATTRIBUTES=['Strength','Agility','Intellect','Stamina','Spirit'];
-const HAIR_STYLES=['Short','Long','Bob','Ponytail','Braided','Mohawk','Wavy','Twin Tail'];
+const HAIR_STYLES=['Short','Long','Bob','Ponytail','Braided','Mohawk','Wavy','Twin Tail','Undercut','Curly','Locs','Side Sweep'];
+const BODY_PARTS=['Face','Shoulders','Torso','Arms','Legs','Hands'];
 const EYES=[0x58d7ff,0x6d8cff,0x63d88d,0xd4ad63,0xd47fd8,0xe7e7e7];
 
 function clamp(n:number,min:number,max:number){return Math.max(min,Math.min(max,n));}
@@ -74,7 +81,7 @@ export function mountAvatarCreator(
         <h3>Build a starter avatar</h3>
         <p>Your avatar is yours. Start with a Grid archetype, then tune the look before entering the world.</p>
         <div class="grid-avatar-style-grid" id="gav-styles"></div>
-        <div class="grid-avatar-section"><b>AGE / LIFE STAGE</b><div class="grid-avatar-choice-grid" id="gav-age"></div></div><div class="grid-avatar-section"><b>RACE</b><div class="grid-avatar-choice-grid" id="gav-species"></div></div><div class="grid-avatar-section"><b>HALF-RACE / LINEAGE</b><div class="grid-avatar-choice-grid" id="gav-lineage"></div></div><div class="grid-avatar-section"><b>ATTRIBUTES</b><div class="grid-avatar-attributes" id="gav-attributes"></div></div><div class="grid-avatar-section"><b>HAIR STYLE</b><div class="grid-avatar-choice-grid" id="gav-hair-style"></div></div><div class="grid-avatar-custom-grid">
+        <div class="grid-avatar-section"><b>AGE / LIFE STAGE</b><div class="grid-avatar-choice-grid" id="gav-age"></div></div><div class="grid-avatar-section"><b>RACE</b><div class="grid-avatar-choice-grid" id="gav-species"></div></div><div class="grid-avatar-section"><b>HALF-RACE / LINEAGE</b><div class="grid-avatar-choice-grid" id="gav-lineage"></div></div><div class="grid-avatar-section"><b>ATTRIBUTES</b><div class="grid-avatar-attributes" id="gav-attributes"></div></div><div class="grid-avatar-section"><b>HAIR STYLE</b><div class="grid-avatar-choice-grid" id="gav-hair-style"></div></div><div class="grid-avatar-section"><b>BODY MORPH</b><div class="grid-avatar-custom-grid" id="gav-body-morph"></div></div><div class="grid-avatar-custom-grid">
           <label>SKIN <input id="gav-skin" type="range" min="0" max="4" step="1"></label>
           <label>HAIR COLOR <input id="gav-hair" type="range" min="0" max="5" step="1"></label><label>HAIR LENGTH <input id="gav-hair-length" type="range" min="0" max="4" step="1"></label>
           <label>EYES <input id="gav-eyes" type="range" min="0" max="5" step="1"></label>
@@ -130,6 +137,7 @@ export function mountAvatarCreator(
   const ageGrid=host.querySelector<HTMLDivElement>('#gav-age')!;
   const speciesGrid=host.querySelector<HTMLDivElement>('#gav-species')!;
   const lineageGrid=host.querySelector<HTMLDivElement>('#gav-lineage')!;
+  const bodyMorph=host.querySelector<HTMLDivElement>('#gav-body-morph')!;
   const attributesGrid=host.querySelector<HTMLDivElement>('#gav-attributes')!;
   const hairStyleGrid=host.querySelector<HTMLDivElement>('#gav-hair-style')!;
   const draw=()=>{
@@ -152,6 +160,8 @@ export function mountAvatarCreator(
     lineageGrid.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.classList.toggle('selected',Number(b.dataset.lineage)===c.lineage));
     speciesGrid.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.classList.toggle('selected',Number(b.dataset.species)===c.species));
     const stats=half?ATTRIBUTES.map((_,i)=>Math.round((RACES[half.a].attrs[i]+RACES[half.b].attrs[i])/2)):race.attrs;
+    bodyMorph.innerHTML=BODY_PARTS.map((name,i)=>{const key=['face','shoulders','torso','arms','legs','hands'][i];return '<label>'+name+' <input data-body="'+key+'" type="range" min="-3" max="3" step="1" value="'+((c as any)[key]??0)+'"></label>';}).join('');
+    bodyMorph.querySelectorAll<HTMLInputElement>('input').forEach(input=>input.oninput=()=>{(selection.customization as any)[input.dataset.body!]=Number(input.value);draw();});
     attributesGrid.innerHTML=ATTRIBUTES.map((name,i)=>'<div><span>'+name+'</span><i><b style="width:'+((stats[i]/20)*100)+'%"></b></i><em>'+stats[i]+'</em></div>').join('');
     hairStyleGrid.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.classList.toggle('selected',Number(b.dataset.hairStyle)===c.hairStyle));
     styleGrid.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.classList.toggle('selected',b.dataset.style===selection.style));
