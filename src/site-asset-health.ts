@@ -1,0 +1,1 @@
+import {installGridAssetHealth} from './core/GridAssetHealthSystem'; installGridAssetHealth(document);
