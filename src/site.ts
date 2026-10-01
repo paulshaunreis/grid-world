@@ -12,7 +12,9 @@ const operatorUrl=import.meta.env.VITE_SUPABASE_URL as string|undefined;
 const operatorKey=import.meta.env.VITE_SUPABASE_ANON_KEY as string|undefined;
 const operator=operatorUrl&&operatorKey?mountGridOperatorPanel(new GridOperatorService(createClient(operatorUrl,operatorKey))):null;
 
-const navItems = ['Home', 'Discover', 'Communities', 'Events', 'Marketplace', 'Creator Hub'];
+const navItems = [
+  ['Home','/'], ['Discover','/#discover'], ['Communities','/#communities'], ['Events','/meetups.html'], ['Marketplace','/marketplace.html'], ['Creator Hub','/grid-world-studio.html']
+] as const;
 const siteStyles = ['aurora', 'studio', 'terminal', 'garden'] as const;
 type SiteStyle = typeof siteStyles[number];
 const SITE_STYLE_KEY = 'grid-world:site-style';
@@ -33,7 +35,7 @@ app.innerHTML = `
       <button class="ghost style-trigger" id="style-trigger" type="button">STYLE</button><button class="operator-trigger" id="operator-trigger" type="button">GRID OPERATOR</button>
       <button class="ghost" id="site-qr" type="button">QR</button>
       <a class="ghost" href="/economics.html">ECONOMICS</a><a class="ghost" href="/marketplace.html">MARKET</a><a class="ghost" href="/sound.html">SOUND</a><a class="ghost" href="/grid-world-studio.html">GRID WORLD STUDIO</a><a class="ghost" href="/omni.html">OMNI</a><a class="ghost" href="/directory.html">STAFF</a><a class="ghost" href="/avatars.html">AVATARS</a><a class="ghost" href="/textures.html">TEXTURES</a><a class="ghost" href="/docs.html">DOCS</a><a class="ghost" href="/profile.html">PROFILE</a>
-      <a class="primary" href="/play.html">ENTER WORLD</a>
+      <a class="secondary" href="/join.html">JOIN GRID</a><a class="primary" href="/play.html">ENTER WORLD</a>
     </div>
   </header>
   <div class="style-panel" id="style-panel" aria-label="Website style selector">
@@ -53,7 +55,7 @@ app.innerHTML = `
         <h1>One grid.<br><span>Infinite worlds.</span></h1>
         <p>Explore connected worlds, meet people, create experiences, and build places that keep evolving even when you're offline.</p>
         <div class="hero-actions">
-          <a class="primary large" href="/play.html">ENTER GRID WORLD</a>
+          <a class="primary large" href="/join.html">JOIN GRID WORLD</a><a class="secondary large" href="/play.html">ENTER AS GUEST</a>
           <a class="secondary large" href="#discover">EXPLORE WORLDS</a>
         </div>
         <div class="hero-stats"><span><b>09</b> starter regions</span><span><b>∞</b> expandable worlds</span><span><b>24/7</b> persistent simulation</span></div>
