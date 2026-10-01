@@ -21,7 +21,6 @@ export class EcologicalInteractionSystem{
   private propagationClock=0;
   private migrationMarkers=new Map<string,THREE.Mesh>();
   private visualClock=0;
-  private habitatClock=0;
 
   constructor(){this.root.name='grid-ecological-interactions';}
 
@@ -49,7 +48,6 @@ export class EcologicalInteractionSystem{
     this.eventClock+=delta;
     this.propagationClock+=delta;
     this.visualClock+=delta;
-    this.habitatClock+=delta;
     if(this.elapsed<this.interval)return;
     this.elapsed=0;
     const scene=this.root.parent;
