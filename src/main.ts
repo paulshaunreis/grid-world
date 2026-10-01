@@ -2162,6 +2162,8 @@ function animate(now: number) {
   camera.lookAt(lookTarget);
 
   const targetObject = interaction.findTarget();
+  const targetUserId = targetObject?.object.userData.remotePlayerId ? String(targetObject.object.userData.remotePlayerId) : null;
+  setSocialTarget(targetUserId);
   prompt.classList.toggle('visible', Boolean(targetObject));
   if (targetObject) prompt.textContent = `E · ${targetObject.name}`;
 
