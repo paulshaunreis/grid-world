@@ -18,5 +18,5 @@ export function createTeleportAvatarEffect(root:THREE.Object3D,duration=900){
   const rings:THREE.Mesh[]=[];
   for(let i=0;i<3;i++){const ring=new THREE.Mesh(new THREE.TorusGeometry(.55+i*.22,.035,8,48),new THREE.MeshBasicMaterial({color:0x65e6ff,transparent:true,opacity:.8,depthWrite:false}));ring.rotation.x=Math.PI/2;ring.position.y=.15+i*.45;group.add(ring);rings.push(ring);}
   const started=performance.now();
-  const tick=()=>{const t=(performance.now()-started)/duration;group.rotation.y+=.08; rings.forEach((r,i)=>{r.scale.setScalar(1+t*(1.8+i*.25));r.material.opacity=Math.max(0,.8-t*.8);r.position.y=.15+i*.45+t*(1.1+i*.35)});if(t<1)requestAnimationFrame(tick);else root.remove(group)};tick();
+  const tick=()=>{const t=(performance.now()-started)/duration;group.rotation.y+=.08; rings.forEach((r,i)=>{r.scale.setScalar(1+t*(1.8+i*.25));const material=Array.isArray(r.material)?r.material[0]:r.material;if('opacity' in material)material.opacity=Math.max(0,.8-t*.8);r.position.y=.15+i*.45+t*(1.1+i*.35)});if(t<1)requestAnimationFrame(tick);else root.remove(group)};tick();
 }
