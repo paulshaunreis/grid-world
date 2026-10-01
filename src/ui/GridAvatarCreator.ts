@@ -120,7 +120,7 @@ export function mountAvatarCreator(
     hair.material.color.setHex(HAIR[clamp(c.hair,0,5)]);
     eyeMat.color.setHex(EYES[clamp(c.eyes,0,5)]);eyeMat.emissive.setHex(EYES[clamp(c.eyes,0,5)]);
     const age=AGES[clamp(c.age??3,0,4)]; const build=1+c.build*.045; const lifeScale=age.scale; body.scale.set(build*lifeScale,lifeScale,build*lifeScale); head.scale.set(age.head,age.head,age.head); neck.scale.set(age.head,lifeScale,age.head); hair.scale.set(age.head,age.head*(1+(c.hairLength??2)*.08),age.head); shoulderL.scale.set(lifeScale,lifeScale,lifeScale); shoulderR.scale.copy(shoulderL.scale);
-    const elf=c.species===1; head.userData.species=SPECIES[clamp(c.species??0,0,4)];
+    head.userData.species=SPECIES[clamp(c.species??0,0,4)];
     hair.userData.hairStyle=HAIR_STYLES[clamp(c.hairStyle??0,0,HAIR_STYLES.length-1)];
     const accent=0x33ddff + clamp(c.accent,0,5)*0x070707;
     chest.material.color.setHex(preset.accent);collar.material.color.setHex(preset.accent);collar.material.emissive.setHex(preset.accent);
