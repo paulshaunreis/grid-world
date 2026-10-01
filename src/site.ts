@@ -1,4 +1,5 @@
 import './site.css';
+import './site-asset-health';
 import { QRScanner } from './ui/QRScanner';
 import { mountGridLiveFeed } from './site-live-feed';
 import { TEAM_WORK_TASKS } from './world/TeamWorkSystem';
