@@ -348,6 +348,14 @@ export class NPCSocietySystem {
     this.root.userData.society=this.snapshot;
   }
 
+  applyTransitInfluence(flowByWorld: Record<string, number>) {
+    for (const citizen of this.citizens) {
+      const flow = Number(flowByWorld[citizen.world] ?? 0);
+      citizen.root.userData.transitActivity = flow;
+      if (flow > .65 && citizen.state === 'REST') citizen.state = 'TALK';
+    }
+  }
+
   setTransitTrafficRecorder(recorder: (source:EcologyWorld,destination:EcologyWorld,queueDepth:number)=>void) { this.transitTrafficRecorder = recorder; }
 
   getSnapshot(){return this.snapshot;}
