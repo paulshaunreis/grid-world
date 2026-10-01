@@ -43,6 +43,7 @@ import { createGridFoundationLayer } from './world/GridFoundationLayer';
 import { mountTeamArea } from './ui/TeamArea';
 import { createWorldSkinDirector } from './world/WorldSkinDirector';
 import { createTeamWorkSystem } from './world/TeamWorkSystem';
+import { GridSecuritySystem } from './core/GridSecuritySystem';
 import { CreatureEcologySystem, type EcologyWorld } from './world/CreatureEcologySystem';
 import { NPCSocietySystem } from './world/NPCSocietySystem';
 import { RelationshipStorySystem } from './world/RelationshipStorySystem';
@@ -293,6 +294,7 @@ chatCompose.addEventListener('submit', event => {
   chatInput.focus();
 });
 
+const gridSecurity = new GridSecuritySystem();
 const world = new World();
 const foundationLayer = createGridFoundationLayer();
 world.scene.add(foundationLayer.root);
@@ -1010,6 +1012,8 @@ const creatorStudio = mountCreatorStudio({
   },
   onCreateWorld: createFactoryWorld,
   onMessage: message => addChatMessage('CREATOR STUDIO', message, 'system'),
+  security: gridSecurity,
+  subjectId: cloudIdentity.id,
 });
 
 const interaction = new InteractionSystem(camera, world.scene);
