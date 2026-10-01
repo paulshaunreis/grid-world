@@ -4,6 +4,7 @@ import { loadWorldSnapshot, saveWorldSnapshot, type GridWorldSnapshot } from "./
 export interface GridRuntimeSnapshot {
   player: { x: number; y: number; z: number; yaw: number; regionId: string };
   world: unknown;
+  builds: unknown;
   health: { savedAt: string };
 }
 
