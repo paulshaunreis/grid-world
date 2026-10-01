@@ -69,10 +69,7 @@ export class NPCProductionSystem {
       this.root.userData.lastProduction={
         ...item, materialDropId:drop.id, material:drop.material, materialAmount:drop.amount
       };
-      profile.memories.push({
-        id:item.id,type:'work',summary:item.name+' produced',importance:.35,
-        createdAt:item.createdAt
-      });
+      profile.memories.push(item.name+' produced at '+item.createdAt);
       if(profile.memories.length>32) profile.memories.splice(0,profile.memories.length-32);
     }
     this.produced=this.produced.slice(-256);
