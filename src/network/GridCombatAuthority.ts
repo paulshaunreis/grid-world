@@ -158,6 +158,8 @@ export class GridCombatAuthority {
     return data;
   }
 
+  async walletRead(): Promise<CombatServerResult | null> { const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', { body:{action:'wallet_read'} }); if(error) throw error; return data; }
+
   async inventoryRead(): Promise<CombatServerResult | null> {
     const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', { body:{action:'inventory_read'} });
     if(error) throw error;
