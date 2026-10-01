@@ -13,7 +13,8 @@ export function mountGridEconomyPanel(authority:()=>GridCombatAuthority|null){
     try{
       if(current==='inventory'){
         const r=await a.inventoryRead(); const rows=(r as any)?.inventory??[];
-        contentBox.innerHTML='<div class="grid-economy-list">'+rows.map((x:any)=>'<div class="grid-economy-row"><b>'+esc(String(x.item_id))+'</b><strong>'+Number(x.quantity).toLocaleString()+'</strong></div>').join('')+'</div>';
+        contentBox.innerHTML='<div class="grid-economy-list">'+rows.map((x:any)=>'<div class="grid-economy-row"><b>'+esc(String(x.item_id))+'</b><strong>'+Number(x.quantity).toLocaleString()+'</strong><button data-list="'+esc(String(x.item_id))+'">LIST 1</button></div>').join('')+'</div>';
+        contentBox.querySelectorAll<HTMLButtonElement>('[data-list]').forEach(b=>b.onclick=async()=>{const price=Number(window.prompt('Unit price in Grid currency:', '5')??'0');if(!Number.isFinite(price)||price<=0)return;b.disabled=true;try{const rr=await a.bazaarCreate('GRID_BAZAAR',b.dataset.list!,1,'grid',price);status.textContent=(rr as any)?.ok?'Asset listed in Grid Bazaar.':'Listing rejected.';await render();}catch{status.textContent='Listing rejected by Grid authority.'}b.disabled=false;});
       } else if(current==='vault'){
         const r=await a.vaultRead(); const rows=(r as any)?.vault??[];
         contentBox.innerHTML='<div class="grid-economy-list">'+rows.map((x:any)=>'<div class="grid-economy-row"><b>'+esc(String(x.item_id))+'</b><strong>'+Number(x.quantity).toLocaleString()+'</strong><small>mined '+Number(x.mined_quantity).toLocaleString()+'</small></div>').join('')+'</div>';
