@@ -1077,6 +1077,18 @@ const identityPanel = document.querySelector<HTMLDivElement>('#identity-panel')!
 const identityName = document.querySelector<HTMLInputElement>('#identity-name')!;
 const identitySave = document.querySelector<HTMLButtonElement>('#identity-save')!;
 const identityCancel = document.querySelector<HTMLButtonElement>('#identity-cancel')!;
+const gridSessionAuth = cloudPersistence ? new GridAuthService(cloudPersistence.getClient()) : null;
+if (gridSessionAuth) {
+  void gridSessionAuth.profile().then(profile => {
+    if (!profile) return;
+    identity = { ...identity, id: profile.id, displayName: profile.display_name };
+    writeVersioned('grid-world:identity', 1, identity);
+    identityButton.textContent = '✦ ' + (profile.handle || profile.display_name);
+    const button = document.querySelector<HTMLButtonElement>('#auth-button');
+    if (button) button.textContent = 'ACCOUNT';
+  }).catch(() => {});
+}
+
 const avatarOptions = document.querySelector<HTMLDivElement>('#avatar-options')!;
 const hudOptions = document.querySelector<HTMLDivElement>('#hud-options')!;
 windowManager.register({
