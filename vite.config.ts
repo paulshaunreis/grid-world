@@ -23,6 +23,7 @@ export default defineConfig({
         gridWorldStudio: 'grid-world-studio.html',
         textures: 'textures.html',
         join: 'join.html',
+        social: 'social.html',
       },
     },
   },
