@@ -134,3 +134,10 @@ Grid accounts now share one identity across the world and website. The community
 - **Voice:** a separate GridVoiceModifierSystem supports optional microphone capture, voice coloration presets, effect amount, and local processed-audio preview. Voice participation remains optional.
 
 The database layer uses Supabase RLS and authenticated RPCs for social preferences, content access checks, and presence. The client still needs a full browser/WebRTC voice transport before processed microphone audio can be transmitted to other players; the voice layer already exposes the processed media stream for that next transport stage.
+
+
+## Grid Operator Guide Presence
+
+Grid Operator is available both on the web and inside the in-world HUD. The in-world guide receives the player’s active/turn-in mission context and current world/event context when answering, while keeping its tone concise and slightly mysterious. Players can personalize the guide voice locally (Aurora, Grid, Link, Elder, Civitas, Veyr, Nyxen, Mosaic, Sentinel, or Waypoint) and choose whether guidance is spoken aloud. Browser speech input/output is used when available.
+
+Grid Omni Guard command infrastructure now models world-level sentinel squads and defense armies with patrol, escort, defend, search, respond, and hold stances. This is the command layer for future NPC proxy control, squad formations, and Operator-directed world responses.
