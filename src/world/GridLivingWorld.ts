@@ -220,7 +220,7 @@ export class GridLivingWorld {
     else if (wetEnoughForRain) weather = humidity > .76 ? 'MIST' : 'RAIN';
     else if (Math.abs(windStrength) > .65) weather = 'WIND';
     else if (humidity > .55) weather = 'CLOUDY';
-    const ecologyBase = Math.round((50 + climate.vegetationBias * 35 + dna.ambientLife * 8) * (.78 + (evolution?.biodiversity ?? .62) * .44);
+    const ecologyBase = Math.round((50 + climate.vegetationBias * 35 + dna.ambientLife * 8) * (.78 + (evolution?.biodiversity ?? .62) * .44));
     const activity = this.worldEvent === 'migration' ? 1.8 : this.worldEvent === 'bloom' ? 1.35 : this.worldEvent === 'storm' ? .72 : 1;
     this.snapshot = { world: this.activeWorld, event: this.worldEvent.toUpperCase(), phase, season, weather, temperatureC, humidity, windX, windZ, activity, ecology: THREE.MathUtils.clamp(ecologyBase, 0, 100) };
     const pressure = consequences?.pressure ?? 0;
