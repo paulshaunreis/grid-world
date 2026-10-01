@@ -2,7 +2,7 @@ import { createClient, type RealtimeChannel, type SupabaseClient } from '@supaba
 import type { PersistedPlayerState } from '../core/Persistence';
 import type { PlayerIdentity } from '../core/PlayerIdentity';
 
-export interface PersistedGridBuild { objectId:string; definitionId:string; position:[number,number,number]; rotation:[number,number,number]; scale:[number,number,number]; }
+export interface PersistedGridBuild { objectId:string; definitionId:string; position:[number,number,number]; rotation:[number,number,number]; scale:[number,number,number]; ownerUserId?:string; }
 export interface GridBuildRegion { worldId:string; regionId:string; ownerUserId:string; accessMode:'private'|'collaborative'|'public'; }
 
 export class SupabasePersistence {
@@ -32,26 +32,26 @@ export class SupabasePersistence {
   async saveBuilds(identity: PlayerIdentity, worldId:string, regionId:string, builds:PersistedGridBuild[]) {
     const { data: existing, error: existingError } = await this.client.from('grid_build_objects').select('object_id').eq('user_id', identity.id).eq('world_id', worldId).eq('region_id', regionId);
     if (existingError) throw existingError;
-    const desiredIds = new Set(builds.map(build => build.objectId));
+    const ownBuilds = builds.filter(build => !build.ownerUserId || build.ownerUserId === identity.id);\n    const desiredIds = new Set(ownBuilds.map(build => build.objectId));
     for (const objectId of (existing ?? []).map(row => String(row.object_id)).filter(id => !desiredIds.has(id))) {
       const { error } = await this.client.rpc('grid_build_delete', { p_world_id: worldId, p_region_id: regionId, p_object_id: objectId });
       if (error) throw error;
     }
-    for (const build of builds) {
+    for (const build of ownBuilds) {
       const { error } = await this.client.rpc('grid_build_upsert', { p_world_id: worldId, p_region_id: regionId, p_object_id: build.objectId, p_definition_id: build.definitionId, p_position: build.position, p_rotation: build.rotation, p_scale: build.scale });
       if (error) throw error;
     }
   }
 
   async loadBuilds(_identity: PlayerIdentity, worldId:string, regionId:string):Promise<PersistedGridBuild[]> {
-    const { data, error } = await this.client.from('grid_build_objects').select('object_id,definition_id,position,rotation,scale').eq('world_id', worldId).eq('region_id', regionId);
+    const { data, error } = await this.client.from('grid_build_objects').select('object_id,definition_id,position,rotation,scale,user_id').eq('world_id', worldId).eq('region_id', regionId);
     if (error) throw error;
     return (data ?? []).flatMap(row => {
       const p = Array.isArray(row.position) ? row.position.map(Number) : [];
       const r = Array.isArray(row.rotation) ? row.rotation.map(Number) : [];
       const s = Array.isArray(row.scale) ? row.scale.map(Number) : [];
       if (typeof row.object_id !== 'string' || typeof row.definition_id !== 'string' || p.length !== 3 || r.length !== 3 || s.length !== 3 || ![...p,...r,...s].every(Number.isFinite)) return [];
-      return [{objectId:row.object_id,definitionId:row.definition_id,position:[p[0],p[1],p[2]],rotation:[r[0],r[1],r[2]],scale:[s[0],s[1],s[2]] as [number,number,number]} as PersistedGridBuild];
+      return [{objectId:row.object_id,definitionId:row.definition_id,position:[p[0],p[1],p[2]],rotation:[r[0],r[1],r[2]],scale:[s[0],s[1],s[2]] as [number,number,number],ownerUserId:String((row as any).user_id ?? '')} as PersistedGridBuild];
     });
   }
 
