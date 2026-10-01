@@ -1353,17 +1353,35 @@ function savePlayer() {
   presence?.update(transform).catch(console.error);
 }
 
-renderer.domElement.addEventListener('click', () => renderer.domElement.requestPointerLock());
+// Second Life-style camera: RMB orbit, wheel zoom, M mouselook.
+renderer.domElement.addEventListener('pointerdown', event => {
+  if (event.button === 2 || (event.button === 0 && event.altKey)) {
+    cameraPanning = true;
+    renderer.domElement.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  }
+});
+renderer.domElement.addEventListener('pointermove', event => {
+  if (!cameraPanning) return;
+  const sensitivity = event.shiftKey ? 0.004 : 0.008;
+  cameraYaw -= event.movementX * sensitivity;
+  cameraPitch -= event.movementY * sensitivity;
+  cameraPitch = THREE.MathUtils.clamp(cameraPitch, -0.85, 1.15);
+});
+renderer.domElement.addEventListener('pointerup', event => {
+  if (event.button === 2 || event.button === 0) {
+    cameraPanning = false;
+    try { renderer.domElement.releasePointerCapture(event.pointerId); } catch {}
+  }
+});
+renderer.domElement.addEventListener('pointercancel', () => { cameraPanning = false; });
+renderer.domElement.addEventListener('contextmenu', event => event.preventDefault());
+renderer.domElement.addEventListener('wheel', event => {
+  cameraDistance = THREE.MathUtils.clamp(cameraDistance + event.deltaY * 0.012, 2.2, 16);
+  event.preventDefault();
+}, { passive: false });
 
 addEventListener('mousemove', event => {
-  if (cameraPanning) {
-    const panSensitivity = 0.012;
-    cameraPanX += event.movementX * panSensitivity;
-    cameraPanY -= event.movementY * panSensitivity;
-    cameraPanX = THREE.MathUtils.clamp(cameraPanX, -4, 4);
-    cameraPanY = THREE.MathUtils.clamp(cameraPanY, -3, 3);
-    return;
-  }
   if (document.pointerLockElement !== renderer.domElement) return;
   const sensitivity = 0.0025;
   cameraYaw -= event.movementX * sensitivity;
@@ -1372,26 +1390,27 @@ addEventListener('mousemove', event => {
   player.setHeading(cameraYaw);
 });
 
-renderer.domElement.addEventListener('pointerdown', event => {
-  if (event.button === 2) {
-    cameraPanning = true;
-    renderer.domElement.setPointerCapture(event.pointerId);
-    event.preventDefault();
+addEventListener('keydown', event => {
+  if (event.repeat) return;
+  if (event.key.toLowerCase() === 'm') {
+    firstPerson = !firstPerson;
+    if (firstPerson) {
+      cameraDistance = 0.05;
+      renderer.domElement.requestPointerLock().catch(() => undefined);
+      status.textContent = 'MOUSELOOK · MOUSE AIM · WASD WALK · MOUSE WHEEL ZOOM';
+    } else {
+      document.exitPointerLock?.();
+      cameraDistance = 7;
+      status.textContent = 'THIRD PERSON · RMB ORBIT · WHEEL ZOOM · WASD WALK';
+    }
+  }
+  if (event.key === 'Escape' && document.pointerLockElement === renderer.domElement) {
+    document.exitPointerLock?.();
+    firstPerson = false;
+    cameraDistance = 7;
+    status.textContent = 'THIRD PERSON · RMB ORBIT · WHEEL ZOOM · WASD WALK';
   }
 });
-renderer.domElement.addEventListener('pointerup', event => {
-  if (event.button === 2) {
-    cameraPanning = false;
-    renderer.domElement.releasePointerCapture(event.pointerId);
-  }
-});
-renderer.domElement.addEventListener('contextmenu', event => event.preventDefault());
-renderer.domElement.addEventListener('wheel', event => {
-  if (document.pointerLockElement === renderer.domElement || cameraPanning) {
-    cameraDistance = THREE.MathUtils.clamp(cameraDistance + event.deltaY * 0.012, 2.2, 16);
-    event.preventDefault();
-  }
-}, { passive: false });
 
 addEventListener('keydown', event => {
   if (document.activeElement === chatInput || document.activeElement === identityName) return;
@@ -1605,6 +1624,10 @@ function animate(now: number) {
   }
 
   const frame = engine.update(dt);
+  const moveInput = input.moveVector();
+  if (document.pointerLockElement === renderer.domElement && (Math.abs(moveInput.x) > .01 || Math.abs(moveInput.y) > .01)) {
+    player.setHeading(cameraYaw);
+  }
   player.update(dt);
   if (player.avatar.position.distanceToSquared(lastFootstepPosition) > 0.22) {
     audio.play('world.footstep', firstPerson ? .7 : .45);
