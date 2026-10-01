@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
 /* Grid World shared visual-art surface for every public page */
 html,body{min-height:100%;background:#050b14;color:#eaf8ff}
 body.grid-world-page{position:relative;overflow-x:hidden}
@@ -27,3 +28,7 @@ body.grid-world-page>*{position:relative;z-index:1}
 .grid-nav-join{padding:9px 12px;border:1px solid rgba(100,230,255,.45);background:rgba(55,190,230,.12);color:#eaffff!important;box-shadow:0 0 18px rgba(70,220,255,.08)}
 @media(max-width:900px){.grid-global-nav{gap:10px;padding:0 12px}.grid-global-nav nav{gap:10px}.grid-global-nav nav a:nth-child(n+7){display:none}}
 @media(max-width:600px){.grid-global-nav nav{display:none}.grid-nav-brand{flex:1}.grid-nav-join{display:block}}
+
+
+body.grid-world-page{font-family:'Space Grotesk',sans-serif}
+.grid-global-nav,.grid-page-artbar::after,.grid-page-ui-strip b{font-family:'IBM Plex Mono',monospace}
