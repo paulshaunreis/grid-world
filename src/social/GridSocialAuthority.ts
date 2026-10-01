@@ -24,7 +24,7 @@ export interface GridSocialMember {
 }
 
 export interface GridSocialRpcClient {
-  rpc(name:string,args:Record<string,unknown>):Promise<{data:any;error:any}>;
+  rpc(name:string,args:Record<string,unknown>):any;
   from?(table:string):any;
 }
 
