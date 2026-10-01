@@ -772,6 +772,8 @@ else player.restoreTransform({
 player.setAvatarAppearance(identity.avatarStyle, identity.avatarCustomization);
 
 let cloudIdentity = identity;
+let cloudAuthenticated = false;
+let cloudBuildVersion = -1;
 const remotePlayers = new Map<string, RemotePlayer>();
 const teamAvatars = TEAM_AVATARS.map(definition => new TeamAvatar(definition));
 for (const avatar of teamAvatars) world.scene.add(avatar.group);
@@ -946,6 +948,7 @@ const cloudReady = cloudPersistence
         const { data, error } = await cloudPersistence.signInAnonymously();
         if (!error && data.user) {
           cloudIdentity = { ...identity, id: data.user.id };
+          cloudAuthenticated = true;
           authenticated = true;
         } else {
           console.warn('Anonymous auth unavailable; presence will use the local visitor identity.');
@@ -961,6 +964,9 @@ const cloudReady = cloudPersistence
         try {
           const cloudState = await cloudPersistence.load(cloudIdentity);
           if (cloudState) player.restoreTransform(cloudState);
+          const remoteBuilds = await cloudPersistence.loadBuilds(cloudIdentity, 'first-light', 'first-light');
+          if (remoteBuilds.length) easyBuildSystem.restore(remoteBuilds.map(build => ({ objectId: build.objectId, id: build.definitionId, position: build.position, rotation: build.rotation, scale: build.scale })));
+          cloudBuildVersion = Number(easyBuildSystem.root.userData.buildStateVersion ?? 0);
         } catch (error) {
           console.warn('Cloud state unavailable; continuing with realtime presence.', error);
         }
@@ -1438,6 +1444,14 @@ function savePlayer() {
   state.regionId = world.regions.findAt(transform.x, transform.z)?.definition.id ?? 'unmapped';
   persistence.savePlayerState(state);
   if (cloudPersistence) cloudPersistence.save(cloudIdentity, state).catch(console.error);
+  if (cloudPersistence && cloudAuthenticated) {
+    const buildVersion = Number(easyBuildSystem.root.userData.buildStateVersion ?? 0);
+    if (buildVersion !== cloudBuildVersion) {
+      const builds = easyBuildSystem.serialize().map(build => ({ objectId: build.objectId, definitionId: build.id, position: build.position as [number,number,number], rotation: build.rotation as [number,number,number], scale: build.scale as [number,number,number] }));
+      cloudBuildVersion = buildVersion;
+      cloudPersistence.saveBuilds(cloudIdentity, 'first-light', 'first-light', builds).catch(error => console.warn('Cloud build persistence unavailable; local recovery remains active.', error));
+    }
+  }
   presence?.update(transform).catch(console.error);
 }
 
