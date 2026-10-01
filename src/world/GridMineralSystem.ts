@@ -100,6 +100,31 @@ export class GridMineralSystem {
   getSnapshot() { return [...this.deposits.values()].map(d => ({...d,position:d.position.clone()})); }
   getInventory() { return {...this.inventory}; }
 
+  syncServerDeposits(rows: Array<{id:string; world_id:string; mineral_kind:GridMineralKind; remaining:number; capacity:number; position_x:number; position_y:number; position_z:number}>) {
+    for (const row of rows) {
+      const existing = this.deposits.get(row.id);
+      if (existing) {
+        existing.remaining = Math.max(0, Math.min(existing.capacity, Number(row.remaining)));
+        existing.capacity = Math.max(existing.capacity, Number(row.capacity));
+        existing.position.set(Number(row.position_x), Number(row.position_y), Number(row.position_z));
+        continue;
+      }
+      if (!GRID_MINERALS[row.mineral_kind]) continue;
+      const position = new THREE.Vector3(Number(row.position_x), Number(row.position_y), Number(row.position_z));
+      const definition = GRID_MINERALS[row.mineral_kind];
+      const material = createStarterPBRMaterial('technical',{color:definition.color,emissive:definition.color,emissiveIntensity:.9,roughness:.24,metalness:.62});
+      const mesh = new THREE.Mesh(new THREE.OctahedronGeometry(.3,0), material);
+      mesh.position.copy(position);
+      mesh.userData.gridObjectKind='grid-mineral';
+      mesh.userData.mineralId=row.id;
+      mesh.userData.mineralKind=row.mineral_kind;
+      mesh.userData.interactable=true;
+      mesh.userData.interactionName=definition.name + ' deposit';
+      this.root.add(mesh);
+      this.deposits.set(row.id,{id:row.id,world:row.world_id,kind:row.mineral_kind,remaining:Number(row.remaining),capacity:Number(row.capacity),position:mesh.position});
+    }
+  }
+
   /** Client-side presentation fallback only. Authoritative servers must call the protected RPC. */
   collectLocal(id:string, requested=1) {
     const deposit=this.deposits.get(id);
