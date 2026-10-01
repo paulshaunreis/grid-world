@@ -75,7 +75,6 @@ import { mountCreatorStudio } from './ui/CreatorStudio';
 import { mountGridEconomyPanel } from './ui/GridEconomyPanel';
 import { GridAuthService } from './auth/GridAuthService';
 import { mountGridAuthPanel } from './ui/GridAuthPanel';
-import type { AvatarSelection } from './ui/GridAvatarCreator';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
