@@ -2,10 +2,14 @@ import * as THREE from 'three';
 import { createStarterPBRMaterial } from '../engine/GridPBRLibrary';
 import type { WorldConsequenceSnapshot } from './WorldConsequenceSystem';
 import { getWorlds } from './GridWorldRegistry';
+import { deriveWorldDNA } from './WorldDNA';
+import { getClimateProfile, type ClimateProfile } from './WorldClimate';
 
 interface LivingPlant { root: THREE.Group; sway: number; }
 interface LivingCreature { root: THREE.Group; phase: number; radius: number; speed: number; center: THREE.Vector3; habitat: 'HARBOR' | 'GARDENS' | 'CITADEL' | 'ARTS' | 'WILDS'; }
-export interface LivingWorldSnapshot { world: string; event: string; phase: 'DAWN' | 'DAY' | 'DUSK' | 'NIGHT'; weather: 'CLEAR' | 'RAIN' | 'MIST' | 'STORM' | 'AURORA'; activity: number; ecology: number; }
+export type LivingSeason = 'SPRING' | 'SUMMER' | 'AUTUMN' | 'WINTER';
+export type LivingWeather = 'CLEAR' | 'CLOUDY' | 'RAIN' | 'MIST' | 'STORM' | 'SNOW' | 'AURORA' | 'BLOOM' | 'WIND';
+export interface LivingWorldSnapshot { world: string; event: string; phase: 'DAWN' | 'DAY' | 'DUSK' | 'NIGHT'; season: LivingSeason; weather: LivingWeather; temperatureC: number; humidity: number; windX: number; windZ: number; activity: number; ecology: number; }
 
 export class GridLivingWorld {
   readonly root = new THREE.Group();
@@ -13,6 +17,8 @@ export class GridLivingWorld {
   private readonly creatures: LivingCreature[] = [];
   private readonly fireflies: THREE.Mesh[] = [];
   private readonly waterRipples: THREE.Mesh[] = [];
+  private readonly weatherParticles: THREE.Mesh[] = [];
+  private readonly weatherRoot = new THREE.Group();
   private time = 0;
   private worldEventSlot = -1;
   private worldEvent: 'quiet' | 'tide' | 'migration' | 'market' | 'bloom' | 'aurora' | 'storm' = 'quiet';
@@ -27,6 +33,7 @@ export class GridLivingWorld {
     this.createFireflies();
     this.createWaterRipples();
     this.createAtmosphericStructures();
+    this.createWeatherParticles();
     this.eventSignal = new THREE.Mesh(
       new THREE.TorusGeometry(1.15, .035, 8, 64),
       new THREE.MeshBasicMaterial({ color: 0x65dded, transparent: true, opacity: .42 }),
@@ -37,6 +44,8 @@ export class GridLivingWorld {
     this.eventSignal.userData.interactable = true;
     this.eventSignal.userData.interactionName = 'World Event Signal';
     this.root.add(this.eventSignal);
+    this.weatherRoot.name = 'world-weather';
+    this.root.add(this.weatherRoot);
   }
 
   private createFlora() {
@@ -145,6 +154,17 @@ export class GridLivingWorld {
     }
   }
 
+  private createWeatherParticles() {
+    const geometry = new THREE.SphereGeometry(.018, 5, 5);
+    for (let i = 0; i < 180; i++) {
+      const particle = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: 0x9edfff, transparent: true, opacity: 0 }));
+      particle.position.set(-52 + Math.random() * 104, 2 + Math.random() * 22, -52 + Math.random() * 104);
+      particle.userData.baseY = particle.position.y;
+      this.weatherRoot.add(particle);
+      this.weatherParticles.push(particle);
+    }
+  }
+
   private createAtmosphericStructures() {
     for(let i=0;i<5;i++){
       const mast=new THREE.Group();
@@ -178,15 +198,35 @@ export class GridLivingWorld {
     const eventPhase = (epochSeconds % 70) / 70;
     const localDay = ((epochSeconds % 86400) + 86400) % 86400;
     const phase: LivingWorldSnapshot['phase'] = localDay < 7 * 3600 ? 'DAWN' : localDay < 18 * 3600 ? 'DAY' : localDay < 20 * 3600 ? 'DUSK' : 'NIGHT';
-    const weather: LivingWorldSnapshot['weather'] = this.worldEvent === 'storm' ? 'STORM' : this.worldEvent === 'aurora' ? 'AURORA' : this.worldEvent === 'migration' ? 'MIST' : this.worldEvent === 'tide' ? 'RAIN' : 'CLEAR';
     const worldDef = worlds.find(candidate => candidate.id === this.activeWorld);
-    const ecologyBase = worldDef?.tags?.includes('ecology') || worldDef?.tags?.includes('wildlife') || worldDef?.tags?.includes('growth') ? 90 : 68;
-    this.snapshot = { world: this.activeWorld, event: this.worldEvent.toUpperCase(), phase, weather, activity: this.worldEvent === 'migration' ? 1.8 : this.worldEvent === 'bloom' ? 1.35 : this.worldEvent === 'storm' ? .72 : 1, ecology: ecologyBase };
+    const dna = deriveWorldDNA(worldDef?.tags ?? []);
+    const climate: ClimateProfile = getClimateProfile(dna.climate);
+    const seasonIndex = Math.floor(((epochSeconds / 1800) + this.activeWorld.length * 7) % 4);
+    const season: LivingSeason = ['SPRING','SUMMER','AUTUMN','WINTER'][seasonIndex] as LivingSeason;
+    const seasonWave = Math.sin((epochSeconds / 1800) * Math.PI / 2 + seasonIndex);
+    const temperatureC = climate.baseTemperatureC + climate.seasonalAmplitudeC * seasonWave * .55;
+    const humidity = THREE.MathUtils.clamp(climate.baseHumidity + Math.sin(epochSeconds / 37 + this.activeWorld.length) * .08 + (this.worldEvent === 'storm' ? .14 : 0), 0, 1);
+    const windStrength = .15 + dna.ecology.environmentalForces.length * .035 + (this.worldEvent === 'storm' ? .75 : this.worldEvent === 'migration' ? .32 : 0);
+    const windX = Math.sin(epochSeconds / 19 + this.activeWorld.length) * windStrength;
+    const windZ = Math.cos(epochSeconds / 23 + this.activeWorld.length * .7) * windStrength;
+    const coldEnoughForSnow = temperatureC <= 2 && (climate.type === 'alpine' || climate.type === 'temperate' || climate.type === 'frontier');
+    const wetEnoughForRain = humidity > .58 && climate.rainfallBias > .42;
+    let weather: LivingWeather = 'CLEAR';
+    if (this.worldEvent === 'storm') weather = 'STORM';
+    else if (this.worldEvent === 'aurora') weather = 'AURORA';
+    else if (this.worldEvent === 'bloom' && dna.ambientLife > 1) weather = 'BLOOM';
+    else if (coldEnoughForSnow && wetEnoughForRain) weather = 'SNOW';
+    else if (wetEnoughForRain) weather = humidity > .76 ? 'MIST' : 'RAIN';
+    else if (Math.abs(windStrength) > .65) weather = 'WIND';
+    else if (humidity > .55) weather = 'CLOUDY';
+    const ecologyBase = Math.round(50 + climate.vegetationBias * 35 + dna.ambientLife * 8);
     const activity = this.worldEvent === 'migration' ? 1.8 : this.worldEvent === 'bloom' ? 1.35 : this.worldEvent === 'storm' ? .72 : 1;
+    this.snapshot = { world: this.activeWorld, event: this.worldEvent.toUpperCase(), phase, season, weather, temperatureC, humidity, windX, windZ, activity, ecology: THREE.MathUtils.clamp(ecologyBase, 0, 100) };
     const pressure = consequences?.pressure ?? 0;
     const stability = consequences?.stability ?? 1;
     const consequenceFactor = stability < .4 ? .7 : pressure > .6 ? 1.18 : 1;
-    this.root.userData.worldActivity = activity;
+    this.root.userData.worldActivity = this.snapshot.activity;
+    this.root.userData.climate = { season, weather, temperatureC, humidity, windX, windZ, climateType: climate.type };
     this.root.userData.worldPulse = eventPhase;
     const eventColors: Record<typeof this.worldEvent, number> = {
       quiet: 0x65dded,
@@ -202,11 +242,34 @@ export class GridLivingWorld {
     eventMaterial.opacity = .26 + eventPhase * .34;
     const signalScale = this.worldEvent === 'storm' ? 1.15 : this.worldEvent === 'migration' ? 1.05 : 1;
     this.eventSignal.scale.setScalar(signalScale + Math.sin(this.time * 2.4) * .035);
+    const weatherIntensity = weather === 'STORM' ? .95 : weather === 'RAIN' || weather === 'SNOW' ? .72 : weather === 'MIST' ? .4 : weather === 'WIND' ? .5 : weather === 'BLOOM' ? .18 : 0;
+    for (let i = 0; i < this.weatherParticles.length; i++) {
+      const particle = this.weatherParticles[i];
+      const material = particle.material as THREE.MeshBasicMaterial;
+      const active = weatherIntensity > 0 && i < Math.floor(this.weatherParticles.length * weatherIntensity);
+      material.opacity = active ? (weather === 'SNOW' ? .58 : .38) : 0;
+      if (active) {
+        const fall = weather === 'SNOW' ? .7 : 2.8;
+        particle.position.y -= fall * .016;
+        particle.position.x += windX * .018;
+        particle.position.z += windZ * .018;
+        if (particle.position.y < .15) {
+          particle.position.y = 12 + (i % 11);
+          particle.position.x = playerX - 45 + (i * 17) % 90;
+          particle.position.z = playerZ - 45 + (i * 29) % 90;
+        }
+        material.color.setHex(weather === 'SNOW' ? 0xe8f4ff : weather === 'MIST' ? 0xb8d6d8 : weather === 'BLOOM' ? 0xffb7d8 : 0x79cfff);
+      }
+    }
+
     for(let i=0;i<this.plants.length;i++){
       const p=this.plants[i];
       const bloom = this.worldEvent === 'bloom' ? .11 : stability < .4 ? .025 : .045;
-      p.root.rotation.z=Math.sin(this.time*p.sway+i)*bloom;
-      p.root.rotation.x=Math.cos(this.time*p.sway*.7+i)*.025;
+      const windSway = Math.min(.18, Math.hypot(windX, windZ) * .045);
+      const seasonalGrowth = season === 'SPRING' ? 1.04 : season === 'WINTER' ? .92 : 1;
+      p.root.scale.y = THREE.MathUtils.lerp(p.root.scale.y, seasonalGrowth, Math.min(1, delta * .8));
+      p.root.rotation.z=Math.sin(this.time*p.sway+i)*bloom + windSway * Math.sin(this.time*1.4+i);
+      p.root.rotation.x=Math.cos(this.time*p.sway*.7+i)*.025 + windSway * Math.cos(this.time*1.1+i);
     }
     for(let i=0;i<this.creatures.length;i++){
       const c=this.creatures[i];
