@@ -774,6 +774,7 @@ player.setAvatarAppearance(identity.avatarStyle, identity.avatarCustomization);
 let cloudIdentity = identity;
 let cloudAuthenticated = false;
 let cloudBuildVersion = -1;
+let buildRealtimeChannel: ReturnType<SupabasePersistence['subscribeBuildChanges']> | null = null;
 const remotePlayers = new Map<string, RemotePlayer>();
 const teamAvatars = TEAM_AVATARS.map(definition => new TeamAvatar(definition));
 for (const avatar of teamAvatars) world.scene.add(avatar.group);
@@ -958,14 +959,20 @@ const cloudReady = cloudPersistence
       }
 
       if (authenticated) {
+        easyBuildSystem.setOwnerUserId(cloudIdentity.id);
         combatAuthority = new GridCombatAuthority(cloudPersistence.getClient());
         void refreshMarketQuotes();
         presence?.setIdentity(cloudIdentity);
         try {
           const cloudState = await cloudPersistence.load(cloudIdentity);
           if (cloudState) player.restoreTransform(cloudState);
-          const remoteBuilds = await cloudPersistence.loadBuilds(cloudIdentity, 'first-light', 'first-light');
-          if (remoteBuilds.length) easyBuildSystem.restore(remoteBuilds.map(build => ({ objectId: build.objectId, id: build.definitionId, position: build.position, rotation: build.rotation, scale: build.scale })));
+          const region = await cloudPersistence.ensureBuildRegion('first-light', 'first-light', 'collaborative');
+          const remoteBuilds = await cloudPersistence.loadBuilds(cloudIdentity, region.worldId, region.regionId);
+          if (remoteBuilds.length) easyBuildSystem.restore(remoteBuilds.map(build => ({ objectId: build.objectId, id: build.definitionId, position: build.position, rotation: build.rotation, scale: build.scale, ownerUserId: build.ownerUserId })));
+          buildRealtimeChannel = cloudPersistence.subscribeBuildChanges(region.worldId, region.regionId, (build, type) => {
+            if (!build) return;
+            easyBuildSystem.applyRemoteBuild({ ...build, ownerUserId: build.ownerUserId ?? '' }, type);
+          });
           cloudBuildVersion = Number(easyBuildSystem.root.userData.buildStateVersion ?? 0);
         } catch (error) {
           console.warn('Cloud state unavailable; continuing with realtime presence.', error);
@@ -1447,9 +1454,10 @@ function savePlayer() {
   if (cloudPersistence && cloudAuthenticated) {
     const buildVersion = Number(easyBuildSystem.root.userData.buildStateVersion ?? 0);
     if (buildVersion !== cloudBuildVersion) {
-      const builds = easyBuildSystem.serialize().map(build => ({ objectId: build.objectId, definitionId: build.id, position: build.position as [number,number,number], rotation: build.rotation as [number,number,number], scale: build.scale as [number,number,number] }));
-      cloudBuildVersion = buildVersion;
-      cloudPersistence.saveBuilds(cloudIdentity, 'first-light', 'first-light', builds).catch(error => console.warn('Cloud build persistence unavailable; local recovery remains active.', error));
+      const builds = easyBuildSystem.serialize().map(build => ({ objectId: build.objectId, definitionId: build.id, position: build.position as [number,number,number], rotation: build.rotation as [number,number,number], scale: build.scale as [number,number,number], ownerUserId: typeof (build as any).ownerUserId === 'string' ? (build as any).ownerUserId : cloudIdentity.id }));
+      cloudPersistence.saveBuilds(cloudIdentity, 'first-light', 'first-light', builds).then(() => {
+        cloudBuildVersion = buildVersion;
+      }).catch(error => console.warn('Cloud build persistence unavailable; local recovery remains active.', error));
     }
   }
   presence?.update(transform).catch(console.error);
@@ -2105,7 +2113,7 @@ function animate(now: number) {
 
 requestAnimationFrame(animate);
 
-addEventListener('beforeunload', () => { void gridSocialService?.setPresence(false).catch(()=>undefined); });
+addEventListener('beforeunload', () => { void gridSocialService?.setPresence(false).catch(()=>undefined); buildRealtimeChannel?.unsubscribe(); });
 
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
