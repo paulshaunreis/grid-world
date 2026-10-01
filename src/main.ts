@@ -1342,6 +1342,7 @@ addEventListener('keydown', event => {
       const npcId = (result.object.userData.gridActorId as string | undefined) ?? String(result.object.userData.interactionName ?? result.name ?? '');
       if (result.object.userData.merchant === true && marketPanel) {
         marketPanel.open();
+        gridEconomyPanel.openNpc(String(result.object.userData.npcProfileId ?? ('npc.merchant.' + String(result.name).toLowerCase())));
         prompt.textContent = 'E · Merchant Exchange';
         audio.play('ui.confirm');
         if (npcId && combatAuthority) {
