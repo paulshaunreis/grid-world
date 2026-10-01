@@ -72,6 +72,7 @@ import { GridKarmaSystem } from './world/GridKarmaSystem';
 import { createWorldFromDescription, connectFactoryWorldToAll } from './world/WorldFactory';
 import { mountWorldFactoryPanel } from './ui/WorldFactoryPanel';
 import { mountCreatorStudio } from './ui/CreatorStudio';
+import { mountGridEconomyPanel } from './ui/GridEconomyPanel';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
@@ -369,6 +370,7 @@ let marketPanel: ReturnType<typeof mountMarketPanel> | null = null;
 const questPanel = mountQuestPanel(questSystem);
 mountWorldAtlas(() => ({ world: (livingWorld.getSnapshot().world as EcologyWorld), event: livingWorld.getSnapshot().event, consequences: worldConsequences.getSnapshot(), resources: worldResources.getSnapshot(), inventory: worldResources.getInventory(), market: marketQuotes, transit: teleportSystem.trafficSnapshot() }));
 marketPanel = mountMarketPanel(() => worldResources.getInventory(), () => marketQuotes, () => combatAuthority);
+const gridEconomyPanel = mountGridEconomyPanel(() => combatAuthority);
 const transitPanel = mountTransitPanel();
 let merchantRefreshTimer = 0;
 let mineralSyncTimer = 0;
@@ -986,7 +988,8 @@ document.querySelectorAll<HTMLButtonElement>('.grid-dock [data-tool]').forEach(b
     else if (tool === 'field') fieldGuide.open();
     else if (tool === 'qr') qrScanner.open();
     else if (tool === 'settings') openIdentityPanel();
-    else addChatMessage('GRID', tool === 'wallet' ? 'Wallet surface opened. Balance and exchange are in prototype mode.' : 'Inventory surface opened. Creator objects will appear here as the inventory service lands.', 'system');
+    else if (tool === 'inventory' || tool === 'wallet') gridEconomyPanel.open();
+    else addChatMessage('GRID', tool + ' surface opened.', 'system');
   });
 });
 });
