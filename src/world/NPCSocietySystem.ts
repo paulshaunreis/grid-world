@@ -3,8 +3,9 @@ import type { EcologyWorld, EcologySnapshot } from './CreatureEcologySystem';
 import { traversalHit, steerAround } from './TraversalSystem';
 import type { WorldConsequenceSnapshot } from './WorldConsequenceSystem';
 import { getWorlds } from './GridWorldRegistry';
+import { hourOfDayFromDayFraction, resolveNpcRoutine, routinePhaseFor } from '../npc/NpcDailyRoutine';
 
-export type CitizenState = 'WORK'|'TRAVEL'|'GATHER'|'TALK'|'REST'|'CELEBRATE';
+export type CitizenState = 'WORK'|'TRAVEL'|'GATHER'|'TALK'|'REST'|'CELEBRATE'|'EAT';
 export type CitizenRole = 'NAVIGATOR'|'GARDENER'|'ARTISAN'|'KEEPER'|'RANGER';
 
 type Citizen = {
@@ -164,7 +165,7 @@ export class NPCSocietySystem {
     return c.phase%2>.9 ? 'GATHER' : 'WORK';
   }
 
-  update(delta:number,playerX=0,playerZ=0,world:EcologyWorld='HARBOR',event='QUIET',phase='DAY',ecology?:EcologySnapshot,consequences?:WorldConsequenceSnapshot) {
+  update(delta:number,playerX=0,playerZ=0,world:EcologyWorld='HARBOR',event='QUIET',phase='DAY',ecology?:EcologySnapshot,consequences?:WorldConsequenceSnapshot,dayFraction?:number) {
     const pressure=consequences?.pressure ?? 0;
     const stability=consequences?.stability ?? 1;
     const now=performance.now()*.001;
@@ -197,7 +198,17 @@ export class NPCSocietySystem {
       c.stateTimer-=delta;
       c.travelTimer-=delta;
       c.gateCooldown=Math.max(0,c.gateCooldown-delta);
-      if (c.travelTimer <= 0) {
+      // Day-cycle routine: each role keeps a data-driven daily rhythm (sleep /
+      // work / meal / leisure). When no dayFraction is passed (older callers),
+      // fall back to the coarse phase string so behavior degrades gracefully.
+      const hourOfDay = dayFraction === undefined
+        ? (phase === 'NIGHT' ? 23 : phase === 'DAWN' ? 6 : phase === 'DUSK' ? 19 : 12)
+        : hourOfDayFromDayFraction(dayFraction);
+      const routinePhase = routinePhaseFor(resolveNpcRoutine(c.role), hourOfDay);
+      c.stateTimer-=delta;
+      c.travelTimer-=delta;
+      c.gateCooldown=Math.max(0,c.gateCooldown-delta);
+      if (c.travelTimer <= 0 && routinePhase !== 'sleep') {
         c.travelTimer = 18 + (c.phase % 11);
         const worlds:EcologyWorld[] = getWorlds().map(candidate=>candidate.id);
         let purpose:'WORK'|'TRADE'|'FESTIVAL'|'EMERGENCY'|'RELATIONSHIP' = 'WORK';
@@ -272,6 +283,17 @@ export class NPCSocietySystem {
           c.state = event.toUpperCase() === 'MARKET' ? 'TALK' : 'WORK';
         }
       }
+      if (c.travelStage === 'IDLE' && c.state !== 'CELEBRATE') {
+        if (routinePhase === 'sleep') c.state = 'REST';
+        else if (routinePhase === 'meal' && c.state !== 'TRAVEL') c.state = 'EAT';
+      }
+      c.energy=Math.max(0,c.energy-delta*(c.state==='WORK'?.012:.005));
+      c.social=Math.max(0,c.social-delta*.006);
+      if(c.state==='REST') c.energy=Math.min(1,c.energy+delta*.045);
+      if(c.state==='EAT') c.energy=Math.min(1,c.energy+delta*.02);
+      if(c.state==='TALK') { c.social=Math.min(1,c.social+delta*.035); talking++; }
+      if(c.state==='WORK') working++;
+      if(c.state==='GATHER') gathering++;
       if(c.merchant) {
         c.root.userData.marketPrompt = c.merchantMood === 'WORRIED' ? 'SUPPLIES LOW' : c.merchantMood === 'BUSY' ? 'MARKET ACTIVE' : 'TRADE';
         const sigil = c.root.children.find(child => child instanceof THREE.Mesh && child.geometry instanceof THREE.TorusGeometry) as THREE.Mesh | undefined;
@@ -283,12 +305,6 @@ export class NPCSocietySystem {
         c.root.userData.merchantOpen = c.merchantOpen;
         c.root.userData.marketPrompt = c.merchantOpen ? (c.merchantMood === 'WORRIED' ? 'SUPPLIES LOW' : c.merchantMood === 'BUSY' ? 'MARKET ACTIVE' : 'TRADE') : (c.merchantStress > .72 ? 'RESTOCKING' : 'CLOSED');
       }
-      c.energy=Math.max(0,c.energy-delta*(c.state==='WORK'?.012:.005));
-      c.social=Math.max(0,c.social-delta*.006);
-      if(c.state==='REST') c.energy=Math.min(1,c.energy+delta*.045);
-      if(c.state==='TALK') { c.social=Math.min(1,c.social+delta*.035); talking++; }
-      if(c.state==='WORK') working++;
-      if(c.state==='GATHER') gathering++;
       if(c.travelStage==='APPROACH_GATE'){
         c.state='TRAVEL';
         c.target.copy(c.gatePosition);
@@ -319,7 +335,7 @@ export class NPCSocietySystem {
           c.gateCooldown=10;
         }
       } else {
-        const destination=(c.state==='REST'||c.state==='TALK'||c.state==='CELEBRATE')?c.home:c.workplace;
+        const destination=(c.state==='REST'||c.state==='TALK'||c.state==='CELEBRATE'||c.state==='EAT')?c.home:c.workplace;
         c.target.copy(destination);
       }
       const hit=traversalHit(c.root.position,c.target,.32);
