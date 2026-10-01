@@ -124,6 +124,7 @@ export class PlayerController {
 
   update(dt: number) {
     this.input.update();
+    const lookX=this.input.lookX(); if(Math.abs(lookX)>0.01)this.rotate(lookX);
     const speed = this.input.isDown('ShiftLeft') || this.input.isDown('ShiftRight') ? 8 : 4;
     const move=this.input.moveVector();
     const forward = move.y;
