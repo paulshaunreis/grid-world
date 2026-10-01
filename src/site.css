@@ -149,3 +149,7 @@ body{overflow-x:hidden}
 .world-contracts{padding:clamp(64px,8vw,110px) 6vw;border-top:1px solid rgba(255,255,255,.08)}.contract-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:36px}.contract-grid b{letter-spacing:.12em;color:#fff}.contract-grid span{margin:14px 0 8px;color:#9fe}.contract-grid small{font-size:.78rem}
 @media(max-width:900px){.combat-feature,.combat-loop{grid-template-columns:1fr}.contract-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:620px){.combat-modes,.combat-loop-grid,.contract-grid{grid-template-columns:1fr}.combat-feature,.combat-loop,.world-contracts{padding-left:5vw;padding-right:5vw}}
+
+.world-network-principle{margin:.85rem 0 .35rem;font-size:.78rem;letter-spacing:.16em;opacity:.9}
+.world-network-principle strong{font-weight:800}
+.world-network-copy{max-width:760px;margin:0 0 1.4rem;line-height:1.65;opacity:.72}
