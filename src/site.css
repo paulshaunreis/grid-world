@@ -239,3 +239,10 @@ html[data-site-style="garden"] .concept-gallery,html[data-site-style="garden"] .
 html[data-site-style="garden"] .concept-gallery figure,html[data-site-style="garden"] .world-card{border-radius:22px;border-color:rgba(101,231,163,.2)}
 html[data-site-style="garden"] .primary{border-radius:22px}
 
+
+
+/* Explicit font ownership: prevent host/browser styles from replacing Grid World typography. */
+html[data-site-style="aurora"] body,html[data-site-style="studio"] body,html[data-site-style="garden"] body{font-family:'Space Grotesk',ui-sans-serif,system-ui,sans-serif!important}
+html[data-site-style="terminal"] body{font-family:'IBM Plex Mono',ui-monospace,monospace!important}
+html[data-site-style="terminal"] h1,html[data-site-style="terminal"] h2,html[data-site-style="terminal"] h3,html[data-site-style="terminal"] button,html[data-site-style="terminal"] a{font-family:'IBM Plex Mono',ui-monospace,monospace!important}
+html[data-site-style="aurora"] h1,html[data-site-style="aurora"] h2,html[data-site-style="aurora"] h3,html[data-site-style="studio"] h1,html[data-site-style="studio"] h2,html[data-site-style="studio"] h3,html[data-site-style="garden"] h1,html[data-site-style="garden"] h2,html[data-site-style="garden"] h3{font-family:'Space Grotesk',ui-sans-serif,system-ui,sans-serif!important}
