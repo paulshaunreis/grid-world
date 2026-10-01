@@ -24,7 +24,7 @@ export function mountGridAuthPanel(auth:GridAuthService,onProfile:(profile:GridA
     else if(mode==='avatar') {
       body.innerHTML='<div id="grid-avatar-host"></div>';
       const host=body.querySelector<HTMLDivElement>('#grid-avatar-host')!;
-      const initial:AvatarSelection={style:'navigator',customization:{skin:0,hair:0,eyes:0,build:0,accent:0}};
+      const initial:AvatarSelection={style:'navigator',customization:{skin:0,hair:0,eyes:0,build:0,accent:0,age:3,species:0,lineage:-1,hairStyle:0,hairLength:2}};
       void auth.profile().then(p=>{
         if(p){ initial.style=p.avatar_style??initial.style; initial.customization={...initial.customization,...(p.avatar_customization??{})}; }
         cleanupAvatar=mountAvatarCreator(host,initial,async selection=>{
