@@ -15,5 +15,5 @@ for(const {file,ref} of assetRefs){const clean=ref.split('?')[0];const candidate
 const assets=files.filter(p=>/\.(glb|gltf|fbx|obj|png|jpe?g|webp|avif|gif|svg|woff2?|ttf|mp3|ogg|wav)$/i.test(p));
 const report={generatedAt:new Date().toISOString(),filesScanned:source.length,htmlRoutes:routes.size,assetFiles:assets.length,missingInternalRoutes:missing,duplicateIds,badAssetRefs,checks:{routeLinks:missing.length===0,duplicateIds:duplicateIds.length===0,assetRefs:badAssetRefs.length===0}};
 fs.mkdirSync('public/diagnostics',{recursive:true});fs.writeFileSync('public/diagnostics/code-health.json',JSON.stringify(report,null,2));
-if(missing.length||duplicateIds.length||badAssetRefs.length)process.exit(1);
+console.log('GRID CODE ANALYZER RESULT',JSON.stringify({missingRoutes:missing,duplicateIds,badAssetRefs}));if(missing.length||duplicateIds.length||badAssetRefs.length)process.exit(1);
 console.log('GRID CODE ANALYZER',JSON.stringify(report));
