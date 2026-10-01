@@ -30,6 +30,8 @@ export class GridAuthService {
 
   async signOut(){ return this.client.auth.signOut({scope:'local'}); }
 
+  async resetPassword(email:string){ return this.client.auth.resetPasswordForEmail(email.trim().toLowerCase(),{redirectTo:window.location.origin}); }
+
   async completeProfile(input:{firstName:string;middleName:string;lastName:string;handle:string;displayName:string;nameVisibility:string}){
     const {data,error}=await this.client.rpc('grid_complete_profile',{
       p_first_name:input.firstName,p_middle_name:input.middleName,p_last_name:input.lastName,
