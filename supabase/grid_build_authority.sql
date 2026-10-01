@@ -16,12 +16,11 @@ begin
   if v_uid is null then raise exception 'authentication required'; end if;
   if nullif(trim(p_world_id),'') is null or nullif(trim(p_region_id),'') is null then raise exception 'world and region are required'; end if;
   if p_access_mode not in ('private','collaborative','public') then raise exception 'invalid access mode'; end if;
+  insert into public.grid_build_regions(world_id,region_id,owner_user_id,access_mode)
+  values(p_world_id,p_region_id,v_uid,p_access_mode)
+  on conflict (world_id,region_id) do nothing;
   select * into v_existing from public.grid_build_regions
-    where grid_build_regions.world_id=p_world_id and grid_build_regions.region_id=p_region_id for update;
-  if not found then
-    insert into public.grid_build_regions(world_id,region_id,owner_user_id,access_mode)
-    values(p_world_id,p_region_id,v_uid,p_access_mode) returning * into v_existing;
-  end if;
+    where grid_build_regions.world_id=p_world_id and grid_build_regions.region_id=p_region_id;
   return query select v_existing.world_id,v_existing.region_id,v_existing.owner_user_id,v_existing.access_mode;
 end;
 $$;
