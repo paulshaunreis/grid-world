@@ -24,7 +24,7 @@ export function mountWorldAtlas(
      const resource=state.resources.find(node=>node.world===world);
      const stability=Math.round((state.consequences.world===world?state.consequences.stability:1)*100);
      const active=world===state.world;
-     return '<button class="grid-atlas-world '+(active?'active':'')+'" data-world="'+world+'"><b>'+meta.name+'</b><small>'+meta.tag+'</small><span>'+meta.description+'</span><em>'+stability+'% stability · '+(resource?.kind??'RESOURCE')+'</em></button>';
+     return '<button class="grid-atlas-world '+(active?'active':'')+'" data-world="'+world+'"><b>'+meta.label+'</b><small>'+(meta.tags?.join(' · ') ?? 'WORLD')+'</small><span>'+meta.description+'</span><em>'+stability+'% stability · '+(resource?.kind??'RESOURCE')+'</em></button>';
    }).join('');
    const transit = state.transit ?? [];
    const activeTransit = transit.filter(item=>item.activity>.05).sort((a,b)=>b.activity-a.activity).slice(0,8);
