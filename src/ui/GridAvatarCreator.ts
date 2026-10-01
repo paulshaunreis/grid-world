@@ -146,12 +146,16 @@ export function mountAvatarCreator(
     label.textContent=preset.label.toUpperCase()+' · '+AGES[clamp(c.age??3,0,4)].label.toUpperCase()+' · '+(half?.name??race.name).toUpperCase();
     Object.entries(inputs).forEach(([k,input])=>input.value=String((c as any)[k]??0));
     ageGrid.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.classList.toggle('selected',Number(b.dataset.age)===c.age));
+    lineageGrid.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.classList.toggle('selected',Number(b.dataset.lineage)===c.lineage));
     speciesGrid.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.classList.toggle('selected',Number(b.dataset.species)===c.species));
+    const stats=half?ATTRIBUTES.map((_,i)=>Math.round((RACES[half.a].attrs[i]+RACES[half.b].attrs[i])/2)):race.attrs;
+    attributesGrid.innerHTML=ATTRIBUTES.map((name,i)=>'<div><span>'+name+'</span><i><b style="width:'+((stats[i]/20)*100)+'%"></b></i><em>'+stats[i]+'</em></div>').join('');
     hairStyleGrid.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.classList.toggle('selected',Number(b.dataset.hairStyle)===c.hairStyle));
     styleGrid.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.classList.toggle('selected',b.dataset.style===selection.style));
   };
   AGES.forEach(a=>{const b=document.createElement('button');b.type='button';b.dataset.age=String(a.id);b.textContent=a.label;b.onclick=()=>{selection.customization.age=a.id;draw();};ageGrid.appendChild(b);});
-  SPECIES.forEach((s,i)=>{const b=document.createElement('button');b.type='button';b.dataset.species=String(i);b.textContent=s;b.onclick=()=>{selection.customization.species=i;draw();};speciesGrid.appendChild(b);});
+  RACES.forEach((s,i)=>{const b=document.createElement('button');b.type='button';b.dataset.species=String(i);b.innerHTML='<b>'+s.name+'</b><small>'+s.kind+'</small>';b.onclick=()=>{selection.customization.species=i;selection.customization.lineage=-1;draw();};speciesGrid.appendChild(b);});
+  HALF_RACES.forEach(s=>{const b=document.createElement('button');b.type='button';b.dataset.lineage=String(s.id);b.textContent=s.name;b.onclick=()=>{selection.customization.lineage=s.id;draw();};lineageGrid.appendChild(b);});
   HAIR_STYLES.forEach((s,i)=>{const b=document.createElement('button');b.type='button';b.dataset.hairStyle=String(i);b.textContent=s;b.onclick=()=>{selection.customization.hairStyle=i;draw();};hairStyleGrid.appendChild(b);});
   STYLES.forEach(p=>{const b=document.createElement('button');b.type='button';b.dataset.style=p.id;b.innerHTML='<b>'+p.label+'</b><span>GRID FORM</span>';b.onclick=()=>{selection.style=p.id;draw();};styleGrid.appendChild(b);});
   (Object.keys(inputs) as (keyof typeof inputs)[]).forEach(k=>inputs[k].addEventListener('input',()=>{selection.customization[k]=Number(inputs[k].value);draw();}));
