@@ -81,6 +81,6 @@ Grid Element Forge supports fictional Grid-universe synthetic elements beyond th
 5. enterprise/education creator spaces and training/certification services;
 6. optional physical merchandise and media/events.
 
-The design deliberately avoids making a basic starter parcel or normal participation pay-to-win. Real-money checkout should be implemented server-side through a payment provider such as Stripe Checkout; Stripe documents Checkout Sessions for one-time payments and subscriptions, and Stripe Connect can support application-fee/platform models for creator marketplaces. citeturn2search0turn2search4turn2search14
+The design deliberately avoids making a basic starter parcel or normal participation pay-to-win. Real-money checkout should be implemented server-side through a payment provider such as Stripe Checkout; Stripe documents Checkout Sessions for one-time payments and subscriptions, and Stripe Connect can support application-fee/platform models for creator marketplaces.
 
 **Important:** no real-money charge is claimed to be live yet. A Stripe account, products/prices, tax configuration, webhook endpoint, and secret server-side credentials are required before actual payments can be safely activated.
