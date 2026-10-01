@@ -16,6 +16,8 @@ export class EcologicalInteractionSystem{
   private elapsed=0;
   private readonly interval=.55;
   private interactions=0;
+  private eventCounts={hunts:0,forages:0,pollinations:0,decompositions:0,migrations:0};
+  private eventClock=0;
 
   constructor(){this.root.name='grid-ecological-interactions';}
 
@@ -32,6 +34,7 @@ export class EcologicalInteractionSystem{
 
   update(delta:number,world:EcologyWorld){
     this.elapsed+=delta;
+    this.eventClock+=delta;
     if(this.elapsed<this.interval)return;
     this.elapsed=0;
     const scene=this.root.parent;
@@ -43,6 +46,7 @@ export class EcologicalInteractionSystem{
       if(object.userData.gridObjectKind==='world-flora' && String(object.userData.worldId??world)===world)flora.push(object);
     });
     this.interactions=0;
+    const events={hunts:0,forages:0,pollinations:0,decompositions:0,migrations:0};
     for(const creature of creatures){
       const role=this.roleFor(creature);
       creature.userData.ecologicalRole=role;
@@ -51,13 +55,36 @@ export class EcologicalInteractionSystem{
       let target:THREE.Object3D|undefined;
       if(role==='PREDATOR'){
         target=creatures.filter(candidate=>candidate!==creature && this.roleFor(candidate)==='HERBIVORE').sort((a,b)=>distance(creature,a)-distance(creature,b))[0];
-        if(target && distance(creature,target)<14)creature.userData.ecologicalInteraction='HUNT';
+        if(target && distance(creature,target)<14){
+          creature.userData.ecologicalInteraction='HUNT';
+          if(distance(creature,target)<2.4){
+            events.hunts++;
+            target.userData.ecologicalPressure=THREE.MathUtils.clamp(Number(target.userData.ecologicalPressure??0)+.035,0,1);
+            creature.userData.lastEcologicalEvent='predator-encounter';
+          }
+        }
       }else if(role==='HERBIVORE'){
         target=flora.filter(candidate=>candidate!==creature).sort((a,b)=>distance(creature,a)-distance(creature,b))[0];
-        if(target && distance(creature,target)<10)creature.userData.ecologicalInteraction='FORAGE';
+        if(target && distance(creature,target)<10){
+          creature.userData.ecologicalInteraction='FORAGE';
+          if(distance(creature,target)<2.1){
+            events.forages++;
+            target.userData.floraHealth=THREE.MathUtils.clamp(Number(target.userData.floraHealth??1)-.018,0,1);
+            target.userData.foragedCount=Number(target.userData.foragedCount??0)+1;
+            creature.userData.lastEcologicalEvent='foraged';
+          }
+        }
       }else if(role==='POLLINATOR'){
         target=flora.filter(candidate=>candidate.userData.floraFamily && !String(candidate.userData.floraFamily).includes('fung')).sort((a,b)=>distance(creature,a)-distance(creature,b))[0];
-        if(target && distance(creature,target)<13)creature.userData.ecologicalInteraction='POLLINATE';
+        if(target && distance(creature,target)<13){
+          creature.userData.ecologicalInteraction='POLLINATE';
+          if(distance(creature,target)<2.4){
+            events.pollinations++;
+            target.userData.pollination=THREE.MathUtils.clamp(Number(target.userData.pollination??0)+.04,0,1);
+            target.userData.seedPotential=THREE.MathUtils.clamp(Number(target.userData.seedPotential??0)+.025,0,1);
+            creature.userData.lastEcologicalEvent='pollinated';
+          }
+        }
       }
       if(target){
         creature.userData.ecologicalTarget=new THREE.Vector3(target.position.x,target.position.y,target.position.z);
@@ -65,8 +92,21 @@ export class EcologicalInteractionSystem{
         this.interactions++;
       }
     }
-    this.root.userData={world,interactions:this.interactions,creatures:creatures.length,flora:flora.length};
+    this.eventCounts={...events};
+    this.root.userData={
+      world,
+      interactions:this.interactions,
+      creatures:creatures.length,
+      flora:flora.length,
+      events:this.eventCounts,
+      lastEventAt:this.eventClock
+    };
   }
 
-  getSnapshot(){return {...this.root.userData};}
+  getSnapshot(){
+    return {
+      ...this.root.userData,
+      events:{...this.eventCounts}
+    };
+  }
 }
