@@ -141,3 +141,14 @@ The database layer uses Supabase RLS and authenticated RPCs for social preferenc
 Grid Operator is available both on the web and inside the in-world HUD. The in-world guide receives the player’s active/turn-in mission context and current world/event context when answering, while keeping its tone concise and slightly mysterious. Players can personalize the guide voice locally (Aurora, Grid, Link, Elder, Civitas, Veyr, Nyxen, Mosaic, Sentinel, or Waypoint) and choose whether guidance is spoken aloud. Browser speech input/output is used when available.
 
 Grid Omni Guard command infrastructure now models world-level sentinel squads and defense armies with patrol, escort, defend, search, respond, and hold stances. This is the command layer for future NPC proxy control, squad formations, and Operator-directed world responses.
+
+
+## Guilds, Groups, and Teams
+
+Grid World supports three organization types: Guilds for persistent communities, Groups for social or shared-interest communities, and Teams for project/build/event collaboration. Organizations can have roles, members, tags, and multiple worlds.
+
+## World Records and Live Media
+
+The World Record layer is designed for live capture of Grid sessions, with microphone, camera, world audio, HUD inclusion, pause/resume, frame-rate and resolution settings. Browser capture uses MediaRecorder where supported; server publishing/stream destinations remain a separate integration layer.
+
+Grid World Media supports the standard world media asset formats **.mp3**, **.mp4**, and **.obj** (Wavefront OBJ; correcting the common shorthand “.object”). Upload validation records media kind, MIME type, size, world, owner, and moderation state before an asset becomes world content.
