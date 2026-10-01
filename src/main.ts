@@ -58,6 +58,8 @@ import { mountMarketPanel } from './ui/MarketPanel';
 import { mountTransitPanel } from './ui/TransitPanel';
 import { WorldArchitectureSystem } from './world/WorldArchitectureSystem';
 import { getWorlds, getWorldConnections } from './world/GridWorldRegistry';
+import { createWorldFromDescription, connectFactoryWorldToAll } from './world/WorldFactory';
+import { mountWorldFactoryPanel } from './ui/WorldFactoryPanel';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
@@ -314,6 +316,15 @@ const questSystem = new QuestSystem(identity.id);
 const dynamicQuestSystem = new DynamicQuestSystem(questSystem);
 const worldConsequences = new WorldConsequenceSystem();
 const worldResources = new WorldResourceSystem();
+const worldFactoryPanel = mountWorldFactoryPanel({
+  onCreate: (name, description) => {
+    const result = createWorldFromDescription({ name, description });
+    connectFactoryWorldToAll(result);
+    worldArchitecture.rebuild();
+    addChatMessage('WORLD FACTORY', result.world.label + ' joined the Grid · ' + result.inferredTags.join(' · '), 'system');
+    return result;
+  },
+});
 let marketPanel: ReturnType<typeof mountMarketPanel> | null = null;
 const questPanel = mountQuestPanel(questSystem);
 mountWorldAtlas(() => ({ world: (livingWorld.getSnapshot().world as EcologyWorld), event: livingWorld.getSnapshot().event, consequences: worldConsequences.getSnapshot(), resources: worldResources.getSnapshot(), inventory: worldResources.getInventory(), market: marketQuotes, transit: teleportSystem.trafficSnapshot() }));
