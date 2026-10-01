@@ -200,6 +200,42 @@ export class GridCombatAuthority {
     return data;
   }
 
+  async vaultRead(): Promise<CombatServerResult | null> {
+    const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', { body:{action:'vault_read'} });
+    if(error) throw error;
+    return data;
+  }
+
+  async bazaarList(): Promise<CombatServerResult | null> {
+    const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', { body:{action:'bazaar_list'} });
+    if(error) throw error;
+    return data;
+  }
+
+  async bazaarCreate(world:string,item_id:string,amount:number,currency_id:string,unit_price:number): Promise<CombatServerResult | null> {
+    const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', { body:{action:'bazaar_create',world,item_id,amount,currency_id,unit_price} });
+    if(error) throw error;
+    return data;
+  }
+
+  async bazaarBuy(listing_id:string,amount=1): Promise<CombatServerResult | null> {
+    const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', { body:{action:'bazaar_buy',listing_id,amount} });
+    if(error) throw error;
+    return data;
+  }
+
+  async npcProfile(npc_id:string): Promise<CombatServerResult | null> {
+    const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', { body:{action:'npc_profile',npc_id} });
+    if(error) throw error;
+    return data;
+  }
+
+  async transmuteElement(recipe_id:string): Promise<CombatServerResult | null> {
+    const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', { body:{action:'transmute_element',recipe_id} });
+    if(error) throw error;
+    return data;
+  }
+
   async npcMemoryRead(npcId:string, limit=12): Promise<CombatServerResult | null> {
     const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', { body:{action:'npc_memory_read',npc_id:npcId,limit} });
     if(error) throw error;
