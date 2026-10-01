@@ -48,11 +48,24 @@ export class GridSocialAuthority {
     if(error)throw error;
   }
 
-  async listFriends():Promise<GridFriendship[]>{
-    if(!this.client.from)throw new Error('GridSocialAuthority requires a query-capable client to list friends');
-    const {data,error}=await this.client.from('grid_social_friendships').select('*').eq('status','accepted').order('updated_at',{ascending:false});
+  async listFriendRelationships():Promise<GridFriendship[]>{
+    const {data,error}=await this.client.rpc('grid_social_friend_list',{});
     if(error)throw error;
     return (data??[]) as GridFriendship[];
+  }
+
+  async listFriends():Promise<GridFriendship[]>{
+    return (await this.listFriendRelationships()).filter(row=>row.status==='accepted');
+  }
+
+  async listFriendRequests(direction:'incoming'|'outgoing'|'all'='all'):Promise<GridFriendship[]>{
+    const rows=await this.listFriendRelationships();
+    return rows.filter(row=>{
+      if(row.status!=='pending')return false;
+      if(direction==='all')return true;
+      const incoming=row.requestedBy===row.friendUserId;
+      return direction==='incoming'?incoming:!incoming;
+    });
   }
 
   async upsertOrganization(input:{
