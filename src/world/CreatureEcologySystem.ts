@@ -188,8 +188,10 @@ export class CreatureEcologySystem {
       if(c.stateTimer<=0){c.state=this.chooseState(c,eventName,phase,pressure,stability,weather,temperatureC);c.stateTimer=4+((c.phase*13)%7);this.activeStates[c.state]++;}
       c.hunger=Math.min(1,c.hunger+delta*.006); c.energy=Math.max(0,c.energy-delta*(c.state==='EXPLORE'||c.state==='MIGRATE'?.012:.004)); c.social=Math.max(0,c.social-delta*.008); c.curiosity=Math.max(.2,c.curiosity-delta*.003);
       if(c.state==='REST')c.energy=Math.min(1,c.energy+delta*.05); if(c.state==='FORAGE')c.hunger=Math.max(0,c.hunger-delta*.045); if(c.state==='SOCIALIZE')c.social=Math.min(1,c.social+delta*.04); if(c.state==='EXPLORE')c.curiosity=Math.min(1,c.curiosity+delta*.018); if(c.state==='PLAY'){c.energy=Math.max(0,c.energy-delta*.018);c.curiosity=Math.min(1,c.curiosity+delta*.035);}
+      const ecologicalTarget=c.root.userData.ecologicalTarget as THREE.Vector3|undefined;
       const targetRadius=c.state==='MIGRATE'?c.species.radius*2.2:c.species.radius,targetAngle=c.phase+Math.sin(c.phase+c.stateTimer)*.8;
-      if(c.stateTimer<.8||c.target.distanceTo(c.root.position)<.5)c.target.set(c.species.center.x+Math.cos(targetAngle)*targetRadius,(c.species.center.y??0)+(c.species.habitatHeight??0),c.species.center.z+Math.sin(targetAngle*1.23)*targetRadius*.72);
+      if(ecologicalTarget && c.root.userData.ecologicalInteraction!=='ROAM') c.target.copy(ecologicalTarget);
+      else if(c.stateTimer<.8||c.target.distanceTo(c.root.position)<.5)c.target.set(c.species.center.x+Math.cos(targetAngle)*targetRadius,(c.species.center.y??0)+(c.species.habitatHeight??0),c.species.center.z+Math.sin(targetAngle*1.23)*targetRadius*.72);
       const hit=traversalHit(c.root.position,c.target,.25); if(hit&&hit.height>.25)steerAround(c.root.position,c.target,hit,c.target);
       const weatherSpeed=weather==='STORM'?.72:weather==='SNOW'?.78:weather==='WIND'?1.08:weather==='BLOOM'?1.06:1;
       const windResponse=c.species.locomotion?.includes('glide')||c.species.locomotion?.includes('fly')?1+Math.min(.3,wind*.12):1-Math.min(.12,wind*.035);
