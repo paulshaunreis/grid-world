@@ -43,9 +43,10 @@ export class EcologicalInteractionSystem{
     if(!scene)return;
     const creatures:THREE.Object3D[]=[];
     const flora:THREE.Object3D[]=[];
+    const decomposerFlora:THREE.Object3D[]=[];
     scene.traverse(object=>{
       if(object.userData.gridObjectKind==='creature' && String(object.userData.worldId??world)===world)creatures.push(object);
-      if(object.userData.gridObjectKind==='world-flora' && String(object.userData.worldId??world)===world)flora.push(object);
+      if(object.userData.gridObjectKind==='world-flora' && String(object.userData.worldId??world)===world){flora.push(object); if(String(object.userData.floraFamily??'').toLowerCase().includes('fung'))decomposerFlora.push(object);}
     });
     this.interactions=0;
     const events={hunts:0,forages:0,pollinations:0,decompositions:0,migrations:0};
@@ -59,6 +60,14 @@ export class EcologicalInteractionSystem{
       plant.userData.ecologicalPressure=THREE.MathUtils.clamp(pressure-delta*.018,0,1);
       plant.userData.pollination=THREE.MathUtils.clamp(Number(plant.userData.pollination??0)-delta*.004,0,1);
       plant.userData.seedPotential=THREE.MathUtils.clamp(Number(plant.userData.seedPotential??0)-delta*.0015,0,1);
+    }
+    // Decomposer patches recycle spent organic matter back into nearby flora.
+    for(const decomposer of decomposerFlora){
+      const nearby=flora.filter(plant=>plant!==decomposer).sort((a,b)=>distance(decomposer,a)-distance(decomposer,b))[0];
+      if(nearby && distance(decomposer,nearby)<6){
+        nearby.userData.nutrientReserve=THREE.MathUtils.clamp(Number(nearby.userData.nutrientReserve??.35)+delta*.006,0,1);
+        events.decompositions++;
+      }
     }
     for(const creature of creatures){
       const role=this.roleFor(creature);
@@ -159,6 +168,7 @@ export class EcologicalInteractionSystem{
       interactions:this.interactions,
       creatures:creatures.length,
       flora:flora.length,
+      decomposers:decomposerFlora.length,
       events:this.eventCounts,
       lastEventAt:this.eventClock
     };
