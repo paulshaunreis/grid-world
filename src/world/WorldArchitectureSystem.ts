@@ -103,6 +103,8 @@ export class WorldArchitectureSystem {
         stem.userData.gridObjectKind='world-flora';
         stem.userData.worldId=world.id;
         stem.userData.floraFamily=family;
+        stem.userData.habitatTags=[...world.tags??[], family];
+        stem.userData.habitatQuality=.7+Math.min(.3,dna.ecology.lifeDensity*.1);
         cluster.add(stem);
       }
 
