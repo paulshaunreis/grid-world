@@ -118,6 +118,8 @@ const UI_STYLE_KEY = 'grid-world:ui-style';
 const uiStyle = (localStorage.getItem(UI_STYLE_KEY) as UIStyle | null) ?? 'luminous';
 document.documentElement.dataset.uiStyle = uiStyle;
 
+const input = new Input();
+
 const hud = document.createElement('div');
 hud.className = 'hud';
 hud.innerHTML = `
@@ -711,7 +713,7 @@ try {
 } catch (error) {
   console.warn('Automatic Grid Code validation failed.', error);
 }
-const input = new Input();
+
 const player = new PlayerController(input);
 const combatSystem = new CombatSystem();
 world.scene.add(combatSystem.root);
@@ -1401,7 +1403,7 @@ addEventListener('keydown', event => {
     firstPerson = !firstPerson;
     if (firstPerson) {
       cameraDistance = 0.05;
-      renderer.domElement.requestPointerLock().catch(() => undefined);
+      void renderer.domElement.requestPointerLock();
       status.textContent = 'MOUSELOOK · MOUSE AIM · WASD WALK · MOUSE WHEEL ZOOM';
     } else {
       document.exitPointerLock?.();
@@ -1629,9 +1631,9 @@ function animate(now: number) {
   }
 
   const frame = engine.update(dt);
-  const moveInput = input.moveVector();
-  if (document.pointerLockElement === renderer.domElement && (Math.abs(moveInput.x) > .01 || Math.abs(moveInput.y) > .01)) {
-    player.setHeading(cameraYaw);
+  if (document.pointerLockElement === renderer.domElement) {
+    const moveInput = input.moveVector();
+    if (Math.abs(moveInput.x) > .01 || Math.abs(moveInput.y) > .01) player.setHeading(cameraYaw);
   }
   player.update(dt);
   if (player.avatar.position.distanceToSquared(lastFootstepPosition) > 0.22) {
@@ -1650,8 +1652,8 @@ function animate(now: number) {
     if (mineralSyncTimer >= 8) { mineralSyncTimer = 0; void syncGridMinerals(); }
     if(merchantRefreshTimer > 12) { merchantRefreshTimer = 0; void refreshMerchantMarket(); }
   const livingSnapshot = livingWorld.getSnapshot();
-  gridChakras.update(dt, (livingSnapshot.world as EcologyWorld).tags ?? []);
-  gridMatterTerrain.setActiveWorld((livingSnapshot.world as EcologyWorld).id);
+  gridChakras.update(dt, []);
+  gridMatterTerrain.setActiveWorld(String(livingSnapshot.world));
   gridMatterTerrain.rebuild();
   gridMinerals.update(dt, livingSnapshot.world as EcologyWorld);
   const consequenceSnapshot = worldConsequences.getSnapshot();
@@ -1748,12 +1750,12 @@ function animate(now: number) {
   npcSociety.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, ecologySnapshot, consequenceSnapshot);
   guardCommandSystem.ensureDefaults(String(livingSnapshot.world));
   npcMaterialDropTimer += dt;
+  const societySnapshot = npcSociety.getSnapshot();
   if (npcMaterialDropTimer >= 37 && societySnapshot.working) {
     npcMaterialDropTimer = 0;
     const worker = npcSociety.getWorkingCitizens().find(n=>n.world===livingSnapshot.world);
     if (worker) materialDropSystem.createDrop(worker.id,'NPC',String(livingSnapshot.world),worker.position.clone().add(new THREE.Vector3(.25,.15,.25)),worker.id.length + Math.round(performance.now()));
   }
-  const societySnapshot = npcSociety.getSnapshot();
   traversalSystem.update(dt);
   combatSystem.syncScene(world.scene);
   combatSystem.update(dt, identity.id);
@@ -1822,10 +1824,10 @@ function animate(now: number) {
     }
     const requested = 1;
     if (cloudPersistence) {
-      void cloudPersistence.getClient().rpc('grid_mine_mineral', {
+      void Promise.resolve(cloudPersistence.getClient().rpc('grid_mine_mineral', {
         p_deposit_id: nearestMineral.id,
         p_amount: requested,
-      }).then(({ data, error }) => {
+      })).then(({ data, error }) => {
         if (error) throw error;
         const result = Array.isArray(data) ? data[0] : data;
         if (result?.ok) {
