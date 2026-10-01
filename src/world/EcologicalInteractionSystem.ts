@@ -65,7 +65,7 @@ export class EcologicalInteractionSystem{
         this.interactions++;
       }
     }
-    this.root.userData={world,interactions,creatures:creatures.length,flora:flora.length};
+    this.root.userData={world,interactions:this.interactions,creatures:creatures.length,flora:flora.length};
   }
 
   getSnapshot(){return {...this.root.userData};}
