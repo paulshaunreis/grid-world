@@ -7,6 +7,7 @@ export default defineConfig({
         main: 'index.html',
         play: 'play.html',
         profile: 'profile.html',
+        shop: 'shop.html',
         economics: 'economics.html',
         docs: 'docs.html',
         directory: 'directory.html',
