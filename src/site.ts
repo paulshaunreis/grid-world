@@ -2,9 +2,15 @@ import './site.css';
 import { QRScanner } from './ui/QRScanner';
 import { mountGridLiveFeed } from './site-live-feed';
 import { TEAM_WORK_TASKS } from './world/TeamWorkSystem';
+import { GridOperatorService } from './operator/GridOperatorService';
+import { mountGridOperatorPanel } from './ui/GridOperatorPanel';
+import { createClient } from '@supabase/supabase-js';
 
 const app = document.querySelector<HTMLDivElement>('#site')!;
 const qrScanner = new QRScanner();
+const operatorUrl=import.meta.env.VITE_SUPABASE_URL as string|undefined;
+const operatorKey=import.meta.env.VITE_SUPABASE_ANON_KEY as string|undefined;
+const operator=operatorUrl&&operatorKey?mountGridOperatorPanel(new GridOperatorService(createClient(operatorUrl,operatorKey))):null;
 
 const navItems = ['Home', 'Discover', 'Communities', 'Events', 'Marketplace', 'Creator Hub'];
 const siteStyles = ['aurora', 'studio', 'terminal', 'garden'] as const;
@@ -24,7 +30,7 @@ app.innerHTML = `
     <a class="brand" href="#home"><img class="brand-logo" src="/grid-world-logo.svg" alt="Grid World"><span>GRID WORLD</span></a>
     <nav>${navItems.map((item, i) => `<a href="#${item.toLowerCase().replaceAll(' ', '-')}" class="${i === 0 ? 'active' : ''}">${item}</a>`).join('')}</nav>
     <div class="header-actions">
-      <button class="ghost style-trigger" id="style-trigger" type="button">STYLE</button>
+      <button class="ghost style-trigger" id="style-trigger" type="button">STYLE</button><button class="operator-trigger" id="operator-trigger" type="button">GRID OPERATOR</button>
       <button class="ghost" id="site-qr" type="button">QR</button>
       <a class="ghost" href="/economics.html">ECONOMICS</a><a class="ghost" href="/marketplace.html">MARKET</a><a class="ghost" href="/sound.html">SOUND</a><a class="ghost" href="/grid-world-studio.html">GRID WORLD STUDIO</a><a class="ghost" href="/omni.html">OMNI</a><a class="ghost" href="/directory.html">STAFF</a><a class="ghost" href="/avatars.html">AVATARS</a><a class="ghost" href="/textures.html">TEXTURES</a><a class="ghost" href="/docs.html">DOCS</a><a class="ghost" href="/profile.html">PROFILE</a>
       <a class="primary" href="/play.html">ENTER WORLD</a>
