@@ -127,6 +127,11 @@ hud.innerHTML = `
     <div class="hud-system"><span class="hud-signal"></span><b>GRID ENGINE 0.1</b><small>FIRST LIGHT</small></div>
     <div class="hud-telemetry"><span>WORLD <b id="hud-world-state">ONLINE</b></span><span>TRANSIT <b>READY</b></span><span>OMNI <b>GUARDED</b></span><span>SIGNAL <b id="hud-world-signal">SYNC</b></span></div>
   </div>
+  <aside class="hud-concept-card" aria-label="Grid World concept art">
+    <img src="/grid-concept-first-light.svg" alt="First Light Grid World concept art">
+    <div><b>FIRST LIGHT</b><span>LIVING WORLD · LIVE</span></div>
+  </aside>
+  <div class="camera-help" aria-live="polite">RMB · ORBIT &nbsp; WHEEL · ZOOM &nbsp; M · MOUSELOOK</div>
   <div class="crosshair"><span></span></div>
   <button class="identity-button" id="identity-button" type="button">✦ ${identity.displayName}</button><button class="auth-button" id="auth-button" type="button">JOIN / LOGIN</button>
   <button class="creator-button" id="creator-button" type="button">◇ CREATOR</button>
