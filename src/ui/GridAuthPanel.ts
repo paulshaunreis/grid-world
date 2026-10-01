@@ -3,7 +3,7 @@ import { mountAvatarCreator, type AvatarSelection } from './GridAvatarCreator';
 
 export function mountGridAuthPanel(auth:GridAuthService,onProfile:(profile:GridAccountProfile)=>void,onAvatar?:(selection:AvatarSelection)=>void){
   const root=document.createElement('section'); root.className='grid-auth-overlay';
-  root.innerHTML='<div class="grid-auth-card grid-auth-card-wide"><button class="grid-auth-close" type="button">×</button><div class="grid-auth-kicker">GRID WORLD IDENTITY</div><h2>JOIN THE GRID</h2><p class="grid-auth-note">Create your account, define your identity, then choose your starter avatar before entering the living world.</p><div class="grid-auth-tabs"><button data-mode="login">LOGIN</button><button data-mode="join">JOIN</button><button data-mode="profile">PROFILE</button></div><div class="grid-auth-body"></div><div class="grid-auth-status"></div></div>';
+  root.innerHTML='<div class="grid-auth-card grid-auth-card-wide"><button class="grid-auth-close" type="button">×</button><div class="grid-auth-kicker">GRID WORLD // ARRIVAL</div><h2>JOIN THE GRID</h2><p class="grid-auth-note">Create your account, define your identity, then choose your starter avatar before entering the living world.</p><div class="grid-auth-tabs"><button data-mode="login">LOGIN</button><button data-mode="join">JOIN</button><button data-mode="profile">PROFILE</button></div><div class="grid-auth-body"></div><div class="grid-auth-status"></div></div>';
   document.body.appendChild(root);
   const body=root.querySelector<HTMLDivElement>('.grid-auth-body')!,status=root.querySelector<HTMLDivElement>('.grid-auth-status')!;
   let mode='login';
