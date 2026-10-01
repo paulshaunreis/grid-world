@@ -11,7 +11,21 @@ const model=Deno.env.get("GRID_OPERATOR_MODEL")||"openai/gpt-5.6-sol";
 function json(body:unknown,status=200){return new Response(JSON.stringify(body),{status,headers:cors});}
 async function user(req:Request){const h=req.headers.get("Authorization");if(!h?.startsWith("Bearer "))return null;const {data,error}=await admin.auth.getUser(h.slice(7));return error||!data.user?null:data.user;}
 
+async function proactiveChecks(userId:string){
+ const {data:u}=await admin.auth.admin.getUserById(userId);
+ const {data:p}=await admin.from("profiles").select("onboarding_complete").eq("id",userId).maybeSingle();
+ const {data:v}=await admin.from("grid_verification_factors").select("enrolled_at").eq("user_id",userId).maybeSingle();
+ const checks=[
+  {id:"ACCOUNT-VERIFY",severity:"warning",title:"Complete account verification",summary:"Your three-factor Grid verification has not been enrolled.",missing:!v?.enrolled_at},
+  {id:"ACCOUNT-ONBOARD",severity:"notice",title:"Finish account onboarding",summary:"Your Grid profile onboarding is incomplete.",missing:p?.onboarding_complete===false},
+  {id:"ACCOUNT-EMAIL",severity:"warning",title:"Verify your email",summary:"A verified email is required for secure account recovery.",missing:!u?.user?.email_confirmed_at}
+ ];
+ for(const x of checks) if(x.missing){
+  await admin.from("grid_operator_cases").upsert({user_id:userId,severity:x.severity,status:"open",category:"account",title:x.title,summary:x.summary,evidence:{source:"proactive_account_check"},updated_at:new Date().toISOString()},{onConflict:"user_id,title"});
+ }
+}
 async function context(userId:string){
+ await proactiveChecks(userId);
  const [profile,prefs,cases,rules]=await Promise.all([
   admin.from("profiles").select("display_name,handle,avatar_style,avatar_customization,created_at,onboarding_complete").eq("id",userId).maybeSingle(),
   admin.from("grid_account_social").select("age_band,profile_privacy,online_status_privacy").eq("user_id",userId).maybeSingle(),
