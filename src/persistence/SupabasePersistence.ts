@@ -41,9 +41,31 @@ export class SupabasePersistence {
 
   async saveBuilds(identity: PlayerIdentity, worldId:string, regionId:string, builds:PersistedGridBuild[]) {
     const scope = this.client.from('grid_build_objects');
-    const { error: removeError } = await scope.delete().eq('user_id', identity.id).eq('world_id', worldId).eq('region_id', regionId);
-    if (removeError) throw removeError;
+    const { data: existing, error: existingError } = await scope
+      .select('object_id')
+      .eq('user_id', identity.id)
+      .eq('world_id', worldId)
+      .eq('region_id', regionId);
+    if (existingError) throw existingError;
+
+    const desiredIds = new Set(builds.map(build => build.objectId));
+    const staleIds = (existing ?? [])
+      .map(row => String(row.object_id))
+      .filter(objectId => !desiredIds.has(objectId));
+
+    if (staleIds.length) {
+      const { error: staleError } = await scope
+        .delete()
+        .eq('user_id', identity.id)
+        .eq('world_id', worldId)
+        .eq('region_id', regionId)
+        .in('object_id', staleIds);
+      if (staleError) throw staleError;
+    }
+
     if (!builds.length) return;
+
+    const updatedAt = new Date().toISOString();
     const rows = builds.map(build => ({
       user_id: identity.id,
       world_id: worldId,
@@ -54,9 +76,12 @@ export class SupabasePersistence {
       rotation: build.rotation,
       scale: build.scale,
       schema: 1,
-      updated_at: new Date().toISOString(),
+      updated_at: updatedAt,
     }));
-    const { error } = await this.client.from('grid_build_objects').insert(rows);
+
+    const { error } = await scope.upsert(rows, {
+      onConflict: 'user_id,world_id,region_id,object_id',
+    });
     if (error) throw error;
   }
 
