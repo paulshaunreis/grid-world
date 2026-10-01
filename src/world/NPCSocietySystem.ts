@@ -137,7 +137,7 @@ export class NPCSocietySystem {
     badge.rotation.x=Math.PI/2; badge.position.y=1.02;
     root.add(body,head,badge); root.position.set(hx,0,hz);
     const merchant = ['Mara','Sela','Caro','Orin','Rook'].includes(name);
-    root.userData={gridObjectKind:'npc',interactable:true,interactionName:name,role,world,combatFaction:'NPC',maxHealth:120,damage:6,merchant,marketWorld:merchant?world:undefined};
+    root.userData={gridObjectKind:'npc',interactable:true,interactionName:name,role,world,combatFaction:'NPC',maxHealth:120,damage:6,merchant,marketWorld:merchant?world:undefined,npcProfileId:merchant?('npc.merchant.'+name.toLowerCase()):undefined,profileAvailable:true,logAvailable:true};
     if (merchant) {
       const canopy=new THREE.Mesh(new THREE.ConeGeometry(.62,.38,8),new THREE.MeshStandardMaterial({color:0x263d49,roughness:.6,metalness:.15}));
       canopy.position.y=1.45;
