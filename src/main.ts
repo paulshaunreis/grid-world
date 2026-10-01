@@ -1431,6 +1431,7 @@ function animate(now: number) {
   const livingSnapshot = livingWorld.getSnapshot();
   gridMatterTerrain.setActiveWorld((livingSnapshot.world as EcologyWorld).id);
   gridMatterTerrain.rebuild();
+  gridMinerals.update(dt, livingSnapshot.world as EcologyWorld);
   const consequenceSnapshot = worldConsequences.getSnapshot();
   creatureEcology.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, consequenceSnapshot, undefined, { weather: livingSnapshot.weather, temperatureC: livingSnapshot.temperatureC, windX: livingSnapshot.windX, windZ: livingSnapshot.windZ, season: livingSnapshot.season });
   const ecologySnapshot = creatureEcology.getSnapshot();
