@@ -9,7 +9,13 @@ export type WorldConsequenceKind =
   | 'PLAYER_DISCOVERY'
   | 'NPC_RESPONSE'
   | 'ECOLOGY_SHIFT'
-  | 'TRANSIT_FLOW';
+  | 'TRANSIT_FLOW'
+  | 'POPULATION_BOOM'
+  | 'POPULATION_COLLAPSE'
+  | 'MIGRATION_WAVE'
+  | 'POLLINATOR_BLOOM'
+  | 'NEW_SPECIES'
+  | 'SEASONAL_SHIFT';
 
 export interface WorldConsequence {
   id:string;
@@ -42,6 +48,9 @@ export class WorldConsequenceSystem {
   private lastEvent='';
   private lastWorld:EcologyWorld='HARBOR';
   private lastStoryAt=0;
+  private lastEcologyPulse=0;
+  private populationMemory=new Map<string,number>();
+  private eventCooldown=new Map<string,number>();
   private snapshot:WorldConsequenceSnapshot={world:'HARBOR',event:'QUIET',pressure:0,stability:1,activity:1,history:[],last:'The Grid is quiet.'};
 
   constructor(){
@@ -136,6 +145,45 @@ export class WorldConsequenceSystem {
       world==='CITADEL' ? 'Increased passage is waking dormant systems around the Crown.' :
       'Transit traffic is increasing commerce and movement along the Tideline.';
     this.add('TRANSIT_FLOW',world,'TRANSIT',text,Math.min(.24,flow*.025),now);
+  }
+
+  recordEcologyPulse(world:EcologyWorld, interaction:{events?:{hunts?:number;forages?:number;pollinations?:number;decompositions?:number;migrations?:number}}, populations:Array<{speciesId:string;population:number;generation:number}>, season:string, now=Date.now()/1000){
+    const events=interaction.events??{};
+    const pulse=Number(events.migrations??0)+Number(events.pollinations??0)+Number(events.hunts??0)+Number(events.forages??0)+Number(events.decompositions??0);
+    if(now-this.lastEcologyPulse<2 && pulse<2) return;
+    this.lastEcologyPulse=now;
+    const emit=(kind:WorldConsequenceKind,text:string,impact:number,cooldown=20)=>{
+      const key=world+':'+kind;
+      const until=this.eventCooldown.get(key)??0;
+      if(now<until)return;
+      this.eventCooldown.set(key,now+cooldown);
+      this.add(kind,world,'ECOLOGY',text,impact,now);
+    };
+    if(Number(events.migrations??0)>=2) emit('MIGRATION_WAVE','A migration wave is moving through the habitat. Feeding pressure and travel routes are changing.',.12,24);
+    if(Number(events.pollinations??0)>=2) emit('POLLINATOR_BLOOM','Pollinator activity is surging. Flowering routes are spreading through the living world.',.08,24);
+    if(Number(events.hunts??0)>=2) emit('ECOLOGY_SHIFT','Predator encounters are reshaping local herd pressure.',-.05,22);
+    if(Number(events.forages??0)>=3) emit('ECOLOGY_SHIFT','Herbivore feeding pressure is changing the local vegetation balance.',-.03,22);
+    if(season && season!==String(this.root.userData.lastSeason??'')){
+      this.root.userData.lastSeason=season;
+      emit('SEASONAL_SHIFT','The '+season.toLowerCase()+' season has shifted the rhythm of local life.',.03,1);
+    }
+    for(const p of populations){
+      const key=world+':'+p.speciesId;
+      const previous=this.populationMemory.get(key);
+      this.populationMemory.set(key,p.population);
+      if(previous===undefined) continue;
+      if(previous>=4 && p.population>=Math.max(14,previous*1.45)) emit('POPULATION_BOOM',p.speciesId.replaceAll('-',' ')+' is experiencing a population boom. The habitat is responding.',.07,30);
+      if(previous>=8 && p.population<=Math.max(2,previous*.45)) emit('POPULATION_COLLAPSE',p.speciesId.replaceAll('-',' ')+' has suffered a population collapse. The local food web is under pressure.',-.14,30);
+    }
+  }
+
+  recordNewSpecies(world:EcologyWorld,name:string,generation:number){
+    const key=world+':species:'+name;
+    const now=Date.now()/1000;
+    const until=this.eventCooldown.get(key)??0;
+    if(now<until)return;
+    this.eventCooldown.set(key,now+120);
+    this.add('NEW_SPECIES',world,'EVOLUTION',name.replaceAll('-',' ')+' has emerged as a new evolutionary form (generation '+generation+').',.16,now);
   }
 
   getSnapshot(){return this.snapshot;}
