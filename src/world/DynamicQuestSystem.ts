@@ -3,24 +3,35 @@ import type { EcologyWorld } from './CreatureEcologySystem';
 import type { SocietySnapshot } from './NPCSocietySystem';
 import type { LocalStory } from './RelationshipStorySystem';
 import { QuestSystem, type Quest } from './QuestSystem';
+import { getWorld, getWorlds } from './GridWorldRegistry';
+import { deriveWorldDNA } from './WorldDNA';
 
 type GeneratedQuestSeed = Omit<Quest,'progress'|'status'>;
 
-const WORLD_GIVER: Record<EcologyWorld,string> = {
-  HARBOR:'Mara',
-  GARDENS:'Sela',
-  CITADEL:'Orin',
-  ARTS:'Caro',
-  WILDS:'Rook',
-};
+function worldContext(world:EcologyWorld) {
+  const definition=getWorld(world);
+  if(!definition) {
+    return { giver:'Grid Guide', position:[0,0] as [number,number], tags:[] as string[], dna:deriveWorldDNA([]) };
+  }
+  return {
+    giver:(definition.label || world)+' Guide',
+    position:[definition.center.x,definition.center.z] as [number,number],
+    tags:[...(definition.tags ?? [])],
+    dna:deriveWorldDNA(definition.tags ?? []),
+  };
+}
 
-const WORLD_POSITION: Record<EcologyWorld,[number,number]> = {
-  HARBOR:[22,-24],
-  GARDENS:[23,20],
-  CITADEL:[-19,-18],
-  ARTS:[17,-15],
-  WILDS:[-25,22],
-};
+function eventMission(world:EcologyWorld,event:string) {
+  const context=worldContext(world);
+  const tags=context.tags;
+  if(event==='BLOOM' || tags.includes('growth')) return ['Cultivate the Living Route','Help the local growth network flourish and learn what the world is becoming.','Reach the active growth route and investigate the living environment.'];
+  if(event==='MIGRATION' || tags.includes('wildlife')) return ['Follow the Wild Signal','A movement pattern is changing across the local habitat. Track it without disturbing the creatures.','Follow the active wildlife route and document the migration signal.'];
+  if(event==='TIDE' || tags.includes('water')) return ['Trace the Moving Water','The world is responding to a change in its water system. Find the source and observe the effects.','Reach the active water route and trace the environmental signal.'];
+  if(event==='MARKET' || tags.includes('art') || tags.includes('culture')) return ['Carry the Creative Signal','Artists, makers, and visitors are changing the local rhythm. Follow the signal through the district.','Visit the active cultural route and discover what is changing.'];
+  if(event==='AURORA' || tags.includes('ancient')) return ['Read the Ancient Signal','A dormant system has awakened. Follow its clues and record what the world reveals.','Reach the active landmark route and read the environmental signal.'];
+  if(tags.includes('aerial') || tags.includes('cloud')) return ['Map the High Paths','The upper world has opened another route. Explore the vertical settlement and locate its living connections.','Reach the elevated route and map one new connection.'];
+  return ['Study the Local World','A new world is developing its own patterns of life, work, and movement. Explore and observe them.','Reach the world activity route and record what you discover.'];
+}
 
 /**
  * Turns simulation signals into authored-feeling missions.
@@ -63,20 +74,20 @@ export class DynamicQuestSystem {
     // World events create temporary-feeling but persistent mission offers.
     // The mission remains in the player's journal once accepted.
     if (normalized!=='QUIET' && normalized!==this.lastEvent) {
-      const giver=WORLD_GIVER[world];
-      const position=WORLD_POSITION[world];
+      const context=worldContext(world);
+      const [title,description,objective]=eventMission(world,normalized);
       this.serial++;
       if(this.add({
         id:'dynamic-event-'+world.toLowerCase()+'-'+this.serial,
-        title:world==='WILDS'?'Guide the Migration':world==='GARDENS'?'Protect the Bloom':world==='ARTS'?'Carry the Signal':world==='CITADEL'?'Read the Crown Signal':'Trace the Tide',
-        description:'A live world event has changed the local routine. Follow the signal and report what you find.',
+        title,
+        description,
         type:'WORLD_EVENT',
         world,
         target:1,
         reward:110+this.serial%4*25,
-        giver,
-        objective:'Reach the local event route while '+normalized+' is active.',
-        objectivePosition:position,
+        giver:context.giver,
+        objective,
+        objectivePosition:context.position,
       })) changed=true;
       this.lastEvent=normalized;
     }
@@ -85,8 +96,9 @@ export class DynamicQuestSystem {
     // to the player's path instead of existing only as background simulation.
     if (story && !this.seenStoryIds.has(story.id)) {
       this.seenStoryIds.add(story.id);
-      const giver=story.participants[0] ?? WORLD_GIVER[story.world];
-      const position=WORLD_POSITION[story.world];
+      const context=worldContext(story.world);
+      const giver=story.participants[0] ?? context.giver;
+      const position=context.position;
       this.serial++;
       if(this.add({
         id:'dynamic-story-'+story.id,
@@ -107,7 +119,7 @@ export class DynamicQuestSystem {
     if (this.timer<=0) {
       this.timer=18;
       if (society.talking>=3) {
-        const giver=WORLD_GIVER[world];
+        const context=worldContext(world);
         this.serial++;
         if(this.add({
           id:'dynamic-social-'+world.toLowerCase()+'-'+this.serial,
@@ -117,12 +129,12 @@ export class DynamicQuestSystem {
           world,
           target:2,
           reward:120,
-          giver,
+          giver:context.giver,
           objective:'Meet 2 local citizens and learn what they are coordinating.',
-          objectivePosition:WORLD_POSITION[world],
+          objectivePosition:context.position,
         })) changed=true;
       } else if (society.working>=4) {
-        const giver=WORLD_GIVER[world];
+        const context=worldContext(world);
         this.serial++;
         if(this.add({
           id:'dynamic-work-'+world.toLowerCase()+'-'+this.serial,
@@ -132,16 +144,18 @@ export class DynamicQuestSystem {
           world,
           target:1,
           reward:130,
-          giver,
+          giver:context.giver,
           objective:'Visit the local work route and inspect what is being built.',
-          objectivePosition:WORLD_POSITION[world],
+          objectivePosition:context.position,
         })) changed=true;
       }
     }
 
     this.root.userData.world=world;
     this.root.userData.event=normalized;
-    this.root.userData.playerDistance=Math.round(Math.hypot(playerX-WORLD_POSITION[world][0],playerZ-WORLD_POSITION[world][1]));
+    const context=worldContext(world);
+    this.root.userData.playerDistance=Math.round(Math.hypot(playerX-context.position[0],playerZ-context.position[1]));
+    this.root.userData.worldCount=getWorlds().length;
     return changed;
   }
 }
