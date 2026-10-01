@@ -17,10 +17,15 @@ export class GridFriendSystem {
   private requests=new Map<string,GridFriendship>();
 
   async refresh(authority:GridSocialAuthority){
-    const rows=await authority.listFriends();
+    const relationships=await authority.listFriendRelationships();
     this.requests.clear();
-    for(const row of rows)this.requests.set(row.friendUserId===row.requestedBy?row.userId:row.friendUserId,row);
-    return rows;
+    for(const row of relationships){
+      if(row.status==='pending'){
+        const otherUserId=row.userId===row.requestedBy?row.friendUserId:row.userId;
+        this.requests.set(otherUserId,row);
+      }
+    }
+    return relationships;
   }
 
   setFriend(friend:GridFriend){this.friends.set(friend.userId,friend);return friend;}
@@ -29,5 +34,8 @@ export class GridFriendSystem {
   list(){return [...this.friends.values()].sort((a,b)=>a.displayName.localeCompare(b.displayName));}
   online(){return this.list().filter(f=>f.presence&&f.presence!=='offline');}
   request(userId:string){return this.requests.get(userId);}
+  requestsList(){return [...this.requests.values()];}
+  incomingRequests(){return this.requestsList().filter(row=>row.requestedBy!==row.userId);}
+  outgoingRequests(){return this.requestsList().filter(row=>row.requestedBy===row.userId);}
   snapshot(){return this.list().map(f=>({...f,metadata:f.metadata?{...f.metadata}:undefined}));}
 }
