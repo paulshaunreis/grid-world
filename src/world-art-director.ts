@@ -33,6 +33,32 @@ export function installGridWorldArtDirector(scene: THREE.Scene): GridWorldArtDir
   root.userData.worldPrinciple = 'many worlds share one living foundation';
   root.userData.neonIsLocal = true;
 
+  // Real Grid concept artwork is part of the world presentation layer.
+  // These are local repo assets, so the world does not depend on third-party image hosts.
+  const conceptPanels = new THREE.Group();
+  conceptPanels.name = 'grid-concept-art-panels';
+  const conceptArt = [
+    { src:'/grid-concept-first-light.svg', position:[0,3.2,-9] as const, rotation:[0,0,0] as const, scale:3.6 },
+    { src:'/grid-concept-living-wilds.svg', position:[9,3.6,2] as const, rotation:[0,Math.PI/2.8,0] as const, scale:3.2 },
+    { src:'/grid-concept-civic.svg', position:[-9,3.1,5] as const, rotation:[0,-Math.PI/2.8,0] as const, scale:3.2 },
+  ];
+  const conceptLoader = new THREE.TextureLoader();
+  for (const panel of conceptArt) {
+    conceptLoader.load(panel.src, texture => {
+      texture.colorSpace = THREE.SRGBColorSpace;
+      const mesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(2.4, 1.5),
+        new THREE.MeshBasicMaterial({ map:texture, transparent:true, opacity:.78, side:THREE.DoubleSide }),
+      );
+      mesh.position.set(...panel.position);
+      mesh.rotation.set(...panel.rotation);
+      mesh.scale.setScalar(panel.scale);
+      mesh.userData.gridConceptArt = panel.src;
+      conceptPanels.add(mesh);
+    });
+  }
+  root.add(conceptPanels);
+
   const ambient = new THREE.Group();
   ambient.name = 'shared-world-atmosphere';
   const motes = new THREE.Points(
@@ -88,6 +114,10 @@ export function installGridWorldArtDirector(scene: THREE.Scene): GridWorldArtDir
 
   function update(dt: number, playerX = 0, playerZ = 0) {
     elapsed += dt;
+    conceptPanels.children.forEach((panel, index) => {
+      panel.position.y += Math.sin(elapsed * .65 + index * 1.7) * dt * .025;
+      panel.rotation.z = Math.sin(elapsed * .35 + index) * .012;
+    });
     districtClock += dt;
 
     const keys = Object.keys(DISTRICT_VISUALS) as DistrictKey[];
