@@ -97,6 +97,7 @@ import './ui/grid-teleport-invites.css';
 import { mountGridLandmarkInventory } from './ui/GridLandmarkInventory';
 import './ui/grid-landmark-inventory.css';
 import { mountGridPartyHud } from './ui/GridPartyHud';
+import { mountGridPartyInvitePanel } from './ui/GridPartyInvitePanel';
 import { mountTeleportExperience, createTeleportAvatarEffect } from './ui/GridTeleportExperience';
 import { GridWorldMediaSystem } from './media/GridWorldMediaSystem';
 import { GridWorldRecordSystem } from './media/GridWorldRecordSystem';
@@ -252,6 +253,7 @@ const socialFriend = document.querySelector<HTMLButtonElement>('#social-friend')
 const socialMessage = document.querySelector<HTMLButtonElement>('#social-message')!;
 const socialTeleport = document.querySelector<HTMLButtonElement>('#social-teleport')!;
 const socialParty = document.createElement('button'); socialParty.id='social-party'; socialParty.type='button'; socialParty.textContent='INVITE PARTY'; socialQuick.appendChild(socialParty);
+const partyInviteButton=document.createElement('button'); partyInviteButton.id='grid-party-inbox'; partyInviteButton.type='button'; partyInviteButton.textContent='PARTY INVITES'; Object.assign(partyInviteButton.style,{position:'fixed',right:'24px',top:'116px',zIndex:'80',background:'rgba(5,12,21,.82)',border:'1px solid rgba(116,221,255,.32)',color:'#dff8ff',padding:'8px 10px',font:'700 10px IBM Plex Mono,monospace',cursor:'pointer'}); document.body.appendChild(partyInviteButton);
 const transitInviteButton=document.createElement('button'); transitInviteButton.id='grid-transit-inbox'; transitInviteButton.type='button'; transitInviteButton.textContent='TRANSIT INVITES'; Object.assign(transitInviteButton.style,{position:'fixed',right:'24px',top:'76px',zIndex:'80',background:'rgba(5,12,21,.82)',border:'1px solid rgba(90,225,255,.32)',color:'#dff8ff',padding:'8px 10px',font:'700 10px IBM Plex Mono,monospace',cursor:'pointer'}); document.body.appendChild(transitInviteButton);
 const socialOpen = document.querySelector<HTMLButtonElement>('#social-open')!;
 let socialTargetUserId:string|null=null;
@@ -288,6 +290,20 @@ function setSocialTarget(userId:string|null){socialTargetUserId=userId;socialQui
 socialFriend.addEventListener('click',async()=>{if(!socialAuthority||!socialTargetUserId)return;try{await socialAuthority.requestFriend(socialTargetUserId);addChatMessage('SOCIAL','Friend request sent.','system');}catch(error){addChatMessage('SOCIAL','Friend request could not be sent.','system');console.warn(error);}});
 socialMessage.addEventListener('click',()=>{if(socialTargetUserId){chatInput.focus();chatInput.value='@'+socialTargetUserId+' ';}});
 socialParty.addEventListener('click',async()=>{if(!socialTargetUserId||!partyInviteAuthority)return;try{const partyId=(await partySystem?.current())?.[0]?.partyId??await partyInviteAuthority.ensureParty(identity.displayName+' Party');await partyInviteAuthority.create(partyId,socialTargetUserId);addChatMessage('PARTY','Party invitation sent.','system');}catch(error){addChatMessage('PARTY','Party invitation could not be sent.','system');console.warn(error);}});
+const partyInvitePanel=partyInviteAuthority&&cloudPersistence
+  ? mountGridPartyInvitePanel(partyInviteAuthority,cloudPersistence.getClient(),()=>{
+      addChatMessage('PARTY','Invitation accepted. You are now linked to the party roster.','system');
+      void partySystem?.current().then(members=>partyHud.render(members,Object.fromEntries(regionCollaborators.map(p=>[p.id,p.displayName])))).catch(()=>undefined);
+    })
+  : null;
+partyInviteButton.onclick=()=>partyInvitePanel?.open();
+const refreshPartyInvites=async()=>{
+  if(!partyInviteAuthority)return;
+  try{const rows=await partyInviteAuthority.pending();partyInviteButton.textContent=rows.length?'PARTY INVITES · '+rows.length:'PARTY INVITES';}
+  catch{partyInviteButton.textContent='PARTY INVITES';}
+};
+void refreshPartyInvites();
+window.setInterval(()=>void refreshPartyInvites(),10000);
 socialTeleport.addEventListener('click',async()=>{if(!socialTargetUserId||!cloudPersistence)return;const destinations=teleportSystem.all().filter(x=>x.status!=='offline').map(x=>({id:x.id,displayName:x.displayName,regionId:x.regionId,position:{...x.position},yaw:x.yaw,clearanceRadius:x.clearanceRadius}));const landmarks=landmarkAuthority?await landmarkAuthority.list().catch(()=>[]):[];openTeleportDestinationPicker(destinations,landmarks,async destination=>{try{const inviteId=await teleportInviteAuthority?.create(socialTargetUserId!,{id:destination.id,displayName:destination.displayName,previewImageUrl:teleportPreviewUrlForDestination(destination)});addChatMessage('SOCIAL','Teleport invitation sent for '+destination.displayName+'.','system');void invitePanel?.refresh();console.debug('teleport invite',inviteId);}catch(error){addChatMessage('SOCIAL','Teleport invitation could not be sent.','system');console.warn(error);}});});
 
 function respondToVoiceTarget(utterance: string) {
