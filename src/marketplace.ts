@@ -72,6 +72,7 @@ const gridOriginalData = [
 const gridOriginalListings:Listing[]=gridOriginalData.map(([seller,title,category,price,description,art_key],i)=>({id:'grid-original-'+i,seller_staff_id:seller,title,description,category,currency_id:'grid',price,inventory_limit:null,art_key,status:'published',created_at:new Date().toISOString()}));
 let listings:Listing[]=[...gridOriginalListings,...itemData.map(([seller,title,category,price,description,art_key],i)=>({id:'demo-'+i,seller_staff_id:String(seller),title:String(title),description:String(description),category:String(category),currency_id:'grid',price:Number(price),inventory_limit:25,art_key:String(art_key),status:'published',created_at:new Date().toISOString()}))];
 let rules:Rule[]=[];
+let shops:any[]=[];
 
 function art(key:string){
   const palette:{[k:string]:[string,string]}={aurora:['#8ff7ff','#3044ff'],link:['#b9ffcf','#4b5cff'],rey:['#ffe38a','#ff6d9a'],elder:['#d8c1ff','#6c4cff'],veyr:['#f4f7ff','#64748b'],nyxen:['#b9c8ff','#233f9f'],orin:['#9fe8ff','#1d7897'],seraith:['#f4b7ff','#7a2e9a'],vael:['#f0f0f0','#444'],kairox:['#ffd6a1','#a55b22'],morrow:['#d7b78b','#654b35'],cipher:['#c9d8e0','#31515f'],solenne:['#ffe8a7','#d87831'],rook:['#c5d0ff','#394d91'],echo:['#d2ffd9','#39824e'],umbra:['#d8c9ff','#32205f'],civitas:['#ffe7b8','#7e5a22'],axiom:['#b8fff2','#1c8174'],mosaic:['#ffb9df','#6d3f76'],sentinel:['#c8d7ff','#344a9a'],praxis:['#d7fff0','#24614e']};
@@ -84,6 +85,7 @@ function art(key:string){
 function render(){
   const people=new Map(staff.map(s=>[s.id,s]));
   app.innerHTML='<header><div><span class="eyebrow">GRID WORLD · LIVE PROTOTYPE MARKET</span><h1>Made by the Grid.</h1><p>21 staff merchants. 21 original object studies. Each staff wallet begins with <b>10,000 GRD simulated allocation</b>.</p></div><nav><a href="/">WORLD</a><a href="/economics.html">ECONOMICS</a><a href="/directory.html">STAFF</a><a href="/docs.html">DOCS</a></nav></header>'+
+  '<section class="shops"><div><span class="eyebrow">PLAYER & NPC STOREFRONTS</span><h2>New · Featured · NPC Shops</h2><div class="shop-strip">'+shops.map(s=>'<a class="shop-card" href="/shop.html?shop='+encodeURIComponent(s.slug)+'"><b>'+String(s.name)+'</b><small>'+String(s.shop_type)+' · '+String(s.status)+'</small></a>').join('')+'</div></div></section>'+
   '<section class="market-meta"><div><b>GRID ORIGINALS</b><span>10 reusable originals · 2 free starter objects</span></div><div><b>SIMULATED LEDGER</b><span>Not real money · no cash value</span></div><div><b>'+listings.length+'</b><span>published objects</span></div><div><b>'+staff.length+'</b><span>staff merchants</span></div><div><b>12</b><span>protection rules</span></div></section>'+
   '<section class="filters"><input id="search" placeholder="Search objects or merchants…"><select id="category"><option value="">All categories</option>'+[...new Set(listings.map(x=>x.category))].sort().map(x=>'<option>'+x+'</option>').join('')+'</select></section>'+
   '<main id="cards">'+listings.map(l=>card(l,people.get(l.seller_staff_id))).join('')+'</main>'+
@@ -103,11 +105,13 @@ async function load(){
     const [s,l,r]=await Promise.all([
       sb.from('grid_staff').select('id,display_name,role,bio').order('display_name'),
       sb.from('grid_marketplace_listings').select('id,seller_staff_id,title,description,category,currency_id,price,inventory_limit,art_key,status,created_at').eq('status','published').order('created_at',{ascending:false}),
-      sb.from('grid_marketplace_protection_rules').select('id,audience,title,rule_text').eq('active',true).order('audience')
+      sb.from('grid_marketplace_protection_rules').select('id,audience,title,rule_text').eq('active',true).order('audience'),
+      sb.from('grid_shops').select('id,name,slug,shop_type,status,created_at').in('status',['NEW','FEATURED','OPEN']).order('created_at',{ascending:false}).limit(24)
     ]);
     if(s.data?.length) staff=s.data;
     if(l.data?.length) listings=[...gridOriginalListings,...(l.data as Listing[])];
     if(r.data?.length) rules=r.data as Rule[];
+    if(arguments.length>=0) { const q:any = (await sb.from('grid_shops').select('id,name,slug,shop_type,status,created_at').in('status',['NEW','FEATURED','OPEN']).order('created_at',{ascending:false}).limit(24)); if(q.data) shops=q.data; }
   }
   render();
   void mountStaffMarketActivity(app);
