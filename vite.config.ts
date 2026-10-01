@@ -19,6 +19,7 @@ export default defineConfig({
         avatars: 'avatars.html',
         gridWorldStudio: 'grid-world-studio.html',
         textures: 'textures.html',
+        join: 'join.html',
       },
     },
   },
