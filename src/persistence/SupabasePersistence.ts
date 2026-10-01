@@ -45,7 +45,8 @@ export class SupabasePersistence {
   async saveBuilds(identity: PlayerIdentity, worldId:string, regionId:string, builds:PersistedGridBuild[]) {
     const { data: existing, error: existingError } = await this.client.from('grid_build_objects').select('object_id').eq('user_id', identity.id).eq('world_id', worldId).eq('region_id', regionId);
     if (existingError) throw existingError;
-    const ownBuilds = builds.filter(build => !build.ownerUserId || build.ownerUserId === identity.id);\n    const desiredIds = new Set(ownBuilds.map(build => build.objectId));
+    const ownBuilds = builds.filter(build => !build.ownerUserId || build.ownerUserId === identity.id);
+    const desiredIds = new Set(ownBuilds.map(build => build.objectId));
     for (const objectId of (existing ?? []).map(row => String(row.object_id)).filter(id => !desiredIds.has(id))) {
       const { error } = await this.client.rpc('grid_build_delete', { p_world_id: worldId, p_region_id: regionId, p_object_id: objectId });
       if (error) throw error;
