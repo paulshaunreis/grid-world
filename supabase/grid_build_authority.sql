@@ -26,3 +26,10 @@ end;
 $$;
 revoke all on function public.grid_build_claim_region(text,text,text) from public, anon;
 grant execute on function public.grid_build_claim_region(text,text,text) to authenticated;
+
+
+-- Collaborative regions are readable by authenticated builders/visitors; mutation remains server-authorized.
+drop policy if exists "build regions collaborative read" on public.grid_build_regions;
+create policy "build regions collaborative read" on public.grid_build_regions for select to authenticated using (access_mode='collaborative');
+drop policy if exists "grid builds collaborative read" on public.grid_build_objects;
+create policy "grid builds collaborative read" on public.grid_build_objects for select to authenticated using (exists (select 1 from public.grid_build_regions r where r.world_id=grid_build_objects.world_id and r.region_id=grid_build_objects.region_id and r.access_mode='collaborative'));
