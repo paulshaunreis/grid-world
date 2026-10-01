@@ -98,6 +98,8 @@ import { GRID_NPC_SHOPS } from './world/GridNPCShopCatalog';
 import { GridDigiFoodSystem } from './world/GridDigiFoodSystem';
 import { GridCurrencyMarketSystem } from './economy/GridCurrencyMarketSystem';
 import { GridArenaSystem } from './games/GridArenaSystem';
+import { GridTouchController, GridInputModeUI } from './ui/GridTouchController';
+import './ui/GridDeviceResponsive.css';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
@@ -411,6 +413,7 @@ const hubSystem = new GridHubSystem();
 const digiFoodSystem = new GridDigiFoodSystem();
 const currencyMarketSystem = new GridCurrencyMarketSystem();
 const arenaSystem = new GridArenaSystem();
+const touchSurface=document.body; const gridTouchController=new GridTouchController(input,touchSurface); const inputModeUI=new GridInputModeUI(input,document.body);
 world.scene.userData.gridMediaFormats = GridWorldMediaSystem.SUPPORTED_FORMATS;
 world.scene.userData.worldRecorder = worldRecordSystem;
 world.scene.userData.guildNetwork = guildSystem;
