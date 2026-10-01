@@ -143,11 +143,8 @@ export class GridMineralSystem {
     this.inventory[deposit.kind]=(this.inventory[deposit.kind]??0)+Math.max(0,amount);
   }
 
-  update(delta:number, world:EcologyWorld) {
-    for (const deposit of this.deposits.values()) {
-      if (deposit.world !== world) continue;
-      deposit.remaining=Math.min(deposit.capacity,deposit.remaining + delta*.01);
-    }
+  update(_delta:number, _world:EcologyWorld) {
+    // Deposit quantities are server-authoritative. Regeneration, if enabled later, must be applied by the server.
   }
 
   private hash(value:string) {
