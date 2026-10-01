@@ -66,6 +66,31 @@ export class TeamAvatar {
     );
     this.visor.position.set(0, 1.55, -0.28);
 
+    // Readable humanoid mesh silhouette: torso, head, arms and legs.
+    // The visor remains the character's signature Grid element.
+    const humanoid = new THREE.Group();
+    humanoid.name = 'character-mesh';
+    const head = new THREE.Mesh(
+      new THREE.SphereGeometry(.34, 20, 14),
+      createStarterPBRMaterial('skin', { color: '#d9b39d', roughness: .7 })
+    );
+    head.position.y = 1.82;
+    const torso = new THREE.Mesh(
+      new THREE.BoxGeometry(.72, .82, .42),
+      createStarterPBRMaterial('fabric', { color: '#' + palette.body.toString(16).padStart(6,'0'), roughness: .58, metalness: .18 })
+    );
+    torso.position.y = 1.12;
+    const limbMaterial = createStarterPBRMaterial('fabric', { color: '#' + palette.body.toString(16).padStart(6,'0'), roughness: .64, metalness: .12 });
+    const armL = new THREE.Mesh(new THREE.CapsuleGeometry(.11,.58,5,8), limbMaterial);
+    const armR = armL.clone();
+    armL.position.set(-.48,1.16,0); armR.position.set(.48,1.16,0);
+    const legL = new THREE.Mesh(new THREE.CapsuleGeometry(.13,.65,5,8), limbMaterial);
+    const legR = legL.clone();
+    legL.position.set(-.2,.48,0); legR.position.set(.2,.48,0);
+    [head,torso,armL,armR,legL,legR].forEach(part => { part.castShadow = true; humanoid.add(part); });
+    humanoid.position.y = 0;
+    this.group.add(humanoid);
+
     this.glow = new THREE.PointLight(palette.glow, 2.2, 5);
     this.glow.position.set(0, 1.7, 0);
 
