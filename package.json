@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "build": "node grid-code-analyzer.mjs && tsc && vite build",
+    "preview": "vite preview",
+    "analyze": "node grid-code-analyzer.mjs"
   },
   "dependencies": {
     "three": "^0.180.0",
