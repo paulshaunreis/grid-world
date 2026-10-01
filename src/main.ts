@@ -90,6 +90,9 @@ import { GridSocialAuthority } from './social/GridSocialAuthority';
 import { GridFriendSystem } from './social/GridFriendSystem';
 import { GridPartySystem } from './social/GridPartySystem';
 import { GridLandmarkAuthority } from './social/GridLandmarkAuthority';
+import { GridTeleportInviteAuthority } from './social/GridTeleportInviteAuthority';
+import { mountGridTeleportInvitePanel, openTeleportDestinationPicker } from './ui/GridTeleportInvitePanel';
+import './ui/grid-teleport-invites.css';
 import { mountGridLandmarkInventory } from './ui/GridLandmarkInventory';
 import './ui/grid-landmark-inventory.css';
 import { mountGridPartyHud } from './ui/GridPartyHud';
@@ -125,6 +128,9 @@ const friendSystem = new GridFriendSystem();
 const partySystem = cloudPersistence ? new GridPartySystem(cloudPersistence.getClient()) : null;
 const partyHud = mountGridPartyHud();
 const teleportExperience = mountTeleportExperience();
+const teleportInviteAuthority = cloudPersistence ? new GridTeleportInviteAuthority(cloudPersistence.getClient()) : null;
+let invitePanel:ReturnType<typeof mountGridTeleportInvitePanel>|null=null;
+const teleportPreviewUrlForDestination=(destination:{id:string})=>{const world=(destination.id.match(/^world-gate:(.+)$/)?.[1]??destination.id).toLowerCase();return '/worlds/'+world+'.svg';};
 const landmarkAuthority = cloudPersistence ? new GridLandmarkAuthority(cloudPersistence.getClient()) : null;
 if (landmarkAuthority) mountGridLandmarkInventory(landmarkAuthority);
 
@@ -243,6 +249,7 @@ const socialQuick = document.querySelector<HTMLDivElement>('#social-quick')!;
 const socialFriend = document.querySelector<HTMLButtonElement>('#social-friend')!;
 const socialMessage = document.querySelector<HTMLButtonElement>('#social-message')!;
 const socialTeleport = document.querySelector<HTMLButtonElement>('#social-teleport')!;
+const transitInviteButton=document.createElement('button'); transitInviteButton.id='grid-transit-inbox'; transitInviteButton.type='button'; transitInviteButton.textContent='TRANSIT INVITES'; Object.assign(transitInviteButton.style,{position:'fixed',right:'24px',top:'76px',zIndex:'80',background:'rgba(5,12,21,.82)',border:'1px solid rgba(90,225,255,.32)',color:'#dff8ff',padding:'8px 10px',font:'700 10px IBM Plex Mono,monospace',cursor:'pointer'}); document.body.appendChild(transitInviteButton);
 const socialOpen = document.querySelector<HTMLButtonElement>('#social-open')!;
 let socialTargetUserId:string|null=null;
 const chatMessages = document.querySelector<HTMLDivElement>('#chat-messages')!;
@@ -277,7 +284,7 @@ addChatMessage('GRID', 'Welcome to First Light. Chat is ready. MIC speaks to the
 function setSocialTarget(userId:string|null){socialTargetUserId=userId;socialQuick.style.display=userId?'flex':'none';if(userId)socialFriend.textContent='ADD FRIEND';}
 socialFriend.addEventListener('click',async()=>{if(!socialAuthority||!socialTargetUserId)return;try{await socialAuthority.requestFriend(socialTargetUserId);addChatMessage('SOCIAL','Friend request sent.','system');}catch(error){addChatMessage('SOCIAL','Friend request could not be sent.','system');console.warn(error);}});
 socialMessage.addEventListener('click',()=>{if(socialTargetUserId){chatInput.focus();chatInput.value='@'+socialTargetUserId+' ';}});
-socialTeleport.addEventListener('click',()=>{if(socialTargetUserId)addChatMessage('SOCIAL','Teleport/invite requires the destination to be selected and confirmed before travel.','system');});
+socialTeleport.addEventListener('click',async()=>{if(!socialTargetUserId||!cloudPersistence)return;const destinations=teleportSystem.all().filter(x=>x.status!=='offline').map(x=>({id:x.id,displayName:x.displayName,regionId:x.regionId,position:{...x.position},yaw:x.yaw,clearanceRadius:x.clearanceRadius}));const landmarks=landmarkAuthority?await landmarkAuthority.list().catch(()=>[]):[];openTeleportDestinationPicker(destinations,landmarks,async destination=>{try{const inviteId=await teleportInviteAuthority?.create(socialTargetUserId!,{id:destination.id,displayName:destination.displayName,previewImageUrl:teleportPreviewUrlForDestination(destination)});addChatMessage('SOCIAL','Teleport invitation sent for '+destination.displayName+'.','system');void invitePanel?.refresh();console.debug('teleport invite',inviteId);}catch(error){addChatMessage('SOCIAL','Teleport invitation could not be sent.','system');console.warn(error);}});});
 
 function respondToVoiceTarget(utterance: string) {
   const target = interaction.findTarget();
@@ -702,6 +709,20 @@ const teleportDefinitions = [
     access: 'public' as const,
   },
 ] as const;
+
+const teleportInviteAuthorityReady=teleportInviteAuthority;
+if(teleportInviteAuthorityReady){
+  invitePanel=mountGridTeleportInvitePanel(teleportInviteAuthorityReady,(invite)=>{
+    const node=teleportSystem.get(invite.destinationId);
+    if(!node){addChatMessage('GRID TRANSIT','That destination is no longer online.','system');return;}
+    const destination={id:node.id,displayName:node.displayName,regionId:node.regionId,position:{...node.position},yaw:node.yaw,clearanceRadius:node.clearanceRadius};
+    teleportExperience.show(destination,'departing'); createTeleportAvatarEffect(player.avatar,850); audio.play('world.portal',.8);
+    window.setTimeout(()=>{const arrival=new THREE.Vector3(destination.position.x,Math.max(0,destination.position.y),destination.position.z);const backward=new THREE.Vector3(0,0,1).applyAxisAngle(new THREE.Vector3(0,1,0),destination.yaw);arrival.addScaledVector(backward,Math.max(2.5,destination.clearanceRadius));player.restoreTransform({x:arrival.x,y:arrival.y,z:arrival.z,yaw:destination.yaw});teleportExperience.show(destination,'arriving');createTeleportAvatarEffect(player.avatar,700);audio.play('world.portal',1);addChatMessage('GRID TRANSIT','Accepted invitation. Arrived at '+destination.displayName+'.','system');},850);
+  });
+  transitInviteButton.onclick=()=>invitePanel?.open();
+  void teleportInviteAuthorityReady.pending().then(rows=>{if(rows.length)transitInviteButton.textContent='TRANSIT INVITES · '+rows.length;}).catch(()=>undefined);
+  window.setInterval(()=>void teleportInviteAuthorityReady.pending().then(rows=>{transitInviteButton.textContent=rows.length?'TRANSIT INVITES · '+rows.length:'TRANSIT INVITES';}).catch(()=>undefined),10000);
+}
 
 const teleportVisuals = teleportDefinitions.map(definition => {
   teleportSystem.register(definition);
