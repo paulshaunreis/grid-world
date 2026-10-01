@@ -303,9 +303,8 @@ const livingWorld = new GridLivingWorld();
 const creatureEcology = new CreatureEcologySystem();
 const npcSociety = new NPCSocietySystem();
 npcSociety.setTransitTrafficRecorder((source, destination, queueDepth) => {
-  const transitNodeByWorld: Record<string,string> = { HARBOR:'gate:civic-to-gallery', GARDENS:'pylon:market', CITADEL:'gate:wilds-to-creator', ARTS:'pylon:gallery', WILDS:'pylon:wilds' };
-  const sourceNode = transitNodeByWorld[source];
-  const destinationNode = transitNodeByWorld[destination];
+  const sourceNode = 'world-gate:' + source.toLowerCase();
+  const destinationNode = 'world-gate:' + destination.toLowerCase();
   if (sourceNode && destinationNode) teleportSystem.recordTraffic(sourceNode, destinationNode);
   addChatMessage('GRID TRANSIT', source + ' → ' + destination + ' · NPC route completed · queue ' + queueDepth + '.', 'system');
   void cloudPersistence?.getClient().rpc('grid_record_transit', { p_source_world: source, p_destination_world: destination, p_departures: 1, p_arrivals: 1, p_queue_depth: queueDepth });
@@ -320,6 +319,8 @@ const worldFactoryPanel = mountWorldFactoryPanel({
   onCreate: (name, description) => {
     const result = createWorldFromDescription({ name, description });
     connectFactoryWorldToAll(result);
+    registerWorldTransitNode(result.world);
+    teleportSystem.syncWorldConnections();
     worldArchitecture.rebuild();
     creatureEcology.registerWorld(result.world);
     worldResources.registerWorld(result.world);
@@ -477,11 +478,11 @@ const teleportVisuals = teleportDefinitions.map(definition => {
   return visual;
 });
 
-// Any newly registered world gets a transit node automatically. Its gate is styled from World DNA.
-for (const worldDefinition of getWorlds()) {
-  if (teleportVisuals.some(v => v.userData.worldId === worldDefinition.id)) continue;
+// Every world gets a native transit gate. The same path is reused when a world is created at runtime.
+const registerWorldTransitNode = (worldDefinition: ReturnType<typeof getWorlds>[number]) => {
+  if (teleportVisuals.some(v => v.userData.worldId === worldDefinition.id)) return;
   const nodeId = 'world-gate:' + worldDefinition.id.toLowerCase();
-  const destinations = getWorldConnections(worldDefinition.id).map(c => 'world-gate:' + c.destination.toLowerCase());
+  const destinations = getWorldConnections(worldDefinition.id).map(connection => 'world-gate:' + connection.destination.toLowerCase());
   const definition = {
     id: nodeId,
     kind: 'gate' as const,
@@ -498,7 +499,10 @@ for (const worldDefinition of getWorlds()) {
   const visual = createTeleportGate(definition);
   world.scene.add(visual);
   teleportVisuals.push(visual);
-}
+  teleportSystem.syncWorldConnections();
+};
+
+for (const worldDefinition of getWorlds()) registerWorldTransitNode(worldDefinition);
 
 const crowdActors = crowdDefinitions.map(definition => new GridCrowdActor(definition));
 for (const actor of crowdActors) world.scene.add(actor.group);
