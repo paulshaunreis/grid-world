@@ -3,7 +3,7 @@ import type { AvatarStyle } from '../core/PlayerIdentity';
 export interface RemotePlayerState {
   id:string; displayName:string; avatarStyle:AvatarStyle;
   x:number; y:number; z:number; yaw:number; updatedAt:number;
-  regionRole?:string; activeObjectId?:string;
+  regionRole?:string; activeObjectId?:string; health?:number; maxHealth?:number; mana?:number; maxMana?:number;
 }
 export interface PresenceCallbacks {
   onJoin?: (player:RemotePlayerState)=>void;
