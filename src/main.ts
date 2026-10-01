@@ -65,6 +65,9 @@ import { EvolutionaryPopulationSystem } from './world/EvolutionaryPopulationSyst
 import { EcologicalWebSystem } from './world/EcologicalWebSystem';
 import { EcologicalInteractionSystem } from './world/EcologicalInteractionSystem';
 import { getWorlds, getWorldConnections } from './world/GridWorldRegistry';
+import { GridChakraSystem } from './world/GridChakraSystem';
+import { GridAlchemySystem } from './world/GridAlchemySystem';
+import { GridKarmaSystem } from './world/GridKarmaSystem';
 import { createWorldFromDescription, connectFactoryWorldToAll } from './world/WorldFactory';
 import { mountWorldFactoryPanel } from './ui/WorldFactoryPanel';
 
@@ -331,6 +334,9 @@ world.scene.add(ecologicalWeb.root);
 world.scene.add(ecologicalInteractions.root);
 const worldResources = new WorldResourceSystem();
 const gridMinerals = new GridMineralSystem();
+const gridChakras = new GridChakraSystem();
+const gridAlchemy = new GridAlchemySystem();
+const gridKarma = new GridKarmaSystem();
 world.scene.add(gridMinerals.root);
 const worldFactoryPanel = mountWorldFactoryPanel({
   onCreate: (name, description) => {
@@ -1302,6 +1308,7 @@ addEventListener('keydown', event => {
         return;
       }
       worldConsequences.recordDiscovery(livingWorld.getSnapshot().world as EcologyWorld, 'A traveler interacted with '+result.name+'. The discovery is now part of local history.');
+      gridKarma.record(identity.id, 'DISCOVER');
       prompt.textContent = `E · ${String(result.name)} ✓`;
       const npcBrain = result.object.userData.gridNpcBrain as { remember?: (memory: { subjectId?: string; eventType: string; summary: string; valence: number; importance: number; confidence: number }) => void; thought?: () => string } | undefined;
       const npcId = (result.object.userData.gridActorId as string | undefined) ?? String(result.object.userData.interactionName ?? result.name ?? '');
@@ -1429,6 +1436,7 @@ function animate(now: number) {
     if (mineralSyncTimer >= 8) { mineralSyncTimer = 0; void syncGridMinerals(); }
     if(merchantRefreshTimer > 12) { merchantRefreshTimer = 0; void refreshMerchantMarket(); }
   const livingSnapshot = livingWorld.getSnapshot();
+  gridChakras.update(dt, (livingSnapshot.world as EcologyWorld).tags ?? []);
   gridMatterTerrain.setActiveWorld((livingSnapshot.world as EcologyWorld).id);
   gridMatterTerrain.rebuild();
   gridMinerals.update(dt, livingSnapshot.world as EcologyWorld);
