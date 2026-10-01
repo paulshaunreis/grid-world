@@ -4,6 +4,7 @@ import { traversalHit, steerAround } from './TraversalSystem';
 import type { WorldConsequenceSnapshot } from './WorldConsequenceSystem';
 import { getWorlds } from './GridWorldRegistry';
 import { deriveWorldDNA } from './WorldDNA';
+import { getClimateProfile } from './WorldClimate';
 
 export type EcologyWorld = string;
 export type CreatureLifeState = 'FORAGE' | 'REST' | 'SOCIALIZE' | 'EXPLORE' | 'MIGRATE' | 'PLAY';
@@ -153,7 +154,11 @@ export class CreatureEcologySystem {
     return root;
   }
 
-  private chooseState(c: Creature, event: string, phase: 'DAWN'|'DAY'|'DUSK'|'NIGHT', pressure=0, stability=1) {
+  private chooseState(c: Creature, event: string, phase: 'DAWN'|'DAY'|'DUSK'|'NIGHT', pressure=0, stability=1, weather='CLEAR', temperatureC=15) {
+    if (weather === 'STORM' && c.species.world === 'WILDS') return c.energy > .45 ? 'MIGRATE' : 'REST';
+    if (weather === 'SNOW' && temperatureC < 0 && c.energy < .7) return 'REST';
+    if (weather === 'RAIN' && c.species.locomotion?.includes('swim')) return 'EXPLORE';
+    if (weather === 'BLOOM' && c.species.adaptations?.includes('pollination')) return 'FORAGE';
     if (pressure > .72 && c.species.world === 'WILDS') return 'MIGRATE';
     if (stability < .35 && c.energy < .55) return 'REST';
     const nocturnal = c.species.nocturnal && (phase === 'NIGHT' || phase === 'DUSK');
@@ -169,11 +174,14 @@ export class CreatureEcologySystem {
     return c.curiosity > .62 ? 'EXPLORE' : 'FORAGE';
   }
 
-  update(delta:number, playerX=0, playerZ=0, world:EcologyWorld='HARBOR', event='QUIET', phase:'DAWN'|'DAY'|'DUSK'|'NIGHT'='DAY', consequences?:WorldConsequenceSnapshot, transitFlow=0) {
+  update(delta:number, playerX=0, playerZ=0, world:EcologyWorld='HARBOR', event='QUIET', phase:'DAWN'|'DAY'|'DUSK'|'NIGHT'='DAY', consequences?:WorldConsequenceSnapshot, transitFlow=0, environment?:{weather?:string; temperatureC?:number; windX?:number; windZ?:number; season?:string}) {
     const pressure=consequences?.pressure ?? 0;
     const stability=consequences?.stability ?? 1;
     const transitBoost=THREE.MathUtils.clamp(transitFlow*.08,0,.45);
     const eventName = event.toUpperCase();
+    const weather = (environment?.weather ?? 'CLEAR').toUpperCase();
+    const temperatureC = environment?.temperatureC ?? getClimateProfile(deriveWorldDNA(getWorlds().find(candidate => candidate.id === world)?.tags ?? []).climate).baseTemperatureC;
+    const wind = Math.hypot(environment?.windX ?? 0, environment?.windZ ?? 0);
     for (const key of Object.keys(this.activeStates) as CreatureLifeState[]) this.activeStates[key] = 0;
     let visible = 0;
     let active = 0;
@@ -189,7 +197,7 @@ export class CreatureEcologySystem {
 
       c.stateTimer -= delta;
       if (c.stateTimer <= 0) {
-        c.state = this.chooseState(c,eventName,phase,pressure,stability);
+        c.state = this.chooseState(c,eventName,phase,pressure,stability,weather,temperatureC);
         c.stateTimer = 4 + ((c.phase * 13) % 7);
         this.activeStates[c.state]++;
       }
@@ -217,14 +225,16 @@ export class CreatureEcologySystem {
 
       const hit=traversalHit(c.root.position,c.target,.25);
       if(hit && hit.height>.25) steerAround(c.root.position,c.target,hit,c.target);
-        const consequenceSpeed = stability < .45 ? .82 : pressure > .6 ? 1.12 : 1;
+        const weatherSpeed = weather === 'STORM' ? .72 : weather === 'SNOW' ? .78 : weather === 'WIND' ? 1.08 : weather === 'BLOOM' ? 1.06 : 1;
+      const windResponse = c.species.locomotion?.includes('glide') || c.species.locomotion?.includes('fly') ? 1 + Math.min(.3, wind*.12) : 1 - Math.min(.12, wind*.035);
+      const consequenceSpeed = stability < .45 ? .82 : pressure > .6 ? 1.12 : 1;
       const trafficSpeed = worldMatch ? 1 + transitBoost : 1;
       if (worldMatch && transitBoost > .12 && c.state === 'REST' && c.energy > .55) c.state = c.species.world === 'WILDS' ? 'MIGRATE' : 'EXPLORE';
       const speedFactor = c.state === 'REST' ? .08 : c.state === 'MIGRATE' ? 1.8 : c.state === 'EXPLORE' ? 1.2 : c.state === 'PLAY' ? 1.35 : .7;
       if (worldMatch) active++;
       const serverOwned = Boolean(c.root.userData.serverOwned);
       if (!serverOwned) {
-        const speed = c.species.speed * speedFactor * consequenceSpeed * trafficSpeed * (worldMatch ? 1 : .42);
+        const speed = c.species.speed * speedFactor * consequenceSpeed * trafficSpeed * weatherSpeed * windResponse * (worldMatch ? 1 : .42);
         const tx = c.target.x - c.root.position.x;
         const tz = c.target.z - c.root.position.z;
         const length = Math.hypot(tx,tz);
