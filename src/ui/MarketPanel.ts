@@ -7,7 +7,7 @@ export function mountMarketPanel(getInventory:()=>Partial<Record<string,number>>
   const panel=document.createElement('section'); panel.className='grid-market-panel';
   panel.innerHTML='<div class="grid-market-card"><button class="grid-market-close">×</button><div class="grid-market-kicker">WORLD MARKET // LIVE</div><h2>Merchant Exchange</h2><p class="grid-market-sub">Local merchants respond to supply, demand and the living world.</p><div class="grid-market-merchants"></div><div class="grid-market-items"></div><div class="grid-market-status"></div></div>';
   document.body.appendChild(panel);
-  const merchantBox=panel.querySelector<HTMLDivElement>('.grid-market-merchants')!,items=panel.querySelector<HTMLDivElement>('.grid-market-status')!;
+  const merchantBox=panel.querySelector<HTMLDivElement>('.grid-market-merchants')!,items=panel.querySelector<HTMLDivElement>('.grid-market-items')!,status=panel.querySelector<HTMLDivElement>('.grid-market-status')!;
   let merchants:Merchant[]=[];
   const renderMerchants=()=>{ merchantBox.innerHTML=merchants.map(m=>'<div class="grid-merchant"><div><b>'+m.npc_id+'</b><small>'+m.personality+' · '+m.world+' · '+(m.mood??'CALM')+'</small></div><strong>'+Math.round(m.stock)+' / '+Math.round(m.desired_stock)+'</strong><span>'+m.resource_kind.replaceAll('_',' ')+' · buy '+Number(m.buy_price).toFixed(2)+' · sell '+Number(m.sell_price).toFixed(2)+'</span></div>').join(''); };
   const render=()=>{
