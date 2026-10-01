@@ -113,6 +113,9 @@ export function mountAvatarCreator(
   const eyeL=new THREE.Mesh(new THREE.SphereGeometry(.045,12,8),eyeMat);const eyeR=eyeL.clone();eyeL.position.set(-.13,2.17,.345);eyeR.position.set(.13,2.17,.345);avatar.add(eyeL,eyeR);
   const shoulderL=new THREE.Mesh(new THREE.SphereGeometry(.22,14,10),new THREE.MeshStandardMaterial({metalness:.35,roughness:.34}));const shoulderR=shoulderL.clone();shoulderL.position.set(-.48,1.42,0);shoulderR.position.set(.48,1.42,0);avatar.add(shoulderL,shoulderR);
   const chest=new THREE.Mesh(new THREE.BoxGeometry(.74,.7,.22),new THREE.MeshStandardMaterial({metalness:.28,roughness:.4}));chest.position.set(0,1.34,.18);chest.rotation.x=-.08;avatar.add(chest);
+  const limbMat=new THREE.MeshStandardMaterial({metalness:.12,roughness:.58});
+  const armL=new THREE.Mesh(new THREE.CapsuleGeometry(.13,.62,6,10),limbMat);const armR=armL.clone();armL.position.set(-.48,1.15,0);armR.position.set(.48,1.15,0);avatar.add(armL,armR);
+  const legL=new THREE.Mesh(new THREE.CapsuleGeometry(.15,.72,6,10),limbMat);const legR=legL.clone();legL.position.set(-.2,.48,0);legR.position.set(.2,.48,0);avatar.add(legL,legR);
   const collar=new THREE.Mesh(new THREE.TorusGeometry(.29,.035,8,24),new THREE.MeshStandardMaterial({color:0x6de5ff,emissive:0x6de5ff,emissiveIntensity:1.8,metalness:.7,roughness:.2}));collar.rotation.x=Math.PI/2;collar.position.y=1.85;avatar.add(collar);
 
   let selection:AvatarSelection={style:initial.style,customization:{...initial.customization}};
@@ -166,7 +169,7 @@ export function mountAvatarCreator(
   canvas.addEventListener('pointermove',e=>{if(!drag)return;orbit+=(e.clientX-lastX)*.012;lastX=e.clientX;});
   canvas.addEventListener('pointerup',()=>{drag=false;});
   canvas.addEventListener('wheel',e=>{e.preventDefault();zoom=clamp(zoom+e.deltaY*.004,3.4,8);},{passive:false});
-  let raf=0;const animate=()=>{avatar.rotation.y=orbit;camera.position.z=zoom;camera.lookAt(0,1.35,0);renderer.render(scene,camera);raf=requestAnimationFrame(animate);};animate();
+  let raf=0;let animationTime=0;const animate=()=>{animationTime+=.035; const previewMotion=Math.sin(animationTime); armL.rotation.x=previewMotion*.12; armR.rotation.x=-previewMotion*.12; legL.rotation.x=-previewMotion*.09; legR.rotation.x=previewMotion*.09; avatar.rotation.y=orbit;camera.position.z=zoom;camera.lookAt(0,1.35,0);renderer.render(scene,camera);raf=requestAnimationFrame(animate);};animate();
   host.querySelector<HTMLButtonElement>('#gav-confirm')!.onclick=()=>onConfirm({...selection,customization:{...selection.customization}});
   return ()=>{cancelAnimationFrame(raf);observer.disconnect();renderer.dispose();};
 }
