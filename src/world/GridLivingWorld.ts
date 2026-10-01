@@ -4,6 +4,7 @@ import type { WorldConsequenceSnapshot } from './WorldConsequenceSystem';
 import { getWorlds } from './GridWorldRegistry';
 import { deriveWorldDNA } from './WorldDNA';
 import { getClimateProfile, type ClimateProfile } from './WorldClimate';
+import type { WorldEvolutionState } from './WorldEvolutionSystem';
 
 interface LivingPlant { root: THREE.Group; sway: number; }
 interface LivingCreature { root: THREE.Group; phase: number; radius: number; speed: number; center: THREE.Vector3; habitat: 'HARBOR' | 'GARDENS' | 'CITADEL' | 'ARTS' | 'WILDS'; }
@@ -178,7 +179,7 @@ export class GridLivingWorld {
     }
   }
 
-  update(delta:number, playerX = 0, playerZ = 0, consequences?:WorldConsequenceSnapshot) {
+  update(delta:number, playerX = 0, playerZ = 0, consequences?:WorldConsequenceSnapshot, evolution?:WorldEvolutionState) {
     this.time+=delta;
     const epochSeconds = Date.now() / 1000;
     const worlds = getWorlds();
@@ -219,7 +220,7 @@ export class GridLivingWorld {
     else if (wetEnoughForRain) weather = humidity > .76 ? 'MIST' : 'RAIN';
     else if (Math.abs(windStrength) > .65) weather = 'WIND';
     else if (humidity > .55) weather = 'CLOUDY';
-    const ecologyBase = Math.round(50 + climate.vegetationBias * 35 + dna.ambientLife * 8);
+    const ecologyBase = Math.round((50 + climate.vegetationBias * 35 + dna.ambientLife * 8) * (.78 + (evolution?.biodiversity ?? .62) * .44);
     const activity = this.worldEvent === 'migration' ? 1.8 : this.worldEvent === 'bloom' ? 1.35 : this.worldEvent === 'storm' ? .72 : 1;
     this.snapshot = { world: this.activeWorld, event: this.worldEvent.toUpperCase(), phase, season, weather, temperatureC, humidity, windX, windZ, activity, ecology: THREE.MathUtils.clamp(ecologyBase, 0, 100) };
     const pressure = consequences?.pressure ?? 0;
@@ -264,9 +265,9 @@ export class GridLivingWorld {
 
     for(let i=0;i<this.plants.length;i++){
       const p=this.plants[i];
-      const bloom = this.worldEvent === 'bloom' ? .11 : stability < .4 ? .025 : .045;
+      const bloom = this.worldEvent === 'bloom' ? .11 : stability < .4 ? .025 : .045 + (evolution?.fertility ?? .64) * .025;
       const windSway = Math.min(.18, Math.hypot(windX, windZ) * .045);
-      const seasonalGrowth = season === 'SPRING' ? 1.04 : season === 'WINTER' ? .92 : 1;
+      const seasonalGrowth = (season === 'SPRING' ? 1.04 : season === 'WINTER' ? .92 : 1) * (.86 + (evolution?.fertility ?? .64) * .28);
       p.root.scale.y = THREE.MathUtils.lerp(p.root.scale.y, seasonalGrowth, Math.min(1, delta * .8));
       p.root.rotation.z=Math.sin(this.time*p.sway+i)*bloom + windSway * Math.sin(this.time*1.4+i);
       p.root.rotation.x=Math.cos(this.time*p.sway*.7+i)*.025 + windSway * Math.cos(this.time*1.1+i);
