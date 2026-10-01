@@ -435,6 +435,8 @@ const currencyMarketSystem = new GridCurrencyMarketSystem();
 const arenaSystem = new GridArenaSystem();
 const easyBuildSystem = new GridEasyBuildSystem();
 const materialDropSystem = new GridMaterialDropSystem();
+const recoveredWorld = worldSnapshotManager.recover();
+if (recoveredWorld?.data?.builds) easyBuildSystem.restore(recoveredWorld.data.builds);
 const touchSurface=document.body; const gridTouchController=new GridTouchController(input,touchSurface); const inputModeUI=new GridInputModeUI(input,document.body);
 world.scene.userData.gridMediaFormats = GridWorldMediaSystem.SUPPORTED_FORMATS;
 world.scene.userData.worldRecorder = worldRecordSystem;
