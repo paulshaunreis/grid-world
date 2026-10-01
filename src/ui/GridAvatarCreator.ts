@@ -122,7 +122,7 @@ export function mountAvatarCreator(
     const age=AGES[clamp(c.age??3,0,4)]; const build=1+c.build*.045; const lifeScale=age.scale; body.scale.set(build*lifeScale,lifeScale,build*lifeScale); head.scale.set(age.head,age.head,age.head); neck.scale.set(age.head,lifeScale,age.head); hair.scale.set(age.head,age.head*(1+(c.hairLength??2)*.08),age.head); shoulderL.scale.set(lifeScale,lifeScale,lifeScale); shoulderR.scale.copy(shoulderL.scale);
     head.userData.species=SPECIES[clamp(c.species??0,0,4)];
     hair.userData.hairStyle=HAIR_STYLES[clamp(c.hairStyle??0,0,HAIR_STYLES.length-1)];
-    const hairStyle=c.hairStyle??0; hair.scale.x*=hairStyle===5?1.25:hairStyle===2?.92:1; hair.scale.z*=hairStyle===1?1.12:hairStyle===6?1.06:1; hair.rotation.z=hairStyle===5?.12:hairStyle===3?.08:0;
+    const hairStyle=c.hairStyle??0; const hairX=hairStyle===5?1.25:hairStyle===2?.92:1; const hairZ=hairStyle===1?1.12:hairStyle===6?1.06:1; hair.scale.set(age.head*hairX,age.head*(1+(c.hairLength??2)*.08),age.head*hairZ); hair.rotation.z=hairStyle===5?.12:hairStyle===3?.08:0;
     const accent=0x33ddff + clamp(c.accent,0,5)*0x070707;
     chest.material.color.setHex(preset.accent);collar.material.color.setHex(preset.accent);collar.material.emissive.setHex(preset.accent);
     shoulderL.material.color.setHex(accent);shoulderR.material.color.setHex(accent);
