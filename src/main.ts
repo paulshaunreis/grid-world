@@ -453,6 +453,17 @@ world.scene.add(monsterSystem.root, duelSystem.root, hubSystem.root, arenaSystem
 world.scene.userData.easyBuild = easyBuildSystem;
 world.scene.userData.materialDrops = materialDropSystem;
 easyBuildSystem.mountPanel(document.body);
+
+function mountBuildRegionStatus() {
+  const panel = document.createElement('section');
+  panel.id = 'grid-build-region-status';
+  panel.setAttribute('aria-live','polite');
+  panel.innerHTML = '<strong>GRID BUILD REGION</strong><span data-region-state>Connecting…</span><span data-region-role></span>';
+  Object.assign(panel.style,{position:'fixed',right:'18px',bottom:'18px',zIndex:'80',display:'grid',gap:'4px',padding:'10px 12px',minWidth:'220px',fontFamily:'IBM Plex Mono,monospace',fontSize:'11px',letterSpacing:'.08em',background:'rgba(8,12,24,.82)',border:'1px solid rgba(120,220,255,.35)',borderRadius:'8px',color:'#dff7ff',backdropFilter:'blur(8px)'});
+  document.body.appendChild(panel);
+  return { set(state:string,role:string){ const s=panel.querySelector('[data-region-state]'); const r=panel.querySelector('[data-region-role]'); if(s)s.textContent=state; if(r)r.textContent=role?'ROLE · '+role.toUpperCase():''; } };
+}
+const buildRegionStatus = mountBuildRegionStatus();
 world.scene.userData.npcShopCatalog = GRID_NPC_SHOPS;
 world.scene.userData.digiFoodSystem = digiFoodSystem;
 world.scene.userData.currencyMarket = currencyMarketSystem;
@@ -967,6 +978,9 @@ const cloudReady = cloudPersistence
           const cloudState = await cloudPersistence.load(cloudIdentity);
           if (cloudState) player.restoreTransform(cloudState);
           const region = await cloudPersistence.ensureBuildRegion('first-light', 'first-light', 'collaborative');
+          buildRegionStatus.set('LIVE · '+region.accessMode.toUpperCase(),'');
+          const buildAccess = await cloudPersistence.getBuildAccess(region.worldId, region.regionId);
+          buildRegionStatus.set(buildAccess?.canBuild ? 'LIVE · BUILD ENABLED' : 'LIVE · VIEW ONLY', buildAccess?.role ?? 'viewer');
           const remoteBuilds = await cloudPersistence.loadBuilds(cloudIdentity, region.worldId, region.regionId);
           if (remoteBuilds.length) easyBuildSystem.restore(remoteBuilds.map(build => ({ objectId: build.objectId, id: build.definitionId, position: build.position, rotation: build.rotation, scale: build.scale, ownerUserId: build.ownerUserId })));
           buildRealtimeChannel = cloudPersistence.subscribeBuildChanges(region.worldId, region.regionId, (build, type) => {
