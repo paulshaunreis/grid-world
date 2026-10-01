@@ -24,6 +24,12 @@ function worldContext(world:EcologyWorld) {
 function eventMission(world:EcologyWorld,event:string) {
   const context=worldContext(world);
   const tags=context.tags;
+  if(event==='MIGRATION_WAVE') return ['Track the Migration Wave','A habitat migration has become a visible world event. Follow the moving group and learn why the route changed.','Follow the active migration route and observe the movement.'];
+  if(event==='POLLINATOR_BLOOM') return ['Protect the Pollinator Bloom','Pollinator activity is reshaping the living world. Visit the bloom route and observe the changes.','Reach the active flowering route and document the pollinator surge.'];
+  if(event==='POPULATION_BOOM') return ['Study a Population Boom','One species is expanding rapidly. Observe the habitat before the balance changes again.','Locate the expanding population and record its habitat.'];
+  if(event==='POPULATION_COLLAPSE') return ['Investigate the Population Collapse','A local population has fallen sharply. Trace the food-web pressure without disturbing the habitat.','Reach the affected habitat and investigate the ecological signal.'];
+  if(event==='NEW_SPECIES') return ['Meet the New Form','A new evolutionary form has appeared. Find it, observe its traits, and record its lineage.','Locate the newly emerged species and add it to your field guide.'];
+  if(event==='SEASONAL_SHIFT') return ['Witness the Seasonal Shift','The season has changed the rhythm of this world. Explore the living systems while they adapt.','Visit the active ecological route during the new season.'];
   if(event==='BLOOM' || tags.includes('growth')) return ['Cultivate the Living Route','Help the local growth network flourish and learn what the world is becoming.','Reach the active growth route and investigate the living environment.'];
   if(event==='MIGRATION' || tags.includes('wildlife')) return ['Follow the Wild Signal','A movement pattern is changing across the local habitat. Track it without disturbing the creatures.','Follow the active wildlife route and document the migration signal.'];
   if(event==='TIDE' || tags.includes('water')) return ['Trace the Moving Water','The world is responding to a change in its water system. Find the source and observe the effects.','Reach the active water route and trace the environmental signal.'];
@@ -66,9 +72,11 @@ export class DynamicQuestSystem {
     story:LocalStory|null,
     playerX:number,
     playerZ:number,
+    consequence?: {kind:string;text:string;world:EcologyWorld}|null,
   ): boolean {
     let changed=false;
-    const normalized=event.toUpperCase();
+    const consequenceKind=consequence?.world===world ? consequence.kind.toUpperCase() : '';
+    const normalized=consequenceKind || event.toUpperCase();
     this.timer-=delta;
 
     // World events create temporary-feeling but persistent mission offers.
