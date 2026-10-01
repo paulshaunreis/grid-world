@@ -26,11 +26,12 @@ export class GridMatterTerrainSystem {
   private readonly pointer = new THREE.Vector2();
   private activeWorldId: string | null = null;
   private mode: GridMatterEditMode = 'CARVE';
-  private enabled = true;
+  private enabled = false;
   private readonly storageKey = 'grid-world:grid-matter-terrain-v1';
 
   constructor(private readonly camera: THREE.Camera, private readonly dom: HTMLElement) {
     this.root.name = 'grid-grid-matter-terrain';
+    this.root.visible = false;
     this.rebuild();
     this.dom.addEventListener('pointerdown', this.onPointerDown);
     window.addEventListener('keydown', this.onKeyDown);
@@ -63,7 +64,7 @@ export class GridMatterTerrainSystem {
   }
 
   setActiveWorld(worldId:string|null) { this.activeWorldId = worldId; }
-  setEnabled(enabled:boolean) { this.enabled = enabled; }
+  setEnabled(enabled:boolean) { this.enabled = enabled; this.root.visible = enabled; }
   setMode(mode:GridMatterEditMode) { this.mode = mode; }
   getMode() { return this.mode; }
 
@@ -143,6 +144,7 @@ export class GridMatterTerrainSystem {
   private onKeyDown=(event:KeyboardEvent)=>{
     if (event.key.toLowerCase()==='g') {
       this.enabled=!this.enabled;
+      this.root.visible=this.enabled;
       this.dom.dataset.voxelEdit=this.enabled?'on':'off';
     }
     if (event.key.toLowerCase()==='b') this.mode='BUILD';
