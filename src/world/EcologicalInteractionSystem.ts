@@ -24,6 +24,14 @@ export class EcologicalInteractionSystem{
 
   constructor(){this.root.name='grid-ecological-interactions';}
 
+  private habitatScore(creature:THREE.Object3D, candidate:THREE.Object3D){
+    const creatureTags=Array.isArray(creature.userData.habitatTags)?creature.userData.habitatTags.map(String):[];
+    const candidateTags=Array.isArray(candidate.userData.habitatTags)?candidate.userData.habitatTags.map(String):[];
+    if(!creatureTags.length||!candidateTags.length)return .5;
+    const matches=creatureTags.reduce((n,tag)=>n+(candidateTags.some(candidateTag=>candidateTag.toLowerCase().includes(tag.toLowerCase())||tag.toLowerCase().includes(candidateTag.toLowerCase()))?1:0),0);
+    return THREE.MathUtils.clamp(matches/Math.max(2,creatureTags.length),0,1);
+  }
+
   private roleFor(object:THREE.Object3D):LiveEcologicalRole{
     const explicit=object.userData.ecologicalRole as LiveEcologicalRole|undefined;
     if(explicit)return explicit;
@@ -80,8 +88,8 @@ export class EcologicalInteractionSystem{
     }
     const populationFor=(object:THREE.Object3D)=>Math.max(1,Number(object.userData.evolutionAbundance??1));
     const weightedTarget=(origin:THREE.Object3D,candidates:THREE.Object3D[])=>candidates
-      .map(candidate=>({candidate,distance:distance(origin,candidate),population:populationFor(candidate)}))
-      .sort((a,b)=>(a.distance/(1+Math.log2(a.population)))-(b.distance/(1+Math.log2(b.population))))[0]?.candidate;
+      .map(candidate=>({candidate,distance:distance(origin,candidate),population:populationFor(candidate),habitat:this.habitatScore(origin,candidate)}))
+      .sort((a,b)=>((a.distance/(1+Math.log2(a.population)))-(a.habitat*6))-((b.distance/(1+Math.log2(b.population)))-(b.habitat*6)))[0]?.candidate;
     for(const creature of creatures){
       const role=this.roleFor(creature);
       creature.userData.ecologicalRole=role;
@@ -99,7 +107,10 @@ export class EcologicalInteractionSystem{
           }
         }
       }else if(role==='HERBIVORE'){
-        target=flora.filter(candidate=>candidate!==creature).sort((a,b)=>(distance(creature,a)+Number(candidate.userData.ecologicalPressure??0)*4)-(distance(creature,b)+Number(candidate.userData.ecologicalPressure??0)*4))[0];
+        target=flora.filter(candidate=>candidate!==creature).sort((a,b)=>{
+          const score=(item:THREE.Object3D)=>distance(creature,item)+Number(item.userData.ecologicalPressure??0)*4-this.habitatScore(creature,item)*6;
+          return score(a)-score(b);
+        })[0];
         if(target && distance(creature,target)<10){
           creature.userData.ecologicalInteraction='FORAGE';
           if(distance(creature,target)<2.1){
@@ -110,7 +121,10 @@ export class EcologicalInteractionSystem{
           }
         }
       }else if(role==='POLLINATOR'){
-        target=flora.filter(candidate=>candidate.userData.floraFamily && !String(candidate.userData.floraFamily).includes('fung')).sort((a,b)=>(distance(creature,a)-Number(candidate.userData.pollination??0)*2)-(distance(creature,b)-Number(candidate.userData.pollination??0)*2))[0];
+        target=flora.filter(candidate=>candidate.userData.floraFamily && !String(candidate.userData.floraFamily).includes('fung')).sort((a,b)=>{
+          const score=(item:THREE.Object3D)=>distance(creature,item)-Number(item.userData.pollination??0)*2-this.habitatScore(creature,item)*5;
+          return score(a)-score(b);
+        })[0];
         if(target && distance(creature,target)<13){
           creature.userData.ecologicalInteraction='POLLINATE';
           if(distance(creature,target)<2.4){
@@ -132,7 +146,10 @@ export class EcologicalInteractionSystem{
     for(const creature of creatures){
       const role=this.roleFor(creature);
       if(role!=='HERBIVORE') continue;
-      const nearest=flora.slice().sort((a,b)=>distance(creature,a)-distance(creature,b))[0];
+      const nearest=flora.slice().sort((a,b)=>{
+        const score=(item:THREE.Object3D)=>distance(creature,item)-this.habitatScore(creature,item)*7-Number(item.userData.floraHealth??1)*2;
+        return score(a)-score(b);
+      })[0];
       const nearestHealth=nearest ? Number(nearest.userData.floraHealth??1) : 0;
       const localForage=flora.filter(plant=>distance(creature,plant)<12).reduce((sum,plant)=>sum+Number(plant.userData.floraHealth??1),0);
       creature.userData.localForageAvailability=localForage;
