@@ -31,7 +31,7 @@ export class GridEasyBuildSystem{
   private rotation=0;
   private previewScale=1;
   private lastPointerEvent?:PointerEvent;
-  private readonly starterMaterials:Record<string,number>={'Grid Matter':100,Metal:20,Wood:20,Crystal:10,Crystal\n Shard:10};
+  private readonly starterMaterials:Record<string,number>={'Grid Matter':100,Metal:20,Wood:20,Crystal:10,Crystal Shard:10};
 
   constructor(){this.root.name='grid-easy-build';this.root.userData.gridBuildSystem=true;for(const[k,v]of Object.entries(this.starterMaterials))if(this.inventory[k]===undefined)this.inventory[k]=v;this.persistMaterials();}
   attach(camera:THREE.Camera,scene:THREE.Scene,dom:HTMLElement){if(this.attached)return;this.attached=true;this.camera=camera;this.scene=scene;this.dom=dom;dom.addEventListener('pointerdown',this.onPointerDown);dom.addEventListener('pointermove',this.onPointerMove);dom.addEventListener('wheel',this.onWheel,{passive:false});window.addEventListener('keydown',this.onKeyDown);}
