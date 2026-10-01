@@ -45,14 +45,23 @@ async function callOperator(prompt:string,ctx:unknown){
  return data?.choices?.[0]?.message?.content??"I’m unable to answer that right now.";
 }
 
-Deno.serve(async req=>{
+async function moderateContent(content:string,ctx:unknown){
+ const response=await fetch("https://ai-gateway.vercel.sh/v1/chat/completions",{method:"POST",headers:{"Authorization":"Bearer "+gatewayKey,"Content-Type":"application/json"},body:JSON.stringify({model,messages:[
+  {role:"system",content:"You are Grid Operator moderation AI. Evaluate content against the supplied Grid World rules only. Return JSON only with fields: decision (ALLOW|REVIEW|BLOCK), severity (info|notice|warning|critical), reasons (string[]), matched_rules (string[]), user_message (string). Do not infer protected traits, age, criminality, mental state, or intent. Do not make claims about external law unless the content clearly concerns a named jurisdiction; then say that legal review may be needed. BLOCK is reserved for clear rule violations; ambiguous cases are REVIEW."},
+  {role:"user",content:JSON.stringify({content,policy_context:ctx})}
+],temperature:0,max_tokens:500})});
+ if(!response.ok)throw new Error("moderation_ai_unavailable");
+ const data=await response.json();const raw=String(data?.choices?.[0]?.message?.content??"{}").replace(/^\`\`\`json\s*/,"").replace(/\s*\`\`\`$/,"");
+ try{return JSON.parse(raw);}catch{return {decision:"REVIEW",severity:"notice",reasons:["The moderation response could not be safely parsed."],matched_rules:[],user_message:"This content has been queued for review."};}
+}
+\nDeno.serve(async req=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:cors});
  if(req.method!=="POST")return json({error:"method_not_allowed"},405);
  const u=await user(req);
  try{
   const body=await req.json();const action=String(body.action||"chat");const ctx=u?await context(u.id):{profile:null,prefs:null,cases:[],rules:[]};
   if(action==="context"){if(!u)return json({error:"authentication_required"},401);return json({ok:true,context:{profile:ctx.profile,prefs:ctx.prefs,cases:ctx.cases}});}
-  if(action==="chat"){
+  if(action==="moderate"){const content=String(body.content||"").trim().slice(0,8000);if(!content)return json({error:"content_required"},400);const result=await moderateContent(content,ctx);if(u&&result.decision!=="ALLOW"){await admin.from("grid_operator_cases").insert({user_id:u.id,severity:result.severity,status:"open",category:"moderation",title:"Content moderation review",summary:String(result.user_message||"Content requires review."),evidence:{decision:result.decision,reasons:result.reasons,matched_rules:result.matched_rules}});}return json({ok:true,result});}\n  if(action==="chat"){
    const message=String(body.message||"").trim().slice(0,4000);if(!message)return json({error:"message_required"},400);
    if(u) await admin.from("grid_operator_messages").insert({user_id:u.id,role:"user",body:message});
    const answer=await callOperator(message,ctx);
