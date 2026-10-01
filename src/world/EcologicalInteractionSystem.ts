@@ -48,7 +48,7 @@ export class EcologicalInteractionSystem{
     const flora:THREE.Object3D[]=[];
     const decomposerFlora:THREE.Object3D[]=[];
     scene.traverse(object=>{
-      if(object.userData.gridObjectKind==='creature' && String(object.userData.worldId??world)===world)creatures.push(object);
+      if(object.userData.gridObjectKind==='creature' && !object.userData.populationAmbient && String(object.userData.worldId??world)===world)creatures.push(object);
       if(object.userData.gridObjectKind==='world-flora' && String(object.userData.worldId??world)===world){flora.push(object); if(String(object.userData.floraFamily??'').toLowerCase().includes('fung'))decomposerFlora.push(object);}
     });
     this.interactions=0;
@@ -78,6 +78,10 @@ export class EcologicalInteractionSystem{
         events.decompositions++;
       }
     }
+    const populationFor=(object:THREE.Object3D)=>Math.max(1,Number(object.userData.evolutionAbundance??1));
+    const weightedTarget=(origin:THREE.Object3D,candidates:THREE.Object3D[])=>candidates
+      .map(candidate=>({candidate,distance:distance(origin,candidate),population:populationFor(candidate)}))
+      .sort((a,b)=>(a.distance/(1+Math.log2(a.population)))-(b.distance/(1+Math.log2(b.population))))[0]?.candidate;
     for(const creature of creatures){
       const role=this.roleFor(creature);
       creature.userData.ecologicalRole=role;
@@ -85,7 +89,7 @@ export class EcologicalInteractionSystem{
       creature.userData.ecologicalInteraction='ROAM';
       let target:THREE.Object3D|undefined;
       if(role==='PREDATOR'){
-        target=creatures.filter(candidate=>candidate!==creature && this.roleFor(candidate)==='HERBIVORE').sort((a,b)=>distance(creature,a)-distance(creature,b))[0];
+        target=weightedTarget(creature,creatures.filter(candidate=>candidate!==creature && this.roleFor(candidate)==='HERBIVORE'));
         if(target && distance(creature,target)<14){
           creature.userData.ecologicalInteraction='HUNT';
           if(distance(creature,target)<2.4){
@@ -95,7 +99,7 @@ export class EcologicalInteractionSystem{
           }
         }
       }else if(role==='HERBIVORE'){
-        target=flora.filter(candidate=>candidate!==creature).sort((a,b)=>distance(creature,a)-distance(creature,b))[0];
+        target=flora.filter(candidate=>candidate!==creature).sort((a,b)=>(distance(creature,a)+Number(candidate.userData.ecologicalPressure??0)*4)-(distance(creature,b)+Number(candidate.userData.ecologicalPressure??0)*4))[0];
         if(target && distance(creature,target)<10){
           creature.userData.ecologicalInteraction='FORAGE';
           if(distance(creature,target)<2.1){
@@ -106,7 +110,7 @@ export class EcologicalInteractionSystem{
           }
         }
       }else if(role==='POLLINATOR'){
-        target=flora.filter(candidate=>candidate.userData.floraFamily && !String(candidate.userData.floraFamily).includes('fung')).sort((a,b)=>distance(creature,a)-distance(creature,b))[0];
+        target=flora.filter(candidate=>candidate.userData.floraFamily && !String(candidate.userData.floraFamily).includes('fung')).sort((a,b)=>(distance(creature,a)-Number(candidate.userData.pollination??0)*2)-(distance(creature,b)-Number(candidate.userData.pollination??0)*2))[0];
         if(target && distance(creature,target)<13){
           creature.userData.ecologicalInteraction='POLLINATE';
           if(distance(creature,target)<2.4){
@@ -130,6 +134,8 @@ export class EcologicalInteractionSystem{
       if(role!=='HERBIVORE') continue;
       const nearest=flora.slice().sort((a,b)=>distance(creature,a)-distance(creature,b))[0];
       const nearestHealth=nearest ? Number(nearest.userData.floraHealth??1) : 0;
+      const localForage=flora.filter(plant=>distance(creature,plant)<12).reduce((sum,plant)=>sum+Number(plant.userData.floraHealth??1),0);
+      creature.userData.localForageAvailability=localForage;
       const foragePressure=Number(creature.userData.foragingPressure??0);
       const nextPressure=THREE.MathUtils.clamp(foragePressure + (nearestHealth<.25 ? delta*.06 : -delta*.025),0,1);
       creature.userData.foragingPressure=nextPressure;
@@ -144,6 +150,7 @@ export class EcologicalInteractionSystem{
         );
         creature.userData.ecologicalTargetId='migration:'+world;
         events.migrations++;
+        migrationIds.add(creature.uuid);
       }
     }
 
