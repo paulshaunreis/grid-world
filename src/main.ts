@@ -21,6 +21,8 @@ import { UIModRegistry, WindowManager } from './ui/WindowManager';
 import { FieldGuide } from './ui/FieldGuide';
 import { QRScanner } from './ui/QRScanner';
 import './style.css';
+import { installGridAssetHealth } from './core/GridAssetHealthSystem';
+import { installGridHealthMonitor } from './core/GridHealthMonitor';
 import { StarterZone } from './world/StarterZone';
 import { GridSentinel } from './world/GridSentinel';
 import { GridOmniGuard } from './core/GridOmniGuard';
@@ -215,6 +217,8 @@ hud.innerHTML = `
   <div class="status" id="status">FIRST LIGHT · Connecting…</div>
 `;
 app.appendChild(hud);
+installGridAssetHealth(document);
+installGridHealthMonitor(document.body);
 const status = document.querySelector<HTMLDivElement>('#status')!;
 const chatMessages = document.querySelector<HTMLDivElement>('#chat-messages')!;
 const chatCompose = document.querySelector<HTMLFormElement>('#chat-compose')!;
