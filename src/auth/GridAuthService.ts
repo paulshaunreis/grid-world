@@ -12,6 +12,7 @@ export interface GridAccountProfile {
   name_visibility:string;
   avatar_style: AvatarSelection['style'];
   avatar_customization: AvatarCustomization;
+  avatar_ready:boolean;
 }
 
 export class GridAuthService {
@@ -57,7 +58,7 @@ export class GridAuthService {
   async profile(){
     const user=await this.currentUser();
     if(!user) return null;
-    const {data,error}=await this.client.from('profiles').select('id,first_name,middle_name,last_name,handle,display_name,onboarding_complete,name_visibility,avatar_style,avatar_customization').eq('id',user.id).maybeSingle();
+    const {data,error}=await this.client.from('profiles').select('id,first_name,middle_name,last_name,handle,display_name,onboarding_complete,name_visibility,avatar_style,avatar_customization,avatar_ready').eq('id',user.id).maybeSingle();
     if(error) throw error;
     return data as GridAccountProfile|null;
   }
