@@ -1517,6 +1517,17 @@ function animate(now: number) {
   ecologicalWeb.update(dt, livingSnapshot, worldEvolution.get(livingSnapshot.world as EcologyWorld));
   ecologicalInteractions.update(dt, livingSnapshot.world as EcologyWorld);
   evolutionaryPopulations.update(dt, livingSnapshot, worldEvolution.get(livingSnapshot.world as EcologyWorld), ecologicalWeb.getWorldSnapshot(livingSnapshot.world as EcologyWorld));
+  worldConsequences.recordEcologyPulse(
+    livingSnapshot.world as EcologyWorld,
+    ecologicalInteractions.getSnapshot(),
+    evolutionaryPopulations.getAll().filter(population => population.world === livingSnapshot.world).map(population => ({ speciesId: population.speciesId, population: population.population, generation: population.generation })),
+    livingSnapshot.season,
+    Date.now()/1000,
+  );
+  for (const emergent of evolutionaryPopulations.consumeEmergentSpecies()) {
+    worldConsequences.recordNewSpecies(livingSnapshot.world as EcologyWorld, emergent.name, emergent.generation);
+  }
+  worldConsequences.update(0, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.activity, ecologySnapshot, societySnapshot, Date.now()/1000, persistentTransitFlow);
   const evolutionState = worldEvolution.get(livingSnapshot.world as EcologyWorld);
   const ecologicalWebSnapshot = ecologicalWeb.getAll().filter(population => population.world === livingSnapshot.world);
   const consequenceSnapshotForResources = worldConsequences.getSnapshot();
@@ -1556,7 +1567,8 @@ function animate(now: number) {
     }
   }
   const latestStory = relationshipStories.getLatestStory();
-  if (dynamicQuestSystem.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, societySnapshot, latestStory, player.avatar.position.x, player.avatar.position.z)) questPanel.render();
+  const latestConsequenceForQuest = worldConsequences.getSnapshot().history.at(-1) ?? null;
+  if (dynamicQuestSystem.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, societySnapshot, latestStory, player.avatar.position.x, player.avatar.position.z, latestConsequenceForQuest)) questPanel.render();
   if (latestStory && latestStory.id !== lastStoryId) {
     lastStoryId = latestStory.id;
     addChatMessage('WORLD STORY', latestStory.text, 'system');
