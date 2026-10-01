@@ -1068,6 +1068,7 @@ let persistentTransitFlow = 0;
 let persistentTransitByWorld:Record<string,number> = {};
 let lastTransitPoll = 0;
 let lastPartyPoll = 0;
+let lastPartyDestinationPoll = 0;
 let lastVitalsPublish = 0;
 async function refreshPersistentTransit(){
   if(!cloudPersistence) return;
@@ -2050,8 +2051,8 @@ function animate(now: number) {
   combatSystem.syncScene(world.scene);
   combatSystem.update(dt, identity.id);
   const combatSnapshot = combatSystem.getSnapshot();
-  if (partySystem && performance.now()/1000-lastPartyPoll>3) { lastPartyPoll=performance.now()/1000; void partySystem.current().then(members=>{partyHud.update(members, Object.fromEntries(regionCollaborators.map(p=>[p.id,p.displayName])))); partyControlButton.style.display=members.some(m=>m.userId===cloudIdentity.id)?'block':'none';}).catch(()=>undefined); }
-  if (partySystem && performance.now()/1000-lastPartyPoll>1) { void partyDestinationTick(); }
+  if (partySystem && performance.now()/1000-lastPartyPoll>3) { lastPartyPoll=performance.now()/1000; void partySystem.current().then(members=>{partyHud.update(members, Object.fromEntries(regionCollaborators.map(p=>[p.id,p.displayName]))); partyControlButton.style.display=members.some(m=>m.userId===cloudIdentity.id)?'block':'none';}).catch(()=>undefined); }
+  if (partySystem && performance.now()/1000-lastPartyDestinationPoll>1) { lastPartyDestinationPoll=performance.now()/1000; void partyDestinationTick(); }
   if (presence && performance.now()/1000-lastVitalsPublish>1) { lastVitalsPublish=performance.now()/1000; void presence.update(player.getTransform(), { health:combatSnapshot.playerHealth, maxHealth:combatSnapshot.playerMaxHealth, regionRole:currentBuildRole }); }
   questSystem.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, societySnapshot, player.avatar.position.x, player.avatar.position.z);
   if (combatSnapshot.kills > lastCombatKills) {
