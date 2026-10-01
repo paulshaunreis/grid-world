@@ -1979,14 +1979,19 @@ function animate(now: number) {
   cameraTarget.x += cameraPanX;
   cameraTarget.y += cameraPanY;
   camera.position.lerp(cameraTarget, 1 - Math.pow(0.001, dt));
-  const lookDistance = firstPerson ? 8 : 10;
-  const lookTarget = pivot.clone().add(new THREE.Vector3(
-    Math.sin(cameraYaw) * lookDistance,
-    Math.sin(cameraPitch) * lookDistance,
-    Math.cos(cameraYaw) * lookDistance
-  ));
+  // Third-person camera looks back toward the avatar; mouselook looks through the avatar's eyes.
+  // The previous implementation looked in the same direction as the camera offset,
+  // placing the target behind the camera and producing an apparently blank world.
+  const lookTarget = pivot.clone();
   lookTarget.x += cameraPanX;
   lookTarget.y += cameraPanY;
+  if (firstPerson) {
+    lookTarget.add(new THREE.Vector3(
+      Math.sin(cameraYaw) * 8,
+      Math.sin(cameraPitch) * 8,
+      Math.cos(cameraYaw) * 8
+    ));
+  }
   camera.lookAt(lookTarget);
 
   const targetObject = interaction.findTarget();
