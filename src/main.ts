@@ -60,6 +60,7 @@ import { WorldArchitectureSystem } from './world/WorldArchitectureSystem';
 import { WorldEvolutionSystem } from './world/WorldEvolutionSystem';
 import { EvolutionaryPopulationSystem } from './world/EvolutionaryPopulationSystem';
 import { EcologicalWebSystem } from './world/EcologicalWebSystem';
+import { EcologicalInteractionSystem } from './world/EcologicalInteractionSystem';
 import { getWorlds, getWorldConnections } from './world/GridWorldRegistry';
 import { createWorldFromDescription, connectFactoryWorldToAll } from './world/WorldFactory';
 import { mountWorldFactoryPanel } from './ui/WorldFactoryPanel';
@@ -320,7 +321,9 @@ const worldConsequences = new WorldConsequenceSystem();
 const worldEvolution = new WorldEvolutionSystem();
 const evolutionaryPopulations = new EvolutionaryPopulationSystem();
 const ecologicalWeb = new EcologicalWebSystem();
+const ecologicalInteractions = new EcologicalInteractionSystem();
 world.scene.add(ecologicalWeb.root);
+world.scene.add(ecologicalInteractions.root);
 const worldResources = new WorldResourceSystem();
 const worldFactoryPanel = mountWorldFactoryPanel({
   onCreate: (name, description) => {
@@ -1512,6 +1515,7 @@ function animate(now: number) {
   for(const [transitWorld,flow] of Object.entries(persistentTransitByWorld)) worldConsequences.recordTransitSurge(transitWorld as EcologyWorld,flow);
   worldEvolution.update(dt, livingSnapshot, worldConsequences.getSnapshot());
   ecologicalWeb.update(dt, livingSnapshot, worldEvolution.get(livingSnapshot.world as EcologyWorld));
+  ecologicalInteractions.update(dt, livingSnapshot.world as EcologyWorld);
   evolutionaryPopulations.update(dt, livingSnapshot, worldEvolution.get(livingSnapshot.world as EcologyWorld), ecologicalWeb.getWorldSnapshot(livingSnapshot.world as EcologyWorld));
   const evolutionState = worldEvolution.get(livingSnapshot.world as EcologyWorld);
   const ecologicalWebSnapshot = ecologicalWeb.getAll().filter(population => population.world === livingSnapshot.world);
