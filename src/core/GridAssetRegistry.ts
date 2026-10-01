@@ -1,9 +1,10 @@
+import {createHash} from './GridStableIdentity';
 export type GridAssetKind='image'|'model'|'font'|'audio';
-export interface GridAsset{url:string;kind:GridAssetKind;critical?:boolean}
+export interface GridAsset{id:string;url:string;kind:GridAssetKind;version:number;critical?:boolean;provenance?:string}
+const asset=(url:string,kind:GridAssetKind,critical=false):GridAsset=>({id:createHash('asset:'+url),url,kind,version:1,critical,provenance:'Grid World'});
 export const GRID_ASSETS:GridAsset[]=[
-{url:'/grid-world-logo.svg',kind:'image',critical:true},{url:'/art/grid-page-atlas.svg',kind:'image',critical:true},
-{url:'/art/grid-ui-atlas.svg',kind:'image',critical:true},{url:'/art/hero-worlds.svg',kind:'image',critical:true},
-{url:'/grid-concept-first-light.svg',kind:'image',critical:true},{url:'/grid-concept-living-wilds.svg',kind:'image',critical:true},
-{url:'/grid-concept-civic.svg',kind:'image',critical:true},{url:'/art/team-studio.svg',kind:'image'},
-{url:'/art/combat-system.svg',kind:'image'},{url:'/grid-world-pulse-art.svg',kind:'image'},{url:'/art/asset-constellation.svg',kind:'image'},{url:'/art/foundation.svg',kind:'image'},{url:'/worlds/tideline.svg',kind:'image'},{url:'/worlds/crown.svg',kind:'image'},{url:'/worlds/verdant.svg',kind:'image'},{url:'/worlds/muse.svg',kind:'image'},{url:'/worlds/frontier.svg',kind:'image'}
+asset('/grid-world-logo.svg','image',true),asset('/art/grid-page-atlas.svg','image',true),asset('/art/grid-ui-atlas.svg','image',true),asset('/art/hero-worlds.svg','image',true),
+asset('/grid-concept-first-light.svg','image',true),asset('/grid-concept-living-wilds.svg','image',true),asset('/grid-concept-civic.svg','image',true),
+asset('/art/team-studio.svg','image'),asset('/art/combat-system.svg','image'),asset('/grid-world-pulse-art.svg','image'),asset('/art/asset-constellation.svg','image'),asset('/art/foundation.svg','image'),
+asset('/worlds/tideline.svg','image'),asset('/worlds/crown.svg','image'),asset('/worlds/verdant.svg','image'),asset('/worlds/muse.svg','image'),asset('/worlds/frontier.svg','image')
 ];
