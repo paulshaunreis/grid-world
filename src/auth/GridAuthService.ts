@@ -47,7 +47,7 @@ export class GridAuthService {
     return data as GridAccountProfile|null;
   }
 
-  async claimStarterLand(worldId:string,parcelKey:string){
+  async claimFirstStarterLand(worldId:string){ const {data,error}=await this.client.rpc('grid_claim_first_starter_land',{p_world_id:worldId}); if(error) throw error; return data; }\n\n  async claimStarterLand(worldId:string,parcelKey:string){
     const {data,error}=await this.client.rpc('grid_claim_starter_land',{p_world_id:worldId,p_parcel_key:parcelKey});
     if(error) throw error;
     return data;
