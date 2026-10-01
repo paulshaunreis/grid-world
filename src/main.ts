@@ -1519,7 +1519,7 @@ function animate(now: number) {
         }).catch(() => addChatMessage('RESOURCE', 'Server resource service unavailable.', 'system'));
     } else {
       const gathered = worldResources.collect(nearestResource.id, 8);
-      if (gathered) {
+      if (gathered.ok && gathered.kind) {
         worldConsequences.recordResourceGathered(livingSnapshot.world as EcologyWorld, gathered.kind, gathered.amount);
         addChatMessage('RESOURCE', 'Gathered +' + gathered.amount + ' ' + gathered.kind.replaceAll('_',' ') + '.', 'system');
       }
