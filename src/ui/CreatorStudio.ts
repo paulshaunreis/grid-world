@@ -1,4 +1,5 @@
 import { parseGridScript } from '../scripting/GridScript';
+import type { GridSecuritySystem } from '../core/GridSecuritySystem';
 
 export interface CreatorStudioOptions {
   terrain: {
@@ -7,6 +8,8 @@ export interface CreatorStudioOptions {
   };
   onCreateWorld?: (name: string, description: string) => void;
   onMessage?: (message: string) => void;
+  security?: GridSecuritySystem;
+  subjectId?: string;
 }
 
 type StudioTab = 'WORLD' | 'MATTER' | 'LOGIC' | 'ASSETS' | 'SIMULATION';
@@ -79,6 +82,10 @@ export function mountCreatorStudio(options: CreatorStudioOptions) {
           options.onMessage?.('Creator Studio: enter a world name and description first.');
           return;
         }
+        if (options.security && !options.security.allow('WORLD_CREATE', options.subjectId ?? 'local')) {
+          options.onMessage?.('Creator Studio: security rate limit blocked this world-generation request.');
+          return;
+        }
         options.onCreateWorld?.(name, description);
         options.onMessage?.('Creator Studio: world generation request accepted.');
       });
@@ -121,6 +128,10 @@ when player interacts:
         </div>`;
       root.querySelector<HTMLButtonElement>('#gcs-validate')?.addEventListener('click', () => {
         const source = root.querySelector<HTMLTextAreaElement>('#gcs-script')?.value ?? '';
+        if (options.security && !options.security.allow('SCRIPT_VALIDATE', options.subjectId ?? 'local')) {
+          output.textContent = 'BLOCKED · security rate limit';
+          return;
+        }
         const parsed = parseGridScript(source);
         const output = root.querySelector<HTMLDivElement>('#gcs-script-output')!;
         if (parsed.script) {
