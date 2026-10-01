@@ -92,5 +92,12 @@ registerNetworkWorld({
   gateId:'gate-skyroot',
 }, ['GARDENS','WILDS']);
 
+/** Elemental laboratory worlds used to stress-test world generation and chemistry-driven geology. */
+registerNetworkWorld({id:'EMBERFORGE',label:'EMBERFORGE',description:'A volcanic world of basalt shelves, fire-lit caverns and metal-rich hydrothermal veins.',center:new THREE.Vector3(58,0,18),color:0xff6b3d,secondary:0x431b18,resourceKind:'EMBER_ORE',tags:['fire','earth','metal','volcanic','igneous','hydrothermal','alchemy','chakra-solar'],event:'storm'},['CITADEL']);
+registerNetworkWorld({id:'AZUREVAULT',label:'AZUREVAULT',description:'A deep water-and-crystal world where pressure, silica and fluorine shape luminous mineral caverns.',center:new THREE.Vector3(-58,-4,-8),color:0x55cfff,secondary:0x173b57,resourceKind:'AZURE_CRYSTAL',tags:['water','crystal','silica','fluorine','hydrothermal','caves','chakra-sacral'],event:'tide'},['HARBOR']);
+registerNetworkWorld({id:'AETHERION',label:'AETHERION',description:'A high-altitude world built around conductive storm fields, rare metals and luminous atmospheric energy.',center:new THREE.Vector3(58,24,-42),color:0xb58cff,secondary:0x241d52,resourceKind:'AETHER_METAL',tags:['air','aether','storm','conductive','rare-earth','aerial','chakra-crown','chakra-vision'],event:'aurora'},['SKYROOT']);
+registerNetworkWorld({id:'VERDANTIUM',label:'VERDANTIUM',description:'A living mineral world where biological growth, carbon, silica and water continuously reshape the terrain.',center:new THREE.Vector3(-58,0,38),color:0x69e69a,secondary:0x153d2a,resourceKind:'LIVING_CRYSTAL',tags:['life','water','carbon','silica','growth','weathering','ecology','chakra-heart'],event:'bloom'},['GARDENS']);
+registerNetworkWorld({id:'PRIMORDIA',label:'PRIMORDIA',description:'A geology laboratory world deliberately combining earth, fire, water, air and aether signatures to test emergent generation.',center:new THREE.Vector3(0,28,-58),color:0xf1d47a,secondary:0x342b19,resourceKind:'PRIMAL_MATRIX',tags:['earth','fire','water','air','aether','mixed-elements','metamorphic','igneous','sedimentary','laboratory'],event:'aurora'},['CITADEL','EMBERFORGE','AZUREVAULT','AETHERION','VERDANTIUM']);
+
 const BUILTIN = ['HARBOR','GARDENS','CITADEL','ARTS','WILDS'];
 for (const source of BUILTIN) for (const destination of BUILTIN) if (source !== destination) connectWorld(source, destination);
