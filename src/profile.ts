@@ -78,7 +78,7 @@ function render() {
     <header class="studio-header">
       <a class="brand" href="/"><span class="brand-mark">◇</span><span>GRID WORLD</span></a>
       <div class="studio-title"><span>PROFILE STUDIO</span><small>MAKE YOUR SPACE YOURS</small></div>
-      <div class="studio-actions"><a href="/" class="ghost">BACK TO GRID</a><button id="save">SAVE PROFILE</button></div>
+      <div class="studio-actions"><a href="/" class="ghost">BACK TO GRID</a><a href="/shop.html?shop=${draft.handle}" class="ghost">MY SHOP ↗</a><button id="save">SAVE PROFILE</button></div>
     </header>
 
     <main class="studio">
