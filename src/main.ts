@@ -128,7 +128,7 @@ const cloudPersistence = supabaseConfigured ? new SupabasePersistence(SUPABASE_U
 const socialAuthority = supabaseConfigured ? new GridSocialAuthority(cloudPersistence!.getClient()) : null;
 const friendSystem = new GridFriendSystem();
 const partySystem = cloudPersistence ? new GridPartySystem(cloudPersistence.getClient()) : null;
-const partyHud = mountGridPartyHud();
+const partyHud = mountGridPartyHud(cloudPersistence?.getClient());
 const teleportExperience = mountTeleportExperience();
 const teleportInviteAuthority = cloudPersistence ? new GridTeleportInviteAuthority(cloudPersistence.getClient()) : null;
 const partyInviteAuthority = cloudPersistence ? new GridPartyInviteAuthority(cloudPersistence.getClient()) : null;
@@ -293,7 +293,7 @@ socialParty.addEventListener('click',async()=>{if(!socialTargetUserId||!partyInv
 const partyInvitePanel=partyInviteAuthority&&cloudPersistence
   ? mountGridPartyInvitePanel(partyInviteAuthority,cloudPersistence.getClient(),()=>{
       addChatMessage('PARTY','Invitation accepted. You are now linked to the party roster.','system');
-      void partySystem?.current().then(members=>partyHud.render(members,Object.fromEntries(regionCollaborators.map(p=>[p.id,p.displayName])))).catch(()=>undefined);
+      void partySystem?.current().then(members=>partyHud.update(members,Object.fromEntries(regionCollaborators.map(p=>[p.id,p.displayName])))).catch(()=>undefined);
     })
   : null;
 partyInviteButton.onclick=()=>partyInvitePanel?.open();
@@ -1987,7 +1987,7 @@ function animate(now: number) {
   combatSystem.syncScene(world.scene);
   combatSystem.update(dt, identity.id);
   const combatSnapshot = combatSystem.getSnapshot();
-  if (partySystem && performance.now()/1000-lastPartyPoll>3) { lastPartyPoll=performance.now()/1000; void partySystem.current().then(members=>partyHud.render(members, Object.fromEntries(regionCollaborators.map(p=>[p.id,p.displayName])))).catch(()=>undefined); }
+  if (partySystem && performance.now()/1000-lastPartyPoll>3) { lastPartyPoll=performance.now()/1000; void partySystem.current().then(members=>partyHud.update(members, Object.fromEntries(regionCollaborators.map(p=>[p.id,p.displayName])))).catch(()=>undefined); }
   if (presence && performance.now()/1000-lastVitalsPublish>1) { lastVitalsPublish=performance.now()/1000; void presence.update(player.getTransform(), { health:combatSnapshot.playerHealth, maxHealth:combatSnapshot.playerMaxHealth, regionRole:currentBuildRole }); }
   questSystem.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, societySnapshot, player.avatar.position.x, player.avatar.position.z);
   if (combatSnapshot.kills > lastCombatKills) {
