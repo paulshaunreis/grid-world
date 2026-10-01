@@ -378,7 +378,7 @@ const gridAuthPanel = cloudPersistence ? mountGridAuthPanel(new GridAuthService(
   identity = { ...identity, id: profile.id, displayName: profile.display_name };
   cloudIdentity = { ...cloudIdentity, id: profile.id, displayName: profile.display_name };
   writeVersioned('grid-world:identity', 1, identity);
-  player.setAvatarStyle(identity.avatarStyle);
+  player.setAvatarAppearance(identity.avatarStyle, identity.avatarCustomization);
   updatePlayerNameplate(profile.display_name);
   identityButton.textContent = '✦ ' + (profile.handle || profile.display_name);
   const joinAuthButton = document.querySelector<HTMLButtonElement>('#auth-button');
@@ -388,7 +388,7 @@ const gridAuthPanel = cloudPersistence ? mountGridAuthPanel(new GridAuthService(
 }, selection => {
   identity = { ...identity, avatarStyle: selection.style, avatarCustomization: selection.customization };
   writeVersioned('grid-world:identity', 1, identity);
-  player.setAvatarStyle(selection.style);
+  player.setAvatarAppearance(selection.style, selection.customization);
 }) : null;
 const authButton = document.querySelector<HTMLButtonElement>('#auth-button');
 authButton?.addEventListener('click', async () => {
