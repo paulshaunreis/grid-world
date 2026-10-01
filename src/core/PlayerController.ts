@@ -108,9 +108,10 @@ export class PlayerController {
       const lineageBulk=[1,1.28,1.12,.8,1.45,1.02][Math.max(-1,Math.min(5,(customization.lineage??-1)))+1] ?? 1;
       const headScale=[1.08,1.03,1,.98,1.01][Math.max(0,Math.min(4,customization.age??3))];
       const build=1+Math.max(-3,Math.min(3,customization.build))*.045;
+      const torso=1+(customization.torso??0)*.025; const shoulders=1+(customization.shoulders??0)*.02; const arms=1+(customization.arms??0)*.035; const legs=1+(customization.legs??0)*.045;
       const sx=build*raceBulk*lineageBulk; const sy=1;
-      this.body.scale.set(sx*ageScale*raceScale*lineageScale,sy*ageScale*raceScale*lineageScale,sx*ageScale*raceScale*lineageScale);
-      this.armL.scale.set(sx*ageScale*raceScale*lineageScale,ageScale*raceScale*lineageScale,sx*ageScale*raceScale*lineageScale); this.armR.scale.copy(this.armL.scale); this.legL.scale.copy(this.armL.scale); this.legR.scale.copy(this.armL.scale);
+      this.body.scale.set(sx*torso*ageScale*raceScale*lineageScale,sy*ageScale*raceScale*lineageScale,sx*ageScale*raceScale*lineageScale);
+      this.armL.scale.set(sx*arms*shoulders*ageScale*raceScale*lineageScale,ageScale*arms*ageScale*raceScale*lineageScale,sx*arms*ageScale*raceScale*lineageScale); this.armR.scale.copy(this.armL.scale); this.legL.scale.set(sx*ageScale*raceScale*lineageScale,ageScale*legs*raceScale*lineageScale,sx*ageScale*raceScale*lineageScale); this.legR.scale.copy(this.legL.scale);
       this.head.scale.set(headScale,headScale,headScale);
       this.hair.scale.set(headScale,headScale*(1+Math.max(0,Math.min(4,customization.hairLength??2))*.08),headScale);
       const elf=[1,2,5].includes(customization.species??0) || (customization.lineage??-1)>=0;
