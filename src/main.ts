@@ -379,7 +379,9 @@ const questPanel = mountQuestPanel(questSystem);
 mountWorldAtlas(() => ({ world: (livingWorld.getSnapshot().world as EcologyWorld), event: livingWorld.getSnapshot().event, consequences: worldConsequences.getSnapshot(), resources: worldResources.getSnapshot(), inventory: worldResources.getInventory(), market: marketQuotes, transit: teleportSystem.trafficSnapshot() }));
 marketPanel = mountMarketPanel(() => worldResources.getInventory(), () => marketQuotes, () => combatAuthority);
 const gridEconomyPanel = mountGridEconomyPanel(() => combatAuthority);
-const gridCommunityPanel = cloudPersistence ? mountGridCommunityPanel(new GridSocialService(cloudPersistence.getClient()), { displayName: identity.displayName, id: identity.id, createdAt: identity.createdAt }) : null;
+const gridSocialService = cloudPersistence ? new GridSocialService(cloudPersistence.getClient()) : null;
+const gridCommunityPanel = gridSocialService ? mountGridCommunityPanel(gridSocialService, { displayName: identity.displayName, id: identity.id, createdAt: identity.createdAt }) : null;
+void gridSocialService?.setPresence(false).catch(()=>undefined);
 const gridSocialButton = document.querySelector<HTMLButtonElement>('[data-tool="social"]');
 gridSocialButton?.addEventListener('click',()=>gridCommunityPanel?.open());
 const gridAuthPanel = cloudPersistence ? mountGridAuthPanel(new GridAuthService(cloudPersistence.getClient()), profile => {
@@ -394,6 +396,7 @@ const gridAuthPanel = cloudPersistence ? mountGridAuthPanel(new GridAuthService(
   const joinAuthButton = document.querySelector<HTMLButtonElement>('#auth-button');
   if (authButton) authButton.textContent = 'ACCOUNT';
   void presence?.setIdentity(cloudIdentity, player.getTransform());
+  void gridSocialService?.setPresence(true).catch(()=>undefined);
   addChatMessage('GRID IDENTITY', profile.handle + ' is now connected to the Grid.', 'system');
 }, selection => {
   identity = { ...identity, avatarStyle: selection.style, avatarCustomization: selection.customization };
@@ -1255,6 +1258,7 @@ let cameraPanning = false;
 let cameraDistance = 7;
 let cameraInitialized = false;
 let presenceTimer = 0;
+let socialPresenceTimer = 0;
 let saveTimer = 0;
 let creatureCombatSyncTimer = 0;
 let creatureCombatStateTimer = 0;
@@ -1502,6 +1506,8 @@ function animate(now: number) {
   const dt = Math.min((now - last) / 1000, 0.05);
   last = now;
   presenceTimer += dt;
+  socialPresenceTimer += dt;
+  if (socialPresenceTimer >= 30) { socialPresenceTimer = 0; void gridSocialService?.setPresence(true).catch(()=>undefined); }
   saveTimer += dt;
   worldEventPollTimer += dt;
 
@@ -1856,6 +1862,8 @@ function animate(now: number) {
 }
 
 requestAnimationFrame(animate);
+
+addEventListener('beforeunload', () => { void gridSocialService?.setPresence(false).catch(()=>undefined); });
 
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
