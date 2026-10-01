@@ -79,6 +79,9 @@ import { GridSocialService } from './social/GridSocialService';
 import { mountGridCommunityPanel } from './ui/GridCommunityPanel';
 import { GridVoiceModifierSystem } from './audio/GridVoiceModifierSystem';
 import type { GridAgeBand } from './social/GridContentAccess';
+import { GridOperatorService } from './operator/GridOperatorService';
+import { GridOperatorPresence } from './world/GridOperatorPresence';
+import { GridGuardCommandSystem } from './world/GridGuardCommandSystem';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
@@ -161,7 +164,7 @@ hud.innerHTML = `
     <button type="button" data-tool="field"><b>⌖</b><span>FIELD</span></button>
     <button type="button" data-tool="qr"><b>▧</b><span>QR</span></button>
     <button type="button" data-tool="build"><b>✦</b><span>BUILD</span></button>
-    <button type="button" data-tool="team"><b>⌂</b><span>TEAM</span></button><button type="button" data-tool="social"><b>◎</b><span>SOCIAL</span></button><button type="button" data-tool="settings"><b>⚙</b><span>SETTINGS</span></button>
+    <button type="button" data-tool="team"><b>⌂</b><span>TEAM</span></button><button type="button" data-tool="social"><b>◎</b><span>SOCIAL</span></button><button type="button" data-tool="settings"><b>⚙</b><span>SETTINGS</span></button><button type="button" data-tool="operator"><b>◈</b><span>OPERATOR</span></button>
   </div>
   <div class="target-card" id="target-card">
     <div class="target-kicker">OBJECT PROFILE</div>
@@ -288,7 +291,7 @@ voiceTargetButton.addEventListener('click', async () => {
     return;
   }
   addChatMessage(identity.displayName, transcript, 'player');
-  respondToVoiceTarget(transcript);
+  if (/\b(operator|guide|grid operator)\b/i.test(transcript)) { operatorPresence.openGuide(); void operatorPresence.ask(transcript.replace(/\b(operator|guide|grid operator)\b/ig, '').trim() || 'What should I know about my current mission?'); } else respondToVoiceTarget(transcript);
 });
 
 chatCompose.addEventListener('submit', event => {
@@ -376,6 +379,12 @@ const worldFactoryPanel = mountWorldFactoryPanel({
 
 let marketPanel: ReturnType<typeof mountMarketPanel> | null = null;
 const questPanel = mountQuestPanel(questSystem);
+const guardCommandSystem = new GridGuardCommandSystem();
+world.scene.add(guardCommandSystem.root);
+const operatorService = cloudPersistence ? new GridOperatorService(cloudPersistence.getClient()) : null;
+const operatorPresence = new GridOperatorPresence(operatorService, voice, questSystem, () => { const snap = livingWorld.getSnapshot(); return { world: String(snap.world), event: String(snap.event) }; }, (sender, message) => addChatMessage(sender, message, 'system'));
+const operatorButton = document.querySelector<HTMLButtonElement>('[data-tool="operator"]');
+operatorButton?.addEventListener('click', () => operatorPresence.toggle());
 mountWorldAtlas(() => ({ world: (livingWorld.getSnapshot().world as EcologyWorld), event: livingWorld.getSnapshot().event, consequences: worldConsequences.getSnapshot(), resources: worldResources.getSnapshot(), inventory: worldResources.getInventory(), market: marketQuotes, transit: teleportSystem.trafficSnapshot() }));
 marketPanel = mountMarketPanel(() => worldResources.getInventory(), () => marketQuotes, () => combatAuthority);
 const gridEconomyPanel = mountGridEconomyPanel(() => combatAuthority);
@@ -1647,6 +1656,7 @@ function animate(now: number) {
     }
   }
   npcSociety.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, ecologySnapshot, consequenceSnapshot);
+  guardCommandSystem.ensureDefaults(String(livingSnapshot.world));
   const societySnapshot = npcSociety.getSnapshot();
   traversalSystem.update(dt);
   combatSystem.syncScene(world.scene);
