@@ -13,11 +13,15 @@ const INTERVAL_MS = 15000;
 export class GridWorldSnapshotManager {
   private elapsed = 0;
   private readonly worldId: string;
+  private readonly regionId: string;
+  private readonly failureDomain: string;
   private lastSnapshot: GridWorldSnapshot<GridRuntimeSnapshot> | null = null;
 
-  constructor(worldId: string) {
+  constructor(worldId: string, regionId = "default") {
     this.worldId = worldId;
-    this.lastSnapshot = loadWorldSnapshot<GridRuntimeSnapshot>(worldId, SCHEMA);
+    this.regionId = regionId;
+    this.failureDomain = "world:" + worldId + ":region:" + regionId;
+    this.lastSnapshot = loadWorldSnapshot<GridRuntimeSnapshot>(worldId, SCHEMA, regionId);
   }
 
   tick(deltaMs: number, capture: () => GridRuntimeSnapshot) {
@@ -30,8 +34,10 @@ export class GridWorldSnapshotManager {
 
   save(data: GridRuntimeSnapshot) {
     const snapshot: GridWorldSnapshot<GridRuntimeSnapshot> = {
-      snapshotId: createStableId("snapshot", this.worldId + ":" + Date.now()),
+      snapshotId: createStableId("snapshot", this.worldId + ":" + this.regionId + ":" + Date.now()),
       worldId: this.worldId,
+      regionId: this.regionId,
+      failureDomain: this.failureDomain,
       schema: SCHEMA,
       createdAt: new Date().toISOString(),
       data,
