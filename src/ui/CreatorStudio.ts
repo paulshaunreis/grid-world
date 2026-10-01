@@ -1,4 +1,3 @@
-import * as THREE from 'three';
 import { parseGridScript } from '../scripting/GridScript';
 
 export interface CreatorStudioOptions {
