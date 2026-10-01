@@ -1543,8 +1543,8 @@ function animate(now: number) {
   const storySnapshot = relationshipStories.getSnapshot();
   const hudWorldState = document.querySelector<HTMLElement>('#hud-world-state');
   const hudWorldSignal = document.querySelector<HTMLElement>('#hud-world-signal');
-  if (hudWorldState) hudWorldState.textContent = livingSnapshot.world + ' · ' + livingSnapshot.phase;
-  if (hudWorldSignal) hudWorldSignal.textContent = livingSnapshot.event + ' · ' + livingSnapshot.weather + ' · ' + ecologySnapshot.active + '/' + ecologySnapshot.population + ' CREATURES · ' + societySnapshot.working + ' WORKING · ' + societySnapshot.talking + ' TALKING · ' + storySnapshot.activeStories + ' STORIES · STABILITY ' + Math.round(consequenceSnapshotAfterUpdate.stability*100) + '%';
+  if (hudWorldState) hudWorldState.textContent = livingSnapshot.world + ' · ' + livingSnapshot.phase + ' · ' + livingSnapshot.season;
+  if (hudWorldSignal) hudWorldSignal.textContent = livingSnapshot.event + ' · ' + livingSnapshot.weather + ' · ' + Math.round(livingSnapshot.temperatureC) + '°C · HUM ' + Math.round(livingSnapshot.humidity*100) + '% · ' + ecologySnapshot.active + '/' + ecologySnapshot.population + ' CREATURES · ' + societySnapshot.working + ' WORKING · ' + societySnapshot.talking + ' TALKING · ' + storySnapshot.activeStories + ' STORIES · STABILITY ' + Math.round(consequenceSnapshotAfterUpdate.stability*100) + '%';
   artDirector.update(dt, player.avatar.position.x, player.avatar.position.z);
   worldSkins.update(dt, player.avatar.position.x, player.avatar.position.z);
   worldArchitecture.update(dt);
