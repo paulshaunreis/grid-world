@@ -89,6 +89,7 @@ import { GridGuildSystem } from './social/GridGuildSystem';
 import { GridSocialAuthority } from './social/GridSocialAuthority';
 import { GridFriendSystem } from './social/GridFriendSystem';
 import { GridPartySystem } from './social/GridPartySystem';
+import { GridPartyInviteAuthority } from './social/GridPartyInviteAuthority';
 import { GridLandmarkAuthority } from './social/GridLandmarkAuthority';
 import { GridTeleportInviteAuthority } from './social/GridTeleportInviteAuthority';
 import { mountGridTeleportInvitePanel, openTeleportDestinationPicker } from './ui/GridTeleportInvitePanel';
@@ -129,6 +130,7 @@ const partySystem = cloudPersistence ? new GridPartySystem(cloudPersistence.getC
 const partyHud = mountGridPartyHud();
 const teleportExperience = mountTeleportExperience();
 const teleportInviteAuthority = cloudPersistence ? new GridTeleportInviteAuthority(cloudPersistence.getClient()) : null;
+const partyInviteAuthority = cloudPersistence ? new GridPartyInviteAuthority(cloudPersistence.getClient()) : null;
 let invitePanel:ReturnType<typeof mountGridTeleportInvitePanel>|null=null;
 const teleportPreviewUrlForDestination=(destination:{id:string})=>{const world=(destination.id.match(/^world-gate:(.+)$/)?.[1]??destination.id).toLowerCase();return '/worlds/'+world+'.svg';};
 const landmarkAuthority = cloudPersistence ? new GridLandmarkAuthority(cloudPersistence.getClient()) : null;
@@ -249,6 +251,7 @@ const socialQuick = document.querySelector<HTMLDivElement>('#social-quick')!;
 const socialFriend = document.querySelector<HTMLButtonElement>('#social-friend')!;
 const socialMessage = document.querySelector<HTMLButtonElement>('#social-message')!;
 const socialTeleport = document.querySelector<HTMLButtonElement>('#social-teleport')!;
+const socialParty = document.createElement('button'); socialParty.id='social-party'; socialParty.type='button'; socialParty.textContent='INVITE PARTY'; socialQuick.appendChild(socialParty);
 const transitInviteButton=document.createElement('button'); transitInviteButton.id='grid-transit-inbox'; transitInviteButton.type='button'; transitInviteButton.textContent='TRANSIT INVITES'; Object.assign(transitInviteButton.style,{position:'fixed',right:'24px',top:'76px',zIndex:'80',background:'rgba(5,12,21,.82)',border:'1px solid rgba(90,225,255,.32)',color:'#dff8ff',padding:'8px 10px',font:'700 10px IBM Plex Mono,monospace',cursor:'pointer'}); document.body.appendChild(transitInviteButton);
 const socialOpen = document.querySelector<HTMLButtonElement>('#social-open')!;
 let socialTargetUserId:string|null=null;
@@ -284,6 +287,7 @@ addChatMessage('GRID', 'Welcome to First Light. Chat is ready. MIC speaks to the
 function setSocialTarget(userId:string|null){socialTargetUserId=userId;socialQuick.style.display=userId?'flex':'none';if(userId)socialFriend.textContent='ADD FRIEND';}
 socialFriend.addEventListener('click',async()=>{if(!socialAuthority||!socialTargetUserId)return;try{await socialAuthority.requestFriend(socialTargetUserId);addChatMessage('SOCIAL','Friend request sent.','system');}catch(error){addChatMessage('SOCIAL','Friend request could not be sent.','system');console.warn(error);}});
 socialMessage.addEventListener('click',()=>{if(socialTargetUserId){chatInput.focus();chatInput.value='@'+socialTargetUserId+' ';}});
+socialParty.addEventListener('click',async()=>{if(!socialTargetUserId||!partyInviteAuthority)return;try{const partyId=(await partySystem?.current())?.[0]?.partyId??await partyInviteAuthority.ensureParty(identity.displayName+' Party');await partyInviteAuthority.create(partyId,socialTargetUserId);addChatMessage('PARTY','Party invitation sent.','system');}catch(error){addChatMessage('PARTY','Party invitation could not be sent.','system');console.warn(error);}});
 socialTeleport.addEventListener('click',async()=>{if(!socialTargetUserId||!cloudPersistence)return;const destinations=teleportSystem.all().filter(x=>x.status!=='offline').map(x=>({id:x.id,displayName:x.displayName,regionId:x.regionId,position:{...x.position},yaw:x.yaw,clearanceRadius:x.clearanceRadius}));const landmarks=landmarkAuthority?await landmarkAuthority.list().catch(()=>[]):[];openTeleportDestinationPicker(destinations,landmarks,async destination=>{try{const inviteId=await teleportInviteAuthority?.create(socialTargetUserId!,{id:destination.id,displayName:destination.displayName,previewImageUrl:teleportPreviewUrlForDestination(destination)});addChatMessage('SOCIAL','Teleport invitation sent for '+destination.displayName+'.','system');void invitePanel?.refresh();console.debug('teleport invite',inviteId);}catch(error){addChatMessage('SOCIAL','Teleport invitation could not be sent.','system');console.warn(error);}});});
 
 function respondToVoiceTarget(utterance: string) {
