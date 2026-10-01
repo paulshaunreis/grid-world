@@ -392,6 +392,7 @@ const gridAuthPanel = cloudPersistence ? mountGridAuthPanel(new GridAuthService(
   player.setAvatarAppearance(identity.avatarStyle, identity.avatarCustomization);
   updatePlayerNameplate(profile.display_name);
   identityButton.textContent = '✦ ' + (profile.handle || profile.display_name);
+  gridCommunityPanel?.setIdentity({displayName:profile.display_name,id:profile.id,createdAt:profile.account_created_at||identity.createdAt});
   gridCommunityPanel?.close();
   const joinAuthButton = document.querySelector<HTMLButtonElement>('#auth-button');
   if (authButton) authButton.textContent = 'ACCOUNT';
