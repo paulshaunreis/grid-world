@@ -322,6 +322,8 @@ const worldFactoryPanel = mountWorldFactoryPanel({
     connectFactoryWorldToAll(result);
     worldArchitecture.rebuild();
     creatureEcology.registerWorld(result.world);
+    worldResources.registerWorld(result.world);
+    npcSociety.registerWorld(result.world);
     addChatMessage('WORLD FACTORY', result.world.label + ' joined the Grid · ' + result.inferredTags.join(' · '), 'system');
     return result;
   },
