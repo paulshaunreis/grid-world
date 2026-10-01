@@ -660,7 +660,7 @@ else player.restoreTransform({
   z: starterZone.definition.spawn.z,
   yaw: 0,
 });
-player.setAvatarStyle(identity.avatarStyle);
+player.setAvatarAppearance(identity.avatarStyle, identity.avatarCustomization);
 
 let cloudIdentity = identity;
 const remotePlayers = new Map<string, RemotePlayer>();
