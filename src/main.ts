@@ -1013,7 +1013,7 @@ const creatorStudio = mountCreatorStudio({
   onCreateWorld: createFactoryWorld,
   onMessage: message => addChatMessage('CREATOR STUDIO', message, 'system'),
   security: gridSecurity,
-  subjectId: cloudIdentity.id,
+  subjectId: identity.id,
 });
 
 const interaction = new InteractionSystem(camera, world.scene);
