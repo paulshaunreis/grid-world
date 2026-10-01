@@ -3,15 +3,22 @@ import { mountAvatarCreator, type AvatarSelection } from './GridAvatarCreator';
 
 export function mountGridAuthPanel(auth:GridAuthService,onProfile:(profile:GridAccountProfile)=>void,onAvatar?:(selection:AvatarSelection)=>void){
   const root=document.createElement('section'); root.className='grid-auth-overlay';
-  root.innerHTML='<div class="grid-auth-card grid-auth-card-wide"><button class="grid-auth-close" type="button">×</button><div class="grid-auth-kicker">GRID WORLD // ARRIVAL</div><h2>JOIN THE GRID</h2><p class="grid-auth-note">Create your account, define your identity, then choose your starter avatar before entering the living world.</p><div class="grid-auth-tabs"><button data-mode="login">LOGIN</button><button data-mode="join">JOIN</button><button data-mode="profile">PROFILE</button></div><div class="grid-auth-body"></div><div class="grid-auth-status"></div></div>';
+  root.innerHTML='<div class="grid-auth-card grid-auth-card-wide"><button class="grid-auth-close" type="button">×</button><div class="grid-auth-kicker">GRID WORLD // ARRIVAL</div><div class="grid-creation-progress"><span data-step="account">01 ACCOUNT</span><i></i><span data-step="identity">02 IDENTITY</span><i></i><span data-step="avatar">03 AVATAR</span><i></i><span data-step="world">04 WORLD</span></div><h2>JOIN THE GRID</h2><p class="grid-auth-note">Create your account, define your identity, then choose your starter avatar before entering the living world.</p><div class="grid-auth-tabs"><button data-mode="login">LOGIN</button><button data-mode="join">JOIN</button><button data-mode="profile">PROFILE</button></div><div class="grid-auth-body"></div><div class="grid-auth-status"></div></div>';
   document.body.appendChild(root);
   const body=root.querySelector<HTMLDivElement>('.grid-auth-body')!,status=root.querySelector<HTMLDivElement>('.grid-auth-status')!;
   let mode='login';
   let cleanupAvatar:(()=>void)|null=null;
+  let newFlow=false;
+  let selectedWorld='HARBOR';
 
   function closeAvatar(){cleanupAvatar?.();cleanupAvatar=null;}
+  function setProgress(step:string){
+    const order=['account','identity','avatar','world']; const index=order.indexOf(step);
+    root.querySelectorAll<HTMLElement>('[data-step]').forEach((el,i)=>{el.classList.toggle('active',i===index);el.classList.toggle('done',i<index);});
+  }
   function render(){
     closeAvatar();
+    setProgress(mode==='login'||mode==='join'?'account':mode==='profile'?'identity':mode==='avatar'?'avatar':'world');
     if(mode==='login') body.innerHTML='<label>Email<input id="ga-email" type="email" autocomplete="email"></label><label>Password<input id="ga-password" type="password" autocomplete="current-password"></label><button class="grid-auth-primary" id="ga-submit">LOGIN</button><button class="grid-auth-secondary" id="ga-reset">SEND PASSWORD RESET</button><p>Passwords are handled by Supabase Auth, not Grid World.</p>';
     else if(mode==='join') body.innerHTML='<label>Email<input id="ga-email" type="email" autocomplete="email"></label><label>Password<input id="ga-password" type="password" minlength="12" autocomplete="new-password"></label><p class="grid-auth-note">Use a unique password of at least 12 characters. Email confirmation is part of the production join flow.</p><button class="grid-auth-primary" id="ga-submit">CREATE ACCOUNT</button>';
     else if(mode==='avatar') {
@@ -27,13 +34,18 @@ export function mountGridAuthPanel(auth:GridAuthService,onProfile:(profile:GridA
             onAvatar?.(selection);
             const p=await auth.profile();
             if(p) onProfile(p);
-            const grant=await auth.ensureStarterGrant();
-            status.textContent=(grant as any)?.granted ? 'Avatar secured · 100 GRID + starter inventory issued.' : 'Avatar secured · starter package already claimed.';
-            mode='profile'; render();
+            if(newFlow){ mode='world'; status.textContent='Avatar secured. Now choose where your story begins.'; render(); }
+            else { status.textContent='Avatar updated.'; mode='profile'; render(); }
           }catch(e){status.textContent=e instanceof Error?e.message:'Avatar could not be saved.';}
         });
       });
+    } else if(mode==='world') {
+      body.innerHTML='<p class="grid-auth-note">Your first world is a starting point, not a cage. You can travel anywhere in the Grid.</p><div class="grid-world-choice-grid">'+[['HARBOR','Harbor','Ocean city · markets · easygoing'],['GARDENS','Gardens','Living canopy · growth · discovery'],['WILDS','Wilds','Frontier · creatures · exploration'],['ARTS','Arts','Galleries · music · making']].map(w=>'<button type="button" class="grid-world-choice '+(w[0]===selectedWorld?'selected':'')+'" data-world="'+w[0]+'"><b>'+w[1]+'</b><span>'+w[2]+'</span></button>').join('')+'</div><div class="grid-starter-kit"><b>ARRIVAL KIT</b><span>100 GRID · starter inventory · free starter land</span></div><button class="grid-auth-primary" id="ga-enter">ENTER '+selectedWorld+' · BEGIN</button>';
+      body.querySelectorAll<HTMLButtonElement>('[data-world]').forEach(b=>b.onclick=()=>{selectedWorld=b.dataset.world!;render();});
     } else body.innerHTML='<div class="grid-name-grid"><label>First name<input id="ga-first" maxlength="60"></label><label>Middle name <small>optional</small><input id="ga-middle" maxlength="60"></label><label>Last name<input id="ga-last" maxlength="60"></label><label>Handle <small>3–32 chars</small><input id="ga-handle" maxlength="32" placeholder="yourname"></label><label>Display name<input id="ga-display" maxlength="80"></label><label>Name visibility<select id="ga-vis"><option value="display_only">Display name only</option><option value="public">Full name public</option><option value="private">Full name private</option></select></label></div><p class="grid-auth-note">Handles are globally unique. If one is taken, choose another handle; display names may be shared.</p><button class="grid-auth-primary" id="ga-profile">SAVE PROFILE & CHOOSE AVATAR</button><div class="grid-land-actions"><select id="ga-world"><option>HARBOR</option><option>GARDENS</option><option>ARTS</option><option>CITADEL</option><option>WILDS</option><option>SKYROOT</option></select><button id="ga-land">CLAIM FREE STARTER LAND</button><button id="ga-charter">EARN A WORLD CHARTER</button><button id="ga-starter">CLAIM OMNI BANK STARTER</button><button id="ga-signout">SIGN OUT</button></div>';
+
+    const enter=body.querySelector<HTMLButtonElement>('#ga-enter');
+    if(enter) enter.onclick=async()=>{ if(mode==='world'){ status.textContent='Securing your arrival package…'; try{ await auth.ensureStarterGrant(); await auth.claimFirstStarterLand(selectedWorld); status.textContent='Arrival package secured. Welcome to '+selectedWorld+'.'; window.setTimeout(()=>{root.classList.remove('open');},350); }catch(e){status.textContent=e instanceof Error?e.message:'Starter package could not be secured yet.';} } };
 
     const submit=body.querySelector<HTMLButtonElement>('#ga-submit');
     if(submit) submit.onclick=async()=>{
@@ -44,12 +56,12 @@ export function mountGridAuthPanel(auth:GridAuthService,onProfile:(profile:GridA
           if(r.error) throw r.error;
           if(!r.data.user){status.textContent='Check your credentials.';return;}
           const p=await auth.profile();
-          if(p){onProfile(p); mode=p.onboarding_complete?'avatar':'profile'; render(); if(p.onboarding_complete) status.textContent='Choose or update your avatar before entering the Grid.';}
+          if(p){onProfile(p); newFlow=false; mode=p.avatar_ready?'profile':'avatar'; render(); status.textContent=p.avatar_ready?'Welcome back. Your Grid is ready.':'Choose your starter avatar to finish arrival.';}
         }else{
           const r=await auth.signUp((body.querySelector<HTMLInputElement>('#ga-email')!).value,(body.querySelector<HTMLInputElement>('#ga-password')!).value);
           if(r.error) throw r.error;
-          status.textContent=r.data.session?'Account created. Complete your identity, then choose your avatar.':'Account created. Check your email to confirm it, then log in.';
-          mode=r.data.session?'profile':'login';render();
+          status.textContent=r.data.session?'Account created. Let’s build your identity.':'Account created. Check your email to confirm it, then log in.';
+          newFlow=Boolean(r.data.session); mode=r.data.session?'profile':'login';render();
         }
       }catch(e){status.textContent=e instanceof Error?e.message:'Authentication failed.';}
     };
@@ -84,8 +96,9 @@ export function mountGridAuthPanel(auth:GridAuthService,onProfile:(profile:GridA
   render();
   async function open(next='login'){
     const p=await auth.profile().catch(()=>null);
+    newFlow=false;
     mode=next;
-    if(p?.onboarding_complete && next==='login') mode='avatar';
+    if(p && next==='login') mode=p.avatar_ready?'profile':'avatar';
     root.classList.add('open');render();
     if(mode==='profile'&&p){
       (body.querySelector<HTMLInputElement>('#ga-first')!).value=p.first_name??'';
