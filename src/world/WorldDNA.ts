@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import type { ClimateType } from './WorldRegion';
 
 export type WorldArchitectureProfile = {
   structuralLanguage: string;
@@ -21,6 +22,7 @@ export type WorldTransitProfile = {
 };
 
 export type WorldDNA = {
+  climate: ClimateType;
   architecture: WorldArchitectureProfile;
   ecology: WorldEcologyProfile;
   transit: WorldTransitProfile;
@@ -69,7 +71,9 @@ const TAG_DEFAULTS: Record<string, Partial<WorldDNA>> = {
 };
 
 export function deriveWorldDNA(tags: readonly string[] = []): WorldDNA {
+  const climate: ClimateType = tags.includes('water') ? 'aquatic' : tags.includes('growth') ? 'tropical' : tags.includes('ancient') ? 'arid' : tags.includes('wildlife') ? 'frontier' : 'temperate';
   const merged: WorldDNA = {
+    climate,
     architecture:{ structuralLanguage:'world-native structures', materials:['local materials'], buildingFamilies:['settlement','civic','landmark'], landmarkMotifs:['world-native motifs'] },
     ecology:{ lifeDensity:1, floraFamilies:['native flora'], faunaTraits:['native adaptation'], environmentalForces:['local weather'] },
     transit:{ gateLanguage:'world-native transit monument', materials:['local materials'], effects:['world-native energy'] },
