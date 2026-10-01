@@ -343,6 +343,7 @@ const worldFactoryPanel = mountWorldFactoryPanel({
     creatureEcology.registerWorld(result.world);
     worldResources.registerWorld(result.world);
     gridMinerals.registerWorld(result.world);
+    void cloudPersistence?.getClient().rpc('grid_seed_world_minerals', { p_world_id: result.world.id }).then(() => syncGridMinerals()).catch(() => undefined);
     npcSociety.registerWorld(result.world);
     worldEvolution.registerWorld(result.world.id);
     evolutionaryPopulations.registerWorld(result.world.id);
@@ -357,6 +358,16 @@ mountWorldAtlas(() => ({ world: (livingWorld.getSnapshot().world as EcologyWorld
 marketPanel = mountMarketPanel(() => worldResources.getInventory(), () => marketQuotes, () => combatAuthority);
 const transitPanel = mountTransitPanel();
 let merchantRefreshTimer = 0;
+let mineralSyncTimer = 0;
+async function syncGridMinerals() {
+  if (!cloudPersistence) return;
+  try {
+    const client = cloudPersistence.getClient();
+    const { data } = await client.from('grid_mineral_deposits').select('id,world_id,mineral_kind,remaining,capacity,position_x,position_y,position_z');
+    if (data) gridMinerals.syncServerDeposits(data as any);
+  } catch (error) { console.warn('Grid mineral sync unavailable.', error); }
+}
+void syncGridMinerals();
 async function refreshMerchantMarket(){
   if(!combatAuthority) return;
   try {
@@ -1414,6 +1425,8 @@ function animate(now: number) {
   }
   livingWorld.update(dt, player.avatar.position.x, player.avatar.position.z, worldConsequences.getSnapshot(), worldEvolution.get(livingWorld.getSnapshot().world as EcologyWorld));
     merchantRefreshTimer += dt;
+    mineralSyncTimer += dt;
+    if (mineralSyncTimer >= 8) { mineralSyncTimer = 0; void syncGridMinerals(); }
     if(merchantRefreshTimer > 12) { merchantRefreshTimer = 0; void refreshMerchantMarket(); }
   const livingSnapshot = livingWorld.getSnapshot();
   gridMatterTerrain.setActiveWorld((livingSnapshot.world as EcologyWorld).id);
@@ -1557,7 +1570,7 @@ function animate(now: number) {
   if (!resourceDown) resourceInteractLatched = false;
   if (nearestMineral && mineralNear && resourceDown && !resourceInteractLatched) {
     resourceInteractLatched = true;
-    const requested = Math.min(8, Math.max(1, Math.floor((performance.now() / 1000) % 8) + 1));
+    const requested = 1;
     if (cloudPersistence) {
       void cloudPersistence.getClient().rpc('grid_mine_mineral', {
         p_deposit_id: nearestMineral.id,
