@@ -342,6 +342,7 @@ const worldFactoryPanel = mountWorldFactoryPanel({
     worldEnvironment.rebuild();
     creatureEcology.registerWorld(result.world);
     worldResources.registerWorld(result.world);
+    gridMinerals.registerWorld(result.world);
     npcSociety.registerWorld(result.world);
     worldEvolution.registerWorld(result.world.id);
     evolutionaryPopulations.registerWorld(result.world.id);
@@ -1546,9 +1547,39 @@ function animate(now: number) {
   const consequenceSnapshotForResources = worldConsequences.getSnapshot();
   const nearestResource = worldResources.getSnapshot().filter(node => node.world === livingSnapshot.world).sort((a,b) => a.position.distanceTo(player.avatar.position)-b.position.distanceTo(player.avatar.position))[0];
   const resourceNear = !!nearestResource && nearestResource.position.distanceTo(player.avatar.position) < 2.2;
+  const nearestMineral = gridMinerals.getSnapshot()
+    .filter(node => node.world === livingSnapshot.world && node.remaining > 0)
+    .sort((a,b) => a.position.distanceTo(player.avatar.position) - b.position.distanceTo(player.avatar.position))[0];
+  const mineralNear = !!nearestMineral && nearestMineral.position.distanceTo(player.avatar.position) < 2.2;
   const resourceDown = input.isDown('KeyE');
-  if (resourceNear) prompt.textContent = resourceDown ? 'E · Gather' : 'E · Gather';
+  if (mineralNear) prompt.textContent = resourceDown ? 'E · Mine ' + nearestMineral!.kind : 'E · Mine ' + nearestMineral!.kind;
+  if (resourceNear && !mineralNear) prompt.textContent = resourceDown ? 'E · Gather' : 'E · Gather';
   if (!resourceDown) resourceInteractLatched = false;
+  if (nearestMineral && mineralNear && resourceDown && !resourceInteractLatched) {
+    resourceInteractLatched = true;
+    const requested = Math.min(8, Math.max(1, Math.floor((performance.now() / 1000) % 8) + 1));
+    if (cloudPersistence) {
+      void cloudPersistence.getClient().rpc('grid_mine_mineral', {
+        p_deposit_id: nearestMineral.id,
+        p_amount: requested,
+      }).then(({ data, error }) => {
+        if (error) throw error;
+        const result = Array.isArray(data) ? data[0] : data;
+        if (result?.ok) {
+          gridMinerals.applyAuthoritativeResult(nearestMineral.id, Number(result.gathered), Number(result.remaining));
+          const definition = (await import('./world/GridMineralSystem')).GRID_MINERALS[result.mineral_kind as import('./world/GridMineralSystem').GridMineralKind];
+          addChatMessage('MINING', 'Mined +' + result.gathered + ' ' + (definition?.name ?? result.mineral_kind) + ' · deposit remaining ' + result.remaining + '.', 'system');
+        } else {
+          addChatMessage('MINING', 'No mineral extracted. The deposit may be depleted or the request was rejected.', 'system');
+        }
+      }).catch(() => addChatMessage('MINING', 'Mining authority unavailable. No mineral was awarded.', 'system'));
+    } else {
+      const mined = gridMinerals.collectLocal(nearestMineral.id, requested);
+      if (mined.ok) {
+        addChatMessage('MINING', 'Local preview mining: +' + mined.amount + ' ' + mined.kind + '.', 'system');
+      }
+    }
+  }
   if (nearestResource && resourceNear && resourceDown && !resourceInteractLatched) {
     resourceInteractLatched = true;
     if (combatAuthority) {
