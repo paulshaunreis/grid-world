@@ -61,7 +61,7 @@ export class SupabasePersistence {
       if (String(row?.region_id ?? '') !== regionId) return;
       const parse = (value:any):[number,number,number]|null => Array.isArray(value) && value.length===3 && value.every((n:any)=>Number.isFinite(Number(n))) ? [Number(value[0]),Number(value[1]),Number(value[2])] : null;
       const p=parse(row?.position), r=parse(row?.rotation), s=parse(row?.scale);
-      const build = row?.object_id && row?.definition_id && p && r && s ? { objectId:String(row.object_id), definitionId:String(row.definition_id), position:p, rotation:r, scale:s } : null;
+      const build = row?.object_id && row?.definition_id && p && r && s ? { objectId:String(row.object_id), definitionId:String(row.definition_id), position:p, rotation:r, scale:s, ownerUserId:String(row?.user_id ?? '') } : null;
       onChange(build, payload.eventType as 'INSERT'|'UPDATE'|'DELETE');
     }).subscribe();
   }
