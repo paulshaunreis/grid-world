@@ -86,6 +86,8 @@ import { GridOperatorService } from './operator/GridOperatorService';
 import { GridOperatorPresence } from './world/GridOperatorPresence';
 import { GridGuardCommandSystem } from './world/GridGuardCommandSystem';
 import { GridGuildSystem } from './social/GridGuildSystem';
+import { GridSocialAuthority } from './social/GridSocialAuthority';
+import { GridFriendSystem } from './social/GridFriendSystem';
 import { GridWorldMediaSystem } from './media/GridWorldMediaSystem';
 import { GridWorldRecordSystem } from './media/GridWorldRecordSystem';
 import { GridShopSystem } from './market/GridShopSystem';
@@ -112,6 +114,9 @@ let accountAgeBand: GridAgeBand = 'child';
 const persistence = new Persistence();
 const worldSnapshotManager = new GridWorldSnapshotManager('first-light');
 const cloudPersistence = supabaseConfigured ? new SupabasePersistence(SUPABASE_URL!, SUPABASE_PUBLISHABLE_KEY!) : null;
+const socialAuthority = supabaseConfigured ? new GridSocialAuthority(cloudPersistence!.getClient()) : null;
+const friendSystem = new GridFriendSystem();
+
 
 type HudTheme = 'cyan' | 'violet' | 'magenta' | 'emerald' | 'amber' | 'white';
 const HUD_THEME_KEY = 'grid-world:hud-theme';
@@ -2076,6 +2081,7 @@ function animate(now: number) {
   }
   minimap.update();
   if (presenceTimer >= 0.25) {
+    if (socialAuthority) friendSystem.refresh(socialAuthority).catch(error => console.warn('Friend relationship sync failed.', error));
     const transform = player.getTransform();
     presence?.update(transform).catch(console.error);
     combatAuthority?.sync(transform, 'first-light').then(result => {
