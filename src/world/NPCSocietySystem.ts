@@ -4,6 +4,8 @@ import { traversalHit, steerAround } from './TraversalSystem';
 import type { WorldConsequenceSnapshot } from './WorldConsequenceSystem';
 import { getWorlds } from './GridWorldRegistry';
 import { hourOfDayFromDayFraction, resolveNpcRoutine, routinePhaseFor } from '../npc/NpcDailyRoutine';
+import { createNPCProfile, type NPCProfileRecord } from './NPCProfile';
+import { NPCRelationshipNetwork } from './NPCRelationshipSystem';
 
 export type CitizenState = 'WORK'|'TRAVEL'|'GATHER'|'TALK'|'REST'|'CELEBRATE'|'EAT';
 export type CitizenRole = 'NAVIGATOR'|'GARDENER'|'ARTISAN'|'KEEPER'|'RANGER';
@@ -98,6 +100,8 @@ function createGateVFX(world:EcologyWorld, colorOverride?:number) {
 export class NPCSocietySystem {
   readonly root = new THREE.Group();
   private citizens: Citizen[] = [];
+  private profiles = new Map<string, NPCProfileRecord>();
+  private relationships = new NPCRelationshipNetwork();
   private gates=new Map<EcologyWorld,THREE.Group>();
   private gateBusy=new Map<EcologyWorld,number>();
   private transitTrafficRecorder: ((source:EcologyWorld,destination:EcologyWorld,queueDepth:number)=>void) | null = null;
@@ -108,6 +112,13 @@ export class NPCSocietySystem {
     this.root.name='grid-npc-society';
     for(const world of getWorlds()) this.registerWorld(world);
     for (const [name,role,world,hx,hz,wx,wz] of CITIZENS) this.spawn(name,role,world,hx,hz,wx,wz);
+    for (let i = 0; i < this.citizens.length; i++) {
+      for (let j = i + 1; j < this.citizens.length; j++) {
+        const a = this.citizens[i], b = this.citizens[j];
+        if (a.world === b.world) this.relationships.connect(a.name, b.name, 'friend', .18);
+        else if (a.role === b.role) this.relationships.connect(a.name, b.name, 'faction', .08);
+      }
+    }
   }
 
   /** Runtime-created worlds receive a gate and a small native society without editing this system. */
@@ -139,6 +150,23 @@ export class NPCSocietySystem {
     root.add(body,head,badge); root.position.set(hx,0,hz);
     const merchant = ['Mara','Sela','Caro','Orin','Rook'].includes(name);
     root.userData={gridObjectKind:'npc',interactable:true,interactionName:name,role,world,combatFaction:'NPC',maxHealth:120,damage:6,merchant,marketWorld:merchant?world:undefined,npcProfileId:merchant?('npc.merchant.'+name.toLowerCase()):undefined,profileAvailable:true,logAvailable:true};
+    const profile = createNPCProfile({
+      id: 'npc.' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      displayName: name,
+      role,
+      archetype: role.toLowerCase(),
+      world,
+      gender: 'unspecified',
+      traits: merchant ? ['merchant', 'social'] : ['citizen', role.toLowerCase()],
+      skills: { [role.toLowerCase()]: 1 },
+      occupation: { title: role, workplaceId: world.toLowerCase() + '-workplace', progression: 0 },
+      home: { world, x: hx, y: 0, z: hz },
+      tags: merchant ? ['merchant'] : ['citizen'],
+    });
+    this.profiles.set(name, profile);
+    root.userData.npcProfile = profile;
+    root.userData.relationships = () => this.relationships.forNPC(name);
+
     if (merchant) {
       const canopy=new THREE.Mesh(new THREE.ConeGeometry(.62,.38,8),new THREE.MeshStandardMaterial({color:0x263d49,roughness:.6,metalness:.15}));
       canopy.position.y=1.45;
@@ -370,6 +398,14 @@ export class NPCSocietySystem {
       if(gatePulse>0) c.root.userData.gatePulse=Math.max(0,gatePulse-delta*1.8);
       c.root.userData.gateDeparture=false;
       c.root.userData.gateArrival=false;
+      if (c.state === 'TALK') {
+        const nearby = this.citizens
+          .filter(other => other !== c && other.world === c.world)
+          .sort((a, b) => c.root.position.distanceTo(a.root.position) - c.root.position.distanceTo(b.root.position))[0];
+        if (nearby && c.root.position.distanceTo(nearby.root.position) < 7) {
+          this.relationships.interact(c.name, nearby.name, .006, .003);
+        }
+      }
       c.phase+=delta*.5;
     }
     const signal=event.toUpperCase()!=='QUIET'?event.toUpperCase():(ecology?.state||'QUIET');
@@ -388,5 +424,8 @@ export class NPCSocietySystem {
   setTransitTrafficRecorder(recorder: (source:EcologyWorld,destination:EcologyWorld,queueDepth:number)=>void) { this.transitTrafficRecorder = recorder; }
 
   getSnapshot(){return this.snapshot;}
+  getNPCProfile(name:string){ return this.profiles.get(name); }
+  getRelationships(name:string){ return this.relationships.forNPC(name); }
+  getRelationshipSnapshot(){ return this.relationships.snapshot(); }
   getWorkingCitizens(){return this.citizens.filter(c=>c.state==='WORK'||c.state==='GATHER').map(c=>({id:c.name,world:c.world,position:c.root.position.clone(),role:c.role}));}
 }
