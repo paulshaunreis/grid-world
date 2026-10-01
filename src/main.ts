@@ -99,6 +99,7 @@ import { GridDigiFoodSystem } from './world/GridDigiFoodSystem';
 import { GridCurrencyMarketSystem } from './economy/GridCurrencyMarketSystem';
 import { GridArenaSystem } from './games/GridArenaSystem';
 import { GridEasyBuildSystem } from './world/GridEasyBuildSystem';
+import { GridMaterialDropSystem } from './world/GridMaterialDropSystem';
 import { GridTouchController, GridInputModeUI } from './ui/GridTouchController';
 import './ui/GridDeviceResponsive.css';
 
@@ -415,6 +416,7 @@ const digiFoodSystem = new GridDigiFoodSystem();
 const currencyMarketSystem = new GridCurrencyMarketSystem();
 const arenaSystem = new GridArenaSystem();
 const easyBuildSystem = new GridEasyBuildSystem();
+const materialDropSystem = new GridMaterialDropSystem();
 const touchSurface=document.body; const gridTouchController=new GridTouchController(input,touchSurface); const inputModeUI=new GridInputModeUI(input,document.body);
 world.scene.userData.gridMediaFormats = GridWorldMediaSystem.SUPPORTED_FORMATS;
 world.scene.userData.worldRecorder = worldRecordSystem;
@@ -427,8 +429,10 @@ world.scene.userData.monsterSystem = monsterSystem;
 world.scene.userData.duelSystem = duelSystem;
 world.scene.userData.meetupSafety = meetupSafetySystem;
 world.scene.userData.arSafety = arSafetySystem;
-world.scene.add(monsterSystem.root, duelSystem.root, hubSystem.root, arenaSystem.root, easyBuildSystem.root);
+world.scene.add(monsterSystem.root, duelSystem.root, hubSystem.root, arenaSystem.root, easyBuildSystem.root, materialDropSystem.root);
 world.scene.userData.easyBuild = easyBuildSystem;
+world.scene.userData.materialDrops = materialDropSystem;
+easyBuildSystem.mountPanel(document.body);
 world.scene.userData.npcShopCatalog = GRID_NPC_SHOPS;
 world.scene.userData.digiFoodSystem = digiFoodSystem;
 world.scene.userData.currencyMarket = currencyMarketSystem;
@@ -503,6 +507,7 @@ let lastStoryId = '';
 let lastCombatKills = 0;
 let lastConsequenceId = '';
 let resourceInteractLatched = false;
+let materialDropInteractLatched = false;
 let lastNpcMemoryAt = 0;
 world.scene.add(livingWorld.root);
 world.scene.add(creatureEcology.root);
@@ -1114,7 +1119,7 @@ document.querySelectorAll<HTMLButtonElement>('.grid-dock [data-tool]').forEach(b
   button.addEventListener('click', () => {
     const tool = button.dataset.tool;
     if (tool === 'profile') openIdentityPanel();
-    else if (tool === 'build') creatorStudio.open();
+    else if (tool === 'build') easyBuildSystem.open();
     else if (tool === 'map') minimap.element.classList.toggle('grid-highlight');
     else if (tool === 'field') fieldGuide.open();
     else if (tool === 'qr') qrScanner.open();
@@ -1145,6 +1150,7 @@ void engine.start();
 
 const gridMatterTerrain = new GridMatterTerrainSystem(camera, renderer.domElement);
 world.scene.add(gridMatterTerrain.root);
+easyBuildSystem.attach(camera, world.scene, renderer.domElement);
 
 const creatorStudio = mountCreatorStudio({
   terrain: {
@@ -1712,6 +1718,10 @@ function animate(now: number) {
   }
   npcSociety.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, ecologySnapshot, consequenceSnapshot);
   guardCommandSystem.ensureDefaults(String(livingSnapshot.world));
+  if (Math.floor(performance.now()/1000) % 37 === 0 && societySnapshot?.working) {
+    const npc = npcSociety.getSnapshot().npcs?.[0] as any;
+    if (npc?.id) materialDropSystem.createDrop(String(npc.id),'NPC',String(livingSnapshot.world),player.avatar.position.clone().add(new THREE.Vector3(.7,.25,.7)),npc.id.length);
+  }
   const societySnapshot = npcSociety.getSnapshot();
   traversalSystem.update(dt);
   combatSystem.syncScene(world.scene);
@@ -1721,7 +1731,10 @@ function animate(now: number) {
   if (combatSnapshot.kills > lastCombatKills) {
     const defeated = combatSnapshot.kills - lastCombatKills;
     lastCombatKills = combatSnapshot.kills;
-    addChatMessage('COMBAT', defeated === 1 ? 'Hostile target defeated. The field remembers.' : defeated + ' hostile targets defeated.', 'system');
+    for (let dropIndex=0; dropIndex<defeated; dropIndex++) {
+      materialDropSystem.createDrop('creature-'+combatSnapshot.kills+'-'+dropIndex,'CREATURE',String(livingSnapshot.world),player.avatar.position.clone().add(new THREE.Vector3((Math.random()-.5)*1.6,.35,(Math.random()-.5)*1.6)),combatSnapshot.kills+dropIndex);
+    }
+    addChatMessage('COMBAT', defeated === 1 ? 'Hostile target defeated. The field remembers. Materials may have dropped.' : defeated + ' hostile targets defeated. Materials may have dropped.', 'system');
     questPanel.render();
   }
   relationshipStories.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, societySnapshot, player.avatar.position.x, player.avatar.position.z);
@@ -1754,6 +1767,19 @@ function animate(now: number) {
     .sort((a,b) => a.position.distanceTo(player.avatar.position) - b.position.distanceTo(player.avatar.position))[0];
   const mineralNear = !!nearestMineral && nearestMineral.position.distanceTo(player.avatar.position) < 2.2;
   const resourceDown = input.isDown('KeyE');
+  const nearestMaterialDrop = materialDropSystem.getSnapshot().filter(drop => drop.worldId === String(livingSnapshot.world)).sort((a,b)=>a.position.distanceTo(player.avatar.position)-b.position.distanceTo(player.avatar.position))[0];
+  const materialDropNear = !!nearestMaterialDrop && nearestMaterialDrop.position.distanceTo(player.avatar.position) < 2.2;
+  if (materialDropNear && !mineralNear && !resourceNear) prompt.textContent = resourceDown ? 'E · Collect ' + nearestMaterialDrop!.material : 'E · Collect ' + nearestMaterialDrop!.material;
+  if (!resourceDown) materialDropInteractLatched=false;
+  if (nearestMaterialDrop && materialDropNear && resourceDown && !materialDropInteractLatched && !mineralNear && !resourceNear) {
+    materialDropInteractLatched=true;
+    const drop=materialDropSystem.collect(nearestMaterialDrop.id);
+    if (drop) {
+      const builder=world.scene.userData.easyBuild as GridEasyBuildSystem;
+      builder.addMaterials({[drop.material]:drop.amount});
+      addChatMessage('MATERIALS','+'+drop.amount+' '+drop.material+' · usable for construction tools and crafted objects.','system');
+    }
+  }
   if (mineralNear) prompt.textContent = resourceDown ? 'E · Mine ' + nearestMineral!.kind : 'E · Mine ' + nearestMineral!.kind;
   if (resourceNear && !mineralNear) prompt.textContent = resourceDown ? 'E · Gather' : 'E · Gather';
   if (!resourceDown) resourceInteractLatched = false;
