@@ -8,6 +8,8 @@ import { createNPCProfile, type NPCProfileRecord } from './NPCProfile';
 import { NPCRelationshipNetwork } from './NPCRelationshipSystem';
 import { NPCInventorySystem } from './NPCInventorySystem';
 import { NPCJobProgressionSystem } from './NPCJobProgressionSystem';
+import { GridMaterialDropSystem } from './GridMaterialDropSystem';
+import { NPCProductionSystem } from './NPCProductionSystem';
 
 export type CitizenState = 'WORK'|'TRAVEL'|'GATHER'|'TALK'|'REST'|'CELEBRATE'|'EAT';
 export type CitizenRole = 'NAVIGATOR'|'GARDENER'|'ARTISAN'|'KEEPER'|'RANGER';
@@ -106,6 +108,8 @@ export class NPCSocietySystem {
   private relationships = new NPCRelationshipNetwork();
   private inventory = new NPCInventorySystem();
   private progression = new NPCJobProgressionSystem();
+  private materialDrops = new GridMaterialDropSystem();
+  private production = new NPCProductionSystem(this.materialDrops, this.inventory);
   private gates=new Map<EcologyWorld,THREE.Group>();
   private gateBusy=new Map<EcologyWorld,number>();
   private transitTrafficRecorder: ((source:EcologyWorld,destination:EcologyWorld,queueDepth:number)=>void) | null = null;
@@ -114,6 +118,7 @@ export class NPCSocietySystem {
 
   constructor() {
     this.root.name='grid-npc-society';
+    this.root.add(this.materialDrops.root, this.production.root);
     for(const world of getWorlds()) this.registerWorld(world);
     for (const [name,role,world,hx,hz,wx,wz] of CITIZENS) this.spawn(name,role,world,hx,hz,wx,wz);
     for (let i = 0; i < this.citizens.length; i++) {
@@ -424,6 +429,9 @@ export class NPCSocietySystem {
       }
       c.phase+=delta*.5;
     }
+    this.production.update(delta, this.getWorkingCitizens(), this.profiles);
+    this.root.userData.production=this.production.getRecent(32);
+    this.root.userData.materialDrops=this.materialDrops.getSnapshot();
     const signal=event.toUpperCase()!=='QUIET'?event.toUpperCase():(ecology?.state||'QUIET');
     this.snapshot={population:this.citizens.length,active,working,gathering,talking,world,signal};
     this.root.userData.society=this.snapshot;
@@ -444,6 +452,9 @@ export class NPCSocietySystem {
   getRelationships(name:string){ return this.relationships.forNPC(name); }
   getRelationshipSnapshot(){ return this.relationships.snapshot(); }
   getNPCInventory(name:string){ const profile=this.profiles.get(name); return profile ? this.inventory.snapshot(profile) : []; }
+  getNPCProduction(limit=25){ return this.production.getRecent(limit); }
+  getMaterialDrops(){ return this.materialDrops.getSnapshot(); }
+  collectMaterialDrop(id:string){ return this.materialDrops.collect(id); }
   awardNPCJobXP(name:string, amount:number, skill?:string){ const profile=this.profiles.get(name); return profile ? this.progression.award(profile, amount, skill) : null; }
   getWorkingCitizens(){return this.citizens.filter(c=>c.state==='WORK'||c.state==='GATHER').map(c=>({id:c.name,world:c.world,position:c.root.position.clone(),role:c.role}));}
 }
