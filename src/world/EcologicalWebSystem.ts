@@ -93,7 +93,7 @@ export class EcologicalWebSystem {
 
     pollinator.pressure=clamp((.55-plant.health)*.45+(storm?.18:0));
     pollinator.health=clamp(pollinator.health+(plant.health-.5)*delta/85-pollinator.pressure*delta/120);
-    pollinator.compatibility=clamp(pollinator.compatibility+(plant.health-.5)*delta/110-storm*.05*delta);
+    pollinator.compatibility=clamp(pollinator.compatibility+(plant.health-.5)*delta/110-(storm?.05:0)*delta);
     pollinator.population=THREE.MathUtils.clamp(pollinator.population*(1+(pollinator.health-.5)*delta/150),2,3000);
 
     decomposer.health=clamp(decomposer.health+(plant.health*.4+herb.health*.25+predator.health*.15-.4)*delta/110);
