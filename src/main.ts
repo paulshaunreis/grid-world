@@ -508,6 +508,7 @@ let lastCombatKills = 0;
 let lastConsequenceId = '';
 let resourceInteractLatched = false;
 let materialDropInteractLatched = false;
+let npcMaterialDropTimer = 0;
 let lastNpcMemoryAt = 0;
 world.scene.add(livingWorld.root);
 world.scene.add(creatureEcology.root);
@@ -1718,7 +1719,9 @@ function animate(now: number) {
   }
   npcSociety.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, ecologySnapshot, consequenceSnapshot);
   guardCommandSystem.ensureDefaults(String(livingSnapshot.world));
-  if (Math.floor(performance.now()/1000) % 37 === 0 && societySnapshot.working) {
+  npcMaterialDropTimer += dt;
+  if (npcMaterialDropTimer >= 37 && societySnapshot.working) {
+    npcMaterialDropTimer = 0;
     const worker = npcSociety.getWorkingCitizens().find(n=>n.world===livingSnapshot.world);
     if (worker) materialDropSystem.createDrop(worker.id,'NPC',String(livingSnapshot.world),worker.position.clone().add(new THREE.Vector3(.25,.15,.25)),worker.id.length + Math.round(performance.now()));
   }
