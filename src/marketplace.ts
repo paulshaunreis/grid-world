@@ -86,7 +86,7 @@ function render(){
   const people=new Map(staff.map(s=>[s.id,s]));
   app.innerHTML='<header><div><span class="eyebrow">GRID WORLD · LIVE PROTOTYPE MARKET</span><h1>Made by the Grid.</h1><p>21 staff merchants. 21 original object studies. Each staff wallet begins with <b>10,000 GRD simulated allocation</b>.</p></div><nav><a href="/">WORLD</a><a href="/economics.html">ECONOMICS</a><a href="/directory.html">STAFF</a><a href="/docs.html">DOCS</a></nav></header>'+
   '<section class="shops"><div><span class="eyebrow">PLAYER & NPC STOREFRONTS</span><h2>New · Featured · NPC Shops</h2><div class="shop-strip">'+shops.map(s=>'<a class="shop-card" href="/shop.html?shop='+encodeURIComponent(s.slug)+'"><b>'+String(s.name)+'</b><small>'+String(s.shop_type)+' · '+String(s.status)+'</small></a>').join('')+'</div></div></section>'+
-  '<section class="market-meta"><div><b>GRID ORIGINALS</b><span>10 reusable originals · 2 free starter objects</span></div><div><b>SIMULATED LEDGER</b><span>Not real money · no cash value</span></div><div><b>'+listings.length+'</b><span>published objects</span></div><div><b>'+staff.length+'</b><span>staff merchants</span></div><div><b>12</b><span>protection rules</span></div></section>'+
+  '<section class="shops"><div><span class="eyebrow">PLAYER & NPC STOREFRONTS</span><h2>New · Featured · NPC Shops</h2><div class="shop-strip">'+shops.map(s=>'<a class="shop-card" href="/shop.html?shop='+encodeURIComponent(s.slug)+'"><b>'+String(s.name)+'</b><small>'+String(s.shop_type)+' · '+String(s.status)+'</small></a>').join('')+'</div></div></section>'+'<section class="market-meta"><div><b>GRID ORIGINALS</b><span>10 reusable originals · 2 free starter objects</span></div><div><b>SIMULATED LEDGER</b><span>Not real money · no cash value</span></div><div><b>'+listings.length+'</b><span>published objects</span></div><div><b>'+staff.length+'</b><span>staff merchants</span></div><div><b>12</b><span>protection rules</span></div></section>'+
   '<section class="filters"><input id="search" placeholder="Search objects or merchants…"><select id="category"><option value="">All categories</option>'+[...new Set(listings.map(x=>x.category))].sort().map(x=>'<option>'+x+'</option>').join('')+'</select></section>'+
   '<main id="cards">'+listings.map(l=>card(l,people.get(l.seller_staff_id))).join('')+'</main>'+
   '<section class="protection"><div class="eyebrow">MERCHANT · USER · PLATFORM PROTECTION</div><h2>Commerce needs boundaries.</h2><div class="rules">'+rules.map(r=>'<article><small>'+r.audience.toUpperCase()+'</small><h3>'+r.title+'</h3><p>'+r.rule_text+'</p></article>').join('')+'</div></section>'+
@@ -102,7 +102,7 @@ function filter(){const q=(document.querySelector<HTMLInputElement>('#search')?.
 async function load(){
   if(supabaseConfigured){
     const sb=createClient(SUPABASE_URL!,SUPABASE_PUBLISHABLE_KEY!);
-    const [s,l,r]=await Promise.all([
+    const [s,l,r,shopResult]=await Promise.all([
       sb.from('grid_staff').select('id,display_name,role,bio').order('display_name'),
       sb.from('grid_marketplace_listings').select('id,seller_staff_id,title,description,category,currency_id,price,inventory_limit,art_key,status,created_at').eq('status','published').order('created_at',{ascending:false}),
       sb.from('grid_marketplace_protection_rules').select('id,audience,title,rule_text').eq('active',true).order('audience'),
@@ -111,7 +111,7 @@ async function load(){
     if(s.data?.length) staff=s.data;
     if(l.data?.length) listings=[...gridOriginalListings,...(l.data as Listing[])];
     if(r.data?.length) rules=r.data as Rule[];
-    if(arguments.length>=0) { const q:any = (await sb.from('grid_shops').select('id,name,slug,shop_type,status,created_at').in('status',['NEW','FEATURED','OPEN']).order('created_at',{ascending:false}).limit(24)); if(q.data) shops=q.data; }
+    if(shopResult.data?.length) shops=shopResult.data as any[];
   }
   render();
   void mountStaffMarketActivity(app);
