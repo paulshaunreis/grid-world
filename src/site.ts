@@ -44,8 +44,10 @@ app.innerHTML = `
 
   <main>
     <section class="hero" id="home">
-
-      <div class="hero-art" aria-hidden="true"></div><div class="hero-grid"></div>
+      <div class="visual-build-badge">GRID WORLD · VISUAL BUILD 01 OCT 2026 · LIVE</div>
+      <div class="hero-art" aria-hidden="true"></div>
+      <img class="hero-image-proof" src="/art/hero-worlds.svg?v=20261001" alt="Grid World concept art showing multiple connected living worlds">
+      <div class="hero-grid"></div>
       <div class="hero-copy">
         <div class="eyebrow">A PERSISTENT FRAMEWORK FOR WORLDS</div>
         <h1>One grid.<br><span>Infinite worlds.</span></h1>
