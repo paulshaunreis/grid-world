@@ -1116,7 +1116,7 @@ if (gridSessionAuth) {
     identity = { ...identity, id: profile.id, displayName: profile.display_name, avatarStyle: profile.avatar_style, avatarCustomization: profile.avatar_customization };
     cloudIdentity = { ...cloudIdentity, id: profile.id, displayName: profile.display_name };
     writeVersioned('grid-world:identity', 1, identity);
-    player.setAvatarStyle(identity.avatarStyle);
+    player.setAvatarAppearance(identity.avatarStyle, identity.avatarCustomization);
     updatePlayerNameplate(profile.display_name);
     identityButton.textContent = '✦ ' + (profile.handle || profile.display_name);
     const button = document.querySelector<HTMLButtonElement>('#auth-button');
