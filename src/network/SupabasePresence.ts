@@ -4,7 +4,7 @@ import type { PlayerTransform } from '../core/PlayerController';
 import type { PresenceCallbacks, RemotePlayerState } from './Presence';
 
 interface PresencePayload {
- id:string; displayName:string; avatarStyle:AvatarStyle; x:number;y:number;z:number;yaw:number;updatedAt:number; regionRole?:string; activeObjectId?:string;
+ id:string; displayName:string; avatarStyle:AvatarStyle; x:number;y:number;z:number;yaw:number;updatedAt:number; regionRole?:string; activeObjectId?:string; health?:number; maxHealth?:number; mana?:number; maxMana?:number;
 }
 export class SupabasePresence {
  private channel?:RealtimeChannel; private readonly remote=new Map<string,RemotePlayerState>();
@@ -14,7 +14,7 @@ export class SupabasePresence {
   this.callbacks.onStatus?.('CONNECTING');
   this.channel=this.client.channel(`region:${this.regionId}`,{config:{presence:{key:this.identity.id},broadcast:{self:false,ack:true}}});
   const emit=()=>this.callbacks.onSnapshot?.([...this.remote.values()]);
-  this.channel.on('presence',{event:'sync'},()=>{const state=this.channel!.presenceState<PresencePayload>();const seen=new Set<string>();for(const [key,entries] of Object.entries(state)){const e=entries[0];if(!e||key===this.identity.id)continue;const p:RemotePlayerState={id:key,displayName:e.displayName,avatarStyle:e.avatarStyle??'azure',x:e.x,y:e.y,z:e.z,yaw:e.yaw,updatedAt:e.updatedAt,regionRole:e.regionRole,activeObjectId:e.activeObjectId};seen.add(key);if(this.remote.has(key))this.callbacks.onUpdate?.(p);else this.callbacks.onJoin?.(p);this.remote.set(key,p);}for(const id of [...this.remote.keys()])if(!seen.has(id)){this.remote.delete(id);this.callbacks.onLeave?.(id);}emit();});
+  this.channel.on('presence',{event:'sync'},()=>{const state=this.channel!.presenceState<PresencePayload>();const seen=new Set<string>();for(const [key,entries] of Object.entries(state)){const e=entries[0];if(!e||key===this.identity.id)continue;const p:RemotePlayerState={id:key,displayName:e.displayName,avatarStyle:e.avatarStyle??'azure',x:e.x,y:e.y,z:e.z,yaw:e.yaw,updatedAt:e.updatedAt,regionRole:e.regionRole,activeObjectId:e.activeObjectId,health:e.health,maxHealth:e.maxHealth,mana:e.mana,maxMana:e.maxMana};seen.add(key);if(this.remote.has(key))this.callbacks.onUpdate?.(p);else this.callbacks.onJoin?.(p);this.remote.set(key,p);}for(const id of [...this.remote.keys()])if(!seen.has(id)){this.remote.delete(id);this.callbacks.onLeave?.(id);}emit();});
   this.channel.on('presence',{event:'join'},({newPresences})=>{for(const e of newPresences as unknown as PresencePayload[]){if(e.id===this.identity.id)continue;const p:RemotePlayerState={...e,avatarStyle:e.avatarStyle??'azure'};this.remote.set(p.id,p);this.callbacks.onJoin?.(p);}emit();});
   this.channel.on('presence',{event:'leave'},({leftPresences})=>{for(const e of leftPresences as unknown as PresencePayload[])if(this.remote.delete(e.id))this.callbacks.onLeave?.(e.id);emit();});
   return new Promise<void>((resolve,reject)=>this.channel!.subscribe(async(status,error)=>{if(status==='SUBSCRIBED'){try{await this.update(initialTransform);this.callbacks.onStatus?.('CONNECTED');resolve();}catch(e){this.callbacks.onStatus?.('ERROR',e);reject(e);}}else if(status==='CHANNEL_ERROR'){this.callbacks.onStatus?.('ERROR',error);reject(error??new Error(status));}else if(status==='TIMED_OUT'){this.callbacks.onStatus?.('TIMED_OUT',error);reject(error??new Error(status));}});});
