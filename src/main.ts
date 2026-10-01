@@ -940,7 +940,7 @@ function handleTeleportNode(result: ReturnType<InteractionSystem['findTarget']>)
   const nodeId = result.object.userData.gridTeleportNodeId as string | undefined;
   if (!nodeId) return false;
 
-  const destinations = teleportSystem.destinations(nodeId, 'public');
+  const destinations = teleportSystem.destinations(nodeId, 'public', accountAgeBand);
   if (!destinations.length) {
     prompt.textContent = 'E · No destinations available';
     addChatMessage('GRID OMNI', 'This transit node has no available destinations.', 'system');
@@ -978,6 +978,8 @@ function handleTeleportNode(result: ReturnType<InteractionSystem['findTarget']>)
         ? 'Transit gate is recharging.'
         : teleport.reason === 'access-denied'
           ? 'This transit node is access controlled.'
+          : teleport.reason === 'age-restricted'
+          ? 'This destination is age-restricted for your account.'
           : 'Selected destination is unavailable; Grid Omni is holding the route.';
       if (sourceVisual) setTeleportGateState(sourceVisual, 'idle');
       prompt.textContent = 'E · ' + message;
