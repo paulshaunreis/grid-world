@@ -24,7 +24,7 @@ export class GridLivingWorld {
   private worldEvent: 'quiet' | 'tide' | 'migration' | 'market' | 'bloom' | 'aurora' | 'storm' = 'quiet';
   private readonly eventSignal: THREE.Mesh;
   private activeWorld = 'HARBOR';
-  private snapshot: LivingWorldSnapshot = { world: 'HARBOR', event: 'QUIET', phase: 'DAY', weather: 'CLEAR', activity: 1, ecology: 70 };
+  private snapshot: LivingWorldSnapshot = { world: 'HARBOR', event: 'QUIET', phase: 'DAY', season: 'SPRING', weather: 'CLEAR', temperatureC: 15, humidity: .58, windX: 0, windZ: 0, activity: 1, ecology: 70 };
 
   constructor() {
     this.root.name = 'grid-living-world';
