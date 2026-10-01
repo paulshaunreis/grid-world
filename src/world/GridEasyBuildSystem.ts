@@ -43,6 +43,7 @@ export class GridEasyBuildSystem{
   close(){this.panel?.classList.remove('open');this.cancel();}
   setEnabled(enabled:boolean){this.root.userData.enabled=enabled;}
   setOwnerUserId(userId:string){this.ownerUserId=userId;}
+  getSelectedObjectId():string|undefined { return this.selectedObject?.userData?.buildObjectId ?? this.selectedObject?.userData?.objectId; }
   setMode(mode:GridBuildMode){this.mode=mode;this.snap=mode==='BASIC'?0.5:0.125;if(this.panel)this.panel.dataset.mode=mode;}
   setAction(action:GridBuildAction){this.action=action;this.updateSelectionUI();}
   private selectPlaced(object?:THREE.Object3D){this.selectedObject=object;this.editStart=object?{position:object.position.clone(),rotation:object.rotation.clone(),scale:object.scale.clone()}:undefined;this.updateSelectionUI();}
