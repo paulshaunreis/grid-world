@@ -2,6 +2,17 @@ import * as THREE from 'three';
 import { getWorlds, type GridWorldDefinition } from './GridWorldRegistry';
 
 function palette(world: GridWorldDefinition) { return world.color; }
+function stars() {
+  const geometry=new THREE.BufferGeometry();
+  const positions=new Float32Array(140*3);
+  for(let i=0;i<140;i++){const a=Math.random()*Math.PI*2,radius=22+Math.random()*18;positions[i*3]=Math.cos(a)*radius;positions[i*3+1]=12+Math.random()*26;positions[i*3+2]=Math.sin(a)*radius;}
+  geometry.setAttribute('position',new THREE.BufferAttribute(positions,3));
+  return new THREE.Points(geometry,new THREE.PointsMaterial({color:0xe8f7ff,size:.055,transparent:true,opacity:.7}));
+}
+export function createWorldSkinDirector() {
+  const root=new THREE.Group();
+  root.name='world-skin-director';
+  let active='HARBOR';
   const skins = new Map<string, THREE.Group>();
 
   for (const world of getWorlds()) {
@@ -64,3 +75,5 @@ function palette(world: GridWorldDefinition) { return world.color; }
     }
     root.userData.activeWorld=active;
   }
+  return { root, update };
+}
