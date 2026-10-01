@@ -79,12 +79,12 @@ export class GridTeleportSystem implements GridEngineSubsystem {
     return [...this.nodes.values()];
   }
 
-  destinations(nodeId: string, relationship: 'owner' | 'friend' | 'public' = 'public') {
+  destinations(nodeId: string, relationship: 'owner' | 'friend' | 'public' = 'public', ageBand?: GridAgeBand) {
     const node = this.nodes.get(nodeId);
     if (!node || node.status !== 'online') return [];
     if (node.access === 'owner' && relationship !== 'owner') return [];
     if (node.access === 'friends' && relationship === 'public') return [];
-    return node.destinationIds.map(id => this.nodes.get(id)).filter((destination): destination is GridTeleportNodeDefinition => Boolean(destination && destination.status === 'online')).map(destination => ({ id: destination.id, displayName: destination.displayName, regionId: destination.regionId, position: { ...destination.position }, yaw: destination.yaw, clearanceRadius: destination.clearanceRadius }));
+    return node.destinationIds.map(id => this.nodes.get(id)).filter((destination): destination is GridTeleportNodeDefinition => Boolean(destination && destination.status === 'online' && (!ageBand || canAccessContent(ageBand, destination.contentRating ?? 'E')))).map(destination => ({ id: destination.id, displayName: destination.displayName, regionId: destination.regionId, position: { ...destination.position }, yaw: destination.yaw, clearanceRadius: destination.clearanceRadius }));
   }
 
   request(request: GridTeleportRequest): GridTeleportResult {
