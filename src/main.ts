@@ -75,6 +75,7 @@ import { mountCreatorStudio } from './ui/CreatorStudio';
 import { mountGridEconomyPanel } from './ui/GridEconomyPanel';
 import { GridAuthService } from './auth/GridAuthService';
 import { mountGridAuthPanel } from './ui/GridAuthPanel';
+import type { AvatarSelection } from './ui/GridAvatarCreator';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
@@ -384,6 +385,10 @@ const gridAuthPanel = cloudPersistence ? mountGridAuthPanel(new GridAuthService(
   if (authButton) authButton.textContent = 'ACCOUNT';
   void presence?.setIdentity(cloudIdentity, player.getTransform());
   addChatMessage('GRID IDENTITY', profile.handle + ' is now connected to the Grid.', 'system');
+}, selection => {
+  identity = { ...identity, avatarStyle: selection.style, avatarCustomization: selection.customization };
+  writeVersioned('grid-world:identity', 1, identity);
+  player.setAvatarStyle(selection.style);
 }) : null;
 const authButton = document.querySelector<HTMLButtonElement>('#auth-button');
 authButton?.addEventListener('click', async () => {
@@ -1109,7 +1114,7 @@ const gridSessionAuth = cloudPersistence ? new GridAuthService(cloudPersistence.
 if (gridSessionAuth) {
   void gridSessionAuth.profile().then(profile => {
     if (!profile) return;
-    identity = { ...identity, id: profile.id, displayName: profile.display_name };
+    identity = { ...identity, id: profile.id, displayName: profile.display_name, avatarStyle: profile.avatar_style, avatarCustomization: profile.avatar_customization };
     cloudIdentity = { ...cloudIdentity, id: profile.id, displayName: profile.display_name };
     writeVersioned('grid-world:identity', 1, identity);
     player.setAvatarStyle(identity.avatarStyle);
