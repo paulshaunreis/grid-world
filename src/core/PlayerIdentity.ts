@@ -42,7 +42,7 @@ export function loadOrCreateIdentity(): PlayerIdentity {
     id: crypto.randomUUID(),
     displayName: 'Traveler',
     avatarStyle: 'navigator',
-    avatarCustomization: { skin: 0, hair: 0, eyes: 0, build: 0, accent: 0, age: 3, species: 0, lineage: -1, hairStyle: 0, hairLength: 2 },
+    avatarCustomization: { skin: 0, hair: 0, eyes: 0, build: 0, accent: 0, age: 3, species: 0, lineage: -1, hairStyle: 0, hairLength: 2, face: 0, shoulders: 0, torso: 0, arms: 0, legs: 0, hands: 0 },
     createdAt: new Date().toISOString(),
   };
   writeVersioned(STORAGE_KEY, SCHEMA_VERSION, created);
