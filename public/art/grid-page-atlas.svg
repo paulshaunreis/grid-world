@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 520">
+<defs>
+ <linearGradient id="bg" x1="0" x2="1"><stop stop-color="#050b14"/><stop offset=".5" stop-color="#0b1930"/><stop offset="1" stop-color="#13091e"/></linearGradient>
+ <linearGradient id="cyan" x1="0" x2="1"><stop stop-color="#39e8ff"/><stop offset="1" stop-color="#8b6cff"/></linearGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+ <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#55cfff" stroke-opacity=".09"/></pattern>
+</defs>
+<rect width="1600" height="520" fill="url(#bg)"/><rect width="1600" height="520" fill="url(#grid)"/>
+<g opacity=".9">
+ <path d="M0 410 Q250 270 470 370 T900 330 T1250 360 T1600 290 V520H0Z" fill="#071b25"/>
+ <path d="M0 410 Q250 270 470 370 T900 330 T1250 360 T1600 290" fill="none" stroke="url(#cyan)" stroke-width="3" opacity=".65" filter="url(#glow)"/>
+</g>
+<!-- city -->
+<g fill="#12283b" stroke="#48dfff" stroke-opacity=".35">
+ <path d="M100 365V215h62v150zm78 0V150h74v215zm90 0V245h55v120zm72 0V175h70v190z"/>
+ <path d="M1050 360V190h64v170zm82 0V130h92v230zm110 0V225h60v135zm76 0V165h88v195z"/>
+</g>
+<!-- central portal -->
+<g transform="translate(790 245)" filter="url(#glow)">
+ <ellipse rx="150" ry="180" fill="none" stroke="#43e7ff" stroke-width="4"/>
+ <ellipse rx="115" ry="145" fill="none" stroke="#a36dff" stroke-width="2" opacity=".8"/>
+ <path d="M-90 145V-20Q-90-100 0-100T90-20v165" fill="#07111f" stroke="#5de8ff" stroke-width="5"/>
+ <path d="M-52 145V0Q-52-55 0-55T52 0v145" fill="#0c2540" stroke="#8f72ff" stroke-width="2"/>
+</g>
+<!-- figure -->
+<g transform="translate(520 300)" stroke="#7deeff" stroke-width="3" fill="#16293d">
+ <circle cx="0" cy="-80" r="28"/><path d="M-38-45Q0-70 38-45L55 75H-55Z"/>
+ <path d="M-35 5L-82 65M35 5L82 65M-22 72L-30 150M22 72L30 150"/>
+ <path d="M-20-45L-65-20M20-45L65-20" fill="none"/>
+</g>
+<!-- creature -->
+<g transform="translate(1260 345)" fill="#21402f" stroke="#8ff3d1" stroke-width="3">
+ <path d="M-80 45Q-55-25 0-35Q55-25 80 45Q45 70 0 70T-80 45Z"/><circle cx="-25" cy="15" r="7"/><circle cx="25" cy="15" r="7"/><path d="M-55 48Q0 72 55 48" fill="none"/>
+ <path d="M-70 45L-110 15M70 45L110 15" fill="none"/>
+</g>
+<g font-family="monospace" fill="#e8fbff">
+ <text x="55" y="70" font-size="22" letter-spacing="7">GRID WORLD // VISUAL ATLAS</text>
+ <text x="55" y="105" font-size="13" fill="#71ddff" letter-spacing="3">LIVING WORLDS · CREATION · PEOPLE · TRANSIT · ECONOMY</text>
+ <text x="720" y="470" font-size="14" letter-spacing="4" fill="#b59cff">MANY WORLDS / ONE FOUNDATION</text>
+</g>
+</svg>
