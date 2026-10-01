@@ -84,3 +84,18 @@ Grid Element Forge supports fictional Grid-universe synthetic elements beyond th
 The design deliberately avoids making a basic starter parcel or normal participation pay-to-win. Real-money checkout should be implemented server-side through a payment provider such as Stripe Checkout; Stripe documents Checkout Sessions for one-time payments and subscriptions, and Stripe Connect can support application-fee/platform models for creator marketplaces.
 
 **Important:** no real-money charge is claimed to be live yet. A Stripe account, products/prices, tax configuration, webhook endpoint, and secret server-side credentials are required before actual payments can be safely activated.
+
+
+## Omni Bank monetary policy
+
+Every completed verified account can receive a **one-time 100 GRID starter grant** from the server-authoritative Omni Bank reserve. The grant is not created by the browser, is protected by an idempotency key, requires completed onboarding, and is capped by the bank's issuance reserve.
+
+The initial Omni Bank Grid reserve is **1,000,000 GRID**, with a matching lifetime issuance cap. This is an in-world currency reserve, not a promise that GRID is redeemable for USD or another real-world currency.
+
+To keep the economy supplied without treating Grid Corporation's real-world cash as the funding source, the monetary policy reserves **1% of eligible in-world economic volume** for the Omni Bank circulation pool, subject to the reserve cap. This is a controlled virtual-economy issuance rule: it is not a claim that Grid Corporation gives away 1% of its real-world revenue.
+
+The intended loop is:
+
+**economic activity → 1% controlled circulation allocation → Omni Bank reserve → starter grants / approved economic programs → users spend → creators and NPC merchants receive → economy circulates**
+
+The recycling operation is server-only. Users cannot call it, change the percentage, increase the reserve cap, or mint currency directly.
