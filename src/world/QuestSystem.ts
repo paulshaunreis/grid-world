@@ -30,13 +30,13 @@ export class QuestSystem{
       const position=q.status==='TURN_IN'?GIVERS[q.giver]?.position:q.objectivePosition;
       if(position)this.marker(q.id,position,q.status==='TURN_IN'?'RETURN · '+q.giver:'OBJECTIVE');
     }}
- update(_delta:number,world:EcologyWorld,event:string,_society:SocietySnapshot,playerX:number,playerZ:number){if(world!==this.lastWorld){this.visited.add(world);this.lastWorld=world;}const ev=event.toUpperCase();for(const q of this.quests){if(q.status!=='ACTIVE')continue;if(q.type==='EXPLORE')q.progress=Math.min(q.target,this.visited.size);if(q.type==='WORLD_EVENT'&&q.world===world&&ev!=='QUIET'&&ev!==this.lastEvent)q.observed=true;if(q.type==='CREATURE'&&q.world===world)q.progress=Math.min(q.target,[...this.interacted].filter(v=>v.startsWith('creature:')).length);
+ update(_delta:number,world:EcologyWorld,event:string,_society:SocietySnapshot,playerX:number,playerZ:number){if(world!==this.lastWorld){this.visited.add(world);this.lastWorld=world;}const ev=event.toUpperCase();for(const q of this.quests){if(q.status!=='ACTIVE')continue;if(q.type==='EXPLORE')q.progress=Math.min(q.target,this.visited.size);if(q.type==='WORLD_EVENT'&&q.world===world&&ev!=='QUIET'&&ev!==this.lastEvent)q.observed=true;if(q.type==='CREATURE'&&q.world===world)q.progress=Math.min(q.target,[...this.interacted].filter(v=>v.startsWith('creature:') && q.world===world).length);
       if(q.type==='COMBAT'&&q.world===world)q.progress=Math.min(q.target,[...this.interacted].filter(v=>v.startsWith('combat-kill:'+world+':')).length);if(q.type==='DISCOVER')q.progress=Math.min(q.target,this.interacted.size);
       if(q.type==='WORLD_EVENT'&&q.observed&&q.objectivePosition){const dx=playerX-q.objectivePosition[0],dz=playerZ-q.objectivePosition[1];if(dx*dx+dz*dz<16)q.progress=q.target;}if(q.progress>=q.target){q.status='TURN_IN';}}if(ev!==this.lastEvent)this.lastEvent=ev;this.syncMarkers();this.save();this.root.userData.quests=this.getSnapshot();}
 recordCombatKill(species:string,world:EcologyWorld){
     this.interacted.add('combat-kill:'+world+':'+species+':'+Date.now());
     for(const q of this.quests.filter(q=>q.status==='ACTIVE'&&q.type==='COMBAT'&&q.world===world)){
-      q.progress=Math.min(q.target,[...this.interacted].filter(v=>v.startsWith('combat-kill:')).length);
+      q.progress=Math.min(q.target,[...this.interacted].filter(v=>v.startsWith('combat-kill:'+world+':')).length);
       if(q.progress>=q.target)q.status='TURN_IN';
     }
     this.syncMarkers();this.save();this.root.userData.quests=this.getSnapshot();
