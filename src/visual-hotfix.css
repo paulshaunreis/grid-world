@@ -1,6 +1,6 @@
 /* Visual runtime hotfix: keep the world canvas behind the Grid HUD and make local artwork unmistakable. */
 canvas{position:fixed;inset:0;z-index:0}
-.hud{z-index:100;isolation:isolate}
+.hud{position:relative;z-index:100;isolation:isolate}
 .hud-concept-card{
   position:absolute;left:28px;top:92px;width:230px;overflow:hidden;
   border:1px solid rgba(var(--hud-rgb),.28);border-radius:12px;
