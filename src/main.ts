@@ -1389,7 +1389,7 @@ function animate(now: number) {
     const signal = teleportSystem.trafficSnapshot().find(item => item.nodeId === visual.userData.gridTeleportNodeId);
     applyTeleportTraffic(visual, signal?.activity ?? 0);
   }
-  livingWorld.update(dt, player.avatar.position.x, player.avatar.position.z, worldConsequences.getSnapshot());
+  livingWorld.update(dt, player.avatar.position.x, player.avatar.position.z, worldConsequences.getSnapshot(), worldEvolution.get(livingWorld.getSnapshot().world as EcologyWorld));
     merchantRefreshTimer += dt;
     if(merchantRefreshTimer > 12) { merchantRefreshTimer = 0; void refreshMerchantMarket(); }
   const livingSnapshot = livingWorld.getSnapshot();
