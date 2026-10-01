@@ -1501,8 +1501,7 @@ function animate(now: number) {
   if (nearestResource && resourceNear && resourceDown && !resourceInteractLatched) {
     resourceInteractLatched = true;
     if (combatAuthority) {
-      try {
-        void combatAuthority.gatherResource(nearestResource.id).then(result => {
+      void combatAuthority.gatherResource(nearestResource.id).then(result => {
           const resource = (result as any)?.resource as { kind?: string; amount?: number } | undefined;
           if ((result as any)?.ok && resource?.kind && resource.amount) {
             worldResources.collect(nearestResource.id, Number(resource.amount));
