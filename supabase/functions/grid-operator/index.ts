@@ -48,18 +48,18 @@ async function callOperator(prompt:string,ctx:unknown){
 Deno.serve(async req=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:cors});
  if(req.method!=="POST")return json({error:"method_not_allowed"},405);
- const u=await user(req);if(!u)return json({error:"unauthorized"},401);
+ const u=await user(req);
  try{
-  const body=await req.json();const action=String(body.action||"chat");const ctx=await context(u.id);
-  if(action==="context")return json({ok:true,context:{profile:ctx.profile,prefs:ctx.prefs,cases:ctx.cases}});
+  const body=await req.json();const action=String(body.action||"chat");const ctx=u?await context(u.id):{profile:null,prefs:null,cases:[],rules:[]};
+  if(action==="context"){if(!u)return json({error:"authentication_required"},401);return json({ok:true,context:{profile:ctx.profile,prefs:ctx.prefs,cases:ctx.cases}});}
   if(action==="chat"){
    const message=String(body.message||"").trim().slice(0,4000);if(!message)return json({error:"message_required"},400);
-   await admin.from("grid_operator_messages").insert({user_id:u.id,role:"user",body:message});
+   if(u) await admin.from("grid_operator_messages").insert({user_id:u.id,role:"user",body:message});
    const answer=await callOperator(message,ctx);
-   await admin.from("grid_operator_messages").insert({user_id:u.id,role:"operator",body:answer});
-   return json({ok:true,answer,openCases:ctx.cases});
+   if(u) await admin.from("grid_operator_messages").insert({user_id:u.id,role:"operator",body:answer});
+   return json({ok:true,answer,openCases:ctx.cases,authenticated:Boolean(u)});
   }
-  if(action==="verify-status"){
+  if(action==="verify-status"){if(!u)return json({error:"authentication_required"},401);
    const {data}=await admin.from("grid_verification_factors").select("factor_one_label,factor_two_label,factor_three_label,factor_three_type,enrolled_at").eq("user_id",u.id).maybeSingle();
    return json({ok:true,enrolled:Boolean(data?.enrolled_at),factors:data});
   }
