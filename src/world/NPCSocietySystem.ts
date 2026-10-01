@@ -6,6 +6,8 @@ import { getWorlds } from './GridWorldRegistry';
 import { hourOfDayFromDayFraction, resolveNpcRoutine, routinePhaseFor } from '../npc/NpcDailyRoutine';
 import { createNPCProfile, type NPCProfileRecord } from './NPCProfile';
 import { NPCRelationshipNetwork } from './NPCRelationshipSystem';
+import { NPCInventorySystem } from './NPCInventorySystem';
+import { NPCJobProgressionSystem } from './NPCJobProgressionSystem';
 
 export type CitizenState = 'WORK'|'TRAVEL'|'GATHER'|'TALK'|'REST'|'CELEBRATE'|'EAT';
 export type CitizenRole = 'NAVIGATOR'|'GARDENER'|'ARTISAN'|'KEEPER'|'RANGER';
@@ -102,6 +104,8 @@ export class NPCSocietySystem {
   private citizens: Citizen[] = [];
   private profiles = new Map<string, NPCProfileRecord>();
   private relationships = new NPCRelationshipNetwork();
+  private inventory = new NPCInventorySystem();
+  private progression = new NPCJobProgressionSystem();
   private gates=new Map<EcologyWorld,THREE.Group>();
   private gateBusy=new Map<EcologyWorld,number>();
   private transitTrafficRecorder: ((source:EcologyWorld,destination:EcologyWorld,queueDepth:number)=>void) | null = null;
@@ -164,7 +168,10 @@ export class NPCSocietySystem {
       tags: merchant ? ['merchant'] : ['citizen'],
     });
     this.profiles.set(name, profile);
+    this.inventory.seed(profile);
     root.userData.npcProfile = profile;
+    root.userData.inventory = profile.inventory;
+    root.userData.jobProgression = profile.occupation;
     root.userData.relationships = () => this.relationships.forNPC(name);
 
     if (merchant) {
@@ -320,7 +327,16 @@ export class NPCSocietySystem {
       if(c.state==='REST') c.energy=Math.min(1,c.energy+delta*.045);
       if(c.state==='EAT') c.energy=Math.min(1,c.energy+delta*.02);
       if(c.state==='TALK') { c.social=Math.min(1,c.social+delta*.035); talking++; }
-      if(c.state==='WORK') working++;
+      if(c.state==='WORK') {
+        working++;
+        const profile = this.profiles.get(c.name);
+        if (profile) {
+          this.progression.award(profile, delta * .7);
+          c.root.userData.inventory = profile.inventory;
+          c.root.userData.jobProgression = profile.occupation;
+          if (profile.level > 1) c.root.userData.npcLevel = profile.level;
+        }
+      }
       if(c.state==='GATHER') gathering++;
       if(c.merchant) {
         c.root.userData.marketPrompt = c.merchantMood === 'WORRIED' ? 'SUPPLIES LOW' : c.merchantMood === 'BUSY' ? 'MARKET ACTIVE' : 'TRADE';
@@ -427,5 +443,7 @@ export class NPCSocietySystem {
   getNPCProfile(name:string){ return this.profiles.get(name); }
   getRelationships(name:string){ return this.relationships.forNPC(name); }
   getRelationshipSnapshot(){ return this.relationships.snapshot(); }
+  getNPCInventory(name:string){ const profile=this.profiles.get(name); return profile ? this.inventory.snapshot(profile) : []; }
+  awardNPCJobXP(name:string, amount:number, skill?:string){ const profile=this.profiles.get(name); return profile ? this.progression.award(profile, amount, skill) : null; }
   getWorkingCitizens(){return this.citizens.filter(c=>c.state==='WORK'||c.state==='GATHER').map(c=>({id:c.name,world:c.world,position:c.root.position.clone(),role:c.role}));}
 }
