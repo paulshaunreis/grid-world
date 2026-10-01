@@ -50,8 +50,8 @@ export function installGridWorldArtDirector(scene: THREE.Scene): GridWorldArtDir
         new THREE.PlaneGeometry(2.4, 1.5),
         new THREE.MeshBasicMaterial({ map:texture, transparent:true, opacity:.78, side:THREE.DoubleSide }),
       );
-      mesh.position.set(...panel.position);
-      mesh.rotation.set(...panel.rotation);
+      mesh.position.set(panel.position[0], panel.position[1], panel.position[2]);
+      mesh.rotation.set(panel.rotation[0], panel.rotation[1], panel.rotation[2]);
       mesh.scale.setScalar(panel.scale);
       mesh.userData.gridConceptArt = panel.src;
       conceptPanels.add(mesh);
