@@ -32,7 +32,7 @@ export class EcologicalInteractionSystem{
     return 'HERBIVORE';
   }
 
-  update(delta:number,world:EcologyWorld){
+  update(delta:number,world:EcologyWorld,..._context:unknown[]){
     this.elapsed+=delta;
     this.eventClock+=delta;
     if(this.elapsed<this.interval)return;
