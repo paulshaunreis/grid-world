@@ -1390,7 +1390,7 @@ function animate(now: number) {
     if(merchantRefreshTimer > 12) { merchantRefreshTimer = 0; void refreshMerchantMarket(); }
   const livingSnapshot = livingWorld.getSnapshot();
   const consequenceSnapshot = worldConsequences.getSnapshot();
-  creatureEcology.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, consequenceSnapshot);
+  creatureEcology.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, consequenceSnapshot, undefined, { weather: livingSnapshot.weather, temperatureC: livingSnapshot.temperatureC, windX: livingSnapshot.windX, windZ: livingSnapshot.windZ, season: livingSnapshot.season });
   const ecologySnapshot = creatureEcology.getSnapshot();
 
   if (combatAuthority) {
