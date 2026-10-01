@@ -47,17 +47,51 @@ export function mountGridSocialPanel(authority:GridSocialAuthority):{open():void
   panel.querySelectorAll<HTMLButtonElement>('[data-social-tab]').forEach(button=>button.addEventListener('click',()=>{active=button.dataset.socialTab??'friends';panel.querySelectorAll('[data-social-tab]').forEach(x=>x.classList.toggle('active',x===button));render();}));
   search.addEventListener('input',render);
   panel.querySelector('#gw-social-refresh')?.addEventListener('click',()=>sync());
-  panel.addEventListener('click',async event=>{
-    const button=(event.target as HTMLElement).closest<HTMLButtonElement>('button[data-friend-action]');
-    if(!button)return;
-    const user=button.dataset.user;if(!user)return;
+  async function showOrganization(orgId:string,mode:'open'|'members'){
+    const org=organizations.find(item=>item.id===orgId)??await authority.getOrganization(orgId);
+    if(!org){list.innerHTML='<div class="gw-social-empty">Organization not found.</div>';return;}
+    if(mode==='open'){
+      const description=typeof org.metadata.description==='string'?org.metadata.description:'No description published yet.';
+      const tags=Array.isArray(org.metadata.tags)?org.metadata.tags.join(' · '):'';
+      list.innerHTML=`<article class="gw-social-card">
+        <div class="gw-social-card-head"><div><strong>${org.name}</strong><small>${org.worldId??'Grid-wide'} · ${org.accessMode.toUpperCase()}</small></div><span class="gw-social-badge">${org.kind}</span></div>
+        <p style="color:#9eb0bd;margin:12px 0">${description}</p>
+        ${tags?`<small>TAGGED: ${tags}</small>`:''}
+        <div class="gw-social-row-actions"><button data-org-action="members" data-org="${org.id}">VIEW MEMBERS</button><button data-org-action="back">BACK</button></div>
+      </article>`;
+      return;
+    }
     try{
-      if(button.dataset.friendAction==='accept')await authority.respondToFriend(user,'accepted');
-      else if(button.dataset.friendAction==='block')await authority.respondToFriend(user,'blocked');
-      else if(button.dataset.friendAction==='remove')await authority.removeFriend(user);
-      else return;
-      await sync();
-    }catch(error){console.error(error);}
+      const members=await authority.listMembers(org.id);
+      list.innerHTML=`<article class="gw-social-card"><div class="gw-social-card-head"><div><strong>${org.name}</strong><small>Organization membership</small></div><span class="gw-social-badge">${members.length} ACTOR${members.length===1?'':'S'}</span></div>
+        <div class="gw-social-list" style="margin-top:12px">${members.length?members.map(member=>`<div class="gw-social-card"><strong>${member.actorKind==='NPC'?'NPC':'USER'} ${member.actorId}</strong><small>${member.role} · ${member.joinedAt?new Date(member.joinedAt).toLocaleString():'joined'}</small></div>`).join(''):'<div class="gw-social-empty">No members are visible to this account.</div>'}</div>
+        <div class="gw-social-row-actions"><button data-org-action="back">BACK</button></div>
+      </article>`;
+    }catch(error){list.innerHTML='<div class="gw-social-empty">Membership data is unavailable for this organization.</div>';console.error(error);}
+  }
+
+  panel.addEventListener('click',async event=>{
+    const target=event.target as HTMLElement;
+    const friendButton=target.closest<HTMLButtonElement>('button[data-friend-action]');
+    if(friendButton){
+      const user=friendButton.dataset.user;if(!user)return;
+      try{
+        if(friendButton.dataset.friendAction==='accept')await authority.respondToFriend(user,'accepted');
+        else if(friendButton.dataset.friendAction==='block')await authority.respondToFriend(user,'blocked');
+        else if(friendButton.dataset.friendAction==='remove')await authority.removeFriend(user);
+        else if(friendButton.dataset.friendAction==='message')window.dispatchEvent(new CustomEvent('gridworld:message-user',{detail:{userId:user}}));
+        else return;
+        await sync();
+      }catch(error){console.error(error);}
+      return;
+    }
+    const orgButton=target.closest<HTMLButtonElement>('button[data-org-action]');
+    if(orgButton){
+      const action=orgButton.dataset.orgAction;
+      if(action==='back'){render();return;}
+      const orgId=orgButton.dataset.org;if(!orgId)return;
+      if(action==='open'||action==='members')await showOrganization(orgId,action);
+    }
   });
 
   const close=()=>panel.classList.remove('open');
