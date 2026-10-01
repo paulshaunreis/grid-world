@@ -110,7 +110,7 @@ export class PlayerController {
       const build=1+Math.max(-3,Math.min(3,customization.build))*.045;
       const sx=build*raceBulk*lineageBulk; const sy=1;
       this.body.scale.set(sx*ageScale*raceScale*lineageScale,sy*ageScale*raceScale*lineageScale,sx*ageScale*raceScale*lineageScale);
-      this.armL.scale.set(sx,sy,sx); this.armR.scale.copy(this.armL.scale); this.legL.scale.set(sx,sy,sx); this.legR.scale.copy(this.legL.scale);
+      this.armL.scale.set(sx*ageScale*raceScale*lineageScale,ageScale*raceScale*lineageScale,sx*ageScale*raceScale*lineageScale); this.armR.scale.copy(this.armL.scale); this.legL.scale.copy(this.armL.scale); this.legR.scale.copy(this.armL.scale);
       this.head.scale.set(headScale,headScale,headScale);
       this.hair.scale.set(headScale,headScale*(1+Math.max(0,Math.min(4,customization.hairLength??2))*.08),headScale);
       const elf=[1,2,5].includes(customization.species??0) || (customization.lineage??-1)>=0;
