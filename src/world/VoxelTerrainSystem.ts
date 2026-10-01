@@ -24,6 +24,7 @@ export class VoxelTerrainSystem {
   private activeWorldId: string | null = null;
   private mode: VoxelEditMode = 'CARVE';
   private enabled = true;
+  private readonly storageKey = 'grid-world:voxel-terrain-v1';
 
   constructor(private readonly camera: THREE.Camera, private readonly dom: HTMLElement) {
     this.root.name = 'grid-voxel-terrain';
@@ -46,9 +47,11 @@ export class VoxelTerrainSystem {
       state.mesh.userData.gridObjectKind = 'voxel-terrain';
       state.mesh.userData.worldId = world.id;
 
+      const saved = this.loadWorld(world.id);
+      if (saved) state.cells = new Set(saved);
       for (let x=-10;x<=10;x++) for (let z=-10;z<=10;z++) {
         const h = Math.max(1, Math.round(2.5 + Math.sin(x*.42)*.65 + Math.cos(z*.35)*.55));
-        for (let y=0;y<h;y++) state.cells.add(keyOf(x,y,z));
+        if (!saved) for (let y=0;y<h;y++) state.cells.add(keyOf(x,y,z));
       }
       this.worlds.set(world.id,state);
       this.rebuildMesh(state);
@@ -98,6 +101,22 @@ export class VoxelTerrainSystem {
       if (state.cells.has(key) && y>0) state.cells.delete(key);
     }
     this.rebuildMesh(state);
+    this.saveWorld(state);
+  }
+
+  private saveWorld(state:WorldVoxelState) {
+    try {
+      const all = JSON.parse(localStorage.getItem(this.storageKey) ?? '{}') as Record<string,string[]>;
+      all[state.id] = [...state.cells];
+      localStorage.setItem(this.storageKey, JSON.stringify(all));
+    } catch { /* persistence is best-effort */ }
+  }
+
+  private loadWorld(worldId:string):string[]|null {
+    try {
+      const all = JSON.parse(localStorage.getItem(this.storageKey) ?? '{}') as Record<string,string[]>;
+      return Array.isArray(all[worldId]) ? all[worldId] : null;
+    } catch { return null; }
   }
 
   private onPointerDown=(event:PointerEvent)=>{
