@@ -7,6 +7,10 @@ export interface AvatarCustomization {
   eyes: number;
   build: number;
   accent: number;
+  age: number;
+  species: number;
+  hairStyle: number;
+  hairLength: number;
 }
 
 export interface AvatarSelection {
@@ -31,6 +35,9 @@ const STYLES: {id:AvatarStyle; label:string; body:number; accent:number}[] = [
 
 const SKINS=[0xf1d1bd,0xd9aa8a,0xb97858,0x8d583f,0x5f392e];
 const HAIR=[0x171a24,0x4a2b22,0x9b6a3b,0xb9d5dc,0x8b4fa5,0xe0e4e8];
+const AGES=[{id:0,label:'Child',scale:.72,head:1.08},{id:1,label:'Teen',scale:.88,head:1.03},{id:2,label:'Young Adult',scale:.98,head:1},{id:3,label:'Adult',scale:1.03,head:.98},{id:4,label:'Elder',scale:.98,head:1.01}];
+const SPECIES=['Human','Elf','Fae','Android','Synth'];
+const HAIR_STYLES=['Short','Long','Bob','Ponytail','Braided','Mohawk','Wavy','Twin Tail'];
 const EYES=[0x58d7ff,0x6d8cff,0x63d88d,0xd4ad63,0xd47fd8,0xe7e7e7];
 
 function clamp(n:number,min:number,max:number){return Math.max(min,Math.min(max,n));}
@@ -52,9 +59,9 @@ export function mountAvatarCreator(
         <h3>Build a starter avatar</h3>
         <p>Your avatar is yours. Start with a Grid archetype, then tune the look before entering the world.</p>
         <div class="grid-avatar-style-grid" id="gav-styles"></div>
-        <div class="grid-avatar-custom-grid">
+        <div class="grid-avatar-section"><b>AGE / LIFE STAGE</b><div class="grid-avatar-choice-grid" id="gav-age"></div></div><div class="grid-avatar-section"><b>SPECIES</b><div class="grid-avatar-choice-grid" id="gav-species"></div></div><div class="grid-avatar-section"><b>HAIR STYLE</b><div class="grid-avatar-choice-grid" id="gav-hair-style"></div></div><div class="grid-avatar-custom-grid">
           <label>SKIN <input id="gav-skin" type="range" min="0" max="4" step="1"></label>
-          <label>HAIR <input id="gav-hair" type="range" min="0" max="5" step="1"></label>
+          <label>HAIR COLOR <input id="gav-hair" type="range" min="0" max="5" step="1"></label><label>HAIR LENGTH <input id="gav-hair-length" type="range" min="0" max="4" step="1"></label>
           <label>EYES <input id="gav-eyes" type="range" min="0" max="5" step="1"></label>
           <label>BUILD <input id="gav-build" type="range" min="-3" max="3" step="1"></label>
           <label>ACCENT <input id="gav-accent" type="range" min="0" max="5" step="1"></label>
@@ -100,7 +107,11 @@ export function mountAvatarCreator(
     eyes:host.querySelector<HTMLInputElement>('#gav-eyes')!,
     build:host.querySelector<HTMLInputElement>('#gav-build')!,
     accent:host.querySelector<HTMLInputElement>('#gav-accent')!,
+    hairLength:host.querySelector<HTMLInputElement>('#gav-hair-length')!,
   };
+  const ageGrid=host.querySelector<HTMLDivElement>('#gav-age')!;
+  const speciesGrid=host.querySelector<HTMLDivElement>('#gav-species')!;
+  const hairStyleGrid=host.querySelector<HTMLDivElement>('#gav-hair-style')!;
   const draw=()=>{
     const preset=STYLES.find(x=>x.id===selection.style)??STYLES[0];
     const c=selection.customization;
@@ -108,16 +119,24 @@ export function mountAvatarCreator(
     head.material.color.setHex(SKINS[clamp(c.skin,0,4)]);
     hair.material.color.setHex(HAIR[clamp(c.hair,0,5)]);
     eyeMat.color.setHex(EYES[clamp(c.eyes,0,5)]);eyeMat.emissive.setHex(EYES[clamp(c.eyes,0,5)]);
-    const build=1+c.build*.045;body.scale.set(build,1,build);
+    const age=AGES[clamp(c.age??3,0,4)]; const build=1+c.build*.045; const lifeScale=age.scale; body.scale.set(build*lifeScale,lifeScale,build*lifeScale); head.scale.set(age.head,age.head,age.head); neck.scale.set(age.head,lifeScale,age.head); hair.scale.set(age.head,age.head*(1+(c.hairLength??2)*.08),age.head); shoulderL.scale.set(lifeScale,lifeScale,lifeScale); shoulderR.scale.copy(shoulderL.scale);
+    const elf=c.species===1; head.userData.species=SPECIES[clamp(c.species??0,0,4)];
+    hair.userData.hairStyle=HAIR_STYLES[clamp(c.hairStyle??0,0,HAIR_STYLES.length-1)];
     const accent=0x33ddff + clamp(c.accent,0,5)*0x070707;
     chest.material.color.setHex(preset.accent);collar.material.color.setHex(preset.accent);collar.material.emissive.setHex(preset.accent);
     shoulderL.material.color.setHex(accent);shoulderR.material.color.setHex(accent);
     label.textContent=preset.label.toUpperCase()+' · '+selection.style.toUpperCase();
-    Object.entries(inputs).forEach(([k,input])=>input.value=String((c as any)[k]));
+    Object.entries(inputs).forEach(([k,input])=>input.value=String((c as any)[k]??0));
+    ageGrid.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.classList.toggle('selected',Number(b.dataset.age)===c.age));
+    speciesGrid.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.classList.toggle('selected',Number(b.dataset.species)===c.species));
+    hairStyleGrid.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.classList.toggle('selected',Number(b.dataset.hairStyle)===c.hairStyle));
     styleGrid.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.classList.toggle('selected',b.dataset.style===selection.style));
   };
+  AGES.forEach(a=>{const b=document.createElement('button');b.type='button';b.dataset.age=String(a.id);b.textContent=a.label;b.onclick=()=>{selection.customization.age=a.id;draw();};ageGrid.appendChild(b);});
+  SPECIES.forEach((s,i)=>{const b=document.createElement('button');b.type='button';b.dataset.species=String(i);b.textContent=s;b.onclick=()=>{selection.customization.species=i;draw();};speciesGrid.appendChild(b);});
+  HAIR_STYLES.forEach((s,i)=>{const b=document.createElement('button');b.type='button';b.dataset.hairStyle=String(i);b.textContent=s;b.onclick=()=>{selection.customization.hairStyle=i;draw();};hairStyleGrid.appendChild(b);});
   STYLES.forEach(p=>{const b=document.createElement('button');b.type='button';b.dataset.style=p.id;b.innerHTML='<b>'+p.label+'</b><span>GRID FORM</span>';b.onclick=()=>{selection.style=p.id;draw();};styleGrid.appendChild(b);});
-  (Object.keys(inputs) as (keyof AvatarCustomization)[]).forEach(k=>inputs[k].addEventListener('input',()=>{selection.customization[k]=Number(inputs[k].value);draw();}));
+  (Object.keys(inputs) as (keyof typeof inputs)[]).forEach(k=>inputs[k].addEventListener('input',()=>{selection.customization[k]=Number(inputs[k].value);draw();}));
   draw();
 
   let orbit=0,zoom=5.8,drag=false,lastX=0;
