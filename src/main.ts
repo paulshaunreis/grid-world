@@ -458,11 +458,18 @@ function mountBuildRegionStatus() {
   const panel = document.createElement('section');
   panel.id = 'grid-build-region-status';
   panel.setAttribute('aria-live','polite');
-  panel.innerHTML = '<strong>GRID BUILD REGION</strong><span data-region-state>Connecting…</span><span data-region-role></span>';
-  Object.assign(panel.style,{position:'fixed',right:'18px',bottom:'18px',zIndex:'80',display:'grid',gap:'4px',padding:'10px 12px',minWidth:'220px',fontFamily:'IBM Plex Mono,monospace',fontSize:'11px',letterSpacing:'.08em',background:'rgba(8,12,24,.82)',border:'1px solid rgba(120,220,255,.35)',borderRadius:'8px',color:'#dff7ff',backdropFilter:'blur(8px)'});
+  panel.innerHTML = '<strong>GRID BUILD REGION</strong><span data-region-state>Connecting…</span><span data-region-role></span><button type="button" data-region-manage hidden>MANAGE REGION</button>';
+  Object.assign(panel.style,{position:'fixed',right:'18px',bottom:'18px',zIndex:'80',display:'grid',gap:'6px',padding:'10px 12px',minWidth:'240px',fontFamily:'IBM Plex Mono,monospace',fontSize:'11px',letterSpacing:'.08em',background:'rgba(8,12,24,.88)',border:'1px solid rgba(120,220,255,.35)',borderRadius:'8px',color:'#dff7ff',backdropFilter:'blur(8px)'});
   document.body.appendChild(panel);
-  return { set(state:string,role:string){ const s=panel.querySelector('[data-region-state]'); const r=panel.querySelector('[data-region-role]'); if(s)s.textContent=state; if(r)r.textContent=role?'ROLE · '+role.toUpperCase():''; } };
+  return {
+    set(state:string,role:string,canManage=false,onManage?:()=>void){
+      const s=panel.querySelector('[data-region-state]'); const r=panel.querySelector('[data-region-role]'); const b=panel.querySelector<HTMLButtonElement>('[data-region-manage]');
+      if(s)s.textContent=state; if(r)r.textContent=role?'ROLE · '+role.toUpperCase():'';
+      if(b){ b.hidden=!canManage; b.onclick=onManage??null; Object.assign(b.style,{background:'transparent',border:'1px solid rgba(120,220,255,.35)',color:'inherit',padding:'5px 7px',font:'inherit',cursor:'pointer'}); }
+    }
+  };
 }
+
 const buildRegionStatus = mountBuildRegionStatus();
 world.scene.userData.npcShopCatalog = GRID_NPC_SHOPS;
 world.scene.userData.digiFoodSystem = digiFoodSystem;
@@ -980,7 +987,15 @@ const cloudReady = cloudPersistence
           const region = await cloudPersistence.ensureBuildRegion('first-light', 'first-light', 'collaborative');
           buildRegionStatus.set('LIVE · '+region.accessMode.toUpperCase(),'');
           const buildAccess = await cloudPersistence.getBuildAccess(region.worldId, region.regionId);
-          buildRegionStatus.set(buildAccess?.canBuild ? 'LIVE · BUILD ENABLED' : 'LIVE · VIEW ONLY', buildAccess?.role ?? 'viewer');
+          buildRegionStatus.set(buildAccess?.canBuild ? 'LIVE · BUILD ENABLED' : 'LIVE · VIEW ONLY', buildAccess?.role ?? 'viewer', Boolean(buildAccess?.canManage), () => {
+            const panel = document.createElement('div');
+            panel.id='grid-region-manager';
+            panel.innerHTML='<strong>REGION MANAGEMENT</strong><span>OWNER / MANAGER CONTROLS</span><label>User ID <input data-member-user placeholder="auth user id"></label><label>Role <select data-member-role><option value="viewer">Viewer</option><option value="builder">Builder</option><option value="manager">Manager</option></select></label><button data-member-save>GRANT ACCESS</button><button data-member-close>CLOSE</button>';
+            Object.assign(panel.style,{position:'fixed',right:'18px',bottom:'150px',zIndex:'81',display:'grid',gap:'8px',padding:'14px',width:'270px',fontFamily:'IBM Plex Mono,monospace',fontSize:'11px',background:'rgba(5,9,20,.96)',border:'1px solid rgba(120,220,255,.45)',borderRadius:'8px',color:'#dff7ff'});
+            document.body.appendChild(panel);
+            panel.querySelector<HTMLButtonElement>('[data-member-save]')?.addEventListener('click',async()=>{const userId=(panel.querySelector<HTMLInputElement>('[data-member-user]')?.value??'').trim();const role=(panel.querySelector<HTMLSelectElement>('[data-member-role]')?.value??'builder') as 'viewer'|'builder'|'manager';if(!userId)return;try{await cloudPersistence?.setBuildMember(region.worldId,region.regionId,userId,role);buildRegionStatus.set('ACCESS GRANTED · '+role.toUpperCase(),buildAccess?.role??'manager',true);}catch(error){console.warn('Region membership update failed.',error);buildRegionStatus.set('ACCESS UPDATE FAILED',buildAccess?.role??'manager',true);}});
+            panel.querySelector<HTMLButtonElement>('[data-member-close]')?.addEventListener('click',()=>panel.remove());
+          });
           const remoteBuilds = await cloudPersistence.loadBuilds(cloudIdentity, region.worldId, region.regionId);
           if (remoteBuilds.length) easyBuildSystem.restore(remoteBuilds.map(build => ({ objectId: build.objectId, id: build.definitionId, position: build.position, rotation: build.rotation, scale: build.scale, ownerUserId: build.ownerUserId })));
           buildRealtimeChannel = cloudPersistence.subscribeBuildChanges(region.worldId, region.regionId, (build, type) => {
