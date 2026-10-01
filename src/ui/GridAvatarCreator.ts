@@ -36,7 +36,21 @@ const STYLES: {id:AvatarStyle; label:string; body:number; accent:number}[] = [
 const SKINS=[0xf1d1bd,0xd9aa8a,0xb97858,0x8d583f,0x5f392e];
 const HAIR=[0x171a24,0x4a2b22,0x9b6a3b,0xb9d5dc,0x8b4fa5,0xe0e4e8];
 const AGES=[{id:0,label:'Child',scale:.72,head:1.08},{id:1,label:'Teen',scale:.88,head:1.03},{id:2,label:'Young Adult',scale:.98,head:1},{id:3,label:'Adult',scale:1.03,head:.98},{id:4,label:'Elder',scale:.98,head:1.01}];
-const SPECIES=['Human','Elf','Fae','Android','Synth'];
+type RaceProfile={id:number;name:string;kind:string;scale:number;bulk:number;ears:number;attrs:number[]};
+const RACES:RaceProfile[]=[
+{id:0,name:'Human',kind:'Core',scale:1,bulk:1,ears:0,attrs:[10,10,10,10,10]},
+{id:1,name:'High Elf',kind:'Elf',scale:1.02,bulk:.92,ears:1,attrs:[8,12,12,10,12]},
+{id:2,name:'Wood Elf',kind:'Elf',scale:1.04,bulk:.9,ears:1,attrs:[9,13,10,11,11]},
+{id:3,name:'Dwarf',kind:'Little People',scale:.72,bulk:1.35,ears:0,attrs:[14,8,10,14,8]},
+{id:4,name:'Orc',kind:'Strongfolk',scale:1.12,bulk:1.55,ears:0,attrs:[16,9,8,15,7]},
+{id:5,name:'Fae',kind:'Fae',scale:.82,bulk:.72,ears:1,attrs:[7,15,14,8,14]},
+{id:6,name:'Android',kind:'Synthetic',scale:1,bulk:1,ears:0,attrs:[12,11,14,12,10]},
+{id:7,name:'Synth',kind:'Synthetic',scale:1.03,bulk:1.05,ears:0,attrs:[10,14,15,10,13]},
+];
+const HALF_RACES=[
+{id:0,name:'Half-Elf',a:0,b:1,scale:1.01,bulk:.96},{id:1,name:'Half-Orc',a:0,b:4,scale:1.06,bulk:1.28},{id:2,name:'Elf-Dwarf',a:1,b:3,scale:.86,bulk:1.12},{id:3,name:'Fae-Elf',a:1,b:5,scale:.94,bulk:.8},{id:4,name:'Orc-Dwarf',a:4,b:3,scale:.9,bulk:1.45},{id:5,name:'Human-Synth',a:0,b:7,scale:1.01,bulk:1.02},
+];
+const ATTRIBUTES=['Strength','Agility','Intellect','Stamina','Spirit'];
 const HAIR_STYLES=['Short','Long','Bob','Ponytail','Braided','Mohawk','Wavy','Twin Tail'];
 const EYES=[0x58d7ff,0x6d8cff,0x63d88d,0xd4ad63,0xd47fd8,0xe7e7e7];
 
