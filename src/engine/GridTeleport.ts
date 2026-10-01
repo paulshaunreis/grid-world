@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { getWorld } from '../world/GridWorldRegistry';
+import { getWorld, getWorldConnections } from '../world/GridWorldRegistry';
 import { deriveWorldDNA } from '../world/WorldDNA';
 import { createStarterPBRMaterial } from './GridPBRLibrary';
 import type { GridEngine, GridEngineFrame, GridEngineSubsystem } from './GridEngine';
