@@ -75,6 +75,9 @@ import { mountCreatorStudio } from './ui/CreatorStudio';
 import { mountGridEconomyPanel } from './ui/GridEconomyPanel';
 import { GridAuthService } from './auth/GridAuthService';
 import { mountGridAuthPanel } from './ui/GridAuthPanel';
+import { GridSocialService } from './social/GridSocialService';
+import { mountGridCommunityPanel } from './ui/GridCommunityPanel';
+import { GridVoiceModifierSystem } from './audio/GridVoiceModifierSystem';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
@@ -156,7 +159,7 @@ hud.innerHTML = `
     <button type="button" data-tool="field"><b>⌖</b><span>FIELD</span></button>
     <button type="button" data-tool="qr"><b>▧</b><span>QR</span></button>
     <button type="button" data-tool="build"><b>✦</b><span>BUILD</span></button>
-    <button type="button" data-tool="team"><b>⌂</b><span>TEAM</span></button><button type="button" data-tool="settings"><b>⚙</b><span>SETTINGS</span></button>
+    <button type="button" data-tool="team"><b>⌂</b><span>TEAM</span></button><button type="button" data-tool="social"><b>◎</b><span>SOCIAL</span></button><button type="button" data-tool="settings"><b>⚙</b><span>SETTINGS</span></button>
   </div>
   <div class="target-card" id="target-card">
     <div class="target-kicker">OBJECT PROFILE</div>
@@ -182,6 +185,7 @@ const chatInput = document.querySelector<HTMLInputElement>('#chat-input')!;
 const voiceTargetButton = document.querySelector<HTMLButtonElement>('#voice-target')!;
 const voice = new GridVoiceSystem();
 const audio = new GridAudioSystem();
+const voiceModifier = new GridVoiceModifierSystem();
 
 function addChatMessage(sender: string, message: string, kind: 'player' | 'system' | 'team' = 'player') {
   if (kind !== 'player') audio.play('chat.receive');
@@ -373,6 +377,9 @@ const questPanel = mountQuestPanel(questSystem);
 mountWorldAtlas(() => ({ world: (livingWorld.getSnapshot().world as EcologyWorld), event: livingWorld.getSnapshot().event, consequences: worldConsequences.getSnapshot(), resources: worldResources.getSnapshot(), inventory: worldResources.getInventory(), market: marketQuotes, transit: teleportSystem.trafficSnapshot() }));
 marketPanel = mountMarketPanel(() => worldResources.getInventory(), () => marketQuotes, () => combatAuthority);
 const gridEconomyPanel = mountGridEconomyPanel(() => combatAuthority);
+const gridCommunityPanel = cloudPersistence ? mountGridCommunityPanel(new GridSocialService(cloudPersistence.getClient()), { displayName: identity.displayName, id: identity.id }) : null;
+const gridSocialButton = document.querySelector<HTMLButtonElement>('[data-tool="social"]');
+gridSocialButton?.addEventListener('click',()=>gridCommunityPanel?.open());
 const gridAuthPanel = cloudPersistence ? mountGridAuthPanel(new GridAuthService(cloudPersistence.getClient()), profile => {
   identity = { ...identity, id: profile.id, displayName: profile.display_name };
   cloudIdentity = { ...cloudIdentity, id: profile.id, displayName: profile.display_name };
@@ -380,6 +387,7 @@ const gridAuthPanel = cloudPersistence ? mountGridAuthPanel(new GridAuthService(
   player.setAvatarAppearance(identity.avatarStyle, identity.avatarCustomization);
   updatePlayerNameplate(profile.display_name);
   identityButton.textContent = '✦ ' + (profile.handle || profile.display_name);
+  gridCommunityPanel?.close();
   const joinAuthButton = document.querySelector<HTMLButtonElement>('#auth-button');
   if (authButton) authButton.textContent = 'ACCOUNT';
   void presence?.setIdentity(cloudIdentity, player.getTransform());
