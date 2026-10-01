@@ -1,0 +1,10 @@
+import type { GridPartyMember } from '../social/GridPartySystem';
+export function mountGridPartyHud(){
+  const el=document.createElement('section'); el.className='grid-party-hud'; el.setAttribute('aria-label','Party health');
+  el.innerHTML='<div class="grid-party-head"><span>PARTY LINK</span><b data-party-count>0</b></div><div class="grid-party-list" data-party-list></div>';
+  document.body.appendChild(el);
+  const style=document.createElement('style'); style.textContent=`.grid-party-hud{position:fixed;left:24px;top:120px;width:250px;z-index:42;display:none;padding:10px;background:rgba(3,9,16,.68);border:1px solid rgba(120,220,255,.2);backdrop-filter:blur(14px);font:10px/1.3 'IBM Plex Mono',monospace;color:#eff8ff}.grid-party-head{display:flex;justify-content:space-between;color:#7fdfff;font-size:9px;letter-spacing:.14em;margin-bottom:8px}.grid-party-list{display:grid;gap:7px}.grid-party-row{padding:7px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.025)}.grid-party-name{display:flex;justify-content:space-between;gap:8px}.grid-party-bar{height:5px;margin-top:5px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.08)}.grid-party-bar i{display:block;height:100%;background:linear-gradient(90deg,#61e69b,#54dfff);transition:width .2s}`; document.head.appendChild(style);
+  const list=el.querySelector<HTMLDivElement>('[data-party-list]')!, count=el.querySelector<HTMLElement>('[data-party-count]')!;
+  function render(members:GridPartyMember[],names:Record<string,string>={}){el.style.display=members.length?'block':'none';count.textContent=String(members.length);list.innerHTML=members.map(m=>{const pct=Math.max(0,Math.min(100,m.healthMax?m.healthCurrent/m.healthMax*100:0));return `<div class="grid-party-row"><div class="grid-party-name"><span>${names[m.userId]??'Traveler'}</span><b>${Math.round(m.healthCurrent)}/${Math.round(m.healthMax)} HP</b></div><div class="grid-party-bar"><i style="width:${pct}%"></i></div><small>LV ${m.level}${m.worldId?' · '+m.worldId:''}</small></div>`}).join('');}
+  return {element:el,render};
+}
