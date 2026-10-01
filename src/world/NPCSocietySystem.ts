@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { EcologyWorld, EcologySnapshot } from './CreatureEcologySystem';
 import { traversalHit, steerAround } from './TraversalSystem';
 import type { WorldConsequenceSnapshot } from './WorldConsequenceSystem';
+import { getWorlds } from './GridWorldRegistry';
 
 export type CitizenState = 'WORK'|'TRAVEL'|'GATHER'|'TALK'|'REST'|'CELEBRATE';
 export type CitizenRole = 'NAVIGATOR'|'GARDENER'|'ARTISAN'|'KEEPER'|'RANGER';
@@ -66,11 +67,11 @@ const CITIZENS = [
   ['Edda','RANGER','WILDS',-18,28,-27,19],
 ] as const;
 
-function createGateVFX(world:EcologyWorld) {
+function createGateVFX(world:EcologyWorld, colorOverride?:number) {
   const group=new THREE.Group();
   group.name='npc-gate-network';
   const palette:{[key:string]:number}={HARBOR:0x52d9e8,GARDENS:0x9be27b,CITADEL:0xd7b46a,ARTS:0xd28cff,WILDS:0xc9a36a};
-  const color=palette[world];
+  const color=palette[world] ?? colorOverride ?? 0x68d9ff;
   for(let i=0;i<3;i++){
     const ring=new THREE.Mesh(
       new THREE.TorusGeometry(1.35+i*.22,.035,8,48),
@@ -99,16 +100,32 @@ export class NPCSocietySystem {
   private gates=new Map<EcologyWorld,THREE.Group>();
   private gateBusy=new Map<EcologyWorld,number>();
   private transitTrafficRecorder: ((source:EcologyWorld,destination:EcologyWorld,queueDepth:number)=>void) | null = null;
+  private gatePositions=new Map<EcologyWorld,[number,number]>();
   private snapshot: SocietySnapshot = { population:0, active:0, working:0, gathering:0, talking:0, world:'HARBOR', signal:'QUIET' };
 
   constructor() {
     this.root.name='grid-npc-society';
-    for(const world of ['HARBOR','GARDENS','CITADEL','ARTS','WILDS'] as EcologyWorld[]){
-      const gate=createGateVFX(world);
-      this.gates.set(world,gate);
-      this.root.add(gate);
-    }
+    for(const world of getWorlds()) this.registerWorld(world);
     for (const [name,role,world,hx,hz,wx,wz] of CITIZENS) this.spawn(name,role,world,hx,hz,wx,wz);
+  }
+
+  /** Runtime-created worlds receive a gate and a small native society without editing this system. */
+  registerWorld(world:{id:string;label:string;center:THREE.Vector3;color:number}) {
+    if(this.gates.has(world.id)) return;
+    const gate=createGateVFX(world.id,world.color);
+    this.gates.set(world.id,gate);
+    this.gatePositions.set(world.id,[world.center.x,world.center.z]);
+    this.root.add(gate);
+    const existing=this.citizens.filter(c=>c.world===world.id).length;
+    if(existing===0){
+      const x=world.center.x,z=world.center.z;
+      this.spawn(world.label+' Guide','NAVIGATOR',world.id,x+2,z+2,x-2,z-2);
+      this.spawn(world.label+' Keeper','KEEPER',world.id,x-2,z+1,x+2,z-1);
+    }
+  }
+
+  private gatePosition(world:EcologyWorld):[number,number] {
+    return this.gatePositions.get(world) ?? [0,0];
   }
 
   private spawn(name:string, role:CitizenRole, world:EcologyWorld, hx:number,hz:number,wx:number,wz:number) {
@@ -154,9 +171,8 @@ export class NPCSocietySystem {
       this.gateBusy.set(gateWorld, Math.max(0, (this.gateBusy.get(gateWorld) ?? 0) - delta));
       gate.visible=true;
       const pulse=this.citizens.some(c=>c.world===gateWorld && c.travelStage==='APPROACH_GATE' && Number(c.root.userData.gatePulse??0)>0);
-      gate.position.set(...({
-        HARBOR:[-24,0,27],GARDENS:[20,0,27],CITADEL:[-19,0,-18],ARTS:[17,0,-15],WILDS:[-25,0,22]
-      } as {[key:string]:[number,number,number]})[gateWorld]);
+      const gatePosition=this.gatePosition(gateWorld);
+      gate.position.set(gatePosition[0],0,gatePosition[1]);
       gate.rotation.y=now*.18;
       gate.scale.setScalar(pulse?1.12+Math.sin(now*8)*.08:1);
       gate.children.forEach((child,i)=>{
@@ -182,7 +198,7 @@ export class NPCSocietySystem {
       c.gateCooldown=Math.max(0,c.gateCooldown-delta);
       if (c.travelTimer <= 0) {
         c.travelTimer = 18 + (c.phase % 11);
-        const worlds:EcologyWorld[] = ['HARBOR','GARDENS','CITADEL','ARTS','WILDS'];
+        const worlds:EcologyWorld[] = getWorlds().map(candidate=>candidate.id);
         let purpose:'WORK'|'TRADE'|'FESTIVAL'|'EMERGENCY'|'RELATIONSHIP' = 'WORK';
         let travelWorld:EcologyWorld = c.world;
         if (event.toUpperCase() === 'MARKET') purpose = c.merchant ? 'TRADE' : 'FESTIVAL';
@@ -195,8 +211,7 @@ export class NPCSocietySystem {
         // NPCs choose a destination before beginning a gate journey.
         // The choice remains stable for this trip rather than changing mid-route.
         c.selectedDestination = travelWorld;
-        const worldOffset:{[key:string]:[number,number]} = { HARBOR:[-24,27], GARDENS:[20,27], CITADEL:[-19,-18], ARTS:[17,-15], WILDS:[-25,22] };
-        const remote = worldOffset[travelWorld];
+        const remote = this.gatePosition(travelWorld);
         const destination = purpose === 'WORK'
           ? (c.state === 'TRAVEL' ? (c.phase % 2 > 1 ? c.workplace : c.home) : c.workplace)
           : new THREE.Vector3(remote[0] + ((c.phase % 3)-1)*3, 0, remote[1] + ((c.phase % 4)-1)*3);
@@ -213,7 +228,7 @@ export class NPCSocietySystem {
           c.root.userData.gateDeparture = false;
           c.gateCooldown = 10;
           c.travelStage = 'APPROACH_GATE';
-          const sourceGate = worldOffset[c.world];
+          const sourceGate = this.gatePosition(c.world);
           c.gatePosition.set(sourceGate[0],0,sourceGate[1]);
           c.travelTarget.copy(c.gatePosition);
           c.root.userData.travelPurpose = c.travelPurpose;
@@ -287,11 +302,8 @@ export class NPCSocietySystem {
           c.root.userData.travelEffect='GATE_TRANSIT';
           c.root.userData.gatePulse=1;
           c.root.visible=false;
-          c.root.position.set(
-            ({HARBOR:[-24,27],GARDENS:[20,27],CITADEL:[-19,-18],ARTS:[17,-15],WILDS:[-25,22]} as {[key:string]:[number,number]})[c.selectedDestination][0],
-            0,
-            ({HARBOR:[-24,27],GARDENS:[20,27],CITADEL:[-19,-18],ARTS:[17,-15],WILDS:[-25,22]} as {[key:string]:[number,number]})[c.selectedDestination][1]
-          );
+          const arrivalGate=this.gatePosition(c.selectedDestination);
+          c.root.position.set(arrivalGate[0],0,arrivalGate[1]);
           c.root.visible=true;
           c.root.userData.travelEffect='ARRIVAL';
           c.root.userData.gateArrival=true;
