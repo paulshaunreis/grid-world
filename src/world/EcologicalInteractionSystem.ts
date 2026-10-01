@@ -19,6 +19,8 @@ export class EcologicalInteractionSystem{
   private eventCounts={hunts:0,forages:0,pollinations:0,decompositions:0,migrations:0};
   private eventClock=0;
   private propagationClock=0;
+  private migrationMarkers=new Map<string,THREE.Mesh>();
+  private visualClock=0;
 
   constructor(){this.root.name='grid-ecological-interactions';}
 
@@ -37,6 +39,7 @@ export class EcologicalInteractionSystem{
     this.elapsed+=delta;
     this.eventClock+=delta;
     this.propagationClock+=delta;
+    this.visualClock+=delta;
     if(this.elapsed<this.interval)return;
     this.elapsed=0;
     const scene=this.root.parent;
@@ -50,6 +53,7 @@ export class EcologicalInteractionSystem{
     });
     this.interactions=0;
     const events={hunts:0,forages:0,pollinations:0,decompositions:0,migrations:0};
+    const migrationIds=new Set<string>();
     // Flora recovers between grazing events, while pollinated plants accumulate
     // enough seed potential to spread locally. This keeps generated worlds alive
     // without requiring a fixed authored ecosystem.
@@ -60,6 +64,11 @@ export class EcologicalInteractionSystem{
       plant.userData.ecologicalPressure=THREE.MathUtils.clamp(pressure-delta*.018,0,1);
       plant.userData.pollination=THREE.MathUtils.clamp(Number(plant.userData.pollination??0)-delta*.004,0,1);
       plant.userData.seedPotential=THREE.MathUtils.clamp(Number(plant.userData.seedPotential??0)-delta*.0015,0,1);
+      const healthVisual=THREE.MathUtils.clamp(Number(plant.userData.floraHealth??1),.12,1);
+      if(!plant.userData.ecologyBaseScale)plant.userData.ecologyBaseScale=plant.scale.clone();
+      const base=plant.userData.ecologyBaseScale as THREE.Vector3;
+      plant.scale.set(base.x*(.72+healthVisual*.28),base.y*(.72+healthVisual*.28),base.z*(.72+healthVisual*.28));
+      plant.userData.ecologyVisualState=healthVisual<.3?'STRESSED':healthVisual>.8?'THRIVING':'RECOVERING';
     }
     // Decomposer patches recycle spent organic matter back into nearby flora.
     for(const decomposer of decomposerFlora){
@@ -160,6 +169,29 @@ export class EcologicalInteractionSystem{
         flora.push(clone);
         events.pollinations++;
       }
+    }
+
+    const markerParent=this.root;
+    for(const [id,marker] of this.migrationMarkers){
+      if(!migrationIds.has(id)){
+        markerParent.remove(marker);
+        marker.geometry.dispose();
+        marker.material.dispose();
+        this.migrationMarkers.delete(id);
+      }
+    }
+    for(const creature of creatures){
+      if(!migrationIds.has(creature.uuid))continue;
+      let marker=this.migrationMarkers.get(creature.uuid);
+      if(!marker){
+        marker=new THREE.Mesh(new THREE.RingGeometry(.45,.7,24),new THREE.MeshBasicMaterial({transparent:true,opacity:.5,depthWrite:false,side:THREE.DoubleSide}));
+        marker.rotation.x=-Math.PI/2;
+        this.migrationMarkers.set(creature.uuid,marker);
+        markerParent.add(marker);
+      }
+      marker.position.set(creature.position.x,creature.position.y+.08,creature.position.z);
+      marker.scale.setScalar(1+Math.sin(this.visualClock*5+creature.id.length)*.18);
+      marker.material.opacity=.3+.2*(.5+.5*Math.sin(this.visualClock*4));
     }
 
     this.eventCounts={...events};
