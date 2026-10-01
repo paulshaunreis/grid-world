@@ -1385,6 +1385,12 @@ renderer.domElement.addEventListener('pointercancel', () => { cameraPanning = fa
 renderer.domElement.addEventListener('contextmenu', event => event.preventDefault());
 renderer.domElement.addEventListener('wheel', event => {
   cameraDistance = THREE.MathUtils.clamp(cameraDistance + event.deltaY * 0.012, 2.2, 16);
+  if (cameraDistance <= 2.2 && event.deltaY < 0 && !firstPerson) {
+    firstPerson = true;
+    cameraDistance = 0.05;
+    void renderer.domElement.requestPointerLock();
+    status.textContent = 'MOUSELOOK · MOUSE AIM · WASD WALK';
+  }
   event.preventDefault();
 }, { passive: false });
 
@@ -1411,18 +1417,21 @@ addEventListener('keydown', event => {
       status.textContent = 'THIRD PERSON · RMB ORBIT · WHEEL ZOOM · WASD WALK';
     }
   }
-  if (event.key === 'Escape' && document.pointerLockElement === renderer.domElement) {
+  if (event.key === 'Escape') {
     document.exitPointerLock?.();
     firstPerson = false;
     cameraDistance = 7;
-    status.textContent = 'THIRD PERSON · RMB ORBIT · WHEEL ZOOM · WASD WALK';
+    cameraPanX = 0;
+    cameraPanY = 0;
+    cameraPitch = 0.32;
+    cameraYaw = player.heading;
+    cameraPanning = false;
+    status.textContent = 'THIRD PERSON · ALT+LMB / RMB ORBIT · WHEEL ZOOM · WASD WALK';
   }
 });
 
 addEventListener('keydown', event => {
   if (document.activeElement === chatInput || document.activeElement === identityName) return;
-  if (event.code === 'KeyV' && !event.repeat) firstPerson = !firstPerson;
-
   if (event.code === 'KeyP' && !event.repeat) {
     const next=combatSystem.getMode()==='PVP'?'PVE':'PVP';
     if (combatAuthority) {
