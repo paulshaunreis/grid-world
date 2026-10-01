@@ -964,14 +964,76 @@ const cloudReady = cloudPersistence
 // Render locally first. Cloud persistence is optional and must never prevent the 3D world from booting.
 const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.1, 500);
 camera.position.set(0, 3.2, 7);
-const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.setSize(innerWidth, innerHeight);
-renderer.shadowMap.enabled = true;
-renderer.domElement.setAttribute('aria-label', 'Grid World 3D viewport');
-app.appendChild(renderer.domElement);
-engine.setRenderer(new ThreeGridRenderer(renderer));
-void engine.start();
+
+let renderer: THREE.WebGLRenderer;
+let webglAvailable = true;
+try {
+  renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.shadowMap.enabled = true;
+  renderer.domElement.setAttribute('aria-label', 'Grid World 3D viewport');
+  app.appendChild(renderer.domElement);
+  engine.setRenderer(new ThreeGridRenderer(renderer));
+  void engine.start();
+} catch (error) {
+  webglAvailable = false;
+  console.warn('Grid World WebGL boot failed; starting visual fallback.', error);
+  const fallback = document.createElement('canvas');
+  fallback.className = 'grid-webgl-fallback';
+  fallback.setAttribute('aria-label', 'Grid World visual fallback');
+  fallback.width = Math.max(1, innerWidth * Math.min(devicePixelRatio, 2));
+  fallback.height = Math.max(1, innerHeight * Math.min(devicePixelRatio, 2));
+  app.appendChild(fallback);
+  renderer = {
+    domElement: fallback,
+    setSize: () => undefined,
+    setPixelRatio: () => undefined,
+    shadowMap: { enabled: false },
+  } as unknown as THREE.WebGLRenderer;
+
+  const ctx = fallback.getContext('2d');
+  if (ctx) {
+    let tick = 0;
+    const drawFallback = () => {
+      const dpr = Math.min(devicePixelRatio, 2);
+      const w = innerWidth;
+      const h = innerHeight;
+      fallback.width = Math.max(1, Math.floor(w * dpr));
+      fallback.height = Math.max(1, Math.floor(h * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+      const sky = ctx.createLinearGradient(0, 0, 0, h);
+      sky.addColorStop(0, '#071426');
+      sky.addColorStop(0.52, '#10283b');
+      sky.addColorStop(1, '#040a11');
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = 'rgba(92,220,255,.12)';
+      ctx.lineWidth = 1;
+      const horizon = h * .58;
+      for (let x = -w; x < w * 2; x += 70) {
+        ctx.beginPath(); ctx.moveTo(w / 2, horizon); ctx.lineTo(x, h); ctx.stroke();
+      }
+      for (let y = horizon; y < h; y += 36 + (y - horizon) * .025) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+      }
+      ctx.strokeStyle = 'rgba(113,231,255,.35)';
+      ctx.beginPath(); ctx.arc(w * .5, horizon - 80, 74 + Math.sin(tick) * 5, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(w * .5, horizon - 80, 112 + Math.cos(tick) * 8, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = '#dffcff';
+      ctx.font = '700 15px "IBM Plex Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('GRID ENGINE 0.1 · FIRST LIGHT', w * .5, horizon - 7);
+      ctx.font = '600 9px "IBM Plex Mono", monospace';
+      ctx.fillStyle = 'rgba(210,245,255,.58)';
+      ctx.fillText('WEBGL UNAVAILABLE · VISUAL FALLBACK ACTIVE', w * .5, horizon + 13);
+      tick += .02;
+      requestAnimationFrame(drawFallback);
+    };
+    drawFallback();
+  }
+}
 
 void cloudReady.then(async () => {
   if (!cloudPersistence) return;
@@ -2009,7 +2071,7 @@ function animate(now: number) {
   prompt.classList.toggle('visible', Boolean(targetObject));
   if (targetObject) prompt.textContent = `E · ${targetObject.name}`;
 
-  engine.render(camera, frame);
+  if (webglAvailable) engine.render(camera, frame);
   requestAnimationFrame(animate);
 }
 
