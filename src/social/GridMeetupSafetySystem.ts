@@ -1,0 +1,7 @@
+export type GridMeetupStatus='DRAFT'|'OPEN'|'CHECKIN'|'COMPLETE'|'CANCELLED';
+export interface GridMeetupSafety{publicVenueRequired:boolean;exactAddressHidden:boolean;noPrivateResidence:boolean;noDangerousRoutes:boolean;guardianModeForMinors:boolean;reportingEnabled:boolean;checkInWindowMinutes:number;}
+export interface GridMeetup{id:string;hostId:string;title:string;description:string;venueLabel:string;latitude?:number;longitude?:number;status:GridMeetupStatus;startsAt:number;safety:GridMeetupSafety;}
+export class GridMeetupSafetySystem{
+ static readonly DEFAULT_SAFETY:GridMeetupSafety={publicVenueRequired:true,exactAddressHidden:true,noPrivateResidence:true,noDangerousRoutes:true,guardianModeForMinors:true,reportingEnabled:true,checkInWindowMinutes:15};
+ validate(m:GridMeetup){const errors:string[]=[];if(!m.safety.publicVenueRequired)errors.push('public venue required');if(!m.safety.exactAddressHidden)errors.push('exact address must remain hidden');if(!m.safety.noPrivateResidence)errors.push('private residences are not permitted');if(!m.safety.noDangerousRoutes)errors.push('dangerous routes are not permitted');if(m.startsAt<Date.now())errors.push('meetup must be in the future');return{ok:errors.length===0,errors};}
+}
