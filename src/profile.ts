@@ -76,8 +76,7 @@ const sectionLabels: Record<string, string> = {
 
 async function save() {
   localStorage.setItem(key, JSON.stringify(draft));
-  if(profileAuthority&&profileClient){try{const {data:{user}}=await profileClient.auth.getUser();if(user){await profileAuthority.save({handle:draft.handle,displayName:draft.displayName,bio:draft.bio,status:draft.status,theme:draft.theme,layout:draft.layout});cloudMedia=await profileAuthority.media(user.id);render();
-void hydrateCloudProfile();return;}}catch(error){console.warn('Cloud profile save unavailable; local profile retained.',error);}}
+  if(profileAuthority&&profileClient){try{const {data:{user}}=await profileClient.auth.getUser();if(user){await profileAuthority.save({handle:draft.handle,displayName:draft.displayName,bio:draft.bio,status:draft.status,theme:draft.theme,layout:draft.layout});cloudMedia=await profileAuthority.media(user.id);render();return;}}catch(error){console.warn('Cloud profile save unavailable; local profile retained.',error);}}
   const status=document.querySelector('#save-status');if(status)status.textContent='Saved locally · ready for Grid Identity';
 }
 
@@ -116,6 +115,8 @@ function render() {
           <div class="section-title">PERSONAL TOUCH</div>
           <div class="emoji-row">${['✨','🌌','🚀','🌱','🎮','🎨','🔥','💜','👽','🪐','🌊','⚡'].map(e => `<button class="${draft.favoriteEmoji===e?'selected':''}" data-emoji="${e}">${e}</button>`).join('')}</div>
         </div>
+
+        <div class="control-section"><div class="section-title">MEDIA</div><label>Post image/video<input id="profile-media" type="file" accept="image/*,video/*" multiple></label><button id="upload-media" class="studio-upload" type="button">UPLOAD TO PROFILE</button></div>
 
         <div class="control-section">
           <div class="section-title">PROFILE MODULES</div>
@@ -170,6 +171,8 @@ function bind() {
   document.querySelector<HTMLInputElement>('#status')?.addEventListener('input', e => { draft.status=(e.target as HTMLInputElement).value; renderPreviewOnly(); });
   document.querySelector<HTMLTextAreaElement>('#bio')?.addEventListener('input', e => { draft.bio=(e.target as HTMLTextAreaElement).value; renderPreviewOnly(); });
   document.querySelector('#save')?.addEventListener('click', save);
+  document.querySelector('#upload-media')?.addEventListener('click', async()=>{const input=document.querySelector<HTMLInputElement>('#profile-media');const files=[...(input?.files??[])];if(!files.length||!profileClient||!profileAuthority)return;const {data:{user}}=await profileClient.auth.getUser();if(!user)return;try{const {data:post,error}=await profileClient.from('grid_profile_posts').insert({user_id:user.id,body:'Profile media',visibility:'public'}).select('*').single();if(error)throw error;for(const file of files){const safe=file.name.replace(/[^A-Za-z0-9._-]/g,'_');const path=user.id+'/'+crypto.randomUUID()+'-'+safe;const up=await profileClient.storage.from('profile-media').upload(path,file,{upsert:false,contentType:file.type});if(up.error)throw up.error;const url=profileClient.storage.from('profile-media').getPublicUrl(path).data.publicUrl;const row=await profileClient.from('grid_profile_media').insert({user_id:user.id,post_id:post.id,kind:file.type.startsWith('video/')?'VIDEO':'IMAGE',url,caption:file.name,metadata:{mime:file.type,size:file.size}});if(row.error)throw row.error;}cloudMedia=await profileAuthority.media(user.id);render();}catch(error){console.warn('Profile media upload failed.',error);}});
+
   document.querySelector('#upload-media')?.addEventListener('click', async()=>{
     const input=document.querySelector<HTMLInputElement>('#profile-media');const files=[...(input?.files??[])];
     if(!files.length||!profileClient){return;}
