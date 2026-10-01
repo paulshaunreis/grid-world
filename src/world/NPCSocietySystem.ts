@@ -117,7 +117,8 @@ export class NPCSocietySystem {
     this.gatePositions.set(world.id,[world.center.x,world.center.z]);
     this.root.add(gate);
     const existing=this.citizens.filter(c=>c.world===world.id).length;
-    if(existing===0){
+    const hasDesignedSociety=CITIZENS.some(row=>row[2]===world.id);
+    if(existing===0 && !hasDesignedSociety){
       const x=world.center.x,z=world.center.z;
       this.spawn(world.label+' Guide','NAVIGATOR',world.id,x+2,z+2,x-2,z-2);
       this.spawn(world.label+' Keeper','KEEPER',world.id,x-2,z+1,x+2,z-1);
