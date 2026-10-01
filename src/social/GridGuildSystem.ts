@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { GridSocialAuthority } from './GridSocialAuthority';
 
 export type GridOrganizationKind='GUILD'|'GROUP'|'TEAM'|'STORE'|'NPC';
 export type GridOrganizationActorKind='USER'|'NPC';
@@ -32,5 +33,13 @@ export class GridGuildSystem {
   treasury(id:string){return this.treasuries.get(id);}
   creditTreasury(id:string,amount:number){const t=this.treasuries.get(id);if(!t||amount<=0)return false;t.balance+=amount;t.lifetimeInflow+=amount;return true;}
   debitTreasury(id:string,amount:number){const t=this.treasuries.get(id);if(!t||amount<=0||amount>t.balance-t.reserved)return false;t.balance-=amount;t.lifetimeOutflow+=amount;return true;}
+  async syncOrganization(authority:GridSocialAuthority,orgId:string,accessMode:'private'|'invite'|'public'='private',worldId?:string|null){
+    const o=this.organizations.get(orgId);if(!o)throw new Error('Unknown organization: '+orgId);
+    return authority.upsertOrganization({id:o.id,kind:o.kind,name:o.name,accessMode,worldId,metadata:{description:o.description,tags:o.tags,worldIds:o.worldIds}});
+  }
+  async syncActor(authority:GridSocialAuthority,orgId:string,actorKind:GridOrganizationActorKind,actorId:string,role:GridOrganizationRole='MEMBER'){
+    if(!this.organizations.has(orgId))throw new Error('Unknown organization: '+orgId);
+    return authority.setMember({organizationId:orgId,actorKind,actorId,role});
+  }
   snapshot(){return [...this.organizations.values()].map(o=>({...o,members:o.members.map(m=>({...m})),worldIds:[...o.worldIds]}));}
 }
