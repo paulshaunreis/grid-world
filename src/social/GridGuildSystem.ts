@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
-export type GridOrganizationKind='GUILD'|'GROUP'|'TEAM';
+export type GridOrganizationKind='GUILD'|'GROUP'|'TEAM'|'STORE'|'NPC';
+export type GridOrganizationActorKind='USER'|'NPC';
 export type GridOrganizationRole='OWNER'|'ADMIN'|'LEADER'|'OFFICER'|'MEMBER';
 export interface GridOrganizationMember { userId:string; role:GridOrganizationRole; joinedAt:number; }
 export interface GridOrganizationForum { organizationId:string; title:string; description:string; contentRating:'E'|'CHILD'|'TEEN'|'ADULT'|'GRAPHIC'|'RESTRICTED'; }
@@ -20,6 +21,10 @@ export class GridGuildSystem {
     this.organizations.set(id,org);this.forums.set(id,forum);this.treasuries.set(id,treasury);return org;
   }
   addMember(orgId:string,userId:string,role:GridOrganizationRole='MEMBER'){const o=this.organizations.get(orgId);if(!o)return false;if(!o.members.some(m=>m.userId===userId))o.members.push({userId,role,joinedAt:Date.now()});return true;}
+  addActor(orgId:string,actorId:string,actorKind:GridOrganizationActorKind='NPC',role:GridOrganizationRole='MEMBER'){return actorKind==='USER'?this.addMember(orgId,actorId,role):this.addMember(orgId,'npc:'+actorId,role);}
+  members(orgId:string){return this.organizations.get(orgId)?.members??[];}
+  organizationsOfKind(kind:GridOrganizationKind){return [...this.organizations.values()].filter(o=>o.kind===kind);}
+
   setWorlds(orgId:string,worldIds:string[]){const o=this.organizations.get(orgId);if(!o)return false;o.worldIds=[...new Set(worldIds)];return true;}
   organizationsForUser(userId:string){return [...this.organizations.values()].filter(o=>o.members.some(m=>m.userId===userId));}
   get(id:string){return this.organizations.get(id);}
