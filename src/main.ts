@@ -1511,8 +1511,8 @@ function animate(now: number) {
   npcSociety.applyTransitInfluence(persistentTransitByWorld);
   for(const [transitWorld,flow] of Object.entries(persistentTransitByWorld)) worldConsequences.recordTransitSurge(transitWorld as EcologyWorld,flow);
   worldEvolution.update(dt, livingSnapshot, worldConsequences.getSnapshot());
-  evolutionaryPopulations.update(dt, livingSnapshot, worldEvolution.get(livingSnapshot.world as EcologyWorld));
   ecologicalWeb.update(dt, livingSnapshot, worldEvolution.get(livingSnapshot.world as EcologyWorld));
+  evolutionaryPopulations.update(dt, livingSnapshot, worldEvolution.get(livingSnapshot.world as EcologyWorld), ecologicalWeb.getWorldSnapshot(livingSnapshot.world as EcologyWorld));
   const evolutionState = worldEvolution.get(livingSnapshot.world as EcologyWorld);
   const ecologicalWebSnapshot = ecologicalWeb.getAll().filter(population => population.world === livingSnapshot.world);
   const consequenceSnapshotForResources = worldConsequences.getSnapshot();
