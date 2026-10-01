@@ -375,10 +375,15 @@ marketPanel = mountMarketPanel(() => worldResources.getInventory(), () => market
 const gridEconomyPanel = mountGridEconomyPanel(() => combatAuthority);
 const gridAuthPanel = cloudPersistence ? mountGridAuthPanel(new GridAuthService(cloudPersistence.getClient()), profile => {
   identity = { ...identity, id: profile.id, displayName: profile.display_name };
+  cloudIdentity = { ...cloudIdentity, id: profile.id, displayName: profile.display_name };
   writeVersioned('grid-world:identity', 1, identity);
+  player.setAvatarStyle(identity.avatarStyle);
+  updatePlayerNameplate(profile.display_name);
   identityButton.textContent = '✦ ' + (profile.handle || profile.display_name);
   const joinAuthButton = document.querySelector<HTMLButtonElement>('#auth-button');
   if (authButton) authButton.textContent = 'ACCOUNT';
+  void presence?.setIdentity(cloudIdentity, player.getTransform());
+  addChatMessage('GRID IDENTITY', profile.handle + ' is now connected to the Grid.', 'system');
 }) : null;
 const authButton = document.querySelector<HTMLButtonElement>('#auth-button');
 authButton?.addEventListener('click', async () => {
@@ -618,6 +623,29 @@ const combatSystem = new CombatSystem();
 world.scene.add(combatSystem.root);
 combatSystem.register({id:identity.id,faction:'PLAYER',root:player.avatar,maxHealth:100,damage:18,range:2.7,respawnPosition:new THREE.Vector3(0,0,7)});
 world.scene.add(player.avatar);
+
+const playerNameplateCanvas = document.createElement('canvas');
+playerNameplateCanvas.width = 512;
+playerNameplateCanvas.height = 128;
+const playerNameplateContext = playerNameplateCanvas.getContext('2d')!;
+const playerNameplateTexture = new THREE.CanvasTexture(playerNameplateCanvas);
+const playerNameplate = new THREE.Sprite(new THREE.SpriteMaterial({ map: playerNameplateTexture, transparent: true, depthWrite: false }));
+playerNameplate.scale.set(3.2, 0.8, 1);
+playerNameplate.position.set(0, 2.45, 0);
+player.avatar.add(playerNameplate);
+function updatePlayerNameplate(displayName: string) {
+  playerNameplateContext.clearRect(0, 0, 512, 128);
+  playerNameplateContext.fillStyle = 'rgba(7, 17, 31, 0.78)';
+  playerNameplateContext.roundRect(8, 24, 496, 76, 18);
+  playerNameplateContext.fill();
+  playerNameplateContext.font = 'bold 42px system-ui, sans-serif';
+  playerNameplateContext.textAlign = 'center';
+  playerNameplateContext.textBaseline = 'middle';
+  playerNameplateContext.fillStyle = '#eef8ff';
+  playerNameplateContext.fillText(displayName, 256, 62);
+  playerNameplateTexture.needsUpdate = true;
+}
+updatePlayerNameplate(identity.displayName);
 
 const savedState = persistence.loadPlayerState();
 if (savedState) player.restoreTransform(savedState);
@@ -1082,10 +1110,14 @@ if (gridSessionAuth) {
   void gridSessionAuth.profile().then(profile => {
     if (!profile) return;
     identity = { ...identity, id: profile.id, displayName: profile.display_name };
+    cloudIdentity = { ...cloudIdentity, id: profile.id, displayName: profile.display_name };
     writeVersioned('grid-world:identity', 1, identity);
+    player.setAvatarStyle(identity.avatarStyle);
+    updatePlayerNameplate(profile.display_name);
     identityButton.textContent = '✦ ' + (profile.handle || profile.display_name);
     const button = document.querySelector<HTMLButtonElement>('#auth-button');
     if (button) button.textContent = 'ACCOUNT';
+    void presence?.setIdentity(cloudIdentity, player.getTransform());
   }).catch(() => {});
 }
 
