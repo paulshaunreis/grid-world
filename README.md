@@ -41,3 +41,15 @@ The architecture should stay modular so networking and persistence can be introd
 ## Living World principle
 
 A world description is treated as environmental DNA. Generated worlds can receive their own architecture, climate, atmosphere, habitat bands, flora, fauna, weather, ecological interactions, seasonal changes, and emergent life without a fixed world-count limit. The public website mirrors this direction with a living-world visual atlas and live Grid signals.
+
+
+## Chemistry, energy and consequence systems
+
+- **Grid Chemistry** models all 118 periodic-table elements and connects mineral formulas to elemental composition and geological formation families.
+- **Grid Minerals** uses chemistry-aware world tags so generated deposits respond to volcanic, hydrothermal, metamorphic, sedimentary, weathering, silica, fluorine and carbon signatures.
+- **Grid Chakra** is a fictional/spiritual resonance system inspired by varied chakra traditions; it is gameplay energy, not a medical or scientific claim.
+- **Grid Alchemy** provides fictional transformation recipes using mineral inputs, elemental catalysts and energy costs.
+- **Grid Karma** tracks consequence history for any subject, including users and NPCs, and exposes karma, luck and streak state for missions, achievements and chance events.
+- Elemental laboratory worlds include Emberforge, Azurevault, Aetherion, Verdantium and Primordia for testing world generation and emergent geology.
+
+The project uses these systems as independent layers so future worlds can combine chemistry, geology, ecology, energy, narrative consequence and sandbox gameplay without introducing a fixed world-count ceiling.
