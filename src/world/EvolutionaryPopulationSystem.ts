@@ -27,8 +27,10 @@ export class EvolutionaryPopulationSystem {
   private populations=new Map<string,EvolvingPopulation>();
   private emergent:EmergentSpecies[]=[];
   private readonly emergentVisuals=new Map<string,THREE.Object3D>();
+  private readonly ambientVisuals=new Map<string,THREE.Object3D[]>();
   private elapsed=0;
   private phenotypeElapsed=0;
+  private densityElapsed=0;
   private visualState=new Map<string,number>();
 
   constructor(){
@@ -95,7 +97,7 @@ export class EvolutionaryPopulationSystem {
     if(!scene)return;
     const seen=new Set<string>();
     scene.traverse(object=>{
-      if(object===this.root||object.userData.evolutionEmergent)return;
+      if(object===this.root||object.userData.evolutionEmergent||object.userData.populationAmbient)return;
       if(object.userData.gridObjectKind!=='creature')return;
       const speciesId=String(object.userData.species??'');
       if(!speciesId)return;
@@ -128,6 +130,57 @@ export class EvolutionaryPopulationSystem {
     });
     this.root.userData.trackedSpecies=[...seen];
   }
+
+
+  private reconcilePopulationVisuals(living:LivingWorldSnapshot){
+    const scene=this.root.parent;if(!scene)return;
+    const activeSpecies=new Set<string>();
+    for(const p of this.populations.values()){
+      if(p.world!==living.world)continue;
+      const key=this.key(p.world,p.speciesId);
+      activeSpecies.add(key);
+      let source:THREE.Object3D|undefined;
+      scene.traverse(object=>{
+        if(source||object.userData.populationAmbient||object.userData.evolutionEmergent)return;
+        if(object.userData.gridObjectKind==='creature'&&String(object.userData.species)===p.speciesId&&String(object.userData.worldId??p.world)===p.world)source=object;
+      });
+      if(!source)continue;
+      // Population counts can be very large; only a small ambient sample is rendered.
+      const targetCount=p.population>48?5:p.population>32?4:p.population>20?3:p.population>10?1:0;
+      const current=this.ambientVisuals.get(key)??[];
+      while(current.length>targetCount){
+        current.pop()?.removeFromParent();
+      }
+      while(current.length<targetCount){
+        const visual=source.clone(true);
+        const index=current.length,angle=(index+1)*2.399+p.generation*.37,radius=2.5+index*1.7;
+        visual.position.copy(source.position).add(new THREE.Vector3(Math.cos(angle)*radius,0,Math.sin(angle)*radius));
+        visual.userData.populationAmbient=true;
+        visual.userData.populationSpeciesId=p.speciesId;
+        visual.userData.populationWorldId=p.world;
+        visual.userData.gridObjectKind='creature';
+        visual.userData.evolutionAbundance=p.population;
+        visual.userData.evolutionPopulationState=p.population>32?'ABUNDANT':p.population<5?'SCARCE':'STABLE';
+        visual.userData.interactable=false;
+        visual.scale.multiplyScalar(THREE.MathUtils.lerp(.9,1.05,Math.min(1,p.population/48)));
+        scene.add(visual);
+        current.push(visual);
+      }
+      this.ambientVisuals.set(key,current);
+      this.visualState.set(key,p.population>32?1:p.population<5?-1:0);
+    }
+    for(const [key,visuals] of this.ambientVisuals){
+      if(!activeSpecies.has(key)||key.split('::')[0]!==living.world){
+        for(const visual of visuals)visual.removeFromParent();
+        this.ambientVisuals.delete(key);
+        this.visualState.delete(key);
+      }
+    }
+    this.root.userData.populationVisuals=[...this.ambientVisuals.entries()].map(([key,visuals])=>({
+      key,count:visuals.length,state:this.visualState.get(key)??0
+    }));
+  }
+
 
   private spawnEmergentVisual(species:EmergentSpecies){
     if(this.emergentVisuals.has(species.speciesId))return;
@@ -163,8 +216,9 @@ export class EvolutionaryPopulationSystem {
   }
 
   update(delta:number,living:LivingWorldSnapshot,state:{fertility:number;biodiversity:number;water:number;environmentalStress:number},web?:Record<string,{population:number;health:number;niche:number;compatibility:number;pressure:number;generation:number}>){
-    this.elapsed+=delta;this.phenotypeElapsed+=delta;this.updateEmergentVisuals(delta);
+    this.elapsed+=delta;this.phenotypeElapsed+=delta;this.densityElapsed+=delta;this.updateEmergentVisuals(delta);
     if(this.phenotypeElapsed>=1.5){this.phenotypeElapsed=0;this.syncPhenotypes(living);}
+    if(this.densityElapsed>=4){this.densityElapsed=0;this.reconcilePopulationVisuals(living);}
     if(this.elapsed<8)return;
     this.elapsed=0;this.registerWorld(living.world);
     for(const p of this.populations.values()){
@@ -189,6 +243,7 @@ export class EvolutionaryPopulationSystem {
       }
     }
     this.syncPhenotypes(living);
+    this.reconcilePopulationVisuals(living);
     this.save();
     this.root.userData.populations=[...this.populations.values()];
     this.root.userData.emergentSpecies=this.emergent;
