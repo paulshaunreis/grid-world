@@ -34,6 +34,11 @@ export class SupabasePersistence {
     const { error } = await this.client.rpc('grid_build_set_member', { p_world_id:worldId, p_region_id:regionId, p_user_id:userId, p_role:role });
     if (error) throw error;
   }
+  async listBuildMembers(worldId:string, regionId:string):Promise<Array<{userId:string;role:string}>> {
+    const { data, error } = await this.client.rpc('grid_build_list_members', { p_world_id:worldId, p_region_id:regionId });
+    if (error) throw error;
+    return (data ?? []).map((row:any)=>({userId:String(row.user_id),role:String(row.role)}));
+  }
 
   async save(identity: PlayerIdentity, state: PersistedPlayerState) {
     const { error: profileError } = await this.client.from('profiles').upsert({ id: identity.id, display_name: identity.displayName, updated_at: new Date().toISOString() });
