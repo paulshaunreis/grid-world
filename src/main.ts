@@ -2040,6 +2040,7 @@ function animate(now: number) {
   worldSnapshotManager.tick(dt * 1000, () => ({
     player: { ...player.getTransform(), regionId: 'first-light' },
     world: livingWorld.getSnapshot(),
+    builds: easyBuildSystem.serialize(),
     health: { savedAt: new Date().toISOString() },
   }));
 
