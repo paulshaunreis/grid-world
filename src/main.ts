@@ -89,6 +89,9 @@ import { GridGuildSystem } from './social/GridGuildSystem';
 import { GridSocialAuthority } from './social/GridSocialAuthority';
 import { GridFriendSystem } from './social/GridFriendSystem';
 import { GridPartySystem } from './social/GridPartySystem';
+import { GridLandmarkAuthority } from './social/GridLandmarkAuthority';
+import { mountGridLandmarkInventory } from './ui/GridLandmarkInventory';
+import './ui/grid-landmark-inventory.css';
 import { mountGridPartyHud } from './ui/GridPartyHud';
 import { mountTeleportExperience, createTeleportAvatarEffect } from './ui/GridTeleportExperience';
 import { GridWorldMediaSystem } from './media/GridWorldMediaSystem';
@@ -122,6 +125,8 @@ const friendSystem = new GridFriendSystem();
 const partySystem = cloudPersistence ? new GridPartySystem(cloudPersistence.getClient()) : null;
 const partyHud = mountGridPartyHud();
 const teleportExperience = mountTeleportExperience();
+const landmarkAuthority = cloudPersistence ? new GridLandmarkAuthority(cloudPersistence.getClient()) : null;
+if (landmarkAuthority) mountGridLandmarkInventory(landmarkAuthority);
 
 
 type HudTheme = 'cyan' | 'violet' | 'magenta' | 'emerald' | 'amber' | 'white';
