@@ -64,7 +64,7 @@ async function moderateContent(content:string,ctx:unknown){
   if(action==="moderate"){const content=String(body.content||"").trim().slice(0,8000);if(!content)return json({error:"content_required"},400);const result=await moderateContent(content,ctx);if(u&&result.decision!=="ALLOW"){await admin.from("grid_operator_cases").insert({user_id:u.id,severity:result.severity,status:"open",category:"moderation",title:"Content moderation review",summary:String(result.user_message||"Content requires review."),evidence:{decision:result.decision,reasons:result.reasons,matched_rules:result.matched_rules}});}return json({ok:true,result});}\n  if(action==="chat"){
    const message=String(body.message||"").trim().slice(0,4000);if(!message)return json({error:"message_required"},400);
    if(u) await admin.from("grid_operator_messages").insert({user_id:u.id,role:"user",body:message});
-   const answer=await callOperator(message,ctx);
+   const runtimeContext=(body.runtime_context&&typeof body.runtime_context==="object")?body.runtime_context:{};\n   const answer=await callOperator(message,{...ctx,runtime:runtimeContext});
    if(u) await admin.from("grid_operator_messages").insert({user_id:u.id,role:"operator",body:answer});
    return json({ok:true,answer,openCases:ctx.cases,authenticated:Boolean(u)});
   }
