@@ -492,6 +492,11 @@ authButton?.addEventListener('click', async () => {
   gridAuthPanel.open(user ? 'profile' : 'login');
 });
 
+const authRoute = new URLSearchParams(window.location.search).get('auth');
+if (gridAuthPanel && (authRoute === 'join' || authRoute === 'login')) {
+  requestAnimationFrame(() => gridAuthPanel?.open(authRoute === 'join' ? 'join' : 'login'));
+}
+
 const transitPanel = mountTransitPanel();
 let merchantRefreshTimer = 0;
 let mineralSyncTimer = 0;
