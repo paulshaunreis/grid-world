@@ -298,8 +298,6 @@ const worldSkins = createWorldSkinDirector();
 const worldArchitecture = new WorldArchitectureSystem();
 const worldEnvironment = new WorldEnvironmentSystem();
 world.scene.add(worldEnvironment.root);
-const voxelTerrain = new VoxelTerrainSystem(camera, renderer.domElement);
-world.scene.add(voxelTerrain.root);
 world.scene.add(worldSkins.root);
 world.scene.add(worldArchitecture.root);
 const engine = new GridEngine('client', world.scene);
@@ -975,6 +973,9 @@ renderer.shadowMap.enabled = true;
 app.appendChild(renderer.domElement);
 engine.setRenderer(new ThreeGridRenderer(renderer));
 void engine.start();
+
+const voxelTerrain = new VoxelTerrainSystem(camera, renderer.domElement);
+world.scene.add(voxelTerrain.root);
 
 const interaction = new InteractionSystem(camera, world.scene);
 
