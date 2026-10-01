@@ -377,7 +377,7 @@ const gridAuthPanel = cloudPersistence ? mountGridAuthPanel(new GridAuthService(
   identity = { ...identity, id: profile.id, displayName: profile.display_name };
   writeVersioned('grid-world:identity', 1, identity);
   identityButton.textContent = '✦ ' + (profile.handle || profile.display_name);
-  const authButton = document.querySelector<HTMLButtonElement>('#auth-button');
+  const joinAuthButton = document.querySelector<HTMLButtonElement>('#auth-button');
   if (authButton) authButton.textContent = 'ACCOUNT';
 }) : null;
 const authButton = document.querySelector<HTMLButtonElement>('#auth-button');
