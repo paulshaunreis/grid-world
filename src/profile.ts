@@ -1,11 +1,11 @@
 import './profile.css';
 import { createClient } from '@supabase/supabase-js';
-import { GridProfileAuthority, type GridProfileMedia } from './social/GridProfileAuthority';
+import { GridProfileAuthority, type GridProfileMedia, type GridArenaRanking } from './social/GridProfileAuthority';
 const profileSupabaseUrl=import.meta.env.VITE_SUPABASE_URL as string|undefined;
 const profileSupabaseKey=import.meta.env.VITE_SUPABASE_ANON_KEY as string|undefined;
 const profileClient=profileSupabaseUrl&&profileSupabaseKey?createClient(profileSupabaseUrl,profileSupabaseKey):null;
 const profileAuthority=profileClient?new GridProfileAuthority(profileClient):null;
-let cloudMedia:GridProfileMedia[]=[];
+let cloudMedia:GridProfileMedia[]=[];let arenaRanking:GridArenaRanking|null=null;
 
 type ProfileTheme = {
   preset: string;
@@ -44,7 +44,7 @@ const defaults: ProfileDraft = {
   },
   layout: {
     columns: 2,
-    sections: ['about', 'worlds', 'creations', 'gallery', 'communities', 'events'],
+    sections: ['about', 'worlds', 'creations', 'gallery', 'communities', 'events', 'arena'],
   },
   favoriteEmoji: '✨',
 };
@@ -72,11 +72,12 @@ const sectionLabels: Record<string, string> = {
   gallery: 'Gallery',
   communities: 'Communities',
   events: 'Events',
+  arena: 'Arena Ranking',
 };
 
 async function save() {
   localStorage.setItem(key, JSON.stringify(draft));
-  if(profileAuthority&&profileClient){try{const {data:{user}}=await profileClient.auth.getUser();if(user){await profileAuthority.save({handle:draft.handle,displayName:draft.displayName,bio:draft.bio,status:draft.status,theme:draft.theme,layout:draft.layout});cloudMedia=await profileAuthority.media(user.id);render();return;}}catch(error){console.warn('Cloud profile save unavailable; local profile retained.',error);}}
+  if(profileAuthority&&profileClient){try{const {data:{user}}=await profileClient.auth.getUser();if(user){await profileAuthority.save({handle:draft.handle,displayName:draft.displayName,bio:draft.bio,status:draft.status,theme:draft.theme,layout:draft.layout});cloudMedia=await profileAuthority.media(user.id);arenaRanking=await profileAuthority.ranking(user.id);render();return;}}catch(error){console.warn('Cloud profile save unavailable; local profile retained.',error);}}
   const status=document.querySelector('#save-status');if(status)status.textContent='Saved locally · ready for Grid Identity';
 }
 
@@ -161,6 +162,7 @@ function moduleMarkup(section: string, data: ProfileDraft): string {
     gallery: `<article class="module-card"><span class="module-label">GALLERY</span><h3>Moments</h3><div class="gallery-grid">${cloudMedia.length?cloudMedia.slice(0,8).map(m=>m.kind==='VIDEO'?`<video src="${escapeHtml(m.url)}" controls muted></video>`:`<img src="${escapeHtml(m.url)}" alt="${escapeHtml(m.caption||'Grid World post')}">`).join(''):'<div>🌌</div><div>🌲</div><div>🌃</div><div>🪐</div>'}</div></article>`,
     communities: `<article class="module-card"><span class="module-label">COMMUNITIES</span><h3>Places I belong</h3><p>World Builders · First Light Residents · Grid Creators</p></article>`,
     events: `<article class="module-card"><span class="module-label">EVENTS</span><h3>Next up</h3><div class="event-row"><b>NEON NIGHTS</b><small>Tonight · Virtual</small></div><div class="event-row"><b>CREATOR CAMP</b><small>Saturday · Hybrid</small></div></article>`,
+    arena: arenaRanking?`<article class="module-card"><span class="module-label">ARENA</span><h3>Season ${escapeHtml(arenaRanking.season)}</h3><div class="event-row"><b>RATING ${arenaRanking.rating}</b><small>${arenaRanking.wins}W · ${arenaRanking.losses}L</small></div><div class="event-row"><b>MATCHES</b><small>${arenaRanking.matches}</small></div></article>`:`<article class="module-card"><span class="module-label">ARENA</span><h3>Unranked</h3><p>Enter an Arena season to establish a competitive record.</p></article>`,
   };
   return content[section] ?? '';
 }
@@ -171,7 +173,7 @@ function bind() {
   document.querySelector<HTMLInputElement>('#status')?.addEventListener('input', e => { draft.status=(e.target as HTMLInputElement).value; renderPreviewOnly(); });
   document.querySelector<HTMLTextAreaElement>('#bio')?.addEventListener('input', e => { draft.bio=(e.target as HTMLTextAreaElement).value; renderPreviewOnly(); });
   document.querySelector('#save')?.addEventListener('click', save);
-  document.querySelector('#upload-media')?.addEventListener('click', async()=>{const input=document.querySelector<HTMLInputElement>('#profile-media');const files=[...(input?.files??[])];if(!files.length||!profileClient||!profileAuthority)return;const {data:{user}}=await profileClient.auth.getUser();if(!user)return;try{const {data:post,error}=await profileClient.from('grid_profile_posts').insert({user_id:user.id,body:'Profile media',visibility:'public'}).select('*').single();if(error)throw error;for(const file of files){const safe=file.name.replace(/[^A-Za-z0-9._-]/g,'_');const path=user.id+'/'+crypto.randomUUID()+'-'+safe;const up=await profileClient.storage.from('profile-media').upload(path,file,{upsert:false,contentType:file.type});if(up.error)throw up.error;const url=profileClient.storage.from('profile-media').getPublicUrl(path).data.publicUrl;const row=await profileClient.from('grid_profile_media').insert({user_id:user.id,post_id:post.id,kind:file.type.startsWith('video/')?'VIDEO':'IMAGE',url,caption:file.name,metadata:{mime:file.type,size:file.size}});if(row.error)throw row.error;}cloudMedia=await profileAuthority.media(user.id);render();}catch(error){console.warn('Profile media upload failed.',error);}});
+  document.querySelector('#upload-media')?.addEventListener('click', async()=>{const input=document.querySelector<HTMLInputElement>('#profile-media');const files=[...(input?.files??[])];if(!files.length||!profileClient||!profileAuthority)return;const {data:{user}}=await profileClient.auth.getUser();if(!user)return;try{const {data:post,error}=await profileClient.from('grid_profile_posts').insert({user_id:user.id,body:'Profile media',visibility:'public'}).select('*').single();if(error)throw error;for(const file of files){const safe=file.name.replace(/[^A-Za-z0-9._-]/g,'_');const path=user.id+'/'+crypto.randomUUID()+'-'+safe;const up=await profileClient.storage.from('profile-media').upload(path,file,{upsert:false,contentType:file.type});if(up.error)throw up.error;const url=profileClient.storage.from('profile-media').getPublicUrl(path).data.publicUrl;const row=await profileClient.from('grid_profile_media').insert({user_id:user.id,post_id:post.id,kind:file.type.startsWith('video/')?'VIDEO':'IMAGE',url,caption:file.name,metadata:{mime:file.type,size:file.size}});if(row.error)throw row.error;}cloudMedia=await profileAuthority.media(user.id);arenaRanking=await profileAuthority.ranking(user.id);render();}catch(error){console.warn('Profile media upload failed.',error);}});
 
   document.querySelector('#upload-media')?.addEventListener('click', async()=>{
     const input=document.querySelector<HTMLInputElement>('#profile-media');const files=[...(input?.files??[])];
