@@ -6,6 +6,7 @@ import { SupabasePersistence } from './persistence/SupabasePersistence';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, supabaseConfigured } from './persistence/config';
 import { loadOrCreateIdentity } from './core/PlayerIdentity';
 import { writeVersioned } from './core/VersionedStorage';
+import { GridWorldSnapshotManager } from './core/GridWorldSnapshotManager';
 import { PlayerController } from './core/PlayerController';
 import { World } from './world/World';
 import { SupabasePresence } from './network/SupabasePresence';
@@ -109,6 +110,7 @@ const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
 let accountAgeBand: GridAgeBand = 'child';
 const persistence = new Persistence();
+const worldSnapshotManager = new GridWorldSnapshotManager('first-light');
 const cloudPersistence = supabaseConfigured ? new SupabasePersistence(SUPABASE_URL!, SUPABASE_PUBLISHABLE_KEY!) : null;
 
 type HudTheme = 'cyan' | 'violet' | 'magenta' | 'emerald' | 'amber' | 'white';
@@ -2035,6 +2037,11 @@ function animate(now: number) {
     savePlayer();
     saveTimer = 0;
   }
+  worldSnapshotManager.tick(dt * 1000, () => ({
+    player: { ...player.getTransform(), regionId: 'first-light' },
+    world: livingWorld.getSnapshot(),
+    health: { savedAt: new Date().toISOString() },
+  }));
 
   if (!cameraInitialized) {
     cameraYaw = player.heading;
