@@ -99,3 +99,25 @@ The intended loop is:
 **economic activity → 1% controlled circulation allocation → Omni Bank reserve → starter grants / approved economic programs → users spend → creators and NPC merchants receive → economy circulates**
 
 The recycling operation is server-only. Users cannot call it, change the percentage, increase the reserve cap, or mint currency directly.
+
+
+### Living economy and barter
+
+Grid World treats player-created goods as **economic assets**, not automatic liabilities for Grid Corporation. If a tree produces an apple, the apple can enter player inventory and acquire a market value through supply, demand, scarcity, quality, location, season, and player preference.
+
+Grid Corporation does **not** have to buy every apple. A player may:
+- sell the apple to another player for GRID;
+- trade the apple directly for an orange or another item;
+- list the apple in the Bazaar;
+- consume/use the apple;
+- hold it as an asset.
+
+Barter is a first-class server-authoritative transaction. The offered item is escrowed when a barter offer is created; accepting the offer atomically transfers both sides and records a ledger event. No GRID currency has to be minted for an apple-for-orange trade.
+
+This creates two complementary economic layers:
+
+**Barter economy:** apple ↔ orange, materials ↔ tools, services ↔ goods.
+
+**Currency economy:** apple → GRID → orange.
+
+The existence of an item's value therefore does not require Grid Corporation to inject matching real-world money. Value can emerge from exchange between participants, while the Omni Bank supplies only a controlled amount of initial/approved virtual liquidity.
