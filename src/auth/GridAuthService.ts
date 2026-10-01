@@ -57,6 +57,8 @@ export class GridAuthService {
     return data;
   }
 
+  async claimEarnedLand(worldId:string,parcelKey:string){ const {data,error}=await this.client.rpc('grid_claim_earned_land',{p_world_id:worldId,p_parcel_key:parcelKey}); if(error) throw error; return data; }
+
   async earnWorld(worldId:string){
     const {data,error}=await this.client.rpc('grid_earn_world_charter',{p_world_id:worldId});
     if(error) throw error;
