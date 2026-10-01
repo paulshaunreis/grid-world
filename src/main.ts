@@ -58,7 +58,7 @@ import { mountMarketPanel } from './ui/MarketPanel';
 import { mountTransitPanel } from './ui/TransitPanel';
 import { WorldArchitectureSystem } from './world/WorldArchitectureSystem';
 import { WorldEnvironmentSystem } from './world/WorldEnvironmentSystem';
-import { VoxelTerrainSystem } from './world/VoxelTerrainSystem';
+import { GridMatterTerrainSystem } from './world/GridMatterTerrainSystem';
 import { WorldEvolutionSystem } from './world/WorldEvolutionSystem';
 import { EvolutionaryPopulationSystem } from './world/EvolutionaryPopulationSystem';
 import { EcologicalWebSystem } from './world/EcologicalWebSystem';
@@ -974,8 +974,8 @@ app.appendChild(renderer.domElement);
 engine.setRenderer(new ThreeGridRenderer(renderer));
 void engine.start();
 
-const voxelTerrain = new VoxelTerrainSystem(camera, renderer.domElement);
-world.scene.add(voxelTerrain.root);
+const gridMatterTerrain = new GridMatterTerrainSystem(camera, renderer.domElement);
+world.scene.add(gridMatterTerrain.root);
 
 const interaction = new InteractionSystem(camera, world.scene);
 
@@ -1412,8 +1412,8 @@ function animate(now: number) {
     merchantRefreshTimer += dt;
     if(merchantRefreshTimer > 12) { merchantRefreshTimer = 0; void refreshMerchantMarket(); }
   const livingSnapshot = livingWorld.getSnapshot();
-  voxelTerrain.setActiveWorld((livingSnapshot.world as EcologyWorld).id);
-  voxelTerrain.rebuild();
+  gridMatterTerrain.setActiveWorld((livingSnapshot.world as EcologyWorld).id);
+  gridMatterTerrain.rebuild();
   const consequenceSnapshot = worldConsequences.getSnapshot();
   creatureEcology.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, consequenceSnapshot, undefined, { weather: livingSnapshot.weather, temperatureC: livingSnapshot.temperatureC, windX: livingSnapshot.windX, windZ: livingSnapshot.windZ, season: livingSnapshot.season });
   const ecologySnapshot = creatureEcology.getSnapshot();
