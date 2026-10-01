@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { getWorld, getWorldConnections } from '../world/GridWorldRegistry';
 import { deriveWorldDNA } from '../world/WorldDNA';
 import { createStarterPBRMaterial } from './GridPBRLibrary';
+import type { GridContentRating, GridAgeBand } from '../social/GridContentAccess';
+import { canAccessContent } from '../social/GridContentAccess';
 import type { GridEngine, GridEngineFrame, GridEngineSubsystem } from './GridEngine';
 
 export type GridTeleportNodeKind = 'gate' | 'pylon';
@@ -23,6 +25,7 @@ export interface GridTeleportNodeDefinition extends GridTeleportDestination {
   cooldownSeconds?: number;
   access: 'public' | 'friends' | 'owner';
   worldId?: string;
+  contentRating?: GridContentRating;
 }
 
 export interface GridTeleportRequest {
@@ -31,11 +34,13 @@ export interface GridTeleportRequest {
   nowSeconds: number;
   relationship?: 'owner' | 'friend' | 'public';
   destinationId?: string;
+  contentRating?: GridContentRating;
+  ageBand?: GridAgeBand;
 }
 
 export interface GridTeleportResult {
   ok: boolean;
-  reason: 'teleported' | 'unknown-node' | 'offline' | 'access-denied' | 'cooldown' | 'no-destination';
+  reason: 'teleported' | 'unknown-node' | 'offline' | 'access-denied' | 'cooldown' | 'no-destination' | 'age-restricted';
   sourceNodeId?: string;
   destination?: GridTeleportDestination;
   cooldownUntil?: number;
@@ -86,6 +91,8 @@ export class GridTeleportSystem implements GridEngineSubsystem {
     const node = this.nodes.get(request.nodeId);
     if (!node) return { ok: false, reason: 'unknown-node' };
     if (node.status !== 'online') return { ok: false, reason: 'offline' };
+    const rating = request.contentRating ?? node.contentRating ?? 'E';
+    if (request.ageBand && !canAccessContent(request.ageBand, rating)) return { ok: false, reason: 'age-restricted' };
 
     const relationship = request.relationship ?? 'public';
     if (node.access === 'owner' && relationship !== 'owner') return { ok: false, reason: 'access-denied' };
