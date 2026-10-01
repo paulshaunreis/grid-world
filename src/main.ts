@@ -1599,3 +1599,711 @@ identityButton.addEventListener('click', () => { if (cloudPersistence) { const a
 identityCancel.addEventListener('click', closeIdentityPanel);
 identitySave.addEventListener('click', saveIdentityName);
 identityName.addEventListener('keydown', event => {
+  if (event.key === 'Enter') saveIdentityName();
+  if (event.key === 'Escape') closeIdentityPanel();
+});
+setControlStatus();
+
+let firstPerson = false;
+let cameraYaw = 0;
+let cameraPitch = 0.32;
+let cameraPanX = 0;
+let cameraPanY = 0;
+let cameraPanning = false;
+let cameraDistance = 7;
+let cameraInitialized = false;
+let presenceTimer = 0;
+let socialPresenceTimer = 0;
+let saveTimer = 0;
+let creatureCombatSyncTimer = 0;
+let creatureCombatStateTimer = 0;
+let creatureCombatAiTimer = 0;
+let creatureAttackTimer = 0;
+let lastCreatureThreatAt = 0;
+
+function savePlayer() {
+  const transform = player.getTransform();
+  const state = {
+    ...transform,
+    regionId: 'first-light',
+    updatedAt: new Date().toISOString(),
+  };
+  state.regionId = world.regions.findAt(transform.x, transform.z)?.definition.id ?? 'unmapped';
+  persistence.savePlayerState(state);
+  if (cloudPersistence) cloudPersistence.save(cloudIdentity, state).catch(console.error);
+  if (cloudPersistence && cloudAuthenticated) {
+    const buildVersion = Number(easyBuildSystem.root.userData.buildStateVersion ?? 0);
+    if (buildVersion !== cloudBuildVersion) {
+      const builds = easyBuildSystem.serialize().map(build => ({ objectId: build.objectId, definitionId: build.id, position: build.position as [number,number,number], rotation: build.rotation as [number,number,number], scale: build.scale as [number,number,number], ownerUserId: typeof (build as any).ownerUserId === 'string' ? (build as any).ownerUserId : cloudIdentity.id }));
+      cloudPersistence.saveBuilds(cloudIdentity, 'first-light', 'first-light', builds).then(() => {
+        cloudBuildVersion = buildVersion;
+      }).catch(error => console.warn('Cloud build persistence unavailable; local recovery remains active.', error));
+    }
+  }
+  presence?.update(transform, { regionRole: currentBuildRole, activeObjectId: easyBuildSystem.getSelectedObjectId() }).catch(console.error);
+}
+
+// Second Life-style camera: RMB orbit, wheel zoom, M mouselook.
+renderer.domElement.addEventListener('pointerdown', event => {
+  if (event.button === 2 || (event.button === 0 && event.altKey)) {
+    cameraPanning = true;
+    renderer.domElement.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  }
+});
+renderer.domElement.addEventListener('pointermove', event => {
+  if (!cameraPanning) return;
+  const sensitivity = event.shiftKey ? 0.004 : 0.008;
+  cameraYaw -= event.movementX * sensitivity;
+  cameraPitch -= event.movementY * sensitivity;
+  cameraPitch = THREE.MathUtils.clamp(cameraPitch, -0.85, 1.15);
+});
+renderer.domElement.addEventListener('pointerup', event => {
+  if (event.button === 2 || event.button === 0) {
+    cameraPanning = false;
+    try { renderer.domElement.releasePointerCapture(event.pointerId); } catch {}
+  }
+});
+renderer.domElement.addEventListener('pointercancel', () => { cameraPanning = false; });
+renderer.domElement.addEventListener('contextmenu', event => event.preventDefault());
+renderer.domElement.addEventListener('wheel', event => {
+  cameraDistance = THREE.MathUtils.clamp(cameraDistance + event.deltaY * 0.012, 2.2, 16);
+  if (cameraDistance <= 2.2 && event.deltaY < 0 && !firstPerson) {
+    firstPerson = true;
+    cameraDistance = 0.05;
+    void renderer.domElement.requestPointerLock();
+    status.textContent = 'MOUSELOOK · MOUSE AIM · WASD WALK';
+  }
+  event.preventDefault();
+}, { passive: false });
+
+addEventListener('mousemove', event => {
+  if (document.pointerLockElement !== renderer.domElement) return;
+  const sensitivity = 0.0025;
+  cameraYaw -= event.movementX * sensitivity;
+  cameraPitch -= event.movementY * sensitivity;
+  cameraPitch = THREE.MathUtils.clamp(cameraPitch, -0.85, 1.15);
+  player.setHeading(cameraYaw);
+});
+
+addEventListener('keydown', event => {
+  if (event.repeat) return;
+  if (event.key.toLowerCase() === 'm') {
+    firstPerson = !firstPerson;
+    if (firstPerson) {
+      cameraDistance = 0.05;
+      void renderer.domElement.requestPointerLock();
+      status.textContent = 'MOUSELOOK · MOUSE AIM · WASD WALK · MOUSE WHEEL ZOOM';
+    } else {
+      document.exitPointerLock?.();
+      cameraDistance = 7;
+      status.textContent = 'THIRD PERSON · RMB ORBIT · WHEEL ZOOM · WASD WALK';
+    }
+  }
+  if (event.key === 'Escape') {
+    document.exitPointerLock?.();
+    firstPerson = false;
+    cameraDistance = 7;
+    cameraPanX = 0;
+    cameraPanY = 0;
+    cameraPitch = 0.32;
+    cameraYaw = player.heading;
+    cameraPanning = false;
+    status.textContent = 'THIRD PERSON · ALT+LMB / RMB ORBIT · WHEEL ZOOM · WASD WALK';
+  }
+});
+
+addEventListener('keydown', event => {
+  if (document.activeElement === chatInput || document.activeElement === identityName) return;
+  if (event.code === 'KeyP' && !event.repeat) {
+    const next=combatSystem.getMode()==='PVP'?'PVE':'PVP';
+    if (combatAuthority) {
+      combatAuthority.setMode(next).then(result => {
+        const applied=result?.mode ?? next;
+        combatSystem.setMode(applied);
+        if (result?.allowed === false) {
+          addChatMessage('COMBAT', 'PVP is restricted to the Grid Arena. Returning to ' + applied + ' mode.', 'system');
+          audio.play('ui.error');
+        } else {
+          addChatMessage('COMBAT', applied + ' mode confirmed by Grid Authority.', 'system');
+          audio.play('ui.confirm');
+        }
+      }).catch(error => {
+        console.warn('Authoritative combat mode change failed.', error);
+        addChatMessage('COMBAT', 'Combat authority is unavailable; staying in ' + combatSystem.getMode() + ' mode.', 'system');
+        audio.play('ui.error');
+      });
+    } else {
+      combatSystem.setMode(next);
+      addChatMessage('COMBAT', next + ' mode enabled locally. Cloud authority is unavailable.', 'system');
+    }
+  }
+
+  if (event.code === 'KeyF' && !event.repeat) {
+    const targetId=combatSystem.selectNearest(identity.id,3.8);
+    const target = targetId ? world.scene.getObjectByProperty('userData.combatId', targetId) : null;
+    const targetFaction = target?.userData.combatFaction;
+    if (targetId && targetFaction==='CREATURE' && combatAuthority) {
+      combatAuthority.attackCreature(targetId).then(result => {
+        if (result?.ok) {
+          const creature=result.creature;
+          combatSystem.applyAuthoritativeCreatureState(targetId, Number(creature?.health ?? 0), Number(creature?.max_health ?? 100), !result.defeated);
+          if (result.defeated) {
+            const species=String(target?.userData.species ?? 'creature');
+            const defeatedWorld=livingWorld.getSnapshot().world as EcologyWorld;
+            questSystem.recordCombatKill(species,defeatedWorld);
+            worldConsequences.recordCreatureDefeat(defeatedWorld,species);
+            addChatMessage('COMBAT', species.replaceAll('-', ' ') + ' defeated. The field remembers.', 'system');
+            questPanel.render();
+          }
+          combatSystem.applyAuthoritativeHealth(identity.id, Number(result.attacker?.health ?? 100));
+          prompt.textContent=result.defeated ? 'F · Creature defeated' : 'F · Strike confirmed';
+          audio.play('ui.confirm');
+        } else {
+          prompt.textContent='F · ' + (result?.error ?? 'No strike');
+          audio.play('ui.error');
+        }
+      }).catch(error => {
+        console.warn('Authoritative creature attack failed.', error);
+        prompt.textContent='F · Authority unavailable';
+        audio.play('ui.error');
+      });
+    } else if (targetId && combatSystem.getMode()==='PVP' && targetFaction==='PLAYER' && combatAuthority) {
+      combatAuthority.attack(targetId).then(result => {
+        if (result?.ok) {
+          combatSystem.applyAuthoritativeHealth(targetId, Number(result.target?.health ?? 0));
+          combatSystem.applyAuthoritativeHealth(identity.id, Number(result.attacker?.health ?? 100));
+          prompt.textContent=result.defeated ? 'F · Target defeated' : 'F · Strike confirmed';
+          audio.play('ui.confirm');
+        } else {
+          prompt.textContent='F · ' + (result?.error ?? 'No strike');
+          audio.play('ui.error');
+        }
+      }).catch(error => {
+        console.warn('Authoritative attack failed.', error);
+        prompt.textContent='F · Authority unavailable';
+        audio.play('ui.error');
+      });
+    } else if (targetId && combatSystem.attack(identity.id,targetId)) {
+      prompt.textContent='F · Strike';
+      audio.play('ui.confirm');
+    } else {
+      prompt.textContent='F · No target';
+    }
+  }
+
+  if (event.code === 'KeyE' && !event.repeat) {
+    const result = interaction.interact();
+    if (result) {
+      if (handleTeleportNode(result)) return;
+      const questInteraction = questSystem.interact(
+        result.object,
+        livingWorld.getSnapshot().world as EcologyWorld,
+        livingWorld.getSnapshot().event
+      );
+      if (questInteraction.handled) {
+        prompt.textContent = `E · ${questInteraction.message}`;
+        addChatMessage(String(result.name), String(questInteraction.message ?? ''), 'team');
+        audio.play('ui.confirm');
+        questPanel.render();
+        return;
+      }
+      worldConsequences.recordDiscovery(livingWorld.getSnapshot().world as EcologyWorld, 'A traveler interacted with '+result.name+'. The discovery is now part of local history.');
+      gridKarma.record(identity.id, 'DISCOVER');
+      prompt.textContent = `E · ${String(result.name)} ✓`;
+      const npcBrain = result.object.userData.gridNpcBrain as { remember?: (memory: { subjectId?: string; eventType: string; summary: string; valence: number; importance: number; confidence: number }) => void; thought?: () => string } | undefined;
+      const npcId = (result.object.userData.gridActorId as string | undefined) ?? String(result.object.userData.interactionName ?? result.name ?? '');
+      if (result.object.userData.merchant === true && marketPanel) {
+        marketPanel.open();
+        gridEconomyPanel.openNpc(String(result.object.userData.npcProfileId ?? ('npc.merchant.' + String(result.name).toLowerCase())));
+        prompt.textContent = 'E · Merchant Exchange';
+        audio.play('ui.confirm');
+        if (npcId && combatAuthority) {
+          void combatAuthority.npcMemoryRead(npcId, 16).then(memoryResult => {
+            const memories = memoryResult?.memories ?? [];
+            const mine = memories.filter(m => String(m.subject_id ?? '') === identity.id);
+            const tradeCount = mine.filter(m => String(m.event_type ?? '').toUpperCase() === 'MARKET_TRADE').length;
+            const last = mine[0]?.summary ? String(mine[0].summary) : '';
+            let line = tradeCount >= 3
+              ? 'I know you. You have traded with me more than once.'
+              : tradeCount > 0
+                ? 'I remember our last trade. The exchange helped my stall.'
+                : 'You are new to my stall. Let us see what the world has brought you.';
+            if (last && tradeCount > 0) line += ' ' + last;
+            addChatMessage(String(result.name), line, 'team');
+          }).catch(() => undefined);
+        }
+      }
+      if (npcBrain?.remember) {
+        npcBrain.remember({
+          subjectId: identity.id,
+          eventType: 'player-interaction',
+          summary: identity.displayName + ' interacted with me.',
+          valence: .45,
+          importance: .7,
+          confidence: .95,
+        });
+        addChatMessage(result.name, npcBrain.thought?.() ?? 'I remember meeting you.', 'team');
+      }
+      if (npcId && combatAuthority && performance.now() - lastNpcMemoryAt > 2500) {
+        lastNpcMemoryAt = performance.now();
+        void combatAuthority.npcMemoryWrite({
+          npc_id: npcId,
+          subject_type: 'player',
+          subject_id: identity.id,
+          event_type: 'player-interaction',
+          summary: identity.displayName + ' interacted with me in First Light.',
+          valence: .45,
+          importance: .7,
+          confidence: .95,
+          visibility: 'public',
+        }).then(() => combatAuthority?.npcMemoryRead(npcId, 6)).then(memoryResult => {
+          const latest = memoryResult?.memories?.[0];
+          if (latest?.summary) addChatMessage(String(result.name), String(latest.summary), 'team');
+        }).catch(error => console.warn('Persistent NPC memory unavailable.', error));
+      }
+      const teamAvatarId = result.object.userData.teamAvatarId as string | undefined;
+      if (teamAvatarId) {
+        const teamAvatar = teamAvatars.find(avatar => avatar.definition.id === teamAvatarId);
+        if (teamAvatar) prompt.textContent = `E · ${teamAvatar.definition.displayName} · ${teamAvatar.interact()}`;
+      }
+      audio.play('ui.confirm');
+      scriptedObjects.dispatch(result.object, 'player interacts');
+      result.object.userData.interacted = true;
+
+      const material = result.object instanceof THREE.Mesh
+        ? result.object.material
+        : null;
+
+      if (material instanceof THREE.MeshStandardMaterial) {
+        material.emissiveIntensity = material.emissiveIntensity > 0 ? 2.8 : 0.35;
+      }
+
+      window.setTimeout(() => {
+        if (prompt.textContent === `E · ${result.name} ✓`) {
+          prompt.textContent = `E · ${result.name}`;
+        }
+      }, 1200);
+    }
+  }
+});
+
+addEventListener('beforeunload', savePlayer);
+addEventListener('beforeunload', () => { presence?.disconnect().catch(() => undefined); });
+
+let last = performance.now();
+let lastFootstepPosition = player.avatar.position.clone();
+
+function animate(now: number) {
+  const dt = Math.min((now - last) / 1000, 0.05);
+  last = now;
+  presenceTimer += dt;
+  socialPresenceTimer += dt;
+  if (socialPresenceTimer >= 30) { socialPresenceTimer = 0; void gridSocialService?.setPresence(true).catch(()=>undefined); }
+  saveTimer += dt;
+  worldEventPollTimer += dt;
+
+  if (combatAuthority && Math.floor(now / 1000) % 20 === 0 && Math.floor((now - dt*1000) / 1000) % 20 !== 0) {
+    void combatAuthority.marketTick().then(() => refreshMerchantMarket()).catch(() => undefined);
+  }
+
+  if (worldEventStream && worldEventPollTimer >= 4) {
+    worldEventStream.poll(12).then(events => {
+      if (!events.length) return;
+      if (!lastRemoteWorldEventId) { lastRemoteWorldEventId = events[0].id; return; }
+      const fresh = [];
+      for (const event of events) {
+        if (event.id === lastRemoteWorldEventId) break;
+        fresh.push(event);
+      }
+      for (const event of fresh.reverse()) addChatMessage('WORLD EVENT', event.title + ' · ' + event.summary, 'system');
+      lastRemoteWorldEventId = events[0].id;
+    }).catch(error => console.warn('World event stream unavailable.', error));
+    worldEventPollTimer = 0;
+  }
+
+  const frame = engine.update(dt);
+  if (document.pointerLockElement === renderer.domElement) {
+    const moveInput = input.moveVector();
+    if (Math.abs(moveInput.x) > .01 || Math.abs(moveInput.y) > .01) player.setHeading(cameraYaw);
+  }
+  player.update(dt);
+  if (player.avatar.position.distanceToSquared(lastFootstepPosition) > 0.22) {
+    audio.play('world.footstep', firstPerson ? .7 : .45);
+    lastFootstepPosition.copy(player.avatar.position);
+  }
+  world.updateStreaming(player.avatar.position.x, player.avatar.position.z);
+  world.update();
+  for (const visual of teleportVisuals) {
+    const signal = teleportSystem.trafficSnapshot().find(item => item.nodeId === visual.userData.gridTeleportNodeId);
+    applyTeleportTraffic(visual, signal?.activity ?? 0);
+  }
+  livingWorld.update(dt, player.avatar.position.x, player.avatar.position.z, worldConsequences.getSnapshot(), worldEvolution.get(livingWorld.getSnapshot().world as EcologyWorld));
+    merchantRefreshTimer += dt;
+    mineralSyncTimer += dt;
+    if (mineralSyncTimer >= 8) { mineralSyncTimer = 0; void syncGridMinerals(); }
+    if(merchantRefreshTimer > 12) { merchantRefreshTimer = 0; void refreshMerchantMarket(); }
+  const livingSnapshot = livingWorld.getSnapshot();
+  gridChakras.update(dt, []);
+  gridMatterTerrain.setActiveWorld(String(livingSnapshot.world));
+  gridMatterTerrain.rebuild();
+  gridMinerals.update(dt, livingSnapshot.world as EcologyWorld);
+  const consequenceSnapshot = worldConsequences.getSnapshot();
+  creatureEcology.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, consequenceSnapshot, undefined, { weather: livingSnapshot.weather, temperatureC: livingSnapshot.temperatureC, windX: livingSnapshot.windX, windZ: livingSnapshot.windZ, season: livingSnapshot.season });
+  const ecologySnapshot = creatureEcology.getSnapshot();
+
+  if (combatAuthority) {
+    creatureCombatSyncTimer += dt;
+    creatureCombatStateTimer += dt;
+    creatureCombatAiTimer += dt;
+    creatureAttackTimer += dt;
+
+    if (creatureCombatSyncTimer >= .65) {
+      const creatures = world.scene.children
+        .flatMap(root => {
+          const found:THREE.Object3D[] = [];
+          root.traverse(obj => {
+            if (obj.userData.combatFaction === 'CREATURE' && obj.userData.combatId) found.push(obj);
+          });
+          return found;
+        })
+        .filter(obj => obj.visible)
+        .slice(0, 40)
+        .map(obj => ({
+          id:String(obj.userData.combatId),
+          species:String(obj.userData.species ?? ''),
+          x:obj.position.x,
+          y:obj.position.y,
+          z:obj.position.z,
+        }));
+      combatAuthority.syncCreatures(creatures).then(result => {
+        for (const state of result?.creatures ?? []) {
+          combatSystem.applyAuthoritativeCreatureState(state.creature_id, Number(state.health), Number(state.max_health), Number(state.health)>0 && !(state.respawn_at && new Date(state.respawn_at).getTime()>Date.now()));
+        }
+      }).catch(error => console.warn('Creature combat sync failed.', error));
+      creatureCombatSyncTimer=0;
+    }
+
+    if (creatureCombatAiTimer >= 0.85) {
+      combatAuthority.tickCreatures().then(result => {
+        for (const state of result?.creatures ?? []) {
+          const object = world.scene.getObjectByProperty('userData.combatId', state.creature_id);
+          if (object) {
+            object.position.set(Number(state.x), Number(state.y), Number(state.z));
+            object.userData.serverAiState = state.ai_state;
+            object.userData.serverTargetUserId = state.target_user_id ?? null;
+          }
+          const respawning=Boolean(state.respawn_at && new Date(state.respawn_at).getTime()>Date.now());
+          combatSystem.applyAuthoritativeCreatureState(
+            state.creature_id,
+            Number(state.health),
+            Number(state.max_health),
+            Number(state.health)>0 && !respawning
+          );
+          if (state.ai_state === 'ATTACK' && state.target_user_id === identity.id && performance.now() - lastCreatureThreatAt > 5000) {
+            addChatMessage('WORLD', 'A nearby creature is reacting to your presence.', 'system');
+            lastCreatureThreatAt = performance.now();
+          }
+        }
+      }).catch(error => console.warn('Server creature AI tick failed.', error));
+      creatureCombatAiTimer=0;
+    }
+
+    if (creatureCombatStateTimer >= 1.25) {
+      const creatureIds = world.scene.children.flatMap(root => {
+        const found:string[]=[];
+        root.traverse(obj => { if (obj.userData.combatFaction==='CREATURE' && obj.userData.combatId) found.push(String(obj.userData.combatId)); });
+        return found;
+      }).slice(0,60);
+      combatAuthority.creatureState(creatureIds).then(result => {
+        for (const state of result?.creatures ?? []) {
+          const respawning=Boolean(state.respawn_at && new Date(state.respawn_at).getTime()>Date.now());
+          combatSystem.applyAuthoritativeCreatureState(state.creature_id, Number(state.health), Number(state.max_health), Number(state.health)>0 && !respawning);
+        }
+      }).catch(error => console.warn('Creature combat state failed.', error));
+      creatureCombatStateTimer=0;
+    }
+
+    if (creatureAttackTimer >= 1.45 && combatSystem.getMode()==='PVE') {
+      const targetId=combatSystem.selectNearest(identity.id,2.75);
+      const target=targetId ? world.scene.getObjectByProperty('userData.combatId',targetId) : null;
+      if (targetId && target?.userData.combatFaction==='CREATURE') {
+        combatAuthority.creatureAttack(targetId).then(result => {
+          if (result?.ok) {
+            combatSystem.applyAuthoritativeHealth(identity.id, Number(result.attacker?.health ?? 0));
+            const species=String(target?.userData.species ?? 'creature').replaceAll('-', ' ');
+            addChatMessage('COMBAT', species + ' struck back. The wilds are reacting.', 'system');
+          }
+        }).catch(() => undefined);
+      }
+      creatureAttackTimer=0;
+    }
+  }
+  npcSociety.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, ecologySnapshot, consequenceSnapshot);
+  guardCommandSystem.ensureDefaults(String(livingSnapshot.world));
+  npcMaterialDropTimer += dt;
+  const societySnapshot = npcSociety.getSnapshot();
+  if (npcMaterialDropTimer >= 37 && societySnapshot.working) {
+    npcMaterialDropTimer = 0;
+    const worker = npcSociety.getWorkingCitizens().find(n=>n.world===livingSnapshot.world);
+    if (worker) materialDropSystem.createDrop(worker.id,'NPC',String(livingSnapshot.world),worker.position.clone().add(new THREE.Vector3(.25,.15,.25)),worker.id.length + Math.round(performance.now()));
+  }
+  traversalSystem.update(dt);
+  combatSystem.syncScene(world.scene);
+  combatSystem.update(dt, identity.id);
+  const combatSnapshot = combatSystem.getSnapshot();
+  if (partySystem && performance.now()/1000-lastPartyPoll>3) { lastPartyPoll=performance.now()/1000; void partySystem.current().then(members=>{partyHud.update(members, Object.fromEntries(regionCollaborators.map(p=>[p.id,p.displayName]))); partyControlButton.style.display=members.some(m=>m.userId===cloudIdentity.id)?'block':'none';}).catch(()=>undefined); }
+  if (partySystem && performance.now()/1000-lastPartyDestinationPoll>1) { lastPartyDestinationPoll=performance.now()/1000; void partyDestinationTick(); }
+  if (presence && performance.now()/1000-lastVitalsPublish>1) { lastVitalsPublish=performance.now()/1000; void presence.update(player.getTransform(), { health:combatSnapshot.playerHealth, maxHealth:combatSnapshot.playerMaxHealth, regionRole:currentBuildRole }); }
+  questSystem.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, societySnapshot, player.avatar.position.x, player.avatar.position.z);
+  if (combatSnapshot.kills > lastCombatKills) {
+    const defeated = combatSnapshot.kills - lastCombatKills;
+    lastCombatKills = combatSnapshot.kills;
+    for (let dropIndex=0; dropIndex<defeated; dropIndex++) {
+      materialDropSystem.createDrop('creature-'+combatSnapshot.kills+'-'+dropIndex,'CREATURE',String(livingSnapshot.world),player.avatar.position.clone().add(new THREE.Vector3((Math.random()-.5)*1.6,.35,(Math.random()-.5)*1.6)),combatSnapshot.kills+dropIndex);
+    }
+    addChatMessage('COMBAT', defeated === 1 ? 'Hostile target defeated. The field remembers. Materials may have dropped.' : defeated + ' hostile targets defeated. Materials may have dropped.', 'system');
+    questPanel.render();
+  }
+  relationshipStories.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, societySnapshot, player.avatar.position.x, player.avatar.position.z);
+  if (performance.now()/1000-lastTransitPoll>10) { lastTransitPoll=performance.now()/1000; void refreshPersistentTransit(); }
+  worldConsequences.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.activity, ecologySnapshot, societySnapshot, Date.now()/1000, persistentTransitFlow);
+  npcSociety.applyTransitInfluence(persistentTransitByWorld);
+  for(const [transitWorld,flow] of Object.entries(persistentTransitByWorld)) worldConsequences.recordTransitSurge(transitWorld as EcologyWorld,flow);
+  worldEvolution.update(dt, livingSnapshot, worldConsequences.getSnapshot());
+  ecologicalWeb.update(dt, livingSnapshot, worldEvolution.get(livingSnapshot.world as EcologyWorld));
+  ecologicalInteractions.update(dt, livingSnapshot.world as EcologyWorld);
+  evolutionaryPopulations.update(dt, livingSnapshot, worldEvolution.get(livingSnapshot.world as EcologyWorld), ecologicalWeb.getWorldSnapshot(livingSnapshot.world as EcologyWorld));
+  worldConsequences.recordEcologyPulse(
+    livingSnapshot.world as EcologyWorld,
+    ecologicalInteractions.getSnapshot(),
+    evolutionaryPopulations.getAll().filter(population => population.world === livingSnapshot.world).map(population => ({ speciesId: population.speciesId, population: population.population, generation: population.generation })),
+    livingSnapshot.season,
+    Date.now()/1000,
+  );
+  for (const emergent of evolutionaryPopulations.consumeEmergentSpecies()) {
+    worldConsequences.recordNewSpecies(livingSnapshot.world as EcologyWorld, emergent.name, emergent.generation);
+  }
+  worldConsequences.update(0, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.activity, ecologySnapshot, societySnapshot, Date.now()/1000, persistentTransitFlow);
+  const evolutionState = worldEvolution.get(livingSnapshot.world as EcologyWorld);
+  const ecologicalWebSnapshot = ecologicalWeb.getAll().filter(population => population.world === livingSnapshot.world);
+  const consequenceSnapshotForResources = worldConsequences.getSnapshot();
+  const nearestResource = worldResources.getSnapshot().filter(node => node.world === livingSnapshot.world).sort((a,b) => a.position.distanceTo(player.avatar.position)-b.position.distanceTo(player.avatar.position))[0];
+  const resourceNear = !!nearestResource && nearestResource.position.distanceTo(player.avatar.position) < 2.2;
+  const nearestMineral = gridMinerals.getSnapshot()
+    .filter(node => node.world === livingSnapshot.world && node.remaining > 0)
+    .sort((a,b) => a.position.distanceTo(player.avatar.position) - b.position.distanceTo(player.avatar.position))[0];
+  const mineralNear = !!nearestMineral && nearestMineral.position.distanceTo(player.avatar.position) < 2.2;
+  const resourceDown = input.isDown('KeyE');
+  const nearestMaterialDrop = materialDropSystem.getSnapshot().filter(drop => drop.worldId === String(livingSnapshot.world)).sort((a,b)=>a.position.distanceTo(player.avatar.position)-b.position.distanceTo(player.avatar.position))[0];
+  const materialDropNear = !!nearestMaterialDrop && nearestMaterialDrop.position.distanceTo(player.avatar.position) < 2.2;
+  if (materialDropNear && !mineralNear && !resourceNear) prompt.textContent = resourceDown ? 'E · Collect ' + nearestMaterialDrop!.material : 'E · Collect ' + nearestMaterialDrop!.material;
+  if (!resourceDown) materialDropInteractLatched=false;
+  if (nearestMaterialDrop && materialDropNear && resourceDown && !materialDropInteractLatched && !mineralNear && !resourceNear) {
+    materialDropInteractLatched=true;
+    const drop=materialDropSystem.collect(nearestMaterialDrop.id);
+    if (drop) {
+      const builder=world.scene.userData.easyBuild as GridEasyBuildSystem;
+      builder.addMaterials({[drop.material]:drop.amount});
+      addChatMessage('MATERIALS','+'+drop.amount+' '+drop.material+' · usable for construction tools and crafted objects.','system');
+    }
+  }
+  if (mineralNear) prompt.textContent = resourceDown ? 'E · Mine ' + nearestMineral!.kind : 'E · Mine ' + nearestMineral!.kind;
+  if (resourceNear && !mineralNear) prompt.textContent = resourceDown ? 'E · Gather' : 'E · Gather';
+  if (!resourceDown) resourceInteractLatched = false;
+  if (nearestMineral && mineralNear && resourceDown && !resourceInteractLatched) {
+    resourceInteractLatched = true;
+    if (!gridSecurity.allow('MINING_REQUEST', identity.id)) {
+      addChatMessage('GRID OMNI', 'Mining request rate-limited by Grid Security.', 'system');
+      return;
+    }
+    const requested = 1;
+    if (cloudPersistence) {
+      void Promise.resolve(cloudPersistence.getClient().rpc('grid_mine_mineral', {
+        p_deposit_id: nearestMineral.id,
+        p_amount: requested,
+      })).then(({ data, error }) => {
+        if (error) throw error;
+        const result = Array.isArray(data) ? data[0] : data;
+        if (result?.ok) {
+          gridMinerals.applyAuthoritativeResult(nearestMineral.id, Number(result.gathered), Number(result.remaining));
+          const definition = GRID_MINERALS[result.mineral_kind as GridMineralKind];
+          addChatMessage('MINING', 'Mined +' + result.gathered + ' ' + (definition?.name ?? result.mineral_kind) + ' · deposit remaining ' + result.remaining + '.', 'system');
+        } else {
+          addChatMessage('MINING', 'No mineral extracted. The deposit may be depleted or the request was rejected.', 'system');
+        }
+      }).catch(() => addChatMessage('MINING', 'Mining authority unavailable. No mineral was awarded.', 'system'));
+    } else {
+      const mined = gridMinerals.collectLocal(nearestMineral.id, requested);
+      if (mined.ok) {
+        addChatMessage('MINING', 'Local preview mining: +' + mined.amount + ' ' + mined.kind + '.', 'system');
+      }
+    }
+  }
+  if (nearestResource && resourceNear && resourceDown && !resourceInteractLatched) {
+    resourceInteractLatched = true;
+    if (combatAuthority) {
+      void combatAuthority.gatherResource(nearestResource.id).then(result => {
+          const resource = (result as any)?.resource as { kind?: string; amount?: number } | undefined;
+          if ((result as any)?.ok && resource?.kind && resource.amount) {
+            worldResources.collect(nearestResource.id, Number(resource.amount));
+            worldConsequences.recordResourceGathered(livingSnapshot.world as EcologyWorld, resource.kind as any, Number(resource.amount));
+            addChatMessage('RESOURCE', 'Gathered +' + resource.amount + ' ' + resource.kind.replaceAll('_',' ') + ' · secured to inventory.', 'system');
+          } else if ((result as any)?.error) {
+            addChatMessage('RESOURCE', String((result as any).error).replaceAll('_',' '), 'system');
+          }
+        }).catch(() => addChatMessage('RESOURCE', 'Server resource service unavailable.', 'system'));
+    } else {
+      const gathered = worldResources.collect(nearestResource.id, 8);
+      if (gathered.ok && gathered.kind) {
+        worldConsequences.recordResourceGathered(livingSnapshot.world as EcologyWorld, gathered.kind, gathered.amount);
+        addChatMessage('RESOURCE', 'Gathered +' + gathered.amount + ' ' + gathered.kind.replaceAll('_',' ') + '.', 'system');
+      }
+    }
+  }
+  worldResources.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, consequenceSnapshotForResources);
+  const consequenceSnapshotAfterUpdate = worldConsequences.getSnapshot();
+  if (consequenceSnapshot.history.length > 0) {
+    const latestConsequence = consequenceSnapshotAfterUpdate.history.at(-1)!;
+    if (latestConsequence.id !== lastConsequenceId) {
+      lastConsequenceId = latestConsequence.id;
+      if (latestConsequence.kind === 'EVENT_STARTED' || latestConsequence.kind === 'CREATURE_DEFEATED' || latestConsequence.kind === 'ECOLOGY_SHIFT') addChatMessage('GRID HISTORY', latestConsequence.text, 'system');
+    }
+  }
+  const latestStory = relationshipStories.getLatestStory();
+  const latestConsequenceForQuest = worldConsequences.getSnapshot().history.at(-1) ?? null;
+  if (dynamicQuestSystem.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, societySnapshot, latestStory, player.avatar.position.x, player.avatar.position.z, latestConsequenceForQuest)) questPanel.render();
+  if (latestStory && latestStory.id !== lastStoryId) {
+    lastStoryId = latestStory.id;
+    addChatMessage('WORLD STORY', latestStory.text, 'system');
+  }
+  const storySnapshot = relationshipStories.getSnapshot();
+  const hudWorldState = document.querySelector<HTMLElement>('#hud-world-state');
+  const hudWorldSignal = document.querySelector<HTMLElement>('#hud-world-signal');
+  if (hudWorldState) hudWorldState.textContent = livingSnapshot.world + ' · ' + livingSnapshot.phase + ' · ' + livingSnapshot.season;
+  if (hudWorldSignal) hudWorldSignal.textContent = livingSnapshot.event + ' · ' + livingSnapshot.weather + ' · ' + Math.round(livingSnapshot.temperatureC) + '°C · HUM ' + Math.round(livingSnapshot.humidity*100) + '% · ' + ecologySnapshot.active + '/' + ecologySnapshot.population + ' CREATURES · ' + societySnapshot.working + ' WORKING · ' + societySnapshot.talking + ' TALKING · ' + storySnapshot.activeStories + ' STORIES · STABILITY ' + Math.round(consequenceSnapshotAfterUpdate.stability*100) + '% · ECO GEN ' + evolutionState.generation + ' · EVOLUTION ' + (evolutionaryPopulations.get(livingSnapshot.world as EcologyWorld)?.generation ?? 1) + ' · FOOD WEB ' + ecologicalWebSnapshot.map(population => population.role + ' ' + Math.round(population.health*100) + '%').join(' / ');
+  artDirector.update(dt, player.avatar.position.x, player.avatar.position.z);
+  worldSkins.update(dt, player.avatar.position.x, player.avatar.position.z);
+  worldArchitecture.update(dt);
+  worldEnvironment.update(dt);
+  teamWork.update(dt, frame.elapsedSeconds);
+  foundationLayer.update(dt, frame.elapsedSeconds);
+  for (const remote of remotePlayers.values()) remote.update(dt);
+  for (const avatar of teamAvatars) avatar.update(dt);
+  for (const actor of crowdActors) actor.update(dt);
+  for (const pylon of omniLayer.pylons) pylon.update(dt);
+  const transitTime = performance.now() / 1000;
+  for (const visual of teleportVisuals) {
+    visual.rotation.y += dt * 0.08;
+    const energy = 1 + Math.sin(transitTime * 2.4 + visual.position.x) * .08;
+    visual.scale.setScalar(energy);
+  }
+  npcChatTimer -= dt;
+  if (npcChatTimer <= 0) {
+    const [speakerA, speakerB, lineA, lineB] = npcChatPairs[npcChatIndex % npcChatPairs.length];
+    audio.play('chat.receive', .7);
+    const actorA = crowdActors.find(actor => actor.definition.displayName === speakerA);
+    const actorB = crowdActors.find(actor => actor.definition.displayName === speakerB);
+    if (actorA && actorB) {
+      actorA.brain.meet(actorB.definition.id);
+      actorB.brain.meet(actorA.definition.id);
+      actorA.brain.remember({ subjectId: actorB.definition.id, eventType: 'conversation', summary: lineB, valence: .35, importance: .5, confidence: .9 });
+      actorB.brain.remember({ subjectId: actorA.definition.id, eventType: 'conversation', summary: lineA, valence: .35, importance: .5, confidence: .9 });
+    }
+    addChatMessage(speakerA, lineA, 'team');
+    if (actorA) voice.speak(actorA.definition.id, lineA);
+    window.setTimeout(() => {
+      addChatMessage(speakerB, lineB, 'team');
+      if (actorB) voice.speak(actorB.definition.id, lineB);
+    }, 900);
+    npcChatIndex++;
+    npcChatTimer = 9 + Math.random() * 7;
+  }
+  minimap.update();
+  if (presenceTimer >= 0.25) {
+    if (socialAuthority) friendSystem.refresh(socialAuthority).catch(error => console.warn('Friend relationship sync failed.', error));
+    const transform = player.getTransform();
+    presence?.update(transform).catch(console.error);
+    combatAuthority?.sync(transform, 'first-light').then(result => {
+      if (!result) return;
+      if (result.state) {
+        combatSystem.setMode(result.mode ?? result.state.mode);
+        combatSystem.applyAuthoritativeHealth(identity.id, Number(result.state.health));
+        if (!result.accepted) {
+          player.restoreTransform({
+            x: Number(result.state.x),
+            y: Number(result.state.y),
+            z: Number(result.state.z),
+            yaw: Number(result.state.yaw),
+          });
+        }
+      }
+    }).catch(error => console.warn('Combat authority sync failed.', error));
+    presenceTimer = 0;
+  }
+  if (saveTimer >= 2) {
+    savePlayer();
+    saveTimer = 0;
+  }
+  worldSnapshotManager.tick(dt * 1000, () => ({
+    player: { ...player.getTransform(), regionId: 'first-light' },
+    world: livingWorld.getSnapshot(),
+    builds: easyBuildSystem.serialize(),
+    health: { savedAt: new Date().toISOString() },
+  }));
+
+  if (!cameraInitialized) {
+    cameraYaw = player.heading;
+    cameraInitialized = true;
+  }
+  const distance = firstPerson ? 0.05 : cameraDistance;
+  const height = firstPerson ? 1.55 : 3.2;
+  const pivot = new THREE.Vector3(
+    player.avatar.position.x,
+    player.avatar.position.y + (firstPerson ? 1.55 : 1.15),
+    player.avatar.position.z
+  );
+  const cameraOffset = new THREE.Vector3(
+    Math.sin(cameraYaw) * distance,
+    Math.sin(cameraPitch) * distance + (firstPerson ? 0 : 0.8),
+    Math.cos(cameraYaw) * distance
+  );
+  const cameraTarget = pivot.clone().add(cameraOffset);
+  cameraTarget.x += cameraPanX;
+  cameraTarget.y += cameraPanY;
+  camera.position.lerp(cameraTarget, 1 - Math.pow(0.001, dt));
+  // Third-person camera looks back toward the avatar; mouselook looks through the avatar's eyes.
+  // The previous implementation looked in the same direction as the camera offset,
+  // placing the target behind the camera and producing an apparently blank world.
+  const lookTarget = pivot.clone();
+  lookTarget.x += cameraPanX;
+  lookTarget.y += cameraPanY;
+  if (firstPerson) {
+    lookTarget.add(new THREE.Vector3(
+      Math.sin(cameraYaw) * 8,
+      Math.sin(cameraPitch) * 8,
+      Math.cos(cameraYaw) * 8
+    ));
+  }
+  camera.lookAt(lookTarget);
+
+  const targetObject = interaction.findTarget();
+  const targetUserId = targetObject?.object.userData.remotePlayerId ? String(targetObject.object.userData.remotePlayerId) : null;
+  setSocialTarget(targetUserId);
+  prompt.classList.toggle('visible', Boolean(targetObject));
+  if (targetObject) prompt.textContent = `E · ${targetObject.name}`;
+
+  if (webglAvailable) engine.render(camera, frame);
+  requestAnimationFrame(animate);
+}
+
+requestAnimationFrame(animate);
+
+addEventListener('beforeunload', () => { void gridSocialService?.setPresence(false).catch(()=>undefined); buildRealtimeChannel?.unsubscribe(); });
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  engine.resize(innerWidth, innerHeight, devicePixelRatio);
+});
