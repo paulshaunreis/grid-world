@@ -137,6 +137,17 @@ export class GridTeleportSystem implements GridEngineSubsystem {
     });
   }
 
+  /** Rebuild world-gate destination lists after the world graph changes at runtime. */
+  syncWorldConnections() {
+    for (const node of this.nodes.values()) {
+      if (!node.worldId) continue;
+      const destinations = getWorldConnections(node.worldId)
+        .map(connection => 'world-gate:' + connection.destination.toLowerCase())
+        .filter(destinationId => this.nodes.has(destinationId));
+      if (node.id.startsWith('world-gate:')) node.destinationIds = destinations;
+    }
+  }
+
   snapshot() {
     return this.all().map(node => ({ ...node, destinationIds: [...node.destinationIds] }));
   }
