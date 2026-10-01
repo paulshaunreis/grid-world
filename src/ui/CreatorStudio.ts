@@ -128,12 +128,12 @@ when player interacts:
         </div>`;
       root.querySelector<HTMLButtonElement>('#gcs-validate')?.addEventListener('click', () => {
         const source = root.querySelector<HTMLTextAreaElement>('#gcs-script')?.value ?? '';
+        const output = root.querySelector<HTMLDivElement>('#gcs-script-output')!;
         if (options.security && !options.security.allow('SCRIPT_VALIDATE', options.subjectId ?? 'local')) {
           output.textContent = 'BLOCKED · security rate limit';
           return;
         }
         const parsed = parseGridScript(source);
-        const output = root.querySelector<HTMLDivElement>('#gcs-script-output')!;
         if (parsed.script) {
           const capabilities = new Set<string>();
           for (const handler of parsed.script.handlers) for (const action of handler.actions) capabilities.add(action.kind === 'call' ? 'object_control' : action.kind === 'play_sound' ? 'play_audio' : action.kind === 'give_item' ? 'economy_transaction' : 'ui_feedback');
