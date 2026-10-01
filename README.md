@@ -63,3 +63,24 @@ The economy now includes three dedicated worlds: **Grid Bazaar** for user/NPC tr
 Bazaar listing, purchase, mining and transmutation operations are server-authoritative. User listings reserve inventory before publication; purchases transfer currency and assets atomically; NPC sales create trade/memory records. Client-side controls are not treated as economic authority.
 
 Grid Element Forge supports fictional Grid-universe synthetic elements beyond the real 118-element periodic table: **Aurorium (Ao, 119)**, **Luminite (LuG, 120)** and **Verdanium (Vd, 121)**. These are gameplay elements, not claims about newly discovered real-world elements.
+
+
+## Identity, land and sustainable revenue model
+
+**Identity:** Grid uses Supabase Auth for email/password authentication. Hosted Supabase projects require email confirmation by default; MFA is supported and should be enabled for higher-risk accounts. Public identity uses a unique **@handle** plus a shareable display name; first, middle and last names are stored separately with an explicit visibility setting. NPCs use the same three-part naming model and can have unique handles.
+
+**Free land:** a verified account can claim one starter parcel from the available starter pool. Starter land is not minted by the client and cannot be claimed twice. Larger parcels are intended to be earned through creation/community milestones rather than forcing new users to pay for basic participation.
+
+**Earned worlds:** a world charter requires verified-account status plus a server-maintained creation score. The initial target is 100 creation points earned through legitimate world building, quests, community contributions and published work. Client-side score edits are not authoritative.
+
+**Sustainable real-money model:** keep entering Grid World free. Potential platform revenue streams are:
+1. optional creator/pro subscriptions for advanced authoring, analytics, private collaboration and higher hosted-world resources;
+2. creator marketplace fees on real-money sales, with a transparent creator share;
+3. paid cosmetic/avatar/world presentation packs that do not grant gameplay power;
+4. hosted private/team worlds and event/concert infrastructure;
+5. enterprise/education creator spaces and training/certification services;
+6. optional physical merchandise and media/events.
+
+The design deliberately avoids making a basic starter parcel or normal participation pay-to-win. Real-money checkout should be implemented server-side through a payment provider such as Stripe Checkout; Stripe documents Checkout Sessions for one-time payments and subscriptions, and Stripe Connect can support application-fee/platform models for creator marketplaces. citeturn2search0turn2search4turn2search14
+
+**Important:** no real-money charge is claimed to be live yet. A Stripe account, products/prices, tax configuration, webhook endpoint, and secret server-side credentials are required before actual payments can be safely activated.
