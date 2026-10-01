@@ -57,6 +57,7 @@ import { mountWorldAtlas } from './ui/WorldAtlas';
 import { mountMarketPanel } from './ui/MarketPanel';
 import { mountTransitPanel } from './ui/TransitPanel';
 import { WorldArchitectureSystem } from './world/WorldArchitectureSystem';
+import { WorldEnvironmentSystem } from './world/WorldEnvironmentSystem';
 import { WorldEvolutionSystem } from './world/WorldEvolutionSystem';
 import { EvolutionaryPopulationSystem } from './world/EvolutionaryPopulationSystem';
 import { EcologicalWebSystem } from './world/EcologicalWebSystem';
@@ -294,6 +295,8 @@ const questButton = document.createElement('button'); questButton.className='too
 const artDirector = installGridWorldArtDirector(world.scene);
 const worldSkins = createWorldSkinDirector();
 const worldArchitecture = new WorldArchitectureSystem();
+const worldEnvironment = new WorldEnvironmentSystem();
+world.scene.add(worldEnvironment.root);
 world.scene.add(worldSkins.root);
 world.scene.add(worldArchitecture.root);
 const engine = new GridEngine('client', world.scene);
@@ -332,6 +335,7 @@ const worldFactoryPanel = mountWorldFactoryPanel({
     registerWorldTransitNode(result.world);
     teleportSystem.syncWorldConnections();
     worldArchitecture.rebuild();
+    worldEnvironment.rebuild();
     creatureEcology.registerWorld(result.world);
     worldResources.registerWorld(result.world);
     npcSociety.registerWorld(result.world);
@@ -1581,6 +1585,7 @@ function animate(now: number) {
   artDirector.update(dt, player.avatar.position.x, player.avatar.position.z);
   worldSkins.update(dt, player.avatar.position.x, player.avatar.position.z);
   worldArchitecture.update(dt);
+  worldEnvironment.update(dt);
   teamWork.update(dt, frame.elapsedSeconds);
   foundationLayer.update(dt, frame.elapsedSeconds);
   for (const remote of remotePlayers.values()) remote.update(dt);
