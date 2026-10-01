@@ -59,6 +59,7 @@ export class TeamAvatar {
     );
     this.body.position.y = 1.05;
     this.body.castShadow = true;
+    this.body.visible = false;
 
     this.visor = new THREE.Mesh(
       new THREE.SphereGeometry(0.27, 16, 12),
