@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { getWorlds } from './GridWorldRegistry';
 import type { EcologyWorld } from './CreatureEcologySystem';
 import { createStarterPBRMaterial } from '../engine/GridPBRLibrary';
+import { getMineralChemistry } from './GridChemistrySystem';
 
 export type GridMineralKind =
   | 'GRID_AUREL'      // gold
@@ -71,7 +72,7 @@ export class GridMineralSystem {
     if ([...this.deposits.values()].some(d => d.world === world.id)) return;
     const seed = this.hash(world.id);
     for (let i = 0; i < 13; i++) {
-      const kind = worldMinerals[(seed + i * 7) % worldMinerals.length];
+      const kind = this.selectKind(world.tags ?? [], seed, i);
       const definition = GRID_MINERALS[kind];
       const angle = i * 2.399963 + (seed % 17) * .07;
       const radius = 9 + ((seed + i * 11) % 12);
@@ -145,6 +146,26 @@ export class GridMineralSystem {
 
   update(_delta:number, _world:EcologyWorld) {
     // Deposit quantities are server-authoritative. Regeneration, if enabled later, must be applied by the server.
+  }
+
+  private selectKind(tags: readonly string[], seed: number, index: number): GridMineralKind {
+    const ranked = worldMinerals.map(kind => {
+      const chemistry = getMineralChemistry(kind);
+      let score = 1;
+      if (tags.includes('volcanic') && chemistry.formationFamilies.includes('IGNEOUS')) score += 5;
+      if (tags.includes('hydrothermal') && chemistry.formationFamilies.includes('HYDROTHERMAL')) score += 5;
+      if (tags.includes('metamorphic') && chemistry.formationFamilies.includes('METAMORPHIC')) score += 4;
+      if (tags.includes('sedimentary') && chemistry.formationFamilies.includes('SEDIMENTARY')) score += 4;
+      if (tags.includes('weathering') && chemistry.formationFamilies.includes('WEATHERING')) score += 4;
+      if (tags.includes('silica') && chemistry.elements.includes('Si')) score += 4;
+      if (tags.includes('fluorine') && chemistry.elements.includes('F')) score += 5;
+      if (tags.includes('carbon') && chemistry.elements.includes('C')) score += 5;
+      if (tags.includes('metal') && chemistry.mineralClass === 'NATIVE_ELEMENT') score += 3;
+      if (tags.includes('crystal') && chemistry.mineralClass === 'SILICATE') score += 2;
+      return {kind,score};
+    }).sort((a,b)=>b.score-a.score);
+    const top=ranked.slice(0,Math.min(6,ranked.length));
+    return top[(seed + index*7) % top.length].kind;
   }
 
   private hash(value:string) {
