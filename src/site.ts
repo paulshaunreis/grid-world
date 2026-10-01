@@ -266,6 +266,27 @@ app.innerHTML = `
         <section class="foundation-art-section"><div class="section-label">THE LAYER BENEATH THE WORLDS</div><h2>One foundation.<br><span>Many realities.</span></h2><img src="/art/foundation.svg" alt="Grid Foundation concept art"><p>The Grid Foundation remains hidden unless authorized. It carries shared weather, system nodes, world links and access-controlled infrastructure beneath every world.</p></section>
 
     <section class="irllayer" id="events"><div><div class="section-label">GRID CONNECT</div><h2>Virtual or IRL.<br><span>Experience it together.</span></h2><p>Events can exist in the physical world, inside Grid World, or across both. Users choose what they share and where they participate.</p><a class="secondary large" href="#events">BROWSE EVENTS</a></div><div class="event-map"><span>GRID</span><i></i><b>IRL</b></div></section>
+    <section class="npc-economy-atlas" id="marketplace">
+      <div class="section-label">GRID ECONOMY · NPC SOCIETY</div>
+      <h2>Merchants have <span>profiles, memories, and markets.</span></h2>
+      <p>NPC merchants are persistent characters. Their profiles, schedules, personalities, trade history, and public memory logs can follow them across Grid World.</p>
+      <div class="npc-merchant-grid">
+        <article><div class="npc-badge">M</div><h3>Mara</h3><b>Harbor Merchant · practical trader</b><p>Trades Tide Salt and participates in Bazaar supply cycles.</p><small>PROFILE · MEMORY LOG · MARKET</small></article>
+        <article><div class="npc-badge">S</div><h3>Sela</h3><b>Garden Merchant · ecological trader</b><p>Trades Bloom Resin and watches seasonal supply changes.</p><small>PROFILE · MEMORY LOG · MARKET</small></article>
+        <article><div class="npc-badge">C</div><h3>Caro</h3><b>Arts Merchant · social trader</b><p>Trades Muse Ink and travels between cultural worlds.</p><small>PROFILE · MEMORY LOG · MARKET</small></article>
+        <article><div class="npc-badge">O</div><h3>Orin</h3><b>Citadel Merchant · relic trader</b><p>Trades Crown Relics and rare minerals with careful pricing.</p><small>PROFILE · MEMORY LOG · MARKET</small></article>
+        <article><div class="npc-badge">R</div><h3>Rook</h3><b>Frontier Merchant · resource trader</b><p>Trades Frontier Ore and responds to world migration events.</p><small>PROFILE · MEMORY LOG · MARKET</small></article>
+      </div>
+      <div class="economy-world-grid">
+        <article><span>01</span><h3>GRID BAZAAR</h3><p>Users and NPCs list, buy and sell assets. Quantity and ownership are server-authoritative.</p></article>
+        <article><span>02</span><h3>GRID WORLD OMNI BANK</h3><p>Wallets, ledgers, currency exchange and financial services live in a dedicated protected world.</p></article>
+        <article><span>03</span><h3>GRID WORLD VAULT</h3><p>Mined materials are secured in persistent storage while the inventory surface shows current quantities.</p></article>
+      </div>
+    </section>
+    <section class="element-forge" id="elements">
+      <div><div class="section-label">GRID ELEMENT FORGE</div><h2>Known elements in.<br><span>New Grid elements out.</span></h2><p>Grid can model fictional transmutation beyond the 118-element real-world periodic table. These are Grid-universe synthetic elements, not claims about newly discovered real elements.</p></div>
+      <div class="forge-chain"><b>Au + Ag + C</b><i>→</i><strong>AURORIUM · Ao · 119</strong><b>Cu + Si + O</b><i>→</i><strong>LUMINITE · LuG · 120</strong><b>Fe + C + Si + O</b><i>→</i><strong>VERDANIUM · Vd · 121</strong></div>
+    </section>
   </main>
 
   <section class="legal-strip" id="terms">
