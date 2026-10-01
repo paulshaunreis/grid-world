@@ -70,6 +70,7 @@ import { GridAlchemySystem } from './world/GridAlchemySystem';
 import { GridKarmaSystem } from './world/GridKarmaSystem';
 import { createWorldFromDescription, connectFactoryWorldToAll } from './world/WorldFactory';
 import { mountWorldFactoryPanel } from './ui/WorldFactoryPanel';
+import { mountCreatorStudio } from './ui/CreatorStudio';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
@@ -338,25 +339,36 @@ const gridChakras = new GridChakraSystem();
 const gridAlchemy = new GridAlchemySystem();
 const gridKarma = new GridKarmaSystem();
 world.scene.add(gridMinerals.root);
+const createFactoryWorld = (name: string, description: string) => {
+  const result = createWorldFromDescription({ name, description });
+  connectFactoryWorldToAll(result);
+  registerWorldTransitNode(result.world);
+  teleportSystem.syncWorldConnections();
+  worldArchitecture.rebuild();
+  worldEnvironment.rebuild();
+  creatureEcology.registerWorld(result.world);
+  worldResources.registerWorld(result.world);
+  gridMinerals.registerWorld(result.world);
+  void cloudPersistence?.getClient().rpc('grid_seed_world_minerals', { p_world_id: result.world.id }).then(() => syncGridMinerals()).catch(() => undefined);
+  npcSociety.registerWorld(result.world);
+  worldEvolution.registerWorld(result.world.id);
+  evolutionaryPopulations.registerWorld(result.world.id);
+  ecologicalWeb.registerWorld(result.world.id);
+  addChatMessage('WORLD FACTORY', result.world.label + ' joined the Grid · ' + result.inferredTags.join(' · '), 'system');
+  return result;
+};
+
 const worldFactoryPanel = mountWorldFactoryPanel({
-  onCreate: (name, description) => {
-    const result = createWorldFromDescription({ name, description });
-    connectFactoryWorldToAll(result);
-    registerWorldTransitNode(result.world);
-    teleportSystem.syncWorldConnections();
-    worldArchitecture.rebuild();
-    worldEnvironment.rebuild();
-    creatureEcology.registerWorld(result.world);
-    worldResources.registerWorld(result.world);
-    gridMinerals.registerWorld(result.world);
-    void cloudPersistence?.getClient().rpc('grid_seed_world_minerals', { p_world_id: result.world.id }).then(() => syncGridMinerals()).catch(() => undefined);
-    npcSociety.registerWorld(result.world);
-    worldEvolution.registerWorld(result.world.id);
-    evolutionaryPopulations.registerWorld(result.world.id);
-    ecologicalWeb.registerWorld(result.world.id);
-    addChatMessage('WORLD FACTORY', result.world.label + ' joined the Grid · ' + result.inferredTags.join(' · '), 'system');
-    return result;
+  onCreate: createFactoryWorld,
+});
+
+const creatorStudio = mountCreatorStudio({
+  terrain: {
+    setMode: mode => gridMatterTerrain.setMode(mode),
+    setEnabled: enabled => gridMatterTerrain.setEnabled(enabled),
   },
+  onCreateWorld: createFactoryWorld,
+  onMessage: message => addChatMessage('CREATOR STUDIO', message, 'system'),
 });
 let marketPanel: ReturnType<typeof mountMarketPanel> | null = null;
 const questPanel = mountQuestPanel(questSystem);
@@ -967,7 +979,7 @@ document.querySelectorAll<HTMLButtonElement>('.grid-dock [data-tool]').forEach(b
   button.addEventListener('click', () => {
     const tool = button.dataset.tool;
     if (tool === 'profile') openIdentityPanel();
-    else if (tool === 'build') creatorPanel.classList.add('open');
+    else if (tool === 'build') creatorStudio.open();
     else if (tool === 'map') minimap.element.classList.toggle('grid-highlight');
     else if (tool === 'field') fieldGuide.open();
     else if (tool === 'qr') qrScanner.open();
@@ -1129,7 +1141,7 @@ function saveIdentityName() {
   closeIdentityPanel();
 }
 
-creatorButton.addEventListener('click', () => creatorPanel.classList.add('open'));
+creatorButton.addEventListener('click', () => creatorStudio.open());
 document.querySelector<HTMLButtonElement>('#creator-close')!.addEventListener('click', () => creatorPanel.classList.remove('open'));
 creatorPanel.addEventListener('click', event => { if (event.target === creatorPanel) creatorPanel.classList.remove('open'); });
 identityButton.addEventListener('click', openIdentityPanel);
