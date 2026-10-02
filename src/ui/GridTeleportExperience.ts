@@ -3,16 +3,16 @@ import type { GridTeleportDestination } from '../engine/GridTeleport';
 
 /** Destination preview art: world-look concept pieces first, SVG fallback. */
 const WORLD_PREVIEW_ART: Record<string, string> = {
-  harbor: '/worlds/harbor.svg',
-  tideline: '/worlds/harbor.svg',
-  citadel: '/worlds/citadel.svg',
-  crown: '/worlds/citadel.svg',
-  gardens: '/worlds/gardens.svg',
-  verdant: '/worlds/gardens.svg',
-  wilds: '/worlds/wilds.svg',
-  frontier: '/worlds/wilds.svg',
-  arts: '/worlds/arts.svg',
-  muse: '/worlds/arts.svg',
+  harbor: '/worlds/tideline.svg',
+  tideline: '/worlds/tideline.svg',
+  citadel: '/worlds/crown.svg',
+  crown: '/worlds/crown.svg',
+  gardens: '/worlds/verdant.svg',
+  verdant: '/worlds/verdant.svg',
+  wilds: '/worlds/frontier.svg',
+  frontier: '/worlds/frontier.svg',
+  arts: '/worlds/muse.svg',
+  muse: '/worlds/muse.svg',
 };
 export function teleportPreviewUrl(destination:GridTeleportDestination){
   const world=(destination.id.match(/^world-gate:(.+)$/)?.[1]??destination.id).toLowerCase();
