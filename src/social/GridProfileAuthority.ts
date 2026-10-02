@@ -2,6 +2,8 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 export interface GridUserProfile{user_id:string;handle:string;display_name:string;bio:string;status:string;avatar_url?:string|null;cover_url?:string|null;profile_theme:Record<string,unknown>;profile_layout:Record<string,unknown>;stats:Record<string,unknown>;}
 export interface GridProfilePost{id:string;user_id:string;body:string;visibility:'public'|'friends'|'private';created_at:string;updated_at:string;}
 export interface GridArenaRanking{user_id:string;rating:number;wins:number;losses:number;matches:number;season:string;updated_at:string;}
+export interface GridProfileLandmark{id:string;user_id:string;name:string;world_id:string;region_id:string;position:Record<string,unknown>;preview_image_url?:string|null;description:string;tags:unknown[];created_at:string;}
+export interface GridPlayerInventoryItem{item_id:string;quantity:number;updated_at:string;}
 export interface GridProfileMedia{id:string;user_id:string;post_id?:string|null;kind:'IMAGE'|'VIDEO';url:string;thumbnail_url?:string|null;caption:string;metadata:Record<string,unknown>;created_at:string;}
 export class GridProfileAuthority{
  constructor(private readonly client:SupabaseClient){}
@@ -10,5 +12,7 @@ export class GridProfileAuthority{
  async save(input:{handle:string;displayName:string;bio:string;status:string;avatarUrl?:string|null;coverUrl?:string|null;theme?:Record<string,unknown>;layout?:Record<string,unknown>}){const {data,error}=await this.client.rpc('grid_profile_upsert',{p_handle:input.handle.replace(/^@/,''),p_display_name:input.displayName,p_bio:input.bio,p_status:input.status,p_avatar_url:input.avatarUrl??null,p_cover_url:input.coverUrl??null,p_theme:input.theme??{},p_layout:input.layout??{}});if(error)throw error;return (Array.isArray(data)?data[0]:data) as GridUserProfile;}
  async posts(userId:string){const {data,error}=await this.client.from('grid_profile_posts').select('*').eq('user_id',userId).eq('visibility','public').order('created_at',{ascending:false});if(error)throw error;return (data??[]) as GridProfilePost[];}
  async ranking(userId:string){const {data,error}=await this.client.from('grid_arena_rankings').select('*').eq('user_id',userId).maybeSingle();if(error)throw error;return data as GridArenaRanking|null;}
+ async landmarks(userId:string){const {data,error}=await this.client.from('grid_landmarks').select('*').eq('user_id',userId).order('created_at',{ascending:false});if(error)throw error;return (data??[]) as GridProfileLandmark[];}
+ async inventory(userId:string){const {data,error}=await this.client.from('grid_player_inventory').select('*').eq('user_id',userId).order('updated_at',{ascending:false});if(error)throw error;return (data??[]) as GridPlayerInventoryItem[];}
  async media(userId:string){const {data,error}=await this.client.from('grid_profile_media').select('*').eq('user_id',userId).order('created_at',{ascending:false});if(error)throw error;return (data??[]) as GridProfileMedia[];}
 }
