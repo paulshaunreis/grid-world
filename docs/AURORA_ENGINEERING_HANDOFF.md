@@ -1,0 +1,99 @@
+# Grid World — Aurora Engineering Handoff
+
+This file is the shared handoff between the Grid World engineers. Update it after each substantial engineering pass so Aurora can resume work with full context.
+
+## Working agreement
+- Aurora is a second engineer on Grid World, not a rival.
+- Preserve Aurora's existing work; integrate changes on technical merit rather than overwriting it.
+- Each engineer should leave a concise, current handoff here after substantial work.
+- Never claim a change is merged when it is only on a branch or draft PR.
+- Record verification honestly: distinguish GitHub Actions/CI verification from local verification and from unverified code changes.
+
+## Project state
+- Repository: `paulshaunreis/grid-world`
+- Active development branch: `aurora/npc-daily-routines`
+- Draft PR #1: **Aurora: NPC daily routines** — open/draft; not merged.
+- Supabase project: `grid-world` (`jdduwsduptllnykrqdxs`), ACTIVE_HEALTHY.
+- Current goal: an always-expandable Grid World platform with a persistent social/world layer, living worlds, NPC society, building, economy, teleportation, PvP/PvE, and web + in-world continuity.
+- Budget context: $0, so prioritize incremental architecture and free/available tooling.
+
+## What is already implemented
+### Living world / NPC life
+- NPC daily routines with role-specific 24h phases: sleep, work, meal, leisure.
+- NPC profiles with identity, role/archetype, world/home, occupation/workplace, traits, skills, level/XP, memories, relationships, factions, inventory, and tags.
+- NPC relationship network: family/friend/rival/mentor/faction, affinity, trust, familiarity, meetings, rivalry, last interaction.
+- NPC inventory and role loadouts.
+- NPC job progression and XP while working.
+- NPC production: harvest/craft/repair/discover/gather.
+- Physical creature/NPC material drops and collection.
+- NPC market listings/trades using Grid Coin, merchant stock, balances, production restocking.
+- NPC-to-NPC/social behavior and citizen steering.
+- Dynamic-world NPC registration.
+- Teleport selection and gate VFX.
+- Living-world event flavor/type safety and Aurora's recent touch/input fixes.
+
+### Player/social systems
+- Persistent public profile service backed by Supabase `profiles`.
+- Optional account presence via `grid_account_presence`.
+- Social connection state via `grid_social_connections`.
+- Target profile UI for NPCs and remote players.
+- Remote-player FRIEND/FOLLOW/MESSAGE actions.
+- Party health display and related target/profile interactions.
+- Landmarks/waypoints and teleport destination preview/VFX are part of the current feature direction.
+
+### UI / builder direction
+- Grid HUD with movable/modular styling direction.
+- Target profile HUD.
+- Community/social panel.
+- Build primitives and advanced builder direction.
+- Touch input handling that avoids capturing UI panels and preserves host DOM.
+
+## Latest pass — persistent player profile
+Date: 2026-10-01
+
+### Changes made
+1. `src/social/GridSocialService.ts`
+   - Added `publicProfile(userId?)`.
+   - Reads the existing `profiles`, `grid_account_presence`, and `grid_social_connections` data.
+   - Returns handle, display name, avatar fields, avatar readiness, account age, presence, world/region, and social counts.
+
+2. `src/ui/GridCommunityPanel.ts`
+   - Upgraded the profile tab from a starter identity card to a persistent profile dashboard.
+   - Shows handle, display name, online state, account age, friends/followers/following, world, region, and avatar readiness.
+   - Added EDIT IDENTITY and SHARE PROFILE actions.
+   - Share action copies a stable `@handle` rather than inventing a route that may not exist.
+
+3. `src/style.css`
+   - Added styling for the richer persistent profile dashboard and actions.
+
+4. `src/main.ts`
+   - Wired the profile editor action through the existing identity editor using `grid:open-identity`.
+
+### Latest commit
+- `97aa5c59d55092801e6abc4c9e9571c645f439e1`
+- Branch: `aurora/npc-daily-routines`
+
+### Verification status
+- The latest commit's GitHub status was still **pending with no completed status checks** when this note was written.
+- Do **not** call this latest pass CI-verified until GitHub Actions reports success.
+- Previously verified commit `66924458a3861528788d4c86a21f14aa33114f1e` passed `npx tsc --noEmit` and `npm run build` in GitHub Actions run #955.
+- Local `npx tsc --noEmit` was not available because the local shell did not have the GitHub repository checkout/network setup.
+
+## Important existing caveats
+- The repo's `package.json` does not currently provide an npm `test` script, and Vitest is not currently a dev dependency; existing test files therefore should not be described as executed unless that infrastructure is added.
+- Draft PR #1 remains unmerged.
+- Avoid introducing duplicate systems when an existing service already owns the same data.
+- Preserve Aurora's branch conventions and review her patches rather than replacing them.
+
+## Suggested next work
+1. Verify commit `97aa5c5...` through GitHub Actions.
+2. Connect persistent profiles to the web/community identity surface: profile pages, creations/media, worlds, achievements, friends/followers, and NPC profile continuity.
+3. Continue closing the loop between web identity and in-world identity without duplicating account data.
+4. Keep teleport destinations, landmarks/waypoints, party status, NPC profiles, and social identity interoperable.
+
+## Handoff etiquette
+When Aurora or another engineer continues:
+- Read this file first.
+- Update it after substantial work.
+- Add the newest commit SHA and exact verification result.
+- Explicitly list anything that is unfinished or uncertain.
