@@ -768,8 +768,6 @@ const gridEconomyPanel = mountGridEconomyPanel(() => combatAuthority);
 const gridSocialService = cloudPersistence ? new GridSocialService(cloudPersistence.getClient()) : null;
 const gridCommunityPanel = gridSocialService ? mountGridCommunityPanel(gridSocialService, voiceModifier, { displayName: identity.displayName, id: identity.id, createdAt: identity.createdAt }, gridWorldContentAuthority ? { authority: gridWorldContentAuthority, getWorldId: () => String(livingWorld.getSnapshot().world) } : undefined) : null;
 void gridSocialService?.setPresence(false).catch(()=>undefined);
-const gridSocialButton = document.querySelector<HTMLButtonElement>('[data-tool="social"]');
-gridSocialButton?.addEventListener('click',()=>gridCommunityPanel?.open());
 const gridAuthPanel = cloudPersistence ? mountGridAuthPanel(new GridAuthService(cloudPersistence.getClient()), profile => {
   identity = { ...identity, id: profile.id, displayName: profile.display_name, createdAt: profile.account_created_at || identity.createdAt };
   void cloudPersistence?.getClient().from('grid_account_social').select('age_band').eq('user_id', profile.id).maybeSingle().then(({data})=>{ if(data?.age_band==='child'||data?.age_band==='teen'||data?.age_band==='adult') accountAgeBand=data.age_band; });
@@ -1712,8 +1710,6 @@ const creatorStudio = mountCreatorStudio({
 
 const interaction = new InteractionSystem(camera, world.scene);
 
-const teamTool = document.querySelector<HTMLButtonElement>('[data-tool="team"]');
-teamTool?.addEventListener('click', () => teamArea.open());
 const prompt = document.querySelector<HTMLDivElement>('#interaction-prompt')!;
 const creatorButton = document.querySelector<HTMLButtonElement>('#creator-button')!;
 const creatorPanel = document.querySelector<HTMLDivElement>('#creator-panel')!;
