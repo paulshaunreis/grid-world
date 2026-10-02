@@ -308,3 +308,15 @@ _Last updated: 2026-10-02_
 - **Next actionable item:** P3 #25 Living-world visual pass.
 
 _Last updated: 2026-10-02_
+
+
+## 2026-10-02 — Living-world visual pass checkpoint
+- P3 #25 **Complete for the current visual integration increment**.
+- PR #29 merged as `ecc52bd444308f3ff89ca1cedcf0d6c8a7047e9b`.
+- Audit found world-specific architecture and environmental clusters were all rendered simultaneously even though the WorldSkinDirector already selected an active world.
+- Fixed `WorldArchitectureSystem` and `WorldEnvironmentSystem` to gate their generated layers to the nearest active world, driven by the player's X/Z position from `main.ts`.
+- Preserved existing concept-art panels, world skins, procedural flora, atmosphere/weather, world DNA, and original district presentation; no replacement visual stack was created.
+- Verification: branch files re-fetched after writes; PR #29 merged; merged main state should be re-fetched before any further visual work. No browser/WebGL verification and no CI run is claimed here.
+- **Next actionable item:** P3 #26 UI visual system.
+
+_Last updated: 2026-10-02_
