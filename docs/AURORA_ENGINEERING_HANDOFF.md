@@ -259,3 +259,9 @@ Source of truth: `~/workspace/gridworld/concept-art/INVENTORY.md` (89-file inven
 - Verification boundary: source-level only for this checkpoint; final routing has not yet received an end-to-end browser or CI verification.
 - Next focus: **P1 Core player/world**, beginning with the teleport experience and its destination preview/animation requirements.
 
+
+
+## Landmark/Waypoint continuation — 2026-10-02
+PR #6 (`grid/landmarks-waypoints-flow`) completes the previously partial saved-destination flow. The existing Supabase tables and RLS policies were retained. The implementation adds waypoint creation from the current player transform, inventory actions (select, pin, rename, delete), HUD INVENTORY routing, and selected-destination transit with preview/avatar effects. Cross-world saved destinations first use the normal world-gate authorization path, then move to the stored coordinates after arrival. No schema change was required.
+
+Verification: Supabase schema/policy inspection succeeded and a read-only row-count query returned 0 landmarks / 0 inventory items. GitHub Actions and browser verification are pending for PR #6; do not call the branch CI-verified or merged yet.
