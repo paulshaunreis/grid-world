@@ -1,11 +1,14 @@
 import './profile.css';
 import { createClient } from '@supabase/supabase-js';
 import { GridProfileAuthority, type GridProfileMedia, type GridArenaRanking } from './social/GridProfileAuthority';
+import { GridSocialService } from './social/GridSocialService';
 const profileSupabaseUrl=import.meta.env.VITE_SUPABASE_URL as string|undefined;
 const profileSupabaseKey=import.meta.env.VITE_SUPABASE_ANON_KEY as string|undefined;
 const profileClient=profileSupabaseUrl&&profileSupabaseKey?createClient(profileSupabaseUrl,profileSupabaseKey):null;
 const profileAuthority=profileClient?new GridProfileAuthority(profileClient):null;
+const profileSocial=profileClient?new GridSocialService(profileClient):null;
 let cloudMedia:GridProfileMedia[]=[];let arenaRanking:GridArenaRanking|null=null;let cloudLandmarks:import('./social/GridProfileAuthority').GridProfileLandmark[]=[];let cloudInventory:import('./social/GridProfileAuthority').GridPlayerInventoryItem[]=[];let cloudPosts:import('./social/GridProfileAuthority').GridProfilePost[]=[];
+let liveProfile:{online:boolean;worldId?:string;regionId?:string;lastSeenAt?:string;friends:number;followers:number;following:number}|null=null;
 
 type ProfileTheme = {
   preset: string;
@@ -156,7 +159,7 @@ function render() {
 
 function moduleMarkup(section: string, data: ProfileDraft): string {
   const content: Record<string,string> = {
-    about: `<article class="module-card"><span class="module-label">ABOUT</span><h3>Who I am</h3><p>${escapeHtml(data.bio)}</p><div class="chips"><span>Explorer</span><span>Creator</span><span>${data.favoriteEmoji} Dreamer</span></div></article>`,
+    about: `<article class="module-card"><span class="module-label">ABOUT</span><h3>Who I am</h3><p>${escapeHtml(data.bio)}</p><div class="chips"><span>${liveProfile?.online?'● ONLINE':'○ OFFLINE'}</span>${liveProfile?.worldId?`<span>${escapeHtml(liveProfile.worldId)}${liveProfile.regionId?` · ${escapeHtml(liveProfile.regionId)}`:''}</span>`:''}<span>Explorer</span><span>Creator</span><span>${data.favoriteEmoji} Dreamer</span></div></article>`,
     worlds: `<article class="module-card"><span class="module-label">WORLDS</span><h3>Grid destinations</h3>${cloudLandmarks.length?cloudLandmarks.slice(0,4).map(l=>`<div class="world-pill"><i></i><b>${escapeHtml(l.name)}</b><small>${escapeHtml(l.world_id)} · ${escapeHtml(l.region_id)}</small></div>`).join(''):'<p>No saved worlds or landmarks yet.</p>'}</article>`,
     creations: `<article class="module-card"><span class="module-label">CREATIONS</span><h3>Made in the Grid</h3>${cloudPosts.length?`<div class="event-row"><b>${cloudPosts.length} PUBLIC POSTS</b><small>Latest: ${escapeHtml(cloudPosts[0].body||'Grid creation')}</small></div>`:'<p>No public creations posted yet.</p>'}<div class="creation-grid"><div>◈</div><div>◇</div><div>✦</div></div></article>`,
     gallery: `<article class="module-card"><span class="module-label">GALLERY</span><h3>Moments</h3><div class="gallery-grid">${cloudMedia.length?cloudMedia.slice(0,8).map(m=>m.kind==='VIDEO'?`<video src="${escapeHtml(m.url)}" controls muted></video>`:`<img src="${escapeHtml(m.url)}" alt="${escapeHtml(m.caption||'Grid World post')}">`).join(''):'<div>🌌</div><div>🌲</div><div>🌃</div><div>🪐</div>'}</div></article>`,
@@ -213,7 +216,7 @@ function bind() {
   document.querySelectorAll<HTMLElement>('[data-module-index]').forEach(item=>item.addEventListener('drop',e=>{e.preventDefault();const from=Number((e as DragEvent).dataTransfer?.getData('text/plain'));const to=Number(item.dataset.moduleIndex);if(Number.isInteger(from)&&Number.isInteger(to)&&from!==to){const moved=draft.layout.sections.splice(from,1)[0];draft.layout.sections.splice(to,0,moved);render();}}));
 }
 
-async function hydrateCloudProfile(){if(!profileAuthority||!profileClient)return;try{const {data:{user}}=await profileClient.auth.getUser();if(!user)return;const profile=await profileAuthority.get(user.id);if(profile){draft={...draft,displayName:profile.display_name,handle:profile.handle,bio:profile.bio,status:profile.status,theme:{...draft.theme,...profile.profile_theme},layout:{...draft.layout,...profile.profile_layout} as ProfileLayout};}cloudMedia=await profileAuthority.media(user.id);render();}catch(error){console.warn('Cloud profile load unavailable.',error);}}
+async function hydrateCloudProfile(){if(!profileAuthority||!profileClient)return;try{const {data:{user}}=await profileClient.auth.getUser();if(!user)return;const profile=await profileAuthority.get(user.id);if(profile){draft={...draft,displayName:profile.display_name,handle:profile.handle,bio:profile.bio,status:profile.status,theme:{...draft.theme,...profile.profile_theme},layout:{...draft.layout,...profile.profile_layout} as ProfileLayout};}cloudMedia=await profileAuthority.media(user.id);cloudPosts=await profileAuthority.posts(user.id);cloudLandmarks=await profileAuthority.landmarks(user.id);cloudInventory=await profileAuthority.inventory(user.id);liveProfile=profileSocial?await profileSocial.publicProfile(user.id):null;render();}catch(error){console.warn('Cloud profile load unavailable.',error);}}
 
 function renderPreviewOnly() {
   const preview = document.querySelector('.profile-preview');
