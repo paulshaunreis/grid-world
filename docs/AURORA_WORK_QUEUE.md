@@ -444,3 +444,14 @@ _Last updated: 2026-10-02_
 - GitHub Actions CI run #1090 succeeded for head `aa636da0bdf7c475ede47766ae638c9a2cfcae91`.
 - PR #9 was squash-merged into `main` as `f53799d06e22b3fc0e114b1c5e2beedce11e961b`.
 - Next: P1 NPC profile expansion, after auditing the existing NPC profile implementation to avoid duplicating fields/systems.
+
+
+## P2 material-based custom building tools checkpoint — 2026-10-02
+- Audited current build system before implementation: `GridEasyBuildSystem` already has material recipes for Grid Hammer, Grid Builder, and Grid Architect, but crafted tools had no persistent instance metadata or durability.
+- Implemented a bounded tool-inventory foundation in `src/world/GridEasyBuildSystem.ts`: each crafted tool receives a unique instance ID, max uses, remaining uses, persistent local storage, inventory inspection, and a `useTool()` consumption API. Existing build placement/edit behavior remains unchanged in this pass.
+- Branch: `grid/material-builder-tools`.
+- Commit: **2987ed750c5806e955c8632208686af95048fbb0**.
+- Verification: source-level L0; GitHub workflow lookup immediately after commit returned no run yet. Do not call CI-verified.
+- PR pending; next: CI review, then continue with mission foundation after existing NPC/profile PRs are resolved rather than duplicating their work.
+
+_Last updated: 2026-10-02_

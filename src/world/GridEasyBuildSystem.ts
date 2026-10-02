@@ -8,9 +8,9 @@ export interface GridBuildPreview{position:THREE.Vector3;rotation:THREE.Euler;sc
 export interface GridRemoteBuild{objectId:string;definitionId:string;position:[number,number,number];rotation:[number,number,number];scale:[number,number,number];ownerUserId:string;}
 
 const TOOL_RECIPES=[
-  {id:'grid-hammer',name:'Grid Hammer',materials:{'Grid Matter':6,'Metal':2},description:'Basic placement, move and rotate tool.'},
-  {id:'grid-builder',name:'Grid Builder',materials:{'Grid Matter':12,'Metal':4,'Crystal Shard':2},description:'Advanced build tool with scaling and free rotation.'},
-  {id:'grid-architect',name:'Grid Architect',materials:{'Grid Matter':24,'Metal':8,'Blueprint Scrap':3},description:'Multi-select, copy and blueprint tool.'},
+  {id:'grid-hammer',name:'Grid Hammer',materials:{'Grid Matter':6,'Metal':2},description:'Basic placement, move and rotate tool.',maxUses:80},
+  {id:'grid-builder',name:'Grid Builder',materials:{'Grid Matter':12,'Metal':4,'Crystal Shard':2},description:'Advanced build tool with scaling and free rotation.',maxUses:120},
+  {id:'grid-architect',name:'Grid Architect',materials:{'Grid Matter':24,'Metal':8,'Blueprint Scrap':3},description:'Multi-select, copy and blueprint tool.',maxUses:180},
 ] as const;
 
 export class GridEasyBuildSystem{
@@ -38,6 +38,7 @@ export class GridEasyBuildSystem{
   private ownerUserId='';
   private accessRole:GridBuildAccessRole=null;
   private readonly starterMaterials:Record<string,number>={'Grid Matter':100,Metal:20,Wood:20,Crystal:10,'Crystal Shard':10};
+  private tools:Array<{instanceId:string;recipeId:string;name:string;usesRemaining:number;maxUses:number}> = JSON.parse(localStorage.getItem('grid-world:builder-tools') ?? '[]');
 
   constructor(){this.root.name='grid-easy-build';this.root.userData.gridBuildSystem=true;for(const[k,v]of Object.entries(this.starterMaterials))if(this.inventory[k]===undefined)this.inventory[k]=v;this.persistMaterials();}
   attach(camera:THREE.Camera,scene:THREE.Scene,dom:HTMLElement){if(this.attached)return;this.attached=true;this.camera=camera;this.scene=scene;this.dom=dom;dom.addEventListener('pointerdown',this.onPointerDown);dom.addEventListener('pointermove',this.onPointerMove);dom.addEventListener('wheel',this.onWheel,{passive:false});window.addEventListener('keydown',this.onKeyDown);}
@@ -72,11 +73,29 @@ export class GridEasyBuildSystem{
   copySelected(object?:THREE.Object3D){const source=object??this.undoStack.at(-1);if(!source||!this.canEditObject(source))return;this.clipboard=source.clone(true);}
   paste(){if(!this.canBuild()||!this.clipboard)return null;const pasted=this.clipboard.clone(true);pasted.userData={...pasted.userData,gridBuildObjectId:crypto.randomUUID(),ownerUserId:this.ownerUserId};pasted.position.add(new THREE.Vector3(1,0,1));this.root.add(pasted);this.undoStack.push(pasted);this.selectPlaced(pasted);return pasted;}
   private persistMaterials(){localStorage.setItem('grid-world:builder-materials',JSON.stringify(this.inventory));}
+  private persistTools(){localStorage.setItem('grid-world:builder-tools',JSON.stringify(this.tools));}
+  toolInventory(){return this.tools.map(tool=>({...tool}));}
+  useTool(recipeId:string, amount=1){
+    const tool=this.tools.find(item=>item.recipeId===recipeId && item.usesRemaining>0);
+    if(!tool) return {ok:false,error:'No usable '+recipeId+' available.'};
+    tool.usesRemaining=Math.max(0,tool.usesRemaining-Math.max(1,amount));
+    this.persistTools();
+    return {ok:true,tool:{...tool}};
+  }
   private canAfford(cost:Record<string,number>){return Object.entries(cost).every(([k,v])=>(this.inventory[k]??0)>=v);}
   private spendMaterials(cost:Record<string,number>){for(const[k,v]of Object.entries(cost))this.inventory[k]=(this.inventory[k]??0)-v;this.persistMaterials();}
   addMaterials(materials:Record<string,number>){for(const[k,v]of Object.entries(materials))this.inventory[k]=(this.inventory[k]??0)+Math.max(0,v);this.persistMaterials();}
   materialInventory(){return {...this.inventory};}
-  craftTool(id:string){const recipe=TOOL_RECIPES.find(r=>r.id===id);if(!recipe)return{ok:false,error:'Unknown tool'};for(const[k,v]of Object.entries(recipe.materials))if((this.inventory[k]??0)<v)return{ok:false,error:'Missing '+k};for(const[k,v]of Object.entries(recipe.materials))this.inventory[k]-=v;localStorage.setItem('grid-world:builder-materials',JSON.stringify(this.inventory));return{ok:true,tool:recipe};}
+  craftTool(id:string){
+    const recipe=TOOL_RECIPES.find(r=>r.id===id);
+    if(!recipe)return{ok:false,error:'Unknown tool'};
+    for(const[k,v]of Object.entries(recipe.materials))if((this.inventory[k]??0)<v)return{ok:false,error:'Missing '+k};
+    for(const[k,v]of Object.entries(recipe.materials))this.inventory[k]-=v;
+    this.persistMaterials();
+    const tool={instanceId:crypto.randomUUID(),recipeId:recipe.id,name:recipe.name,usesRemaining:recipe.maxUses,maxUses:recipe.maxUses};
+    this.tools.push(tool); this.persistTools();
+    return{ok:true,tool:{...tool,recipe}};
+  }
   recipes(){return TOOL_RECIPES;}
   mountPanel(host:HTMLElement){const panel=document.createElement('section');panel.className='grid-build-panel';panel.innerHTML='<div class="grid-build-head"><b>GRID BUILDER</b><button data-close>×</button></div><div data-role-badge>ROLE · NONE</div><div data-role-note>Viewer access · build editing is disabled.</div><div class="grid-build-modes"><button data-mode="BASIC">BASIC</button><button data-mode="ADVANCED">ADVANCED</button></div><div class="grid-build-cats"></div><div class="grid-build-items"></div><div class="grid-build-actions"><button data-build-action data-act="undo">UNDO</button><button data-build-action data-act="copy">COPY</button><button data-build-action data-act="paste">PASTE</button><button data-build-action data-act="rotate">ROTATE</button><button data-build-action data-act="delete">DELETE</button><button data-build-action data-act="move">MOVE</button><button data-build-action data-act="scale-up">SCALE +</button><button data-build-action data-act="scale-down">SCALE −</button></div><div class="grid-build-tools"><b>CRAFT BUILDER TOOLS</b><div data-recipes></div></div><div class="grid-build-foot">Basic: snap + surface-friendly placement · Advanced: free rotation + scale · Ctrl/Cmd+C/V supported</div>';host.appendChild(panel);this.panel=panel;
     const cats=panel.querySelector('.grid-build-cats')!;(['PRIMITIVE','STRUCTURE','FURNITURE','NATURE','UTILITY'] as GridBuildCategory[]).forEach(c=>{const b=document.createElement('button');b.textContent=c;b.onclick=()=>this.renderItems(c);cats.appendChild(b);});
@@ -90,7 +109,7 @@ export class GridEasyBuildSystem{
     panel.querySelector<HTMLButtonElement>('[data-act="move"]')!.onclick=()=>{this.setAction('MOVE');};
     panel.querySelector<HTMLButtonElement>('[data-act="scale-up"]')!.onclick=()=>this.scaleSelected(1.125);
     panel.querySelector<HTMLButtonElement>('[data-act="scale-down"]')!.onclick=()=>this.scaleSelected(.888888);
-    const recipes=panel.querySelector('[data-recipes]')!;for(const r of TOOL_RECIPES){const b=document.createElement('button');b.textContent=r.name+' · '+Object.entries(r.materials).map(([k,v])=>k+' '+v).join(', ');b.onclick=()=>{const result=this.craftTool(r.id);b.title=result.ok?'Crafted':'Need more materials';};recipes.appendChild(b);}
+    const recipes=panel.querySelector('[data-recipes]')!;for(const r of TOOL_RECIPES){const b=document.createElement('button');b.textContent=r.name+' · '+Object.entries(r.materials).map(([k,v])=>k+' '+v).join(', ')+' · '+r.maxUses+' uses';b.onclick=()=>{const result=this.craftTool(r.id);b.title=result.ok?'Crafted '+r.name+' · '+r.maxUses+' uses':'Need more materials';};recipes.appendChild(b);}
     this.renderItems('PRIMITIVE');this.setEnabled(false);this.updateAccessUI();return panel;
   }
   private renderItems(category:GridBuildCategory){if(!this.panel)return;const box=this.panel.querySelector('.grid-build-items')!;box.innerHTML='';for(const d of GRID_BUILD_LIBRARY.filter(x=>x.category===category)){const b=document.createElement('button');b.textContent=d.name;b.title=d.description;b.onclick=()=>{if(!this.canBuild())return;this.select(d.id);this.setEnabled(true);};box.appendChild(b);}}

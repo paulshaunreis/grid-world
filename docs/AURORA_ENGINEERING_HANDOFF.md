@@ -272,3 +272,12 @@ PR #6 `grid/landmarks-waypoints-flow` passed GitHub Actions CI run #1080 success
 
 ## Master engineering state document merged — 2026-10-02
 - `docs/ENGINEERING_STATE.md` is now on `main` (merged from `aurora/engineering-state` with Paul's approval). Fresh-chat rule: read ENGINEERING_STATE.md first, then this handoff, then the work queue. Keep its "Last updated" line and main SHA current when substantial work lands.
+
+
+## Material-crafted builder tools — 2026-10-02
+- **What changed:** Added persistent crafted-tool instances and durability metadata to the existing Grid Easy Build material-tool recipes.
+- **Files:** `src/world/GridEasyBuildSystem.ts`; queue checkpoint in `docs/AURORA_WORK_QUEUE.md`.
+- **Commit:** 2987ed750c5806e955c8632208686af95048fbb0 (plus documentation checkpoint commit follows).
+- **Verification:** L0 source review. No GitHub workflow run was available immediately after the implementation commit; CI status must be checked before claiming L4.
+- **Scope:** Additive foundation only. Existing placement/edit controls are intentionally unchanged; `useTool()` is available for future action-level enforcement.
+- **Next:** Review CI/PR, then mission foundation or another highest-priority non-duplicate queue item.
