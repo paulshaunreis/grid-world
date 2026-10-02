@@ -290,3 +290,13 @@ PR #6 `grid/landmarks-waypoints-flow` passed GitHub Actions CI run #1080 success
 - Next: current-main stability check, then mission/quest foundation or NPC jobs/skill progression according to queue priority.
 
 _Last updated: 2026-10-02_
+
+
+## NPC job progression — 2026-10-02
+- PR #15 merged: `b6e1f18aff5081a6088d968e23ef15e02832b15a`.
+- Real WORK activity now calls the existing `NPCJobProgressionSystem` on a bounded 20-second cooldown, updating XP, level/occupation progression, and role skill state.
+- CI #1117 passed on head `6572cbdfad58426e63a7c3cc6b5d7ed0a429b95b`.
+- No schema change and no duplication of certificate work.
+- Next: audit NPC movement/teleport destination selection against the existing gate/transit systems.
+
+_Last updated: 2026-10-02_
