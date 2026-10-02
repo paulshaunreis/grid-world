@@ -270,3 +270,15 @@ _Last updated: 2026-10-02_
 - **Next actionable item:** P2 #22 Grid Currency architecture. Audit existing economy/currency systems first.
 
 _Last updated: 2026-10-02_
+
+## 2026-10-02 — Grid Currency architecture landed
+- **main:** `c301bcfe9c5161c2e84d921ae06a0b4e16e389f1` (documentation handoff commit; currency implementation merged immediately before this).
+- PR #26 merged as `248bf80985fd23fb47b864b2cc87e841b02a1ee9`.
+- Existing production economy already had 10 currency types plus wallets, ledger transactions/entries, exchange rates/history, Bazaar, and Omni Bank structures. The implementation therefore extended existing architecture instead of creating a second economy.
+- Added `src/economy/GridCurrencySystem.ts` with the persisted 10-currency registry and Grid Coin denomination concepts for Gold/Silver/Copper/Crystal; denomination conversion remains configurable.
+- Added authoritative wallet/ledger reads to the existing `grid-combat` Edge Function and surfaced them in `GridEconomyPanel`.
+- Bazaar purchases now produce ledger transactions with buyer debits and user-seller credits; Omni Bank starter grants produce a Grid ledger entry. Existing resource-sale ledgering remains intact.
+- Supabase migration `20261002030000_grid_currency_audit_trail` applied successfully; live check confirms 10 currencies and 0 ledger entries before transaction activity.
+- `grid-combat` deployed live as version 14 with JWT verification.
+- Verification boundary: Supabase live verification succeeded; no GitHub workflow run was returned for the merge commit and no browser/WebGL verification was available. Not CI-verified.
+- **Next actionable item:** P2 #23 Marketplace integration.
