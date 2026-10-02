@@ -294,7 +294,8 @@ export class CombatSystem {
 
   recordAuthoritativeKill(targetId:string){
     const target=this.combatants.get(targetId);
-    if(!target || target.alive) return false;
+    if(!target || !target.alive) return false;
+    target.alive=false;
     this.kills++;
     this.targetId=targetId;
     return true;
