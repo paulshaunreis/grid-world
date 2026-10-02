@@ -187,3 +187,18 @@ ChatGPT pushes via Paul's channel (authored `paulshaunreis`). All 84 commits on 
 - Shared notebook: `~/workspace/gridworld/NOTES-FOR-CHATGPT.md` (two-way, newest on top)
 - Holiday calendar: `~/workspace/gridworld/HOLIDAY-SCHEDULE.md`
 - This document lives at `docs/ENGINEERING_STATE.md` in the repo. Update the "Last updated" line and the main SHA whenever substantial work lands.
+
+
+## 10. P1 NPC life-loop integration checkpoint
+
+- Current main baseline for this pass: `598561588253979b3420984b24e78ed173262d92`.
+- PR #11 `grid/npc-life-loop-integration` bridges the existing visible NPC society and `GridNpcBrain` rather than replacing either parallel system.
+- Visible citizens now feed daily routine, nearby-NPC, safety, work, and food context into their brain; brain action/needs are exposed on the NPC object and influence the existing society state chooser.
+- Social meetings now create brain memories alongside the existing relationship network; bounded brain memories and relationship IDs are mirrored into the existing NPC profile.
+- Meal actions consume one FOOD inventory item on a 20-second cooldown; existing NPC production can replenish inventory.
+- No Supabase schema change.
+- Latest branch head: `0eb8ef1cc9652818898b45e17b2b82fb767f69b4`.
+- CI run #1099 is in progress; not yet green/verified. Main is unchanged and PR merge remains Paul's decision.
+
+**Last updated:** 2026-10-02 by ChatGPT
+**Current `main` SHA:** `598561588253979b3420984b24e78ed173262d92`
