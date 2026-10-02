@@ -176,8 +176,6 @@ function bind() {
   document.querySelector<HTMLInputElement>('#status')?.addEventListener('input', e => { draft.status=(e.target as HTMLInputElement).value; renderPreviewOnly(); });
   document.querySelector<HTMLTextAreaElement>('#bio')?.addEventListener('input', e => { draft.bio=(e.target as HTMLTextAreaElement).value; renderPreviewOnly(); });
   document.querySelector('#save')?.addEventListener('click', save);
-  document.querySelector('#upload-media')?.addEventListener('click', async()=>{const input=document.querySelector<HTMLInputElement>('#profile-media');const files=[...(input?.files??[])];if(!files.length||!profileClient||!profileAuthority)return;const {data:{user}}=await profileClient.auth.getUser();if(!user)return;try{const {data:post,error}=await profileClient.from('grid_profile_posts').insert({user_id:user.id,body:'Profile media',visibility:'public'}).select('*').single();if(error)throw error;for(const file of files){const safe=file.name.replace(/[^A-Za-z0-9._-]/g,'_');const path=user.id+'/'+crypto.randomUUID()+'-'+safe;const up=await profileClient.storage.from('profile-media').upload(path,file,{upsert:false,contentType:file.type});if(up.error)throw up.error;const url=profileClient.storage.from('profile-media').getPublicUrl(path).data.publicUrl;const row=await profileClient.from('grid_profile_media').insert({user_id:user.id,post_id:post.id,kind:file.type.startsWith('video/')?'VIDEO':'IMAGE',url,caption:file.name,metadata:{mime:file.type,size:file.size}});if(row.error)throw row.error;}cloudMedia=await profileAuthority.media(user.id);arenaRanking=await profileAuthority.ranking(user.id);render();}catch(error){console.warn('Profile media upload failed.',error);}});
-
   document.querySelector('#upload-media')?.addEventListener('click', async()=>{
     const input=document.querySelector<HTMLInputElement>('#profile-media');const files=[...(input?.files??[])];
     if(!files.length||!profileClient){return;}
@@ -251,6 +249,10 @@ void (async()=>{
       if(cloud){
         draft={...draft,displayName:cloud.display_name,handle:cloud.handle,bio:cloud.bio,status:cloud.status,theme:{...draft.theme,...cloud.profile_theme},layout:{...draft.layout,...cloud.profile_layout} as ProfileLayout};
         cloudMedia=await profileAuthority.media(cloud.user_id);
+        cloudPosts=await profileAuthority.posts(cloud.user_id);
+        cloudLandmarks=await profileAuthority.landmarks(cloud.user_id);
+        cloudInventory=await profileAuthority.inventory(cloud.user_id);
+        liveProfile=profileSocial?await profileSocial.publicProfile(cloud.user_id):null;
         arenaRanking=await profileAuthority.ranking(cloud.user_id);
       }
     }catch(error){console.warn('Public Grid profile load unavailable.',error);}
