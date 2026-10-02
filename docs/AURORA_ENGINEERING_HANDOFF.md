@@ -272,3 +272,18 @@ PR #6 `grid/landmarks-waypoints-flow` passed GitHub Actions CI run #1080 success
 
 ## Master engineering state document merged — 2026-10-02
 - `docs/ENGINEERING_STATE.md` is now on `main` (merged from `aurora/engineering-state` with Paul's approval). Fresh-chat rule: read ENGINEERING_STATE.md first, then this handoff, then the work queue. Keep its "Last updated" line and main SHA current when substantial work lands.
+
+
+## P1 NPC profile expansion — 2026-10-02
+- Audited the existing NPC profile implementation before changing it. NPCProfileRecord already included identity, role, world/home, occupation, traits, skills, level, memories, relationship IDs, faction IDs, inventory, and tags; NPCRelationshipNetwork and NPCInventorySystem already exist.
+- Did not duplicate Aurora's unmerged PR #5 certificate system, and did not introduce a second NPC profile authority.
+- PR #10 grid/npc-profile-expansion adds optional NPCProfileStatus and richer summary counts in src/world/NPCProfile.ts.
+- src/ui/GridTargetProfile.ts now surfaces status, home/work, factions/tags, inventory, and recent memories in addition to existing identity, traits, skills, and relationships.
+- src/ui/grid-target-profile.css now constrains the expanded profile to the viewport and makes the card scrollable.
+- Branch: grid/npc-profile-expansion.
+- Implementation commits: 686ff3b4693bcedebc228f1852298f0c83422905, 4bbc4db9c23568938e23a55e1aae1a618efee420, dfb2d824660ff809b410c5666b54426d7ef2185c; docs ba441d68f710f258dc249bb627e939510ca1c7bb.
+- PR #10 head is now ba441d68f710f258dc249bb627e939510ca1c7bb. GitHub workflow lookup has returned no run yet; NOT CI-VERIFIED. Local build was not run because this session has no local checkout of the repository.
+- Main is unchanged by this feature; merge remains Paul's decision.
+- Next actionable area after review: P1 NPC life-loop integration, while separately leaving PRs #5, #7, and #8 for explicit merge/close decisions.
+
+_Last updated: 2026-10-02_
