@@ -300,3 +300,13 @@ _Last updated: 2026-10-02_
 - Next: audit NPC movement/teleport destination selection against the existing gate/transit systems.
 
 _Last updated: 2026-10-02_
+
+## NPC skill certificates — 2026-10-02
+- PR #16 NPC teleport work is merged to `main` as `9ae6615232e78a9355a212a46b08089f368b1516`; its head CI #1121 passed before merge.
+- The old certificate PR #5 was stale/non-mergeable, so its implementation was audited and ported onto a fresh current-main branch instead of merging stale history.
+- Certificate implementation uses the existing NPC job/profile architecture: `NPCSkillCertificateSystem` issues in-Grid certificates at skill thresholds 25/50/75/90; progression calls `sync()`; profiles persist records; target profiles display them.
+- `externalVerificationReady` remains false. No external accreditation is claimed.
+- Branch: `grid/npc-skill-certificates-current-main`; CI pending.
+- Next: verify CI, merge if green, then move to the next queue item.
+
+_Last updated: 2026-10-02
