@@ -370,3 +370,15 @@ _Last updated: 2026-10-02_
 - Next: continue P0.2 audit across high-impact controls and page/navigation surfaces; do not call this commit CI-verified until a workflow run exists.
 
 _Last updated: 2026-10-02_
+
+
+## P0.2 interaction audit checkpoint — 2026-10-02 (continued)
+- Continued the HUD control audit against already-mounted UI surfaces.
+- Found two misleading/dead paths in `src/main.ts`: the target quick-action `SOCIAL` button only posted a chat message instead of opening the Social Manager, and the HUD `TEAM` tool had no dedicated route despite `mountTeamArea()` already being available.
+- Fixed `SOCIAL` to open the mounted `GridCommunityPanel` when available, with a clear unavailable-service fallback.
+- Fixed `TEAM` to open the mounted Team Workshop panel.
+- Commit: `343b308a3581752932ba5adb7c78b340dce27010` on `main`.
+- Verification: source-level fetch confirmed the new routes; GitHub workflow lookup for the commit returned no runs yet, so it is **not CI-verified**.
+- P0.2 remains active; next audit target is the remaining account/auth, transit, quest, creator, and secondary toolbar/navigation surfaces.
+
+_Last updated: 2026-10-02_
