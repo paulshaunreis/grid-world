@@ -259,3 +259,10 @@ Source of truth: `~/workspace/gridworld/concept-art/INVENTORY.md` (89-file inven
 - Verification boundary: source-level only for this checkpoint; final routing has not yet received an end-to-end browser or CI verification.
 - Next focus: **P1 Core player/world**, beginning with the teleport experience and its destination preview/animation requirements.
 
+
+## NPC certificate checkpoint — 2026-10-02
+- Audited the current repo before selecting the next task; quests, PvE/PvP, build library/advanced build controls, NPC destination selection, profiles, economy/Bazaar, teleport, party health, and camera controls are already implemented to varying verification states.
+- Implemented PR #5 (`aurora/npc-skill-certificates`): `NPCSkillCertificateSystem` issues in-Grid skill certificates at defined skill thresholds; job progression invokes it; NPC profiles persist the certificate records; target profiles display earned certificates.
+- External accreditation is deliberately not claimed: `externalVerificationReady` remains false until a real external verification integration exists.
+- Verification boundary: source-level inspection is complete; GitHub reports no workflow run for the current PR head yet, so the branch is not CI-verified.
+- Concrete next gap after verification: complete the existing Landmark/Waypoint selection integration. The current inventory and persistence exist, but `grid:landmark-select` currently records the selection rather than resolving the saved destination into the teleport flow.
