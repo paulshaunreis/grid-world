@@ -240,4 +240,20 @@ function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]!));
 }
 
-render();
+void (async()=>{
+  const handle=new URLSearchParams(location.search).get('handle')?.replace(/^@/,'').trim();
+  if(profileAuthority&&handle){
+    try{
+      const cloud=await profileAuthority.byHandle(handle);
+      if(cloud){
+        draft={...draft,displayName:cloud.display_name,handle:cloud.handle,bio:cloud.bio,status:cloud.status,theme:{...draft.theme,...cloud.profile_theme},layout:{...draft.layout,...cloud.profile_layout} as ProfileLayout};
+        cloudMedia=await profileAuthority.media(cloud.user_id);
+        arenaRanking=await profileAuthority.ranking(cloud.user_id);
+      }
+    }catch(error){console.warn('Public Grid profile load unavailable.',error);}
+    render();
+    return;
+  }
+  if(profileAuthority){await hydrateCloudProfile();return;}
+  render();
+})();
