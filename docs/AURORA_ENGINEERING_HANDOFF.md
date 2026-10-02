@@ -259,3 +259,9 @@ Source of truth: `~/workspace/gridworld/concept-art/INVENTORY.md` (89-file inven
 - Verification boundary: source-level only for this checkpoint; final routing has not yet received an end-to-end browser or CI verification.
 - Next focus: **P1 Core player/world**, beginning with the teleport experience and its destination preview/animation requirements.
 
+
+
+## P1 party/camera checkpoint — 2026-10-02
+Party HUD health was verified as already implemented on main: `GridPartySystem.current()` feeds the mounted `GridPartyHud` every 3 seconds, combat health is published through presence, and the HUD renders member HP. No duplicate party-health code was introduced.
+
+Camera controls were audited and found to already support RMB/Alt+LMB orbit, wheel zoom, M mouselook, pointer-lock mouse aim, and no V-key dependency. PR #7 adds middle-mouse direct scene panning with bounded cameraPanX/cameraPanY offsets and updated status hints. Branch `grid/camera-pan-controls`, head after documentation `f53124328f3fb828ff15733d6b405d9edc7e6487`. Source-level verification completed; CI/browser verification remains pending.
