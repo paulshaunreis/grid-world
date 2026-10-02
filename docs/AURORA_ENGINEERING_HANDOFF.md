@@ -368,3 +368,22 @@ Do not treat the references as a complete specification. Aurora's own response s
 
 - Verify CI/build on the persistence pass.
 - Then deepen NPC/creature state hydration (behavioral state, inventories, relationships, evolution state) and connect persistent world permissions so builders other than the owner can safely contribute without weakening RLS.
+
+
+## Deep living-state + collaborator permissions pass — 2026-10-02
+
+- NPC persistence now captures/restores per-world citizen runtime state plus full NPC profile data: level, XP, skills, traits, memories, occupation progression, inventory, tags, and relationships.
+- NPC relationship state is restored into the existing relationship network rather than replacing the runtime network.
+- Creature persistence now captures/restores per-world life state, hunger/energy/social/curiosity, position, rotation, and evolution genome/lineage data.
+- `main.ts` now restores this deeper state when a resident enters a persistent world and periodically saves the active persistent world's content.
+- Added `grid_world_collaborators` with `viewer`, `builder`, `editor`, and `admin` roles. Owner-only collaborator management is enforced by RLS.
+- Persistent world content writes now permit builder/editor/admin collaborators while preserving the actual world owner's `owner_user_id`; a collaborator cannot silently take ownership when saving content.
+- Added authority methods for reading a user's world role and owner-managed collaborator assignment/removal.
+- Live Supabase migration for collaborator permissions applied successfully. RLS is active on the collaborator table and world-content write policies were upgraded for participant roles.
+- Current branch head: `23c3b4a6c1a6527662e0f615db4e9c9d7b22f9c0`.
+- CI has not yet returned a workflow run for this branch head, so this pass remains **not CI-verified**.
+
+### Next target
+
+- Run/verify CI for the persistence + collaborator pass.
+- Then connect the collaborator roles to the in-world Build Mode UI so viewer/builder/editor/admin capabilities are visibly enforced before editing or publishing world content.
