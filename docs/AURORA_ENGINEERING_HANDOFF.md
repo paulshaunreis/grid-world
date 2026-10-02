@@ -457,3 +457,13 @@ _Last updated: 2026-10-02_
 - Extended `src/ui/grid-themes.css` with consistent movable-window chrome, focus states, hover states, minimized/hidden treatment, theme-aware health/profile meters, and reduced-motion behavior.
 - Verification: L0 source review. GitHub Actions returned no workflow run for PR #30 head; no browser/WebGL verification performed.
 - Next actionable queue item: P3 #27 World-specific presentation.
+
+
+## Checkpoint — 2026-10-02 — world-specific presentation
+- Current main: `a1f62e526a65f07560b2fe162523666b7979e01e`.
+- PR #31 merged `Grid: deepen world-specific presentation`.
+- `WorldDNA` now derives presentation geometry/weather/motion from world tags, including volcanic, crystalline, storm, living-mineral and primal signatures.
+- `WorldArchitectureSystem` uses those signatures for distinct generated forms; `WorldEnvironmentSystem` uses them for weather identity and motion.
+- Unlimited world registration and concept-only region boundaries were preserved.
+- Verification: L0 source review only; no CI/browser/WebGL verification claimed.
+- Next: P3 #28 Architecture map.
