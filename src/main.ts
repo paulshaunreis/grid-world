@@ -81,6 +81,7 @@ import { GridAuthService } from './auth/GridAuthService';
 import { mountGridAuthPanel } from './ui/GridAuthPanel';
 import { GridSocialService } from './social/GridSocialService';
 import { GridProfileService } from './social/GridProfileService';
+import { GridProfileAuthority } from './social/GridProfileAuthority';
 import { mountGridCommunityPanel } from './ui/GridCommunityPanel';
 import { GridVoiceModifierSystem } from './audio/GridVoiceModifierSystem';
 import type { GridAgeBand } from './social/GridContentAccess';
@@ -133,6 +134,7 @@ const cloudPersistence = supabaseConfigured ? new SupabasePersistence(SUPABASE_U
 const socialAuthority = supabaseConfigured ? new GridSocialAuthority(cloudPersistence!.getClient()) : null;
 const friendSystem = new GridFriendSystem();
 const profileService = cloudPersistence ? new GridProfileService(cloudPersistence.getClient()) : null;
+const profileAuthority = cloudPersistence ? new GridProfileAuthority(cloudPersistence.getClient()) : null;
 const partySystem = cloudPersistence ? new GridPartySystem(cloudPersistence.getClient()) : null;
 const partyHud = mountGridPartyHud(cloudPersistence?.getClient());
 const teleportExperience = mountTeleportExperience();
@@ -272,6 +274,13 @@ const voiceTargetButton = document.querySelector<HTMLButtonElement>('#voice-targ
 const voice = new GridVoiceSystem();
 const audio = new GridAudioSystem();
 const voiceModifier = new GridVoiceModifierSystem();
+let lastProfileActivityWorld:string|null=null;
+let lastProfileActivityKills=0;
+let lastProfileActivityResourceAt=0;
+async function recordGridActivity(kind:string,title:string,body:string,worldId?:string,regionId?:string,metadata:Record<string,unknown>={}) {
+  if (!profileAuthority) return;
+  try { await profileAuthority.recordActivity({kind,title,body,worldId,regionId,metadata}); } catch (error) { console.warn('Grid profile activity unavailable.',error); }
+}
 
 function addChatMessage(sender: string, message: string, kind: 'player' | 'system' | 'team' = 'player') {
   if (kind !== 'player') audio.play('chat.receive');
@@ -2095,6 +2104,11 @@ function animate(now: number) {
   // Day-cycle for NPCs: fraction of the real-world 24h day, matching the living-world phase clock.
   const npcDayFraction = ((((Date.now() / 1000) % 86400) + 86400) % 86400) / 86400;
   npcSociety.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, ecologySnapshot, consequenceSnapshot, npcDayFraction);
+  if (lastProfileActivityWorld !== String(livingSnapshot.world)) {
+    const enteredWorld = String(livingSnapshot.world);
+    lastProfileActivityWorld = enteredWorld;
+    void recordGridActivity('WORLD_VISIT','Entered '+enteredWorld,'Explored '+enteredWorld+' in the living Grid.',enteredWorld,'first-light',{event:livingSnapshot.event,phase:livingSnapshot.phase});
+  }
   guardCommandSystem.ensureDefaults(String(livingSnapshot.world));
   npcMaterialDropTimer += dt;
   const societySnapshot = npcSociety.getSnapshot();
@@ -2114,6 +2128,7 @@ function animate(now: number) {
   if (combatSnapshot.kills > lastCombatKills) {
     const defeated = combatSnapshot.kills - lastCombatKills;
     lastCombatKills = combatSnapshot.kills;
+    void recordGridActivity('COMBAT','Combat victory','Defeated '+defeated+' hostile target'+(defeated===1?'':'s')+' in '+String(livingSnapshot.world)+'.',String(livingSnapshot.world),'first-light',{kills:combatSnapshot.kills,defeated});
     for (let dropIndex=0; dropIndex<defeated; dropIndex++) {
       materialDropSystem.createDrop('creature-'+combatSnapshot.kills+'-'+dropIndex,'CREATURE',String(livingSnapshot.world),player.avatar.position.clone().add(new THREE.Vector3((Math.random()-.5)*1.6,.35,(Math.random()-.5)*1.6)),combatSnapshot.kills+dropIndex);
     }
