@@ -195,3 +195,11 @@ ChatGPT pushes via Paul's channel (authored `paulshaunreis`). All 84 commits on 
 - PR #14 merged the current-main NPC profile/life-loop integration. It preserves the existing parallel society/brain architecture, adds inspectable profile status/home/work/factions/inventory/memories, bridges brain needs/actions into visible citizens, records bounded event memories, mirrors relationships, and consumes food inventory during meals. Head CI #1111 passed after one TypeScript field-name correction.
 - Stale PRs #10–#12 were closed as superseded; their useful source changes are represented by PR #14.
 - No Supabase schema changes in these passes.
+
+
+## 2026-10-02 — NPC transit + skill certificates landed
+- Current `main`: `3d74237af611daededa48ecc19410be8b1bab786`.
+- PR #16 merged as `9ae6615232e78a9355a212a46b08089f368b1516`; head CI #1121 passed. NPC cross-world travel now routes through authoritative GridTeleportSystem authorization and shared transit presentation/VFX, retaining the authorized destination through the trip.
+- PR #17 merged as `3d74237af611daededa48ecc19410be8b1bab786`; head CI #1124 passed. NPC skill certificates are issued by the existing job progression system at bounded skill thresholds, stored on NPC profiles, and shown in target profiles. External accreditation is not claimed.
+- Stale PR #5 was closed without merge after its certificate design was ported to current main. No Supabase schema changes were made.
+- Open stale PRs #7 (camera pan) and #8 (party health persistence) remain non-mergeable and are not being merged blindly; the underlying camera/party HUD features already exist on current main.
