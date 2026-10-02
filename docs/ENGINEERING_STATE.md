@@ -261,3 +261,12 @@ _Last updated: 2026-10-02_
 - **Next actionable item:** P2 #21 PvP foundation. Audit current PVP arena/mode/authority boundaries before adding anything.
 
 _Last updated: 2026-10-02_
+
+## 2026-10-02 — Current main after PvP foundation
+- **main:** `cebbb45ef947c673393493af00f49db7134dee57` (PR #25 merged).
+- PvP remains on the existing CombatSystem + GridCombatAuthority architecture. Player-vs-player damage is restricted to the Grid Arena and now requires the target's authoritative state to also be PVP; authoritative defeats update local combat defeat state/HUD.
+- No database schema change or parallel combat system was introduced.
+- Verification boundary: source review and successful merge. No workflow run was available for PR #25 head and no browser/WebGL verification was performed; not CI-verified.
+- **Next actionable item:** P2 #22 Grid Currency architecture. Audit existing economy/currency systems first.
+
+_Last updated: 2026-10-02_
