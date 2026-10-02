@@ -358,3 +358,13 @@ _Last updated: 2026-10-02
 - Implementation stays inside the existing `GridEasyBuildSystem` and persists group metadata with build records.
 - Verification: source review + merge; no workflow run/browser verification available for this PR.
 - Next focus: **P2 #18 terrain sculpting continuation**.
+
+
+## 2026-10-02 — Terrain sculpting continuation landed
+- PR #21 merged to `main` as `ae9e26ebe7d1cfcb7b355a978a4d81b870b433b3`.
+- The existing Grid Matter cell model now supports RAISE, LOWER, SMOOTH, and FLATTEN sculpting plus bounded brush strength, with Creator Studio controls.
+- Existing CARVE/BUILD, persistence, serialization, and world integration were preserved.
+- Verification boundary: source/diff review and merge only. No workflow run was returned for the PR head and no browser/WebGL verification was performed.
+- Next: P2 #19 mission/quest foundation, after auditing the substantial existing QuestSystem/DynamicQuestSystem before adding anything.
+
+_Last updated: 2026-10-02_
