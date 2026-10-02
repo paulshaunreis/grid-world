@@ -2090,13 +2090,16 @@ addEventListener('keydown', event => {
       combatAuthority.attackCreature(targetId).then(result => {
         if (result?.ok) {
           const creature=result.creature;
+          if (result.defeated) {
+            combatSystem.recordAuthoritativeKill(targetId);
+          }
           combatSystem.applyAuthoritativeCreatureState(targetId, Number(creature?.health ?? 0), Number(creature?.max_health ?? 100), !result.defeated);
           if (result.defeated) {
             const species=String(target?.userData.species ?? 'creature');
             const defeatedWorld=livingWorld.getSnapshot().world as EcologyWorld;
             questSystem.recordCombatKill(species,defeatedWorld);
             worldConsequences.recordCreatureDefeat(defeatedWorld,species);
-            addChatMessage('COMBAT', species.replaceAll('-', ' ') + ' defeated. The field remembers.', 'system');
+            addChatMessage('COMBAT', species.replaceAll('-', ' ') + ' defeated. The field remembers. Materials may have dropped.', 'system');
             questPanel.render();
           }
           combatSystem.applyAuthoritativeHealth(identity.id, Number(result.attacker?.health ?? 100));
