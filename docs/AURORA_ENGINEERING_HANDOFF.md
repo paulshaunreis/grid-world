@@ -273,3 +273,13 @@ Do not treat the references as a complete specification. Aurora's own response s
 - Commit: `a978c3d425eedc9c46c24ac5f1f8d6dc7e6b52cd`.
 - Verification: GitHub Actions for this commit has not yet been checked. Do not claim CI/build verification until a successful workflow run is observed.
 - Next target: verify CI, then add landmark-save and creator/media activity at the owning event boundaries rather than polling or duplicating state.
+
+
+## Landmark activity pass — 2026-10-01
+- CI for prior activity commit `a978c3d` completed successfully (run #989).
+- Added a creation callback to `GridLandmarkAuthority` so actual LANDMARK/WAYPOINT saves can emit profile activity at the persistence boundary.
+- `main.ts` now records `LANDMARK_SAVE` with item type, label, and landmark ID metadata.
+- Landmark selection remains separate and can emit `LANDMARK_USE`; saving is no longer inferred from selection.
+- Commits: `56f0a4b` and `dea111e`.
+- Verification: CI for the newest commit has not yet been checked.
+- Next target: creator/media activity at actual publish/upload boundaries, then verify the complete activity chain in CI.
