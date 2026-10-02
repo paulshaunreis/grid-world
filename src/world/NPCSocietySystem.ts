@@ -13,6 +13,7 @@ import { GridMaterialDropSystem } from './GridMaterialDropSystem';
 import { NPCProductionSystem } from './NPCProductionSystem';
 import { NPCMarketSystem } from './NPCMarketSystem';
 import { GridNpcBrain, type GridNpcAction } from '../npc/GridNpcBrain';
+import type { GridTeleportDestination } from '../engine/GridTeleport';
 
 export type CitizenState = 'WORK'|'TRAVEL'|'GATHER'|'TALK'|'REST'|'CELEBRATE'|'EAT';
 export type CitizenRole = 'NAVIGATOR'|'GARDENER'|'ARTISAN'|'KEEPER'|'RANGER';
@@ -49,6 +50,7 @@ type Citizen = {
   travelPurpose:'WORK'|'TRADE'|'FESTIVAL'|'EMERGENCY'|'RELATIONSHIP';
   travelWorld:EcologyWorld;
   selectedDestination:EcologyWorld;
+  teleportDestination?:GridTeleportDestination;
   gateCooldown:number;
   travelStage:'IDLE'|'APPROACH_GATE'|'TRANSIT';
   gatePosition:THREE.Vector3;
@@ -124,6 +126,8 @@ export class NPCSocietySystem {
   private gates=new Map<EcologyWorld,THREE.Group>();
   private gateBusy=new Map<EcologyWorld,number>();
   private transitTrafficRecorder: ((source:EcologyWorld,destination:EcologyWorld,queueDepth:number)=>void) | null = null;
+  private teleportDestinationResolver: ((actorId:string,source:EcologyWorld,destination:EcologyWorld)=>GridTeleportDestination|null) | null = null;
+  private transitPresentation: ((actorId:string,root:THREE.Object3D,destination:GridTeleportDestination,phase:'departing'|'arriving')=>void) | null = null;
   private gatePositions=new Map<EcologyWorld,[number,number]>();
   private snapshot: SocietySnapshot = { population:0, active:0, working:0, gathering:0, talking:0, world:'HARBOR', signal:'QUIET' };
 
@@ -209,7 +213,7 @@ export class NPCSocietySystem {
       root.add(canopy,counter,sigil);
     }
     this.root.add(root);
-    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0,merchant,merchantStock:merchant?0:0,merchantStress:0,merchantMood:'CALM',merchantOpen:true,merchantSchedule:name.length%6,schedulePhase:(name.length%10)/10,travelTimer:8+name.length%9,travelTarget:new THREE.Vector3(wx,0,wz),travelMode:'WALK',travelPurpose:'WORK',travelWorld:world,selectedDestination:world,gateCooldown:0,travelStage:'IDLE',gatePosition:new THREE.Vector3(hx,0,hz),brain,mealCooldown:0,memoryCooldown:0,workProgressCooldown:12});
+    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0,merchant,merchantStock:merchant?0:0,merchantStress:0,merchantMood:'CALM',merchantOpen:true,merchantSchedule:name.length%6,schedulePhase:(name.length%10)/10,travelTimer:8+name.length%9,travelTarget:new THREE.Vector3(wx,0,wz),travelMode:'WALK',travelPurpose:'WORK',travelWorld:world,selectedDestination:world,teleportDestination:undefined,gateCooldown:0,travelStage:'IDLE',gatePosition:new THREE.Vector3(hx,0,hz),brain,mealCooldown:0,memoryCooldown:0,workProgressCooldown:12});
   }
 
   private chooseState(c:Citizen,event:string,phase:string,pressure=0,stability=1,brainAction?:GridNpcAction) {
@@ -323,9 +327,20 @@ export class NPCSocietySystem {
           : new THREE.Vector3(remote[0] + ((c.phase % 3)-1)*3, 0, remote[1] + ((c.phase % 4)-1)*3);
         const longJump = Math.hypot(destination.x-c.root.position.x,destination.z-c.root.position.z) > 20;
         if (longJump) {
-          // Long-distance NPC travel can use Grid gates: preserve continuity
-          // while avoiding an expensive cross-world walk.
-          c.travelMode = 'TELEPORT';
+          // Long-distance NPC travel can use Grid gates only after the authoritative
+          // Grid transit graph confirms the selected destination.
+          const authorizedDestination = this.teleportDestinationResolver?.('npc:' + c.name, c.world, c.selectedDestination) ?? null;
+          if (!authorizedDestination) {
+            c.travelMode = 'WALK';
+            c.travelStage = 'IDLE';
+            c.root.userData.destinationSelected = false;
+            c.teleportDestination = undefined;
+            c.root.userData.travelEffect = 'WALKING';
+            c.travelTarget.copy(destination);
+            c.target.copy(destination);
+          } else {
+            c.travelMode = 'TELEPORT';
+            c.teleportDestination = authorizedDestination;
           c.root.userData.travelEffect = 'GATE_TRANSIT';
           c.root.userData.destinationSelected = true;
           c.root.userData.selectedDestination = c.selectedDestination;
@@ -344,10 +359,13 @@ export class NPCSocietySystem {
           c.root.userData.selectedDestination = c.selectedDestination;
           c.root.userData.gateDestination = c.selectedDestination;
           c.root.userData.gateArrival = true;
-          c.root.userData.gatePulse = 1;
-          c.root.userData.travelPurpose = c.travelPurpose;
-          c.root.userData.travelWorld = c.travelWorld;
-          c.target.copy(destination);
+            c.root.userData.gatePulse = 1;
+            c.root.userData.travelPurpose = c.travelPurpose;
+            c.root.userData.travelWorld = c.travelWorld;
+            c.root.userData.teleportDestinationId = authorizedDestination.id;
+            c.root.userData.teleportDestinationName = authorizedDestination.displayName;
+            c.target.copy(destination);
+          }
         } else {
           c.travelMode = 'WALK';
           c.root.userData.travelEffect = 'WALKING';
@@ -450,11 +468,21 @@ export class NPCSocietySystem {
           remember('travel', 'Traveled toward ' + c.selectedDestination + '.', c.selectedDestination, .06, .34);
           c.root.userData.travelEffect='GATE_TRANSIT';
           c.root.userData.gatePulse=1;
+          const destinationNode = c.teleportDestination;
+          if (!destinationNode) {
+            c.travelStage='IDLE';
+            c.travelMode='WALK';
+            c.root.userData.destinationSelected=false;
+            c.root.userData.travelEffect='WALKING';
+            continue;
+          }
+          this.transitPresentation?.('npc:' + c.name, c.root, destinationNode, 'departing');
           c.root.visible=false;
-          const arrivalGate=this.gatePosition(c.selectedDestination);
-          c.root.position.set(arrivalGate[0],0,arrivalGate[1]);
+          c.root.position.set(destinationNode.position.x, Math.max(0,destinationNode.position.y), destinationNode.position.z);
+          c.root.rotation.y=destinationNode.yaw;
           c.root.visible=true;
           c.root.userData.travelEffect='ARRIVAL';
+          this.transitPresentation?.('npc:' + c.name, c.root, destinationNode, 'arriving');
           c.root.userData.gateArrival=true;
           remember('arrival', 'Arrived in ' + c.world + '.', c.world, .1, .38);
           c.root.userData.gatePulse=1;
@@ -550,6 +578,12 @@ export class NPCSocietySystem {
 
   setTransitTrafficRecorder(recorder: (source:EcologyWorld,destination:EcologyWorld,queueDepth:number)=>void) { this.transitTrafficRecorder = recorder; }
 
+  /** NPC teleport destinations are validated by the same Grid transit graph used by players. */
+  setTeleportDestinationResolver(resolver: (actorId:string,source:EcologyWorld,destination:EcologyWorld)=>GridTeleportDestination|null) { this.teleportDestinationResolver = resolver; }
+
+  /** Presentation stays outside the society simulation while sharing the player teleport experience. */
+  setTransitPresentation(presenter: (actorId:string,root:THREE.Object3D,destination:GridTeleportDestination,phase:'departing'|'arriving')=>void) { this.transitPresentation = presenter; }
+
   getSnapshot(){return this.snapshot;}
   getNPCProfile(name:string){ return this.profiles.get(name); }
   getRelationships(name:string){ return this.relationships.forNPC(name); }
@@ -620,6 +654,7 @@ export class NPCSocietySystem {
       }
       if (typeof record.selectedDestination === 'string') citizen.selectedDestination = record.selectedDestination;
       if (typeof record.travelWorld === 'string') citizen.travelWorld = record.travelWorld;
+      if (record.teleportDestination && typeof record.teleportDestination === 'object') citizen.teleportDestination = record.teleportDestination as GridTeleportDestination;
       if (typeof record.travelPurpose === 'string') citizen.travelPurpose = record.travelPurpose as Citizen['travelPurpose'];
       if (typeof record.travelMode === 'string') citizen.travelMode = record.travelMode as Citizen['travelMode'];
       if (typeof record.travelStage === 'string') citizen.travelStage = record.travelStage as Citizen['travelStage'];
