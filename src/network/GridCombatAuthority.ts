@@ -166,6 +166,12 @@ export class GridCombatAuthority {
     return data;
   }
 
+  async economicsRead(hours=24): Promise<CombatServerResult | null> {
+    const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', { body:{action:'economics_read',hours} });
+    if(error) throw error;
+    return data;
+  }
+
   async ledgerRead(limit=25): Promise<CombatServerResult | null> {
     const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', { body:{action:'ledger_read',limit} });
     if(error) throw error;

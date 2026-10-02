@@ -214,6 +214,60 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    if (action === "economics_read") {
+      const hours=Math.min(Math.max(Number(body.hours ?? 24),1),168);
+      const since=new Date(Date.now()-hours*3600*1000).toISOString();
+      const { data: entries, error: ledgerError } = await admin
+        .from("grid_ledger_entries")
+        .select("currency_id,amount,created_at")
+        .gte("created_at",since)
+        .order("created_at",{ascending:true});
+      if(ledgerError) throw ledgerError;
+      const { data: rates, error: rateError } = await admin
+        .from("grid_currency_rate_history")
+        .select("base_currency,quote_currency,rate,observed_at")
+        .gte("observed_at",since)
+        .order("observed_at",{ascending:true})
+        .limit(500);
+      if(rateError) throw rateError;
+      const currencyMap=new Map<string,{volume:number;credits:number;debits:number;transactions:number}>();
+      for(const row of entries??[]){
+        const id=String(row.currency_id);
+        const amount=Number(row.amount);
+        const current=currencyMap.get(id)??{volume:0,credits:0,debits:0,transactions:0};
+        current.volume+=Math.abs(amount);
+        current.transactions+=1;
+        if(amount>=0) current.credits+=amount; else current.debits+=Math.abs(amount);
+        currencyMap.set(id,current);
+      }
+      const buckets=new Map<string,{volume:number;transactions:number}>();
+      for(const row of entries??[]){
+        const d=new Date(row.created_at);
+        d.setMinutes(0,0,0);
+        const key=d.toISOString();
+        const current=buckets.get(key)??{volume:0,transactions:0};
+        current.volume+=Math.abs(Number(row.amount));
+        current.transactions+=1;
+        buckets.set(key,current);
+      }
+      return json({
+        ok:true,action,hours,
+        generated_at:new Date().toISOString(),
+        data_class:"GRID_INTERNAL",
+        simulated:false,
+        note:"Internal Grid ledger and rate-history telemetry. This is not real-world financial data.",
+        totals:{
+          transaction_count:(entries??[]).length,
+          volume:(entries??[]).reduce((sum,row)=>sum+Math.abs(Number(row.amount)),0),
+          credits:(entries??[]).reduce((sum,row)=>sum+Math.max(0,Number(row.amount)),0),
+          debits:(entries??[]).reduce((sum,row)=>sum+Math.max(0,-Number(row.amount)),0),
+        },
+        currencies:[...currencyMap.entries()].map(([currency_id,value])=>({currency_id,...value})),
+        activity:[...buckets.entries()].map(([observed_at,value])=>({observed_at,...value})),
+        rates:(rates??[]).map(row=>({base_currency:String(row.base_currency),quote_currency:String(row.quote_currency),rate:Number(row.rate),observed_at:row.observed_at})),
+      });
+    }
+
     if (action === "npc_memory_read") {
       const npcId=String(body.npc_id ?? "");
       if(!npcId) return json({error:"invalid_npc_id"},400);
