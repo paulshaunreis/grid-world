@@ -294,3 +294,17 @@ _Last updated: 2026-10-02_
 - Supabase schema verified live and `grid-combat` deployed as version 15 with JWT verification.
 - Verification boundary: source review, Supabase schema/deployment verification, and successful merge; no fresh browser/WebGL verification and no CI run was returned for the merge commit.
 - **Next actionable item:** P2 #24 Economics dashboard.
+
+
+## 2026-10-02 — Economics dashboard landed
+- P2 #24 is complete.
+- PR #28 merged into `main` as **`1f96cf768b853a682db73c1888dcd274c8a8ee41`**.
+- The implementation extends the existing economy rather than creating a second economic system.
+- `supabase/functions/grid-combat/index.ts` now exposes authenticated `economics_read`, returning Grid-internal ledger totals, hourly activity, per-currency activity, and internal rate history for a bounded time window.
+- `src/network/GridCombatAuthority.ts` exposes `economicsRead()`; `src/ui/GridEconomyPanel.ts` adds the ECONOMICS tab and graph/metrics presentation.
+- Dashboard copy explicitly distinguishes Grid-internal recorded data from real-world financial data; the current implementation reports recorded internal activity rather than inventing market figures.
+- Supabase `grid-combat` deployed as version **16**, with JWT verification enabled.
+- Verification boundary: GitHub branch files were re-fetched after writes, PR #28 merged successfully, merged `main` was re-fetched, and the live Edge Function deployment was verified. No GitHub Actions workflow run was returned for the feature head, so it is **not CI-verified**. No browser/WebGL verification was performed.
+- **Next actionable item:** P3 #25 Living-world visual pass.
+
+_Last updated: 2026-10-02_
