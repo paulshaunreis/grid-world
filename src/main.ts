@@ -1146,6 +1146,7 @@ uiEditButton.addEventListener('click', () => {
   const editing = windowManager.toggleEditMode();
   uiEditButton.classList.toggle('active', editing);
   uiEditButton.textContent = editing ? '◇ UI · ARRANGE' : '◇ UI';
+  uiResetButton.hidden = !editing;
 });
 hud.appendChild(uiEditButton);
 
@@ -1183,9 +1184,7 @@ uiMods.register({
   mount: () => undefined,
 });
 
-uiEditButton.addEventListener('click', () => {
-  uiResetButton.hidden = !windowManager.isEditMode();
-});
+hud.appendChild(uiResetButton);
 
 let presence: SupabasePresence | null = null;
 let currentBuildRole = 'viewer';
@@ -2030,6 +2029,10 @@ addEventListener('keydown', event => {
 addEventListener('keydown', event => {
   if (document.activeElement === chatInput || document.activeElement === identityName) return;
   if (event.code === 'KeyP' && !event.repeat) {
+    // P opens profiles when targeting an NPC or remote player (see the
+    // profile keydown handler below) — never toggle combat at the same time.
+    const profileTarget = interaction.findTarget();
+    if (profileTarget && (profileTarget.object.userData.npcProfile || profileTarget.object.userData.remotePlayerId)) return;
     const next=combatSystem.getMode()==='PVP'?'PVE':'PVP';
     if (combatAuthority) {
       combatAuthority.setMode(next).then(result => {
