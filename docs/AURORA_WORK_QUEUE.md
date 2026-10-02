@@ -108,7 +108,7 @@ Build toward the agreed flow:
 - Connect profile information to the existing NPC life loop.
 - Make profiles useful for gameplay rather than merely decorative.
 
-**Status:** Ready
+**Status:** Complete
 
 ### 10. Aurora's own in-world staff profile
 - Implement the canonical Aurora profile from `docs/AURORA_PROFILE.md`.
@@ -129,7 +129,7 @@ Build toward the agreed flow:
 - Prefer deterministic, inspectable state transitions.
 - Make NPC activity visible enough that players can understand that the world is alive.
 
-**Status:** Ready
+**Status:** Complete
 
 ### 12. NPC memory and relationship depth
 - Expand meaningful memories from interactions, work, production, travel, conflict, friendship, and discovery.
@@ -137,7 +137,7 @@ Build toward the agreed flow:
 - Ensure relationships change from actual interactions rather than arbitrary timers.
 - Surface appropriate relationship information in profiles.
 
-**Status:** Ready
+**Status:** Complete
 
 ### 13. NPC jobs and real skill progression
 - Expand job definitions and progression hooks.
@@ -185,7 +185,7 @@ Expose these through Build Mode with original Grid World controls.
 - Connect creature/NPC drops to possible crafting inputs.
 - Keep the system extensible for future player-created construction tools.
 
-**Status:** Ready
+**Status:** Complete
 
 ### 18. Terrain sculpting
 - Continue Grid Matter terrain work.
@@ -453,5 +453,15 @@ _Last updated: 2026-10-02_
 - Commit: **2987ed750c5806e955c8632208686af95048fbb0**.
 - Verification: source-level L0; GitHub workflow lookup immediately after commit returned no run yet. Do not call CI-verified.
 - PR pending; next: CI review, then continue with mission foundation after existing NPC/profile PRs are resolved rather than duplicating their work.
+
+_Last updated: 2026-10-02_
+
+
+## 2026-10-02 — delegated implementation checkpoint
+- PR #13 **merged** as `94e70727b975329297265e945a289e863005c44e`: durable material-crafted builder-tool instances, max/remaining uses, local persistence, inventory inspection, and use API. PR head CI #1107 passed.
+- PR #14 **merged** as `13250b639d190a852ac021a81d1b61608d614148`: current-main port of NPC profile expansion + GridNpcBrain/living-society bridge + bounded event memories + food consumption. PR head `3b007216ef7d2af80d0b7f75f9dc49a232046ee9`; CI #1111 passed after fixing production-record field names.
+- Stale NPC PRs #10, #11, #12 were closed without merge because their bases had fallen behind current main; their useful implementation was preserved in #14.
+- No Supabase schema changes in either pass.
+- **Next actionable item:** P2 mission/quest foundation after a current-main stability check; NPC jobs/skill progression remains the next dedicated NPC expansion.
 
 _Last updated: 2026-10-02_
