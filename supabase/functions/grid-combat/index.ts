@@ -166,6 +166,39 @@ Deno.serve(async (req: Request) => {
     const action = String(body.action ?? "state");
     const state = await ensureState(user.id);
 
+    if (action === "wallet_read") {
+      const { data: wallets, error } = await admin
+        .from("grid_wallets")
+        .select("user_id,currency_id,balance,updated_at,grid_currency_types!inner(code,name)")
+        .eq("user_id", user.id)
+        .order("currency_id");
+      if (error) throw error;
+      return json({
+        ok:true,
+        action,
+        wallets:(wallets ?? []).map((row:any)=>({
+          user_id:String(row.user_id),
+          currency_id:String(row.currency_id),
+          currency_code:String(row.grid_currency_types?.code ?? row.currency_id).toUpperCase(),
+          currency_name:String(row.grid_currency_types?.name ?? row.currency_id),
+          balance:Number(row.balance),
+          updated_at:row.updated_at,
+        })),
+      });
+    }
+
+    if (action === "ledger_read") {
+      const limit=Math.min(Math.max(Math.floor(Number(body.limit ?? 25)),1),100);
+      const { data: transactions, error } = await admin
+        .from("grid_ledger_transactions")
+        .select("id,idempotency_key,transaction_type,status,memo,metadata,created_at,grid_ledger_entries!inner(user_id,currency_id,amount)")
+        .eq("actor_user_id",user.id)
+        .order("created_at",{ascending:false})
+        .limit(limit);
+      if (error) throw error;
+      return json({ok:true,action,transactions:transactions ?? []});
+    }
+
     if (action === "npc_memory_read") {
       const npcId=String(body.npc_id ?? "");
       if(!npcId) return json({error:"invalid_npc_id"},400);
