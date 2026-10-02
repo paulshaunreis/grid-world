@@ -359,3 +359,14 @@ Aurora should favor real, incremental improvements to the repository over produc
 **P0.2 — Website/world link and interaction audit.** Inspect the highest-impact navigation and controls next; fix dead/misleading flows before moving into the P1 feature queue.
 
 _Last updated: 2026-10-02_
+
+
+## P0.2 interaction audit checkpoint — 2026-10-02
+- Audited the main HUD tool routing and the existing Atlas/Social/Economy surfaces.
+- Found a concrete mismatch: HUD `MAP` only toggled a minimap highlight while the project already provides the full live Grid Atlas for world selection, transit, history, inventory, and market context.
+- Fixed `src/main.ts` so HUD `MAP` opens the live Grid Atlas; retained the existing Atlas world-selection callback.
+- Commit: `cb87bdb84406136678fe23f05ea8fcc7ad1fc839` on `main`.
+- Verification: fetched `main` after the write and confirmed both the `MAP -> worldAtlas.open()` route and `const worldAtlas = mountWorldAtlas(...)` wiring. No post-commit workflow run was available yet.
+- Next: continue P0.2 audit across high-impact controls and page/navigation surfaces; do not call this commit CI-verified until a workflow run exists.
+
+_Last updated: 2026-10-02_
