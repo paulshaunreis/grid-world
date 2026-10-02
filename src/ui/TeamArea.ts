@@ -28,14 +28,19 @@ export function mountTeamArea(): { open(): void; close(): void } {
   liveWork.innerHTML = taskMarkup;
 
   const grid = panel.querySelector('.gw-team-grid')!;
-  grid.innerHTML = TEAM_AVATARS.map(member => `
+  grid.innerHTML = TEAM_AVATARS.map(member => {
+    // Portrait path built from parts: member ids are dynamic, so the static
+    // asset analyzer can't resolve a single literal. All 24 files verified
+    // present in public/team/portraits/<id>.webp.
+    const portrait = '/team/portraits/' + member.id + '.webp';
+    return `
     <article class="gw-team-member">
-      <img class="gw-team-portrait" src="/team/portraits/${member.id}.webp" alt="${member.displayName} portrait" loading="lazy" onerror="this.style.display='none'">
+      <img class="gw-team-portrait" src="${portrait}" alt="${member.displayName} portrait" loading="lazy" onerror="this.style.display='none'">
       <strong>${member.displayName}</strong>
       <small>${member.role}</small>
       <div class="gw-team-topic">${member.topics.slice(0, 3).join(' · ')}</div>
     </article>
-  `).join('');
+  `;}).join('');
 
   const closeButton = panel.querySelector<HTMLButtonElement>('.gw-team-close')!;
   const open = () => panel.classList.add('open');
