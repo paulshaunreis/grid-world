@@ -166,6 +166,54 @@ Deno.serve(async (req: Request) => {
     const action = String(body.action ?? "state");
     const state = await ensureState(user.id);
 
+    if (action === "wallet_read") {
+      const { data: wallets, error } = await admin
+        .from("grid_wallets")
+        .select("user_id,currency_id,balance,updated_at,grid_currency_types!inner(code,name)")
+        .eq("user_id", user.id)
+        .order("currency_id");
+      if (error) throw error;
+      return json({
+        ok:true,
+        action,
+        wallets:(wallets ?? []).map((row:any)=>({
+          user_id:String(row.user_id),
+          currency_id:String(row.currency_id),
+          currency_code:String(row.grid_currency_types?.code ?? row.currency_id).toUpperCase(),
+          currency_name:String(row.grid_currency_types?.name ?? row.currency_id),
+          balance:Number(row.balance),
+          updated_at:row.updated_at,
+        })),
+      });
+    }
+
+    if (action === "ledger_read") {
+      const limit=Math.min(Math.max(Math.floor(Number(body.limit ?? 25)),1),100);
+      const { data: entries, error: entryError } = await admin
+        .from("grid_ledger_entries")
+        .select("transaction_id,user_id,currency_id,amount,created_at")
+        .eq("user_id",user.id)
+        .order("created_at",{ascending:false})
+        .limit(limit);
+      if (entryError) throw entryError;
+      const transactionIds=[...new Set((entries ?? []).map((entry:any)=>String(entry.transaction_id)))];
+      if (!transactionIds.length) return json({ok:true,action,transactions:[]});
+      const { data: transactions, error: transactionError } = await admin
+        .from("grid_ledger_transactions")
+        .select("id,idempotency_key,actor_user_id,transaction_type,status,memo,metadata,created_at")
+        .in("id",transactionIds);
+      if (transactionError) throw transactionError;
+      const byId=new Map((transactions ?? []).map((transaction:any)=>[String(transaction.id),transaction]));
+      return json({
+        ok:true,
+        action,
+        transactions:(entries ?? []).map((entry:any)=>({
+          ...byId.get(String(entry.transaction_id)),
+          entry:{currency_id:String(entry.currency_id),amount:Number(entry.amount),created_at:entry.created_at},
+        })).filter((transaction:any)=>transaction.id),
+      });
+    }
+
     if (action === "npc_memory_read") {
       const npcId=String(body.npc_id ?? "");
       if(!npcId) return json({error:"invalid_npc_id"},400);
