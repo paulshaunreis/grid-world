@@ -567,3 +567,9 @@ canvas { display: block; width: 100%; height: 100%; }
 :root[data-ui-style="slate"] .grid-dock button{border-radius:2px}
 :root[data-ui-style="signal"] .grid-dock button{border-radius:0;text-transform:uppercase}
 :root[data-ui-style="luminous"] .grid-dock button{border-radius:12px}
+
+/* Touch: panels stay scrollable even though the game surface disables touch actions */
+.creator-panel,.identity-panel,.grid-build-panel,.transit-panel,.grid-auth-card,.grid-auth-overlay,.chart-panel,.style-panel,.wallet-panel,[role="dialog"]{touch-action:pan-y}
+/* Input-mode switch (appended, never wipes host DOM) */
+.grid-input-switch{position:fixed;left:12px;bottom:12px;z-index:1500;display:flex;gap:6px}
+.grid-input-switch button{padding:6px 10px;font:700 10px 'IBM Plex Mono',monospace;letter-spacing:.1em;color:#dff8ff;background:rgba(5,12,21,.82);border:1px solid rgba(116,221,255,.32);cursor:pointer}
