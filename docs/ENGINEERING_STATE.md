@@ -337,3 +337,12 @@ _Last updated: 2026-10-02_
 - Generated architecture and environment now consume the presentation profile.
 - PR #31 merged as `a1f62e526a65f07560b2fe162523666b7979e01e`.
 - Verification: L0 source review; no CI/browser verification claimed.
+
+
+## 2026-10-02 — Architecture map
+- **main baseline for this pass:** `6a43af94b1a19707b8b70277ffefe6eb77c9ca50`.
+- Added `docs/ARCHITECTURE_MAP.md` to make the current repository understandable without reverse-engineering every module.
+- The map explicitly separates current implementation from long-term Omni Grid Core / Grid Engine direction and preserves the existing `ARCHITECTURE.md`, `WORLD-ARCHITECTURE.md`, and `OMNI-ARCHITECTURE.md` documents.
+- It documents the current world/NPC/profile/creator/combat/economy/UI/persistence boundaries and the future multiplayer/network adapter boundary.
+- Verification: L0 source/document review only; no CI/browser verification.
+- **Next actionable item:** P3 #29 Aurora engineering handoff.
