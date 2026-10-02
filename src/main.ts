@@ -319,7 +319,7 @@ function addChatMessage(sender: string, message: string, kind: 'player' | 'syste
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-socialOpen.addEventListener('click',()=>addChatMessage('SOCIAL','Open the Social Manager from the website or HUD SOCIAL tool.','system'));
+socialOpen.addEventListener('click',()=>{ if (gridCommunityPanel) gridCommunityPanel.open(); else addChatMessage('SOCIAL','Social Manager is unavailable until account services connect.','system'); });
 socialQuick.style.display='none';
 addChatMessage('GRID', 'Welcome to First Light. Chat is ready. MIC speaks to the object, NPC, or team member in your crosshair.', 'system');
 
@@ -1596,6 +1596,7 @@ document.querySelectorAll<HTMLButtonElement>('.grid-dock [data-tool]').forEach(b
     else if (tool === 'map') worldAtlas.open();
     else if (tool === 'field') fieldGuide.open();
     else if (tool === 'qr') qrScanner.open();
+    else if (tool === 'team') teamArea.open();
     else if (tool === 'settings') openIdentityPanel();
     else if (tool === 'inventory' || tool === 'wallet') gridEconomyPanel.open();
     else addChatMessage('GRID', tool + ' surface opened.', 'system');
