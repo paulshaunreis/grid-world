@@ -240,7 +240,7 @@ Expose these through Build Mode with original Grid World controls.
 - Support item metadata and future 3D previews.
 - Keep buy/sell operations authoritative and auditable.
 
-**Status:** Ready
+**Status:** Complete
 
 ### 24. Economics dashboard
 - Establish the data model/API needed for real-time economic graphs.
@@ -589,3 +589,16 @@ _Last updated: 2026-10-02_
 - GitHub returned no workflow run for the merge commit, so this pass is **not CI-verified**; no browser/WebGL verification was performed.
 - Security advisor findings remain unchanged, including the pre-existing public RLS issue on `grid_operator_policy_rules`; this currency pass did not change that boundary.
 - **Next actionable item: P2 #23 Marketplace integration.**
+
+
+## P2 #23 Marketplace integration completion checkpoint — 2026-10-02
+- Audited the existing Grid Bazaar, player inventory, NPC production, NPC market, material-drop pipeline, and older staff marketplace tables before adding anything.
+- Existing NPC production was already feeding the existing `NPCMarketSystem` and restocking merchant listings; this pass preserved that flow and added shared marketplace item metadata.
+- Added `GridMarketplaceItem.ts` as the shared item metadata contract with display name, category, tags, art key, and model key.
+- Extended `grid_bazaar_listings` with item metadata plus future 3D model/art preview keys. Listing creation remains authoritative through the existing `grid_bazaar_create_listing` RPC.
+- Player inventory reads now return marketplace-ready metadata; the Economy/Bazaar UI displays metadata and preview keys.
+- Bazaar listing reads and purchase results now carry the metadata needed for future 3D previews.
+- Supabase live schema verified with the new metadata columns; `grid-combat` deployed as version 15 with JWT verification enabled.
+- PR #27 merged as `f64bd6cb73fe20b5c8e6108d356dcdcf4ba60547`.
+- No duplicate marketplace transaction system was introduced. The existing authoritative Bazaar settlement + ledger remains the transaction boundary.
+- **Next actionable item: P2 #24 Economics dashboard.**
