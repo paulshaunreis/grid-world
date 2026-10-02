@@ -387,3 +387,30 @@ Do not treat the references as a complete specification. Aurora's own response s
 
 - Run/verify CI for the persistence + collaborator pass.
 - Then connect the collaborator roles to the in-world Build Mode UI so viewer/builder/editor/admin capabilities are visibly enforced before editing or publishing world content.
+
+
+## Latest pass — Build Mode collaborator permissions + CI repair — 2026-10-02
+
+### Changes made
+- Fixed the TypeScript CI failure in `src/world/NPCSocietySystem.ts` by importing the existing `NPCRelationship` type from `NPCRelationshipSystem.ts`.
+- Added Build Mode access roles in `src/world/GridEasyBuildSystem.ts`: owner, viewer, builder, editor, admin.
+- Viewer access can open the Build panel but cannot place, edit, copy, paste, move, rotate, scale, or delete builds.
+- Builder can create and edit their own build objects; editor/admin/owner can edit all build objects.
+- Build Mode now exposes the current role and an explicit permission state in the UI.
+- `src/main.ts` now resolves the active persistent world's collaborator role through `GridWorldContentAuthority.getRole()` and applies it to Build Mode. Non-persistent/default worlds retain local owner-level build access.
+- Server-side Supabase RLS remains authoritative; the UI gating is not treated as a security boundary.
+
+### Commits
+- `d3df806f1852a930665c848292d2fb6c1d93148c` — Fix NPC relationship persistence type import.
+- `cd58534370ae3926f7081b247cbc430ee69e6bdd` — Enforce collaborator roles in Grid Builder UI.
+- `44b50588e8cd569490b6ae79341647dad70e6f91` — Wire world collaborator roles into Build Mode.
+
+### Verification
+- GitHub Actions run #1028 failed at TypeScript check before the import fix; the reported error was `NPCSocietySystem.ts(553,87): Cannot find name 'NPCRelationship'`.
+- No completed GitHub Actions run has yet been returned for commit `44b50588e8cd569490b6ae79341647dad70e6f91`.
+- Local TypeScript verification remains unavailable from the development shell.
+- Draft PR #1 remains open/draft/unmerged.
+
+### Next target
+- Verify the new branch head through GitHub Actions.
+- Then connect collaborator management/status more visibly to the world/social UI, and continue testing Build Mode persistence/realtime behavior across owner, viewer, builder, editor, and admin roles.
