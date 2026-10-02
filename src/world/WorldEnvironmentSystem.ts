@@ -21,12 +21,14 @@ export class WorldEnvironmentSystem {
       this.generated.add(world.id);
 
       const dna = deriveWorldDNA(world.tags ?? []);
+      const presentation = dna.presentation;
       const cluster = new THREE.Group() as EnvironmentCluster;
       cluster.name = 'environment-' + world.id.toLowerCase();
       cluster.position.copy(world.center);
       cluster.userData.worldId = world.id;
       cluster.userData.environmentDNA = dna.ecology;
       cluster.userData.climate = dna.climate;
+      cluster.userData.presentation = presentation;
 
       // A shallow procedural terrain field gives every world a grounded environmental
       // silhouette without locking the engine to a fixed terrain implementation.
@@ -123,15 +125,7 @@ export class WorldEnvironmentSystem {
       weather.userData.worldId = world.id;
       weather.userData.forces = dna.ecology.environmentalForces;
 
-      const weatherTag = world.tags?.includes('water')
-        ? 'mist'
-        : world.tags?.includes('growth')
-          ? 'pollen'
-          : world.tags?.includes('ancient')
-            ? 'dust'
-            : world.tags?.includes('wildlife')
-              ? 'leaf'
-              : 'light';
+      const weatherTag = presentation.weather;
 
       for (let i = 0; i < 8; i++) {
         const streak = new THREE.Mesh(
@@ -172,7 +166,8 @@ export class WorldEnvironmentSystem {
           weather.children.forEach((object, index) => {
             object.position.y -= dt * (.18 + index * .018);
             if (object.position.y < .4) object.position.y = 7 + index * .2;
-            object.rotation.z += dt * (.08 + index * .01);
+            object.rotation.z += dt * (.08 + index * .01) * presentation.accentMotion;
+            object.userData.weatherFamily = presentation.weather;
           });
         }
       }

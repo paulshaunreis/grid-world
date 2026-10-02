@@ -31,6 +31,7 @@ export class WorldArchitectureSystem {
       const primary=createStarterPBRMaterial('stone',{color:'#'+world.color.toString(16).padStart(6,'0'),roughness:.62,metalness:.18});
       const secondary=createStarterPBRMaterial('metal',{color:'#'+world.secondary.toString(16).padStart(6,'0'),roughness:.3,metalness:.72});
       const style=dna.buildingStyle;
+      const presentation=dna.presentation;
       const verticality=THREE.MathUtils.clamp(style.verticality,.65,2.2);
       const organicity=THREE.MathUtils.clamp(style.organicity,0,1);
       const aerial=world.tags?.includes('aerial') || world.tags?.includes('cloud');
@@ -44,7 +45,22 @@ export class WorldArchitectureSystem {
         const h=(3+(i%4)*1.8)*verticality;
         const family=dna.architecture.buildingFamilies[i%dna.architecture.buildingFamilies.length] ?? 'settlement';
         let mesh:THREE.Object3D;
-        if(family.includes('canopy') || family.includes('grove') || family.includes('living') || living){
+        if(presentation.geometry === 'volcanic') {
+          mesh=new THREE.Mesh(new THREE.CylinderGeometry(.5,1.1,h*1.15,6),primary);
+          const cap=new THREE.Mesh(new THREE.ConeGeometry(1.15, .7, 6),secondary); cap.position.y=h*1.05; mesh.add(cap);
+        } else if(presentation.geometry === 'crystalline') {
+          mesh=new THREE.Mesh(new THREE.OctahedronGeometry(1.15+organicity*.35, 0),primary); mesh.scale.y=h/2.2;
+          const facet=new THREE.Mesh(new THREE.OctahedronGeometry(1.22, 0),secondary); facet.scale.y=h/2.35; mesh.add(facet);
+        } else if(presentation.geometry === 'storm') {
+          mesh=new THREE.Mesh(new THREE.CylinderGeometry(.28,.72,h*1.25,8),secondary);
+          const coil=new THREE.Mesh(new THREE.TorusGeometry(.8,.045,6,24),primary); coil.position.y=h*.58; mesh.add(coil);
+        } else if(presentation.geometry === 'mineral-life') {
+          mesh=new THREE.Mesh(new THREE.CylinderGeometry(.5,.85,h,7),primary);
+          const growth=new THREE.Mesh(new THREE.DodecahedronGeometry(1.05,0),secondary); growth.position.y=h; growth.scale.y=.75; mesh.add(growth);
+        } else if(presentation.geometry === 'primal') {
+          mesh=new THREE.Mesh(new THREE.CylinderGeometry(.8,1.15,h,5),primary);
+          const ring=new THREE.Mesh(new THREE.TorusGeometry(1.35,.07,6,24),secondary); ring.position.y=h*.72; mesh.add(ring);
+        } else if(family.includes('canopy') || family.includes('grove') || family.includes('living') || living){
           mesh=new THREE.Mesh(new THREE.CylinderGeometry(.45,.8+organicity*.35,h,9),primary);
           const crown=new THREE.Mesh(new THREE.SphereGeometry(1.2+organicity*.9,10,7),secondary);
           crown.position.y=h;
@@ -108,7 +124,11 @@ export class WorldArchitectureSystem {
         cluster.add(stem);
       }
 
-      const landmark=new THREE.Mesh(new THREE.TorusGeometry(3.2,.14,8,48),secondary);
+      const landmarkGeometry = presentation.geometry === 'crystalline' ? new THREE.OctahedronGeometry(2.8, 1)
+        : presentation.geometry === 'volcanic' ? new THREE.CylinderGeometry(2.4, 3.2, 1.2, 6)
+        : presentation.geometry === 'storm' ? new THREE.TorusGeometry(3.2,.14,8,48)
+        : new THREE.TorusGeometry(3.2,.14,8,48);
+      const landmark=new THREE.Mesh(landmarkGeometry,secondary);
       landmark.position.y=(aerial?7:5.5)*verticality;
       landmark.rotation.x=Math.PI/2;
       landmark.userData.gridObjectKind='world-landmark';

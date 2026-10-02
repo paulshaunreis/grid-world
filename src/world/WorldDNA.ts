@@ -21,6 +21,12 @@ export type WorldTransitProfile = {
   effects: string[];
 };
 
+export type WorldPresentationProfile = {
+  geometry: 'flow' | 'organic' | 'monumental' | 'kinetic' | 'frontier' | 'volcanic' | 'crystalline' | 'storm' | 'mineral-life' | 'primal';
+  weather: 'mist' | 'pollen' | 'dust' | 'leaf' | 'light' | 'ash' | 'crystal' | 'storm' | 'spore' | 'elemental';
+  accentMotion: number;
+};
+
 export type WorldDNA = {
   climate: ClimateType;
   architecture: WorldArchitectureProfile;
@@ -30,6 +36,7 @@ export type WorldDNA = {
   conceptKeywords: string[];
   creatureMorphology: { locomotion:string[]; bodyPlans:string[]; adaptations:string[] };
   buildingStyle: { massing:string; verticality:number; organicity:number };
+  presentation: WorldPresentationProfile;
 };
 
 const TAG_DEFAULTS: Record<string, Partial<WorldDNA>> = {
@@ -81,6 +88,7 @@ export function deriveWorldDNA(tags: readonly string[] = []): WorldDNA {
     conceptKeywords:[...tags],
     creatureMorphology:{locomotion:['walk'],bodyPlans:['native'],adaptations:['environmental adaptation']},
     buildingStyle:{massing:'native',verticality:1,organicity:.5},
+    presentation:{geometry:'flow',weather:'light',accentMotion:.5},
   };
   for (const tag of tags) {
     const preset=TAG_DEFAULTS[tag];
@@ -92,6 +100,26 @@ export function deriveWorldDNA(tags: readonly string[] = []): WorldDNA {
     if (preset.transit) merged.transit={...merged.transit,...preset.transit};
   }
   merged.ambientLife=Math.max(.5, merged.ecology.lifeDensity);
+  const tagSet = new Set(tags);
+  const geometry = tagSet.has('volcanic') ? 'volcanic'
+    : tagSet.has('crystal') ? 'crystalline'
+    : tagSet.has('storm') ? 'storm'
+    : tagSet.has('living') ? 'mineral-life'
+    : tagSet.has('mixed-elements') ? 'primal'
+    : tagSet.has('art') ? 'kinetic'
+    : tagSet.has('ancient') ? 'monumental'
+    : tagSet.has('wildlife') ? 'frontier'
+    : tagSet.has('growth') ? 'organic' : 'flow';
+  const weather = tagSet.has('volcanic') ? 'ash'
+    : tagSet.has('crystal') ? 'crystal'
+    : tagSet.has('storm') ? 'storm'
+    : tagSet.has('living') ? 'spore'
+    : tagSet.has('mixed-elements') ? 'elemental'
+    : tagSet.has('water') ? 'mist'
+    : tagSet.has('growth') ? 'pollen'
+    : tagSet.has('ancient') ? 'dust'
+    : tagSet.has('wildlife') ? 'leaf' : 'light';
+  merged.presentation = { geometry, weather, accentMotion: .35 + Math.min(1.1, tags.length * .06) };
   return merged;
 }
 
