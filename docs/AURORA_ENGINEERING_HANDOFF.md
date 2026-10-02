@@ -429,3 +429,14 @@ Do not treat the references as a complete specification. Aurora's own response s
 - No completed CI run has yet been returned for this new head; combined status is currently empty.
 - GitHub currently reports PR #1 as open/draft/unmerged and temporarily `mergeable=false`; do not interpret that as a merge or as a verified build.
 - Local TypeScript verification remains unavailable.
+
+
+## Build persistence ownership hardening — 2026-10-02
+
+- CI run #1035 completed successfully for the repaired handoff head.
+- Hardened Build Mode undo: a builder can no longer undo/remove the latest restored object unless that object is actually editable by their role.
+- Persistent build saves now preserve each serialized build's existing `ownerUserId` instead of replacing every build owner with the currently authenticated user. This keeps builder ownership meaningful after world re-entry and collaborator saves.
+- Commits:
+  - `608db50813fbedb678b9b72f7ed2f6d15c3d792d` — restrict Build Mode undo to permitted objects.
+  - `883a4d2d908c886e5b698e50b79d4d9344136d40` — preserve build ownership during world persistence.
+- New commits have not yet returned a completed CI result.
