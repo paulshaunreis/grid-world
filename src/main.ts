@@ -1606,7 +1606,7 @@ async function savePersistentWorldContent(worldId: string) {
       position: build.position,
       rotation: build.rotation,
       scale: build.scale,
-      ownerUserId: cloudIdentity.id,
+      ownerUserId: build.ownerUserId || cloudIdentity.id,
     }));
     await gridWorldContentAuthority.save({
       worldId,
