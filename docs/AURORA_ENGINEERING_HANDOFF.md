@@ -350,3 +350,11 @@ _Last updated: 2026-10-02
 - PR #4 is merged; current terrain is wired into Creator Studio and persistent world save/load.
 - No code change required.
 - Next focus: **P2 #16 Advanced building controls**.
+
+
+## 2026-10-02 — Advanced Build controls complete
+- PR #20 merged as `7bad351ec8a261281ffa6f5f39f1235b2bbdeaf6`.
+- Advanced Build now supports additive multi-selection, X/Y/Z alignment, logical grouping metadata, group clearing, and multi-object transforms.
+- Implementation stays inside the existing `GridEasyBuildSystem` and persists group metadata with build records.
+- Verification: source review + merge; no workflow run/browser verification available for this PR.
+- Next focus: **P2 #18 terrain sculpting continuation**.
