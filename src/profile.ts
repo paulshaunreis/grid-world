@@ -1,13 +1,15 @@
 import './profile.css';
 import { createClient } from '@supabase/supabase-js';
 import { GridProfileAuthority, type GridProfileMedia, type GridArenaRanking, type GridProfileActivity } from './social/GridProfileAuthority';
+import { GridWorldAuthority, type GridPersistentWorld } from './social/GridWorldAuthority';
 import { GridSocialService } from './social/GridSocialService';
 const profileSupabaseUrl=import.meta.env.VITE_SUPABASE_URL as string|undefined;
 const profileSupabaseKey=import.meta.env.VITE_SUPABASE_ANON_KEY as string|undefined;
 const profileClient=profileSupabaseUrl&&profileSupabaseKey?createClient(profileSupabaseUrl,profileSupabaseKey):null;
 const profileAuthority=profileClient?new GridProfileAuthority(profileClient):null;
+const worldAuthority=profileClient?new GridWorldAuthority(profileClient):null;
 const profileSocial=profileClient?new GridSocialService(profileClient):null;
-let cloudMedia:GridProfileMedia[]=[];let arenaRanking:GridArenaRanking|null=null;let cloudFeed:GridProfileActivity[]=[];let cloudLandmarks:import('./social/GridProfileAuthority').GridProfileLandmark[]=[];let cloudInventory:import('./social/GridProfileAuthority').GridPlayerInventoryItem[]=[];let cloudPosts:import('./social/GridProfileAuthority').GridProfilePost[]=[];
+let cloudMedia:GridProfileMedia[]=[];let cloudWorlds:GridPersistentWorld[]=[];let arenaRanking:GridArenaRanking|null=null;let cloudFeed:GridProfileActivity[]=[];let cloudLandmarks:import('./social/GridProfileAuthority').GridProfileLandmark[]=[];let cloudInventory:import('./social/GridProfileAuthority').GridPlayerInventoryItem[]=[];let cloudPosts:import('./social/GridProfileAuthority').GridProfilePost[]=[];
 let mood='curious';
 let liveProfile:{online:boolean;worldId?:string;regionId?:string;lastSeenAt?:string;friends:number;followers:number;following:number}|null=null;
 
@@ -83,7 +85,7 @@ const sectionLabels: Record<string, string> = {
 
 async function save() {
   localStorage.setItem(key, JSON.stringify(draft));
-  if(profileAuthority&&profileClient){try{const {data:{user}}=await profileClient.auth.getUser();if(user){await profileAuthority.save({handle:draft.handle,displayName:draft.displayName,bio:draft.bio,status:draft.status,mood,theme:draft.theme,layout:draft.layout});cloudMedia=await profileAuthority.media(user.id);cloudPosts=await profileAuthority.posts(user.id);cloudFeed=await profileAuthority.activity(user.id);cloudLandmarks=await profileAuthority.landmarks(user.id);cloudInventory=await profileAuthority.inventory(user.id);arenaRanking=await profileAuthority.ranking(user.id);render();return;}}catch(error){console.warn('Cloud profile save unavailable; local profile retained.',error);}}
+  if(profileAuthority&&profileClient){try{const {data:{user}}=await profileClient.auth.getUser();if(user){await profileAuthority.save({handle:draft.handle,displayName:draft.displayName,bio:draft.bio,status:draft.status,mood,theme:draft.theme,layout:draft.layout});cloudMedia=await profileAuthority.media(user.id);cloudPosts=await profileAuthority.posts(user.id);cloudFeed=await profileAuthority.activity(user.id);cloudLandmarks=await profileAuthority.landmarks(user.id);cloudWorlds=worldAuthority?await worldAuthority.listOwned(user.id):[];cloudInventory=await profileAuthority.inventory(user.id);arenaRanking=await profileAuthority.ranking(user.id);render();return;}}catch(error){console.warn('Cloud profile save unavailable; local profile retained.',error);}}
   const status=document.querySelector('#save-status');if(status)status.textContent='Saved locally · ready for Grid Identity';
 }
 
@@ -165,7 +167,7 @@ function moduleMarkup(section: string, data: ProfileDraft): string {
     feed: `<article class="module-card"><span class="module-label">FEED</span><h3>Recent from the Grid</h3>${cloudFeed.length?cloudFeed.slice(0,5).map(p=>`<div class="event-row"><b>${escapeHtml(p.kind.replaceAll('_',' '))}</b><small>${escapeHtml(p.title)}${p.body?' · '+escapeHtml(p.body):''}</small></div>`).join(''):'<p>No public activity yet.</p>'}</article>`,
     mood: `<article class="module-card"><span class="module-label">MOOD</span><h3>${escapeHtml(mood)}</h3><p>Current profile mood · ${escapeHtml(draft.status)}</p></article>`,
     about: `<article class="module-card"><span class="module-label">ABOUT</span><h3>Who I am</h3><p>${escapeHtml(data.bio)}</p><div class="chips"><span>${liveProfile?.online?'● ONLINE':'○ OFFLINE'}</span>${liveProfile?.worldId?`<span>${escapeHtml(liveProfile.worldId)}${liveProfile.regionId?` · ${escapeHtml(liveProfile.regionId)}`:''}</span>`:''}<span>Explorer</span><span>Creator</span><span>${data.favoriteEmoji} Dreamer</span></div></article>`,
-    worlds: `<article class="module-card"><span class="module-label">WORLDS</span><h3>Grid destinations</h3>${cloudLandmarks.length?cloudLandmarks.slice(0,4).map(l=>`<div class="world-pill"><i></i><b>${escapeHtml(l.name)}</b><small>${escapeHtml(l.world_id)} · ${escapeHtml(l.region_id)}</small></div>`).join(''):'<p>No saved worlds or landmarks yet.</p>'}</article>`,
+    worlds: `<article class="module-card"><span class="module-label">WORLDS</span><h3>My Grid Worlds</h3>${cloudWorlds.length?cloudWorlds.slice(0,6).map(w=>`<div class="world-pill"><i></i><b>${escapeHtml(w.label)}</b><small>${escapeHtml(w.id)} · ${escapeHtml(w.tags.join(' · '))}</small></div>`).join(''):(cloudLandmarks.length?cloudLandmarks.slice(0,4).map(l=>`<div class="world-pill"><i></i><b>${escapeHtml(l.name)}</b><small>${escapeHtml(l.world_id)} · ${escapeHtml(l.region_id)}</small></div>`).join(''):'<p>No created worlds or saved destinations yet.</p>')}</article>`,
     creations: `<article class="module-card"><span class="module-label">CREATIONS</span><h3>Made in the Grid</h3>${cloudPosts.length?`<div class="event-row"><b>${cloudPosts.length} PUBLIC POSTS</b><small>Latest: ${escapeHtml(cloudPosts[0].body||'Grid creation')}</small></div>`:'<p>No public creations posted yet.</p>'}<div class="creation-grid"><div>◈</div><div>◇</div><div>✦</div></div></article>`,
     gallery: `<article class="module-card"><span class="module-label">GALLERY</span><h3>Moments</h3><div class="gallery-grid">${cloudMedia.length?cloudMedia.slice(0,8).map(m=>m.kind==='VIDEO'?`<video src="${escapeHtml(m.url)}" controls muted></video>`:`<img src="${escapeHtml(m.url)}" alt="${escapeHtml(m.caption||'Grid World post')}">`).join(''):'<div>🌌</div><div>🌲</div><div>🌃</div><div>🪐</div>'}</div></article>`,
     communities: `<article class="module-card"><span class="module-label">COLLECTION</span><h3>Inventory</h3>${cloudInventory.length?cloudInventory.slice(0,5).map(i=>`<div class="event-row"><b>${escapeHtml(i.item_id)}</b><small>x${i.quantity}</small></div>`).join(''):'<p>Collection is empty.</p>'}</article>`,
@@ -257,6 +259,7 @@ void (async()=>{
         mood=cloud.mood||'curious';cloudMedia=await profileAuthority.media(cloud.user_id);cloudFeed=await profileAuthority.activity(cloud.user_id);
         cloudPosts=await profileAuthority.posts(cloud.user_id);
         cloudLandmarks=await profileAuthority.landmarks(cloud.user_id);
+        cloudWorlds=worldAuthority?await worldAuthority.listOwned(cloud.user_id):[];
         cloudInventory=await profileAuthority.inventory(cloud.user_id);
         liveProfile=profileSocial?await profileSocial.publicProfile(cloud.user_id):null;
         arenaRanking=await profileAuthority.ranking(cloud.user_id);
