@@ -1,6 +1,8 @@
 export type NPCGender = 'unspecified' | 'female' | 'male' | 'nonbinary';
 export type NPCRelationKind = 'family' | 'friend' | 'rival' | 'mentor' | 'faction';
 
+export interface NPCSkillCertificateRecord { id:string; npcId:string; skill:string; title:string; level:number; issuer:string; earnedAt:number; inGridValid:boolean; externalVerificationReady:boolean; }
+
 export interface NPCInventoryItem {
   id: string;
   name: string;
@@ -27,6 +29,7 @@ export interface NPCProfileRecord {
   relationshipIds: string[];
   factionIds: string[];
   inventory: NPCInventoryItem[];
+  certificates: NPCSkillCertificateRecord[];
   tags: string[];
 }
 
