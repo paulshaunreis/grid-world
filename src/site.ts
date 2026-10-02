@@ -3,6 +3,7 @@ import './site-asset-health';
 import { QRScanner } from './ui/QRScanner';
 import { mountGridLiveFeed } from './site-live-feed';
 import { TEAM_WORK_TASKS } from './world/TeamWorkSystem';
+import { TEAM_AVATARS } from './avatars/teamRoster';
 import { GridOperatorService } from './operator/GridOperatorService';
 import { mountGridOperatorPanel } from './ui/GridOperatorPanel';
 import { createClient } from '@supabase/supabase-js';
@@ -72,6 +73,9 @@ app.innerHTML = `
         <figure><img src="/grid-concept-first-light.svg" alt="First Light concept art"><figcaption><b>FIRST LIGHT</b><span>Entry world · living systems</span></figcaption></figure>
         <figure><img src="/grid-concept-living-wilds.svg" alt="Living Wilds concept art"><figcaption><b>LIVING WILDS</b><span>Ecology · creatures · terrain</span></figcaption></figure>
         <figure><img src="/grid-concept-civic.svg" alt="Civic concept art"><figcaption><b>CIVIC</b><span>Architecture · community · transit</span></figcaption></figure>
+        <figure><img src="/concept/worldlook-firstlight-street.webp" alt="First Light night street concept art" loading="lazy"><figcaption><b>FIRST LIGHT · NIGHT</b><span>Concept preview · in active development</span></figcaption></figure>
+        <figure><img src="/concept/worldlook-wilderness.webp" alt="Wilderness vista concept art" loading="lazy"><figcaption><b>LIVING WILDS</b><span>Concept preview · in active development</span></figcaption></figure>
+        <figure><img src="/concept/worldlook-interior.webp" alt="Cozy interior concept art" loading="lazy"><figcaption><b>CITIZEN HOME</b><span>Concept preview · in active development</span></figcaption></figure>
       </div>
     </section>
 
@@ -96,7 +100,7 @@ app.innerHTML = `
         <i class="pulse-node n1"></i><i class="pulse-node n2"></i><i class="pulse-node n3"></i><i class="pulse-node n4"></i>
       </div>
       <div class="pulse-copy">
-        <div class="section-label">GRID PULSE · LIVE WORLD</div>
+        <div class="section-label">GRID PULSE · WORLD SIGNAL</div>
         <h2>The site can<br><span>feel the world move.</span></h2>
         <p>Public world events flow from Grid World into this surface in real time. Teleports, marketplace activity, sound releases, living memories, and system signals can appear as they happen.</p>
         <div class="pulse-status"><span class="pulse-dot"></span><span data-grid-pulse-status>CONNECTING</span><b><span data-grid-pulse-count>00</span> RECENT</b></div>
@@ -143,7 +147,7 @@ app.innerHTML = `
       </div>
       <div class="atlas-grid">
         <article class="atlas-card atlas-world">
-          <div class="atlas-scene"><span class="sun"></span><span class="mountain m1"></span><span class="mountain m2"></span><span class="water"></span><div class="scene-avatar"></div><div class="scene-hud">FIRST LIGHT · 128 TRAVELERS</div></div>
+          <div class="atlas-scene"><span class="sun"></span><span class="mountain m1"></span><span class="mountain m2"></span><span class="water"></span><div class="scene-avatar"></div><div class="scene-hud">FIRST LIGHT · PROTOTYPE PREVIEW</div></div>
           <div class="atlas-copy"><span>01 · WORLD</span><h3>Living Regions</h3><p>World cards preview places as environments, not generic thumbnails.</p></div>
         </article>
         <article class="atlas-card atlas-profile">
@@ -211,7 +215,7 @@ app.innerHTML = `
       </section>
 
       <aside class="right-rail">
-        <div class="side-card"><div class="card-title">LIVE IN THE GRID</div><div class="live-row"><span class="dot"></span> First Light <b>128</b></div><div class="live-row"><span class="dot"></span> Neon District <b>74</b></div><div class="live-row"><span class="dot"></span> Verdant Arc <b>51</b></div><a class="card-link" href="#worlds">View all worlds →</a></div>
+        <div class="side-card"><div class="card-title">WORLDS IN DEVELOPMENT</div><div class="live-row"><span class="dot"></span> First Light <b>prototype</b></div><div class="live-row"><span class="dot"></span> Neon District <b>concept</b></div><div class="live-row"><span class="dot"></span> Verdant Arc <b>concept</b></div><a class="card-link" href="#worlds">View all worlds →</a></div>
         <div class="side-card"><div class="card-title">UPCOMING EVENTS</div><div class="event"><b>NEON NIGHTS</b><small>Tonight · Neon District</small></div><div class="event"><b>CREATOR CAMP</b><small>Saturday · Virtual + IRL</small></div><a class="card-link" href="#events">Explore events →</a></div>
       </aside>
     </section>
@@ -239,6 +243,7 @@ app.innerHTML = `
         <article><b>MUSE</b><span>Art · gatherings · arenas</span><small>Social space stays protected while events can become competitive.</small></article>
         <article><b>FRONTIER</b><span>Migration · territory · survival</span><small>Wild systems create movement and danger.</small></article>
       </div>
+      <figure class="world-map-figure"><img src="/concept/map-overworld.webp" alt="Grid World overworld map showing all nine regions" loading="lazy"><figcaption><b>GRID ATLAS · CONCEPT PREVIEW</b><span>05 built regions · 04 in development — the world is in active development.</span></figcaption></figure>
     </section>
 
     <section class="platform" id="communities">
@@ -348,6 +353,23 @@ app.innerHTML = `
       <article><b>MEDIA</b><span>Images · video · sound · creator galleries · stages · concerts · recording · live world signals</span></article>
       <article><b>EVERYWHERE</b><span>Desktop world · responsive UI · mobile functions · QR · optional location features · persistent state</span></article>
     </div>
+  </section>
+
+  <section class="grid-team" id="grid-team">
+    <div class="section-label">GRID TEAM · GUIDE AIS</div>
+    <h2>Twenty-four minds.<br><span>One Grid.</span></h2>
+    <p class="grid-team-intro">The Grid Team are the in-world guide AIs — coordinators, engineers, ethicists, artists, and storytellers who keep the world coherent and help citizens build. You can meet them wandering the Grid, or start here.</p>
+    <div class="grid-team-grid">
+      ${TEAM_AVATARS.map(m => `
+      <article class="grid-team-card">
+        <div class="grid-team-sigil">◈</div>
+        <h3>${m.displayName}</h3>
+        <b>${m.role}</b>
+        <p>&ldquo;${m.greeting}&rdquo;</p>
+        <small>${m.topics.slice(0, 3).join(' · ')}</small>
+      </article>`).join('')}
+    </div>
+    <small class="honesty-note">Concept preview — the Grid Team are in-world guide characters in a world under active development, not a live concierge service.</small>
   </section>
 
   </main>

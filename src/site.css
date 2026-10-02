@@ -246,3 +246,25 @@ html[data-site-style="aurora"] body,html[data-site-style="studio"] body,html[dat
 html[data-site-style="terminal"] body{font-family:'IBM Plex Mono',ui-monospace,monospace!important}
 html[data-site-style="terminal"] h1,html[data-site-style="terminal"] h2,html[data-site-style="terminal"] h3,html[data-site-style="terminal"] button,html[data-site-style="terminal"] a{font-family:'IBM Plex Mono',ui-monospace,monospace!important}
 html[data-site-style="aurora"] h1,html[data-site-style="aurora"] h2,html[data-site-style="aurora"] h3,html[data-site-style="studio"] h1,html[data-site-style="studio"] h2,html[data-site-style="studio"] h3,html[data-site-style="garden"] h1,html[data-site-style="garden"] h2,html[data-site-style="garden"] h3{font-family:'Space Grotesk',ui-sans-serif,system-ui,sans-serif!important}
+
+/* GRID TEAM section */
+.grid-team{padding:clamp(64px,8vw,110px) 6vw;border-top:1px solid rgba(255,255,255,.08);max-width:1280px;margin:auto}
+.grid-team h2{font-size:clamp(42px,6vw,76px);line-height:.95;letter-spacing:-.05em;margin:16px 0 20px}
+.grid-team-intro{color:#a9b8c9;max-width:640px;line-height:1.65;margin-bottom:40px}
+.grid-team-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.grid-team-card{padding:20px;border:1px solid rgba(72,231,255,.14);background:rgba(8,17,28,.48);min-height:170px;transition:transform .3s ease,border-color .3s ease}
+.grid-team-card:hover{transform:translateY(-4px);border-color:rgba(72,231,255,.45)}
+.grid-team-sigil{color:#48e7ff;font-size:18px;margin-bottom:10px}
+.grid-team-card h3{margin:0 0 4px;font-size:17px}
+.grid-team-card b{display:block;font-size:11px;letter-spacing:.08em;color:#48e7ff;font-weight:600}
+.grid-team-card p{color:#bdc9d5;font-size:13px;line-height:1.55;margin:10px 0;font-style:italic}
+.grid-team-card small{color:rgba(230,245,250,.45);font-size:10px;letter-spacing:.06em}
+.honesty-note{display:block;margin-top:28px;color:#657586;font-size:11px;max-width:640px;line-height:1.6}
+@media(max-width:900px){.grid-team-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.grid-team-grid{grid-template-columns:1fr}}
+
+/* World atlas map figure */
+.world-map-figure{max-width:900px;margin:48px auto 0;text-align:center}
+.world-map-figure img{width:100%;height:auto;border:1px solid rgba(120,180,220,.16);border-radius:8px}
+.world-map-figure figcaption{margin-top:14px;color:#8494a5;font-size:12px}
+.world-map-figure figcaption b{display:block;color:#48e7ff;font-size:11px;letter-spacing:.16em;margin-bottom:6px}
