@@ -343,3 +343,10 @@ _Last updated: 2026-10-02
 - Existing `GridBuildLibrary` already covers the requested primitive and starter architectural/prop library; `GridEasyBuildSystem` exposes it through Build Mode.
 - No code change was required for queue item #15.
 - Next focus: **P0 #3 — integrate terrain brush work safely.**
+
+
+## 2026-10-02 — Terrain integration audit complete
+- P0 terrain brush integration confirmed on current main.
+- PR #4 is merged; current terrain is wired into Creator Studio and persistent world save/load.
+- No code change required.
+- Next focus: **P2 #16 Advanced building controls**.
