@@ -447,3 +447,13 @@ _Last updated: 2026-10-02_
 - **Next actionable item:** P3 #26 UI visual system.
 
 _Last updated: 2026-10-02_
+
+
+## Checkpoint — 2026-10-02 16:15 PT — UI visual system increment
+- Current main after merge: `611cff994d3e7312f161586e76d6a7c5148e7e73`.
+- PR #30 `Grid: extend unified UI visual system` merged from `grid/ui-visual-system-current-main`.
+- Preserved Aurora's existing theme engine and `WindowManager`; no duplicate UI architecture introduced.
+- Added shared registration for Party Link, Field Guide, Mission Journal, Team Workshop, Grid Social, Grid Omni Economy, and Grid Profile panels. Their layout uses the existing persisted `grid-world:ui-layout` system and UI arrange/reset controls.
+- Extended `src/ui/grid-themes.css` with consistent movable-window chrome, focus states, hover states, minimized/hidden treatment, theme-aware health/profile meters, and reduced-motion behavior.
+- Verification: L0 source review. GitHub Actions returned no workflow run for PR #30 head; no browser/WebGL verification performed.
+- Next actionable queue item: P3 #27 World-specific presentation.
