@@ -281,3 +281,12 @@ PR #6 `grid/landmarks-waypoints-flow` passed GitHub Actions CI run #1080 success
 - **Verification:** L0 source review. No GitHub workflow run was available immediately after the implementation commit; CI status must be checked before claiming L4.
 - **Scope:** Additive foundation only. Existing placement/edit controls are intentionally unchanged; `useTool()` is available for future action-level enforcement.
 - **Next:** Review CI/PR, then mission foundation or another highest-priority non-duplicate queue item.
+
+
+## Current-main merge checkpoint — 2026-10-02
+- PR #13 merged: `94e70727b975329297265e945a289e863005c44e`; head CI #1107 passed.
+- PR #14 merged: `13250b639d190a852ac021a81d1b61608d614148`; head `3b007216ef7d2af80d0b7f75f9dc49a232046ee9`; CI #1111 passed after one TypeScript compatibility fix (production record uses `id`/`name`, not `itemId`).
+- PRs #10–#12 were superseded/closed without merge; #14 is the current-main NPC integration source of truth.
+- Next: current-main stability check, then mission/quest foundation or NPC jobs/skill progression according to queue priority.
+
+_Last updated: 2026-10-02_
