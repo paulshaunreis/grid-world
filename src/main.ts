@@ -69,7 +69,7 @@ import { WorldEvolutionSystem } from './world/WorldEvolutionSystem';
 import { EvolutionaryPopulationSystem } from './world/EvolutionaryPopulationSystem';
 import { EcologicalWebSystem } from './world/EcologicalWebSystem';
 import { EcologicalInteractionSystem } from './world/EcologicalInteractionSystem';
-import { getWorlds, getWorldConnections, connectWorld, registerNetworkWorld } from './world/GridWorldRegistry';
+import { getWorld, getWorlds, getWorldConnections, connectWorld, registerNetworkWorld } from './world/GridWorldRegistry';
 import { GridChakraSystem } from './world/GridChakraSystem';
 import { GridAlchemySystem } from './world/GridAlchemySystem';
 import { GridKarmaSystem } from './world/GridKarmaSystem';
