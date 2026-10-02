@@ -220,3 +220,12 @@ Source of truth: `~/workspace/gridworld/concept-art/INVENTORY.md` (89-file inven
 - GitHub workflow lookup for the post-merge commit returned no runs at the time of this checkpoint, so the merged commit is **not** described as CI-verified yet.
 - PR #3 (`grid/post-merge-handoff`) was closed without merge because it was stale/non-mergeable and its documentation state was already represented in the current handoff.
 - Next queue focus: **P0.2 website/world link and interaction audit**.
+
+
+## P0.2 interaction audit checkpoint — 2026-10-02
+- Audited HUD routing against existing UI surfaces.
+- Identified and fixed the HUD `MAP` mismatch: it previously only highlighted the minimap, despite the project having a full Grid Atlas with world entry/transit/history/economy context.
+- `src/main.ts` now assigns the Atlas mount to `worldAtlas` and routes the HUD `MAP` action to `worldAtlas.open()`.
+- Commit: **`cb87bdb84406136678fe23f05ea8fcc7ad1fc839`** on `main`.
+- Verification was source-level after commit; GitHub reported no workflow run yet for this commit, so it remains unverified by CI.
+- Continue P0.2 with the remaining high-impact navigation/control audit before P1 work.
