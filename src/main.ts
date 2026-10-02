@@ -128,6 +128,7 @@ import { GridMaterialDropSystem } from './world/GridMaterialDropSystem';
 import { GridTouchController, GridInputModeUI } from './ui/GridTouchController';
 import './ui/GridDeviceResponsive.css';
 import './ui/grid-effects.css';
+import './ui/grid-themes.css';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();
@@ -159,7 +160,7 @@ if (landmarkAuthority) landmarkInventoryRoot = mountGridLandmarkInventory(landma
 const targetProfilePanel = mountGridTargetProfile();
 
 
-type HudTheme = 'cyan' | 'violet' | 'magenta' | 'emerald' | 'amber' | 'white';
+type HudTheme = 'cyan' | 'violet' | 'magenta' | 'emerald' | 'amber' | 'white' | 'crimson' | 'azure' | 'lime' | 'indigo';
 const HUD_THEME_KEY = 'grid-world:hud-theme';
 const hudTheme = (localStorage.getItem(HUD_THEME_KEY) as HudTheme | null) ?? 'cyan';
 document.documentElement.dataset.hudTheme = hudTheme;
@@ -221,6 +222,10 @@ hud.innerHTML = `
         <button type="button" data-hud="emerald">Emerald</button>
         <button type="button" data-hud="amber">Amber</button>
         <button type="button" data-hud="white">White</button>
+        <button type="button" data-hud="crimson">Crimson</button>
+        <button type="button" data-hud="azure">Azure</button>
+        <button type="button" data-hud="lime">Lime</button>
+        <button type="button" data-hud="indigo">Indigo</button>
       </div>
       <div class="avatar-label">Interface style</div>
       <div class="ui-style-options" id="ui-style-options">
