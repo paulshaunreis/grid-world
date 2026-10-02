@@ -10,6 +10,7 @@ import { NPCInventorySystem } from './NPCInventorySystem';
 import { NPCJobProgressionSystem } from './NPCJobProgressionSystem';
 import { GridMaterialDropSystem } from './GridMaterialDropSystem';
 import { NPCProductionSystem } from './NPCProductionSystem';
+import { NPCMarketSystem } from './NPCMarketSystem';
 
 export type CitizenState = 'WORK'|'TRAVEL'|'GATHER'|'TALK'|'REST'|'CELEBRATE'|'EAT';
 export type CitizenRole = 'NAVIGATOR'|'GARDENER'|'ARTISAN'|'KEEPER'|'RANGER';
@@ -110,6 +111,8 @@ export class NPCSocietySystem {
   private progression = new NPCJobProgressionSystem();
   private materialDrops = new GridMaterialDropSystem();
   private production = new NPCProductionSystem(this.materialDrops, this.inventory);
+  private market = new NPCMarketSystem();
+  private marketedProduction = new Set<string>();
   private gates=new Map<EcologyWorld,THREE.Group>();
   private gateBusy=new Map<EcologyWorld,number>();
   private transitTrafficRecorder: ((source:EcologyWorld,destination:EcologyWorld,queueDepth:number)=>void) | null = null;
@@ -430,7 +433,23 @@ export class NPCSocietySystem {
       c.phase+=delta*.5;
     }
     this.production.update(delta, this.getWorkingCitizens(), this.profiles);
+    for (const item of this.production.getRecent(64)) {
+      if (this.marketedProduction.has(item.id)) continue;
+      const merchant = this.citizens.find(c => c.merchant && c.world === item.worldId);
+      if (!merchant) continue;
+      const merchantProfile = this.profiles.get(merchant.name);
+      if (!merchantProfile) continue;
+      this.market.seedMerchant(merchantProfile, 100);
+      this.market.seedBalance(item.npcId, this.market.getBalance(item.npcId) || 25);
+      const listing = this.market.restockFromProduction(item, merchantProfile.id);
+      merchant.merchantStock += item.quantity;
+      merchant.root.userData.merchantStock = merchant.merchantStock;
+      merchant.root.userData.lastRestock = listing;
+      this.marketedProduction.add(item.id);
+    }
     this.root.userData.production=this.production.getRecent(32);
+    this.root.userData.marketListings=this.market.getListings(world);
+    this.root.userData.marketTrades=this.market.getTrades(32);
     this.root.userData.materialDrops=this.materialDrops.getSnapshot();
     const signal=event.toUpperCase()!=='QUIET'?event.toUpperCase():(ecology?.state||'QUIET');
     this.snapshot={population:this.citizens.length,active,working,gathering,talking,world,signal};
@@ -454,6 +473,10 @@ export class NPCSocietySystem {
   getNPCInventory(name:string){ const profile=this.profiles.get(name); return profile ? this.inventory.snapshot(profile) : []; }
   getNPCProduction(limit=25){ return this.production.getRecent(limit); }
   getMaterialDrops(){ return this.materialDrops.getSnapshot(); }
+  getMarketListings(worldId?:string){ return this.market.getListings(worldId); }
+  getMarketTrades(limit=25){ return this.market.getTrades(limit); }
+  getNPCGridCoin(name:string){ const profile=this.profiles.get(name); return profile ? this.market.getBalance(profile.id) : 0; }
+  buyNPCMarketListing(listingId:string,buyerName:string,quantity=1){ const buyer=this.profiles.get(buyerName); return buyer ? this.market.buy(listingId,buyer.id,quantity) : null; }
   collectMaterialDrop(id:string){ return this.materialDrops.collect(id); }
   awardNPCJobXP(name:string, amount:number, skill?:string){ const profile=this.profiles.get(name); return profile ? this.progression.award(profile, amount, skill) : null; }
   getWorkingCitizens(){return this.citizens.filter(c=>c.state==='WORK'||c.state==='GATHER').map(c=>({id:c.name,world:c.world,position:c.root.position.clone(),role:c.role}));}
