@@ -204,7 +204,7 @@ Expose these through Build Mode with original Grid World controls.
 - Add room for daily/weekly/monthly/yearly missions.
 - Support mysteries that can send players back to earlier starter zones.
 
-**Status:** Ready
+**Status:** Complete
 
 ### 20. PvE foundation
 - Define combat-capable entities without locking the architecture to one combat style.
