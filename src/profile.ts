@@ -5,7 +5,7 @@ const profileSupabaseUrl=import.meta.env.VITE_SUPABASE_URL as string|undefined;
 const profileSupabaseKey=import.meta.env.VITE_SUPABASE_ANON_KEY as string|undefined;
 const profileClient=profileSupabaseUrl&&profileSupabaseKey?createClient(profileSupabaseUrl,profileSupabaseKey):null;
 const profileAuthority=profileClient?new GridProfileAuthority(profileClient):null;
-let cloudMedia:GridProfileMedia[]=[];let arenaRanking:GridArenaRanking|null=null;
+let cloudMedia:GridProfileMedia[]=[];let arenaRanking:GridArenaRanking|null=null;let cloudLandmarks:import('./social/GridProfileAuthority').GridProfileLandmark[]=[];let cloudInventory:import('./social/GridProfileAuthority').GridPlayerInventoryItem[]=[];let cloudPosts:import('./social/GridProfileAuthority').GridProfilePost[]=[];
 
 type ProfileTheme = {
   preset: string;
@@ -77,7 +77,7 @@ const sectionLabels: Record<string, string> = {
 
 async function save() {
   localStorage.setItem(key, JSON.stringify(draft));
-  if(profileAuthority&&profileClient){try{const {data:{user}}=await profileClient.auth.getUser();if(user){await profileAuthority.save({handle:draft.handle,displayName:draft.displayName,bio:draft.bio,status:draft.status,theme:draft.theme,layout:draft.layout});cloudMedia=await profileAuthority.media(user.id);arenaRanking=await profileAuthority.ranking(user.id);render();return;}}catch(error){console.warn('Cloud profile save unavailable; local profile retained.',error);}}
+  if(profileAuthority&&profileClient){try{const {data:{user}}=await profileClient.auth.getUser();if(user){await profileAuthority.save({handle:draft.handle,displayName:draft.displayName,bio:draft.bio,status:draft.status,theme:draft.theme,layout:draft.layout});cloudMedia=await profileAuthority.media(user.id);cloudPosts=await profileAuthority.posts(user.id);cloudLandmarks=await profileAuthority.landmarks(user.id);cloudInventory=await profileAuthority.inventory(user.id);arenaRanking=await profileAuthority.ranking(user.id);render();return;}}catch(error){console.warn('Cloud profile save unavailable; local profile retained.',error);}}
   const status=document.querySelector('#save-status');if(status)status.textContent='Saved locally · ready for Grid Identity';
 }
 
@@ -157,10 +157,10 @@ function render() {
 function moduleMarkup(section: string, data: ProfileDraft): string {
   const content: Record<string,string> = {
     about: `<article class="module-card"><span class="module-label">ABOUT</span><h3>Who I am</h3><p>${escapeHtml(data.bio)}</p><div class="chips"><span>Explorer</span><span>Creator</span><span>${data.favoriteEmoji} Dreamer</span></div></article>`,
-    worlds: `<article class="module-card"><span class="module-label">WORLDS</span><h3>Currently exploring</h3><div class="world-pill"><i></i><b>First Light</b><small>Online now</small></div><div class="world-pill"><i></i><b>Neon District</b><small>Visited 3h ago</small></div></article>`,
-    creations: `<article class="module-card"><span class="module-label">CREATIONS</span><h3>Made in the Grid</h3><div class="creation-grid"><div>◈</div><div>◇</div><div>✦</div></div></article>`,
+    worlds: `<article class="module-card"><span class="module-label">WORLDS</span><h3>Grid destinations</h3>${cloudLandmarks.length?cloudLandmarks.slice(0,4).map(l=>`<div class="world-pill"><i></i><b>${escapeHtml(l.name)}</b><small>${escapeHtml(l.world_id)} · ${escapeHtml(l.region_id)}</small></div>`).join(''):'<p>No saved worlds or landmarks yet.</p>'}</article>`,
+    creations: `<article class="module-card"><span class="module-label">CREATIONS</span><h3>Made in the Grid</h3>${cloudPosts.length?`<div class="event-row"><b>${cloudPosts.length} PUBLIC POSTS</b><small>Latest: ${escapeHtml(cloudPosts[0].body||'Grid creation')}</small></div>`:'<p>No public creations posted yet.</p>'}<div class="creation-grid"><div>◈</div><div>◇</div><div>✦</div></div></article>`,
     gallery: `<article class="module-card"><span class="module-label">GALLERY</span><h3>Moments</h3><div class="gallery-grid">${cloudMedia.length?cloudMedia.slice(0,8).map(m=>m.kind==='VIDEO'?`<video src="${escapeHtml(m.url)}" controls muted></video>`:`<img src="${escapeHtml(m.url)}" alt="${escapeHtml(m.caption||'Grid World post')}">`).join(''):'<div>🌌</div><div>🌲</div><div>🌃</div><div>🪐</div>'}</div></article>`,
-    communities: `<article class="module-card"><span class="module-label">COMMUNITIES</span><h3>Places I belong</h3><p>World Builders · First Light Residents · Grid Creators</p></article>`,
+    communities: `<article class="module-card"><span class="module-label">COLLECTION</span><h3>Inventory</h3>${cloudInventory.length?cloudInventory.slice(0,5).map(i=>`<div class="event-row"><b>${escapeHtml(i.item_id)}</b><small>x${i.quantity}</small></div>`).join(''):'<p>Collection is empty.</p>'}</article>`,
     events: `<article class="module-card"><span class="module-label">EVENTS</span><h3>Next up</h3><div class="event-row"><b>NEON NIGHTS</b><small>Tonight · Virtual</small></div><div class="event-row"><b>CREATOR CAMP</b><small>Saturday · Hybrid</small></div></article>`,
     arena: arenaRanking?`<article class="module-card"><span class="module-label">ARENA</span><h3>Season ${escapeHtml(arenaRanking.season)}</h3><div class="event-row"><b>RATING ${arenaRanking.rating}</b><small>${arenaRanking.wins}W · ${arenaRanking.losses}L</small></div><div class="event-row"><b>MATCHES</b><small>${arenaRanking.matches}</small></div></article>`:`<article class="module-card"><span class="module-label">ARENA</span><h3>Unranked</h3><p>Enter an Arena season to establish a competitive record.</p></article>`,
   };
