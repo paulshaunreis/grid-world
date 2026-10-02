@@ -209,3 +209,14 @@ Source of truth: `~/workspace/gridworld/concept-art/INVENTORY.md` (89-file inven
 - The queue covers stability/integration first, then teleportation, landmarks/waypoints, party health, camera controls, profiles, NPC life systems, building/terrain, missions, PvE/PvP, economy, presentation, and documentation.
 - The queue explicitly requires honest verification states and preservation of Aurora's existing work.
 - After substantial work, Aurora should update both the queue and this handoff with the exact implementation/commit/PR/verification state.
+
+
+## Stability/integration checkpoint — 2026-10-02
+- Completed the P0.1 main-branch health audit.
+- Reviewed `package.json` and current `src/main.ts` integration surface. The build pipeline is analyzer + TypeScript + Vite; there is no npm test script in `package.json`.
+- Reviewed PR #4 (`grid/matter-terrain-brushes`). It adds brush radius 0–4, drag editing, and keyboard sizing while retaining existing CARVE/BUILD behavior and local terrain persistence/serialization.
+- PR #4 CI run **#1052** completed successfully.
+- PR #4 was squash-merged into `main` as **`fcbab292872a92f011edc2a5262ef1a2c113b225`**.
+- GitHub workflow lookup for the post-merge commit returned no runs at the time of this checkpoint, so the merged commit is **not** described as CI-verified yet.
+- PR #3 (`grid/post-merge-handoff`) was closed without merge because it was stale/non-mergeable and its documentation state was already represented in the current handoff.
+- Next queue focus: **P0.2 website/world link and interaction audit**.
