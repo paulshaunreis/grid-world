@@ -252,3 +252,12 @@ _Last updated: 2026-10-02_
 - **Next actionable item:** P2 #20 PvE foundation. Audit the existing CombatSystem/GridCombatAuthority before adding combat infrastructure.
 
 _Last updated: 2026-10-02_
+
+## 2026-10-02 — Current main after PvE foundation hardening
+- **main:** `03a787af6a5b99deb0d62634329c91771ad1f95b3` (PR #24 merged).
+- PvE remains on the existing CombatSystem + GridCombatAuthority architecture. Authoritative creature state now synchronizes into local combatants, authoritative creature defeats feed the existing kill/material-reward path, and server-side creature attacks require PVE mode plus a PVE zone.
+- Quest `COMBAT` objectives and world-consequence creature defeat hooks remain connected to authoritative defeat results.
+- Verification boundary: source review and successful merge. No workflow run was available for PR #24 head and no browser/WebGL verification was performed; not CI-verified.
+- **Next actionable item:** P2 #21 PvP foundation. Audit current PVP arena/mode/authority boundaries before adding anything.
+
+_Last updated: 2026-10-02_
