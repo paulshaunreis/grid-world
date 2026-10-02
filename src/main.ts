@@ -127,6 +127,7 @@ import { GridEasyBuildSystem } from './world/GridEasyBuildSystem';
 import { GridMaterialDropSystem } from './world/GridMaterialDropSystem';
 import { GridTouchController, GridInputModeUI } from './ui/GridTouchController';
 import './ui/GridDeviceResponsive.css';
+import './ui/grid-effects.css';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let identity = loadOrCreateIdentity();

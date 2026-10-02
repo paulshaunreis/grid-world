@@ -1,0 +1,156 @@
+/* GridWorld UI effects + transparency layer — Aurora, 2026-10-02.
+ * Additive only: entrance animations, glassmorphism transparency pass,
+ * hover glows and transitions. Uses the --hud-rgb theme variables from
+ * style.css so every effect follows the player's chosen accent.
+ * Loaded after the other UI stylesheets in main.ts; `body` prefix gives
+ * these rules priority over runtime-injected panel styles. */
+
+/* ---------- entrance animations ---------- */
+@keyframes gw-panel-in {
+  from { opacity: 0; transform: translateY(14px) scale(.985); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes gw-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes gw-pop-in {
+  from { opacity: 0; transform: scale(.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+body .gw-social.open,
+body .gw-quest-panel.open,
+body .gw-party-invites.open,
+body .gw-team-panel.open,
+body .grid-atlas-panel.open {
+  animation: gw-panel-in .28s cubic-bezier(.2,.9,.25,1.05);
+}
+
+body .grid-market-panel.open,
+body .grid-economy-panel.open,
+body .grid-teleport-overlay.open,
+body .grid-creator-studio.open {
+  animation: gw-overlay-in .22s ease-out;
+}
+body .grid-market-panel.open .grid-market-card,
+body .grid-economy-panel.open .grid-economy-card,
+body .grid-creator-studio.open {
+  animation: gw-pop-in .3s cubic-bezier(.2,.9,.25,1.08);
+}
+
+/* ---------- transparency pass: glassmorphism ---------- */
+/* Dials heavy near-opaque panels back to true glass. Text stays readable:
+   light type over strong backdrop blur. */
+
+body .gw-social,
+body .gw-party-invites,
+body .gw-team-panel {
+  background: rgba(4, 9, 16, .78);
+  backdrop-filter: blur(22px) saturate(1.2);
+  -webkit-backdrop-filter: blur(22px) saturate(1.2);
+}
+
+body .gw-quest-panel,
+body .grid-atlas-panel {
+  background: rgba(5, 9, 15, .74);
+  backdrop-filter: blur(22px) saturate(1.2);
+  -webkit-backdrop-filter: blur(22px) saturate(1.2);
+}
+
+body .grid-market-card,
+body .grid-economy-card {
+  background: rgba(8, 13, 21, .82);
+  backdrop-filter: blur(24px) saturate(1.25);
+  -webkit-backdrop-filter: blur(24px) saturate(1.25);
+}
+
+body .grid-creator-studio {
+  background: rgba(6, 10, 18, .8);
+  backdrop-filter: blur(24px) saturate(1.25);
+  -webkit-backdrop-filter: blur(24px) saturate(1.25);
+}
+
+body .grid-party-hud {
+  background: rgba(3, 9, 16, .55);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+}
+
+/* full-screen dim layers get lighter so the world shows through */
+body .grid-market-panel,
+body .grid-economy-panel {
+  background: rgba(2, 5, 10, .55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+body .grid-teleport-overlay { background: rgba(2, 6, 12, .5); }
+
+/* ---------- hover glows + transitions ---------- */
+body .gw-social-tab,
+body .gw-social-action,
+body .gw-social-close,
+body .gw-quest-close,
+body .grid-market-item button,
+body .grid-economy-tabs button,
+body .grid-economy-content button,
+body .gw-social-row-actions button,
+body .toolbar-button,
+body .ui-edit-button,
+body .ui-reset-button {
+  transition: box-shadow .18s ease, border-color .18s ease,
+              background-color .18s ease, color .18s ease,
+              transform .12s ease;
+}
+body .gw-social-tab:hover,
+body .gw-social-action:hover,
+body .grid-market-item button:hover,
+body .grid-economy-tabs button:hover,
+body .grid-economy-content button:hover,
+body .toolbar-button:hover {
+  box-shadow: 0 0 14px rgba(var(--hud-rgb), .35),
+              inset 0 0 8px rgba(var(--hud-rgb), .12);
+  border-color: rgba(var(--hud-rgb), .6);
+}
+body .toolbar-button:active,
+body .gw-social-action:active,
+body .grid-market-item button:active { transform: scale(.96); }
+
+/* ---------- hologram scanline sweep on open panels ---------- */
+@keyframes gw-scan {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(100%); }
+}
+body .gw-social.open::after,
+body .grid-market-panel.open .grid-market-card::after,
+body .grid-economy-panel.open .grid-economy-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom,
+    transparent 0%,
+    rgba(var(--hud-rgb), .05) 48%,
+    rgba(var(--hud-rgb), .1) 50%,
+    rgba(var(--hud-rgb), .05) 52%,
+    transparent 100%);
+  background-size: 100% 220%;
+  animation: gw-scan 5s linear infinite;
+}
+body .gw-social,
+body .grid-market-card,
+body .grid-economy-card { position: relative; overflow: hidden; }
+
+/* ---------- respect reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  body .gw-social.open::after,
+  body .grid-market-panel.open .grid-market-card::after,
+  body .grid-economy-panel.open .grid-economy-card::after { animation: none; }
+  body .gw-social.open,
+  body .gw-quest-panel.open,
+  body .gw-party-invites.open,
+  body .gw-team-panel.open,
+  body .grid-atlas-panel.open,
+  body .grid-market-panel.open .grid-market-card,
+  body .grid-economy-panel.open .grid-economy-card { animation-duration: .01s; }
+}
