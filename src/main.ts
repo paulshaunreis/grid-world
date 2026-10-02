@@ -1935,7 +1935,7 @@ addEventListener('keydown', (event) => {
     },[],{
       onFriend:()=>void socialAuthority?.requestFriend(remoteId).then(()=>addChatMessage('SOCIAL','Friend request sent.','system')).catch(()=>addChatMessage('SOCIAL','Friend request could not be sent.','system')),
       onFollow:()=>void gridSocialService?.toggleConnection(remoteId,'follow').then(active=>addChatMessage('SOCIAL',active?'Now following '+publicProfile.displayName+'.':'Unfollowed '+publicProfile.displayName+'.','system')).catch(()=>addChatMessage('SOCIAL','Follow action could not be completed.','system')),
-      onMessage:()=>{chatInput.focus();chatInput.value='@'+(publicProfile.handle??remoteId)+' ';}
+      onMessage:()=>{chatInput.focus();chatInput.value='@'+(publicProfile.handle??remoteId)+' ';}, onPublicProfile:()=>{ const handle=publicProfile.handle??remoteId; window.open('/profile.html?handle='+encodeURIComponent(handle),'_blank','noopener,noreferrer'); }
     });
     prompt.textContent = 'P · PROFILE OPEN';
     if(state.friend) addChatMessage('SOCIAL','You are already friends with '+publicProfile.displayName+'.','system');
