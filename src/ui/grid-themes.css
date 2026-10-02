@@ -86,3 +86,71 @@ body .grid-party-hud .grid-party-bar.mana i {
 body .grid-creator-studio { border-color: rgba(var(--hud-rgb), .35); }
 
 body .hud::before { border-color: rgba(var(--hud-rgb), var(--hud-opacity)); }
+
+
+/* Grid UI visual system — shared movable-panel chrome. */
+.grid-window {
+  --gw-window-radius: 10px;
+  --gw-window-line: rgba(var(--hud-rgb), .22);
+  --gw-window-fill: rgba(4, 9, 16, .20);
+  border-radius: var(--gw-window-radius);
+  border-color: var(--gw-window-line) !important;
+  background: var(--gw-window-fill);
+  box-shadow: 0 18px 70px rgba(0,0,0,.24), 0 0 30px rgba(var(--hud-rgb), .035);
+  transition: box-shadow .16s ease, border-color .16s ease, filter .16s ease;
+}
+.grid-window-editing {
+  border-color: rgba(var(--hud-rgb), .55) !important;
+  box-shadow: 0 0 0 1px rgba(var(--hud-rgb), .18), 0 18px 70px rgba(0,0,0,.28), 0 0 32px rgba(var(--hud-rgb), .09);
+}
+.grid-window-chrome {
+  min-height: 28px;
+  padding: 4px 7px 4px 9px;
+  border-bottom-color: rgba(var(--hud-rgb), .15);
+  background: linear-gradient(90deg, rgba(var(--hud-rgb), .075), rgba(2,7,14,.34));
+  border-radius: var(--gw-window-radius) var(--gw-window-radius) 0 0;
+}
+.grid-window-grip { color: var(--hud-strong); opacity: .7; }
+.grid-window-actions button:focus-visible,
+.grid-window-actions button:hover {
+  outline: 1px solid rgba(var(--hud-rgb), .5);
+  outline-offset: 1px;
+}
+.grid-window-minimized { min-height: 28px !important; overflow: hidden !important; }
+.grid-window-minimized .grid-window-chrome { border-bottom: 0; }
+.grid-window-hidden { pointer-events: none !important; }
+
+/* Health/profile meters inherit the selected interface theme. */
+.grid-party-bar:not(.mana) i,
+.grid-target-profile-bars i {
+  background: linear-gradient(90deg, rgb(var(--hud-rgb)), rgba(var(--hud-rgb), .38)) !important;
+}
+.grid-party-bar.low i {
+  background: linear-gradient(90deg, #ff5d5d, #ff9d5d) !important;
+}
+.grid-party-row,
+.grid-target-profile-section,
+.gw-quest-card,
+.gw-team-member {
+  border-color: rgba(var(--hud-rgb), .11);
+}
+.grid-party-row:hover,
+.gw-quest-card:hover,
+.gw-team-member:hover {
+  border-color: rgba(var(--hud-rgb), .28);
+  background: rgba(var(--hud-rgb), .035);
+}
+.grid-dock button:focus-visible,
+.identity-button:focus-visible,
+.creator-button:focus-visible,
+.ui-edit-button:focus-visible,
+.ui-reset-button:focus-visible {
+  outline: 1px solid var(--hud-strong);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .grid-dock button, .grid-window, .crosshair, .hud-signal {
+    animation: none !important;
+    transition: none !important;
+  }
+}
