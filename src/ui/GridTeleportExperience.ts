@@ -1,17 +1,17 @@
 import * as THREE from 'three';
 import type { GridTeleportDestination } from '../engine/GridTeleport';
 
-/** Destination preview art: world-look concept pieces first, SVG fallback. */
+/** Destination preview art: dedicated zone previews first, region SVG, then generic fallback. */
 const WORLD_PREVIEW_ART: Record<string, string> = {
-  harbor: '/worlds/tideline.svg',
+  harbor: '/world/preview-harbor.webp',
   tideline: '/worlds/tideline.svg',
-  citadel: '/worlds/crown.svg',
+  citadel: '/world/preview-citadel.webp',
   crown: '/worlds/crown.svg',
-  gardens: '/worlds/verdant.svg',
+  gardens: '/world/preview-gardens.webp',
   verdant: '/worlds/verdant.svg',
-  wilds: '/worlds/frontier.svg',
+  wilds: '/world/preview-wilds.webp',
   frontier: '/worlds/frontier.svg',
-  arts: '/worlds/muse.svg',
+  arts: '/world/preview-arts.webp',
   muse: '/worlds/muse.svg',
 };
 export function teleportPreviewUrl(destination:GridTeleportDestination){
