@@ -7,7 +7,8 @@ const profileSupabaseKey=import.meta.env.VITE_SUPABASE_ANON_KEY as string|undefi
 const profileClient=profileSupabaseUrl&&profileSupabaseKey?createClient(profileSupabaseUrl,profileSupabaseKey):null;
 const profileAuthority=profileClient?new GridProfileAuthority(profileClient):null;
 const profileSocial=profileClient?new GridSocialService(profileClient):null;
-let cloudMedia:GridProfileMedia[]=[];let arenaRanking:GridArenaRanking|null=null;let cloudLandmarks:import('./social/GridProfileAuthority').GridProfileLandmark[]=[];let cloudInventory:import('./social/GridProfileAuthority').GridPlayerInventoryItem[]=[];let cloudPosts:import('./social/GridProfileAuthority').GridProfilePost[]=[];
+let cloudMedia:GridProfileMedia[]=[];let arenaRanking:GridArenaRanking|null=null;let cloudFeed:{kind:'POST';id:string;created_at:string;body:string}[]=[];let cloudLandmarks:import('./social/GridProfileAuthority').GridProfileLandmark[]=[];let cloudInventory:import('./social/GridProfileAuthority').GridPlayerInventoryItem[]=[];let cloudPosts:import('./social/GridProfileAuthority').GridProfilePost[]=[];
+let mood='curious';
 let liveProfile:{online:boolean;worldId?:string;regionId?:string;lastSeenAt?:string;friends:number;followers:number;following:number}|null=null;
 
 type ProfileTheme = {
@@ -47,7 +48,7 @@ const defaults: ProfileDraft = {
   },
   layout: {
     columns: 2,
-    sections: ['about', 'worlds', 'creations', 'gallery', 'communities', 'events', 'arena'],
+    sections: ['about', 'feed', 'mood', 'worlds', 'creations', 'gallery', 'communities', 'events', 'arena'],
   },
   favoriteEmoji: '✨',
 };
@@ -69,6 +70,8 @@ let following = localStorage.getItem('grid-world:profile-following') === 'true';
 const app = document.querySelector<HTMLDivElement>('#profile-app')!;
 
 const sectionLabels: Record<string, string> = {
+  feed: 'Feed',
+  mood: 'Mood',
   about: 'About Me',
   worlds: 'My Worlds',
   creations: 'Creations',
@@ -80,7 +83,7 @@ const sectionLabels: Record<string, string> = {
 
 async function save() {
   localStorage.setItem(key, JSON.stringify(draft));
-  if(profileAuthority&&profileClient){try{const {data:{user}}=await profileClient.auth.getUser();if(user){await profileAuthority.save({handle:draft.handle,displayName:draft.displayName,bio:draft.bio,status:draft.status,theme:draft.theme,layout:draft.layout});cloudMedia=await profileAuthority.media(user.id);cloudPosts=await profileAuthority.posts(user.id);cloudLandmarks=await profileAuthority.landmarks(user.id);cloudInventory=await profileAuthority.inventory(user.id);arenaRanking=await profileAuthority.ranking(user.id);render();return;}}catch(error){console.warn('Cloud profile save unavailable; local profile retained.',error);}}
+  if(profileAuthority&&profileClient){try{const {data:{user}}=await profileClient.auth.getUser();if(user){await profileAuthority.save({handle:draft.handle,displayName:draft.displayName,bio:draft.bio,status:draft.status,mood,theme:draft.theme,layout:draft.layout});mood=profile.mood||'curious';cloudMedia=await profileAuthority.media(user.id);cloudPosts=await profileAuthority.posts(user.id);cloudFeed=await profileAuthority.feed(user.id);cloudLandmarks=await profileAuthority.landmarks(user.id);cloudInventory=await profileAuthority.inventory(user.id);arenaRanking=await profileAuthority.ranking(user.id);render();return;}}catch(error){console.warn('Cloud profile save unavailable; local profile retained.',error);}}
   const status=document.querySelector('#save-status');if(status)status.textContent='Saved locally · ready for Grid Identity';
 }
 
@@ -159,6 +162,8 @@ function render() {
 
 function moduleMarkup(section: string, data: ProfileDraft): string {
   const content: Record<string,string> = {
+    feed: `<article class="module-card"><span class="module-label">FEED</span><h3>Recent from the Grid</h3>${cloudFeed.length?cloudFeed.slice(0,5).map(p=>`<div class="event-row"><b>POST</b><small>${escapeHtml(p.body||'Grid activity')}</small></div>`).join(''):'<p>No public activity yet.</p>'}</article>`,
+    mood: `<article class="module-card"><span class="module-label">MOOD</span><h3>${escapeHtml(mood)}</h3><p>Current profile mood · ${escapeHtml(draft.status)}</p></article>`,
     about: `<article class="module-card"><span class="module-label">ABOUT</span><h3>Who I am</h3><p>${escapeHtml(data.bio)}</p><div class="chips"><span>${liveProfile?.online?'● ONLINE':'○ OFFLINE'}</span>${liveProfile?.worldId?`<span>${escapeHtml(liveProfile.worldId)}${liveProfile.regionId?` · ${escapeHtml(liveProfile.regionId)}`:''}</span>`:''}<span>Explorer</span><span>Creator</span><span>${data.favoriteEmoji} Dreamer</span></div></article>`,
     worlds: `<article class="module-card"><span class="module-label">WORLDS</span><h3>Grid destinations</h3>${cloudLandmarks.length?cloudLandmarks.slice(0,4).map(l=>`<div class="world-pill"><i></i><b>${escapeHtml(l.name)}</b><small>${escapeHtml(l.world_id)} · ${escapeHtml(l.region_id)}</small></div>`).join(''):'<p>No saved worlds or landmarks yet.</p>'}</article>`,
     creations: `<article class="module-card"><span class="module-label">CREATIONS</span><h3>Made in the Grid</h3>${cloudPosts.length?`<div class="event-row"><b>${cloudPosts.length} PUBLIC POSTS</b><small>Latest: ${escapeHtml(cloudPosts[0].body||'Grid creation')}</small></div>`:'<p>No public creations posted yet.</p>'}<div class="creation-grid"><div>◈</div><div>◇</div><div>✦</div></div></article>`,
@@ -248,7 +253,7 @@ void (async()=>{
       const cloud=await profileAuthority.byHandle(handle);
       if(cloud){
         draft={...draft,displayName:cloud.display_name,handle:cloud.handle,bio:cloud.bio,status:cloud.status,theme:{...draft.theme,...cloud.profile_theme},layout:{...draft.layout,...cloud.profile_layout} as ProfileLayout};
-        cloudMedia=await profileAuthority.media(cloud.user_id);
+        mood=cloud.mood||'curious';cloudMedia=await profileAuthority.media(cloud.user_id);cloudFeed=await profileAuthority.feed(cloud.user_id);
         cloudPosts=await profileAuthority.posts(cloud.user_id);
         cloudLandmarks=await profileAuthority.landmarks(cloud.user_id);
         cloudInventory=await profileAuthority.inventory(cloud.user_id);
