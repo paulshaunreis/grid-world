@@ -688,7 +688,73 @@ const operatorService = cloudPersistence ? new GridOperatorService(cloudPersiste
 const operatorPresence = new GridOperatorPresence(operatorService, voice, questSystem, () => { const snap = livingWorld.getSnapshot(); return { world: String(snap.world), event: String(snap.event) }; }, (sender, message) => addChatMessage(sender, message, 'system'));
 const operatorButton = document.querySelector<HTMLButtonElement>('[data-tool="operator"]');
 operatorButton?.addEventListener('click', () => operatorPresence.toggle());
-mountWorldAtlas(() => ({ world: (livingWorld.getSnapshot().world as EcologyWorld), event: livingWorld.getSnapshot().event, consequences: worldConsequences.getSnapshot(), resources: worldResources.getSnapshot(), inventory: worldResources.getInventory(), market: marketQuotes, transit: teleportSystem.trafficSnapshot() }));
+const enterWorldFromAtlas = (worldId:string) => {
+  const currentWorld = String(livingWorld.getSnapshot().world);
+  if (worldId === currentWorld) {
+    addChatMessage('GRID TRANSIT', 'You are already in ' + (getWorld(worldId)?.label ?? worldId) + '.', 'system');
+    return;
+  }
+  const sourceNodeId = 'world-gate:' + currentWorld.toLowerCase();
+  const destinationId = 'world-gate:' + worldId.toLowerCase();
+  const sourceNode = teleportSystem.get(sourceNodeId);
+  const destinationNode = teleportSystem.get(destinationId);
+  if (!sourceNode || !destinationNode) {
+    addChatMessage('GRID TRANSIT', 'That world is not currently linked into the live transit network.', 'system');
+    audio.play('ui.error');
+    return;
+  }
+  const result = teleportSystem.request({
+    actorId: cloudIdentity.id,
+    nodeId: sourceNodeId,
+    destinationId,
+    nowSeconds: performance.now() / 1000,
+    relationship: 'public',
+    ageBand: accountAgeBand,
+  });
+  if (!result.ok || !result.destination) {
+    addChatMessage('GRID TRANSIT', 'Grid Omni could not authorize that route: ' + result.reason + '.', 'system');
+    audio.play('ui.error');
+    return;
+  }
+  const destination = result.destination;
+  teleportExperience.show(destination, 'departing');
+  createTeleportAvatarEffect(player.avatar, 850);
+  teleportSystem.recordTraffic(sourceNodeId, destination.id);
+  addChatMessage('GRID TRANSIT', 'Route locked: ' + destination.displayName + '. Destination preview loaded; transit engaged.', 'system');
+  audio.play('world.portal', .8);
+  window.setTimeout(() => {
+    const arrival = new THREE.Vector3(destination.position.x, Math.max(0, destination.position.y), destination.position.z);
+    const backward = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), destination.yaw);
+    arrival.addScaledVector(backward, Math.max(2.5, destination.clearanceRadius));
+    player.restoreTransform({ x: arrival.x, y: arrival.y, z: arrival.z, yaw: destination.yaw });
+    teleportExperience.show(destination, 'arriving');
+    createTeleportAvatarEffect(player.avatar, 700);
+    audio.play('world.portal', 1);
+    addChatMessage('GRID TRANSIT', 'Arrived at ' + destination.displayName + '. Persistent world re-entry complete.', 'system');
+    void recordGridActivity('WORLD_VISIT', 'Entered world', 'Entered persistent world ' + destination.displayName + ' from the Grid Atlas.', worldId, 'first-light', { worldId, persistent: true, reentry: true });
+    if (cloudPersistence) {
+      void cloudPersistence.getClient().from('grid_teleport_events').insert({
+        actor_id: cloudIdentity.id,
+        source_node_id: sourceNodeId,
+        destination_node_id: destination.id,
+        result: 'teleported',
+      });
+    }
+  }, 850);
+};
+
+mountWorldAtlas(
+  () => ({
+    world: (livingWorld.getSnapshot().world as EcologyWorld),
+    event: livingWorld.getSnapshot().event,
+    consequences: worldConsequences.getSnapshot(),
+    resources: worldResources.getSnapshot(),
+    inventory: worldResources.getInventory(),
+    market: marketQuotes,
+    transit: teleportSystem.trafficSnapshot(),
+  }),
+  enterWorldFromAtlas,
+);
 marketPanel = mountMarketPanel(() => worldResources.getInventory(), () => marketQuotes, () => combatAuthority);
 const gridEconomyPanel = mountGridEconomyPanel(() => combatAuthority);
 const gridSocialService = cloudPersistence ? new GridSocialService(cloudPersistence.getClient()) : null;
