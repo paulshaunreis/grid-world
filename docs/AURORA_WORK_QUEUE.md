@@ -576,3 +576,16 @@ _Last updated: 2026-10-02_
 - Next actionable item: P2 #22 Grid Currency architecture.
 
 _Last updated: 2026-10-02_
+
+## P2 #22 Grid Currency architecture completion checkpoint — 2026-10-02
+- Audited the existing economy before adding anything. Supabase already contained a data-driven `grid_currency_types` table with **10 currencies**, `grid_wallets`, `grid_ledger_transactions`, `grid_ledger_entries`, currency rates/history, Bazaar currency references, and Omni Bank issuance/reserve structures.
+- Added `src/economy/GridCurrencySystem.ts` as the shared client-side currency contract. It mirrors the existing 10 persisted currencies and preserves Grid Coin plus configurable Grid Gold / Silver / Copper / Crystal denomination concepts without hard-coding conversion ratios.
+- Fixed the existing wallet read seam: `GridCombatAuthority.walletRead()` now receives authoritative server wallets, and the Economy wallet surface also reads recent user-scoped ledger entries.
+- Added authoritative `wallet_read` and `ledger_read` actions to `supabase/functions/grid-combat`.
+- Strengthened monetary auditability: Bazaar purchases now create ledger transactions plus debit/credit entries; Omni Bank starter grants now create a corresponding Grid ledger entry. Existing resource sales already had ledger entries and were preserved.
+- Migration `20261002030000_grid_currency_audit_trail.sql` was applied successfully to Supabase project `jdduwsduptllnykrqdxs`.
+- PR #26 merged to `main` as `248bf80985fd23fb47b864b2cc87e841b02a1ee9`.
+- Supabase live verification: 10 currency types confirmed; ledger table currently has 0 entries because no qualifying transaction has occurred yet. Edge function `grid-combat` deployed as version 14 with JWT verification enabled.
+- GitHub returned no workflow run for the merge commit, so this pass is **not CI-verified**; no browser/WebGL verification was performed.
+- Security advisor findings remain unchanged, including the pre-existing public RLS issue on `grid_operator_policy_rules`; this currency pass did not change that boundary.
+- **Next actionable item: P2 #23 Marketplace integration.**
