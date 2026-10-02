@@ -83,6 +83,7 @@ import { GridSocialService } from './social/GridSocialService';
 import { GridProfileService } from './social/GridProfileService';
 import { GridProfileAuthority } from './social/GridProfileAuthority';
 import { GridWorldAuthority } from './social/GridWorldAuthority';
+import { GridWorldContentAuthority } from './social/GridWorldContentAuthority';
 import { mountGridCommunityPanel } from './ui/GridCommunityPanel';
 import { GridVoiceModifierSystem } from './audio/GridVoiceModifierSystem';
 import type { GridAgeBand } from './social/GridContentAccess';
@@ -137,6 +138,10 @@ const friendSystem = new GridFriendSystem();
 const profileService = cloudPersistence ? new GridProfileService(cloudPersistence.getClient()) : null;
 const profileAuthority = cloudPersistence ? new GridProfileAuthority(cloudPersistence.getClient()) : null;
 const gridWorldAuthority = cloudPersistence ? new GridWorldAuthority(cloudPersistence.getClient()) : null;
+const gridWorldContentAuthority = cloudPersistence ? new GridWorldContentAuthority(cloudPersistence.getClient()) : null;
+const persistentWorldIds = new Set<string>();
+let activePersistentContentWorldId: string | null = null;
+let persistentContentSaveTimer = 0;
 const partySystem = cloudPersistence ? new GridPartySystem(cloudPersistence.getClient()) : null;
 const partyHud = mountGridPartyHud(cloudPersistence?.getClient());
 const teleportExperience = mountTeleportExperience();
@@ -549,6 +554,7 @@ async function persistFactoryWorld(result: ReturnType<typeof createWorldFromDesc
     await cloudReady;
     const saved = await gridWorldAuthority.create(result.world);
     if (!saved) return false;
+    persistentWorldIds.add(result.world.id);
     await recordGridActivity(
       'WORLD_CREATE',
       'Created a world',
@@ -573,6 +579,7 @@ async function hydratePersistentWorlds() {
     const rows = await gridWorldAuthority.listPublic();
     for (const row of rows) {
       const definition = GridWorldAuthority.toDefinition(row);
+      persistentWorldIds.add(definition.id);
       const world = registerNetworkWorld(definition);
       for (const other of getWorlds()) {
         if (other.id === world.id) continue;
@@ -1585,6 +1592,71 @@ window.setInterval(() => {
 
 const gridMatterTerrain = new GridMatterTerrainSystem(camera, renderer.domElement);
 world.scene.add(gridMatterTerrain.root);
+
+async function savePersistentWorldContent(worldId: string) {
+  if (!gridWorldContentAuthority || !persistentWorldIds.has(worldId) || !cloudAuthenticated) return;
+  try {
+    const npcState = npcSociety.exportPersistentState(worldId);
+    const creatureState = creatureEcology.exportPersistentState(worldId);
+    const questState = questSystem.exportState();
+    const builds = easyBuildSystem.serialize().map(build => ({
+      objectId: build.objectId,
+      definitionId: build.id,
+      position: build.position,
+      rotation: build.rotation,
+      scale: build.scale,
+      ownerUserId: cloudIdentity.id,
+    }));
+    await gridWorldContentAuthority.save({
+      worldId,
+      builds,
+      terrain: gridMatterTerrain.serializeWorld(worldId),
+      quests: {},
+      consequences: worldConsequences.exportState(),
+      npcState: [npcState as unknown as Record<string, unknown>],
+      creatureState: [creatureState as unknown as Record<string, unknown>],
+      metadata: { savedAt: new Date().toISOString(), version: 2 },
+    });
+    await gridWorldContentAuthority.savePlayerState(
+      worldId,
+      questState as unknown as Record<string, unknown>,
+      Array.isArray(questState.interacted) ? questState.interacted as string[] : [],
+      { savedAt: new Date().toISOString(), version: 2 },
+    );
+  } catch (error) {
+    console.warn('Persistent world content save unavailable.', error);
+  }
+}
+
+async function loadPersistentWorldContent(worldId: string) {
+  if (!gridWorldContentAuthority || !persistentWorldIds.has(worldId)) return;
+  try {
+    const [content, playerState] = await Promise.all([
+      gridWorldContentAuthority.load(worldId),
+      gridWorldContentAuthority.loadPlayerState(worldId),
+    ]);
+    gridMatterTerrain.setActiveWorld(worldId);
+    gridMatterTerrain.restoreWorld(worldId, content?.terrain ?? []);
+    easyBuildSystem.restore(content?.builds ?? []);
+    if (content?.consequences) worldConsequences.importState(content.consequences);
+    if (content?.npcState?.[0]) npcSociety.importPersistentState(content.npcState[0], worldId);
+    if (content?.creatureState?.[0]) creatureEcology.importPersistentState(content.creatureState[0], worldId);
+    if (playerState?.quests) questSystem.importState(playerState.quests);
+    activePersistentContentWorldId = worldId;
+    addChatMessage('WORLD STATE', 'Restored persistent content for ' + (getWorld(worldId)?.label ?? worldId) + '.', 'system');
+  } catch (error) {
+    console.warn('Persistent world content restore unavailable.', error);
+  }
+}
+
+async function syncPersistentWorldContent(worldId: string) {
+  if (activePersistentContentWorldId === worldId) return;
+  if (activePersistentContentWorldId) await savePersistentWorldContent(activePersistentContentWorldId);
+  activePersistentContentWorldId = null;
+  if (persistentWorldIds.has(worldId)) await loadPersistentWorldContent(worldId);
+  else easyBuildSystem.restore([]);
+}
+
 easyBuildSystem.attach(camera, world.scene, renderer.domElement);
 
 const creatorStudio = mountCreatorStudio({
@@ -2157,8 +2229,14 @@ function animate(now: number) {
     void recordGridActivity('QUEST_COMPLETE','Quest completed','Completed '+completed+' quest'+(completed===1?'':'s')+' in '+String(livingSnapshot.world)+'.',String(livingSnapshot.world),'first-light',{completed,totalCompleted:questSnapshot.completed,reward:questSnapshot.reward});
   }
   gridChakras.update(dt, []);
-  gridMatterTerrain.setActiveWorld(String(livingSnapshot.world));
+  const activeWorldId = String(livingSnapshot.world);
+  gridMatterTerrain.setActiveWorld(activeWorldId);
   gridMatterTerrain.rebuild();
+  if (activePersistentContentWorldId !== activeWorldId) void syncPersistentWorldContent(activeWorldId);
+  if (persistentWorldIds.has(activeWorldId)) {
+    persistentContentSaveTimer += dt;
+    if (persistentContentSaveTimer >= 20) { persistentContentSaveTimer = 0; void savePersistentWorldContent(activeWorldId); }
+  }
   gridMinerals.update(dt, livingSnapshot.world as EcologyWorld);
   const consequenceSnapshot = worldConsequences.getSnapshot();
   creatureEcology.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, consequenceSnapshot, undefined, { weather: livingSnapshot.weather, temperatureC: livingSnapshot.temperatureC, windX: livingSnapshot.windX, windZ: livingSnapshot.windZ, season: livingSnapshot.season });
