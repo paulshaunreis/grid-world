@@ -142,7 +142,9 @@ const teleportInviteAuthority = cloudPersistence ? new GridTeleportInviteAuthori
 const partyInviteAuthority = cloudPersistence ? new GridPartyInviteAuthority(cloudPersistence.getClient()) : null;
 let invitePanel:ReturnType<typeof mountGridTeleportInvitePanel>|null=null;
 const teleportPreviewUrlForDestination=(destination:{id:string})=>{const world=(destination.id.match(/^world-gate:(.+)$/)?.[1]??destination.id).toLowerCase();return '/worlds/'+world+'.svg';};
-const landmarkAuthority = cloudPersistence ? new GridLandmarkAuthority(cloudPersistence.getClient()) : null;
+const landmarkAuthority = cloudPersistence ? new GridLandmarkAuthority(cloudPersistence.getClient(), (item) => {
+  void recordGridActivity('LANDMARK_SAVE','Saved destination','Saved '+item.label+' to your '+item.itemType.toLowerCase()+' collection.',String(livingWorld.getSnapshot().world),'first-light',{itemType:item.itemType,label:item.label,landmarkId:item.landmarkId??null});
+}) : null;
 if (landmarkAuthority) {
   mountGridLandmarkInventory(landmarkAuthority);
   window.addEventListener('grid:landmark-select', (event) => {
