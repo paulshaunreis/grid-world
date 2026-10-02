@@ -157,3 +157,11 @@ Date: 2026-10-01
 - Supabase verification query confirmed the required tables are present; current database row counts are zero for these user-facing records, so empty-state UI is expected until users create data.
 - Commits: `f04d15ad0b2e7db0779cf9afea779fd68b5a9544`, `001d6bdd18a8fa8157901fedf2e4b29e05978801`.
 - No merge performed. GitHub Actions for the latest branch commit has not been observed yet.
+
+
+## Live profile continuity pass — 2026-10-01
+- Public profile routes now load persistent presence/social data through `GridSocialService.publicProfile`.
+- Profile hydration now loads public posts, landmarks, inventory, and live presence for both handle-based public routes and signed-in profiles.
+- Profile identity surface now reflects online/offline state, current world/region when available, and persistent friend/follower/following counts.
+- Commit: `68d23f8a511135271b973389d5af2d976d68c04a`.
+- No merge performed; CI workflow run is still pending/not observed for the latest head.
