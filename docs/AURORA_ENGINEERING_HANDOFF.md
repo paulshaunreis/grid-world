@@ -378,3 +378,13 @@ _Last updated: 2026-10-02_
 - **Next:** P2 #20 PvE foundation; audit existing CombatSystem/GridCombatAuthority first.
 
 _Last updated: 2026-10-02_
+
+## 2026-10-02 — PvE foundation hardening landed
+- Audited the existing `CombatSystem`, `GridCombatAuthority`, `supabase/functions/grid-combat/index.ts`, creature combat state, party health/presence, and QuestSystem combat hooks before changing code.
+- Existing PvE already provided authoritative creature registration/state, pursuit/attack AI, player/creature damage, respawn handling, health publication, and authoritative quest/world-consequence defeat hooks.
+- Found and fixed two integration seams: `CombatSystem.applyAuthoritativeCreatureState()` now synchronizes the local combatant record, and authoritative creature defeats increment the existing kill counter so the existing material-drop/reward pipeline is triggered. Server-side `attack_creature` and `creature_attack` now require PVE mode and a PVE zone.
+- PR #24 merged as `03a787af6a5b99deb0d62634329c91771ad1f95b` from current main.
+- Verification: source-level checks + merge. No GitHub Actions workflow run was returned for the PR head; no browser/WebGL verification. Do not describe this pass as CI-verified.
+- Next focus: **P2 #21 PvP foundation** — audit current PVP arena/mode/authority boundaries before adding anything.
+
+_Last updated: 2026-10-02_
