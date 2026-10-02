@@ -212,7 +212,7 @@ Expose these through Build Mode with original Grid World controls.
 - Provide basic encounter/state hooks.
 - Keep NPC traits/skills relevant.
 
-**Status:** Ready
+**Status:** Complete
 
 ### 21. PvP foundation
 - Define opt-in/permission/state boundaries.
@@ -553,5 +553,15 @@ _Last updated: 2026-10-02_
 - PR #21 merged as `ae9e26ebe7d1cfcb7b355a978a4d81b870b433b3`.
 - Verification: source/diff review and successful merge; no GitHub Actions workflow run was available for the PR head, so this is not CI-verified and has not had browser/WebGL verification.
 - **Next actionable item: P2 #19 Mission/quest foundation.**
+
+_Last updated: 2026-10-02_
+
+## P2 #20 PvE foundation completion checkpoint — 2026-10-02
+- Audited the existing CombatSystem, GridCombatAuthority, Supabase grid-combat edge function, creature combat state, party health/presence, and quest combat hooks.
+- Confirmed PvE already had server-authoritative creature state, pursuit/attack AI, player/creature damage, respawn state, party-health publication, and authoritative quest/world-consequence defeat hooks.
+- Found two integration gaps and fixed them without introducing a parallel combat system: authoritative creature state now updates local combatants/kill accounting, allowing the existing material-drop/reward pipeline to run; server-side creature attacks now require both PVE mode and a PVE zone.
+- PR #24 merged as 03a787af6a5b99deb0d62634329c91771ad1f95b.
+- Verification: source-level checks + successful merge. GitHub returned no workflow run for PR #24 head; no browser/WebGL verification was available. Therefore this is not CI-verified.
+- Next actionable item: P2 #21 PvP foundation.
 
 _Last updated: 2026-10-02_
