@@ -276,7 +276,9 @@ Expose these through Build Mode with original Grid World controls.
 - Preserve the “many worlds variable” direction.
 - Do not automatically turn concept-only districts into implemented gameplay.
 
-**Status:** Ready
+**Status:** Complete — PR #31 merged as `a1f62e526a65f07560b2fe162523666b7979e01e`. WorldDNA now derives presentation geometry/weather from tags; generated architecture and environment use it. Source-reviewed L0; no CI/browser verification claimed.
+
+**Next:** P3 #28 Architecture map
 
 ---
 
