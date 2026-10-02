@@ -47,7 +47,7 @@
 - Verify the open PR state before deciding whether to merge or revise.
 - Add focused tests if the repository's test infrastructure supports them; otherwise document the gap.
 
-**Status:** Ready
+**Status:** Complete
 
 ---
 
@@ -524,3 +524,12 @@ _Last updated: 2026-10-02_
 - Build Mode already exposes BASIC/ADVANCED modes, placement preview, snapping, rotation, scale, copy/paste, undo, permissions, persistence/restore, and material/tool integration.
 - No duplicate object-library implementation was created.
 - **Next actionable item remains P0 #3 — integrate terrain brush work safely.**
+
+
+## 2026-10-02 — P0 terrain integration audit complete
+- Confirmed PR #4 (`grid/matter-terrain-brushes`) is merged as `fcbab292872a92f011edc2a5262ef1a2c113b225`.
+- Current `GridMatterTerrainSystem` supports CARVE/BUILD modes, brush radius 0–4, drag painting, keyboard radius sizing with [ / ], local persistence, serialization, and restore.
+- `main.ts` instantiates the terrain system, connects it to Creator Studio, serializes terrain into persistent world content, and restores terrain on world load.
+- No duplicate terrain implementation or corrective integration patch was justified.
+- Verification boundary: source-level integration review plus PR #4's recorded successful CI run; no fresh current-main workflow/browser run was available.
+- **Next actionable item:** P2 #16 — Advanced building controls.
