@@ -32,6 +32,38 @@ export class GridWorldContentAuthority {
     };
   }
 
+  async loadPlayerState(worldId: string): Promise<GridWorldPlayerState | null> {
+    const { data: auth } = await this.client.auth.getUser();
+    if (!auth.user) return null;
+    const { data, error } = await this.client.from('grid_world_player_state')
+      .select('world_id,user_id,quests,discoveries,metadata')
+      .eq('world_id', worldId).eq('user_id', auth.user.id).maybeSingle();
+    if (error) throw error;
+    if (!data) return null;
+    return {
+      worldId: String(data.world_id),
+      userId: String(data.user_id),
+      quests: (data.quests && typeof data.quests === 'object' ? data.quests : {}) as Record<string, unknown>,
+      discoveries: Array.isArray(data.discoveries) ? data.discoveries.map(String) : [],
+      metadata: (data.metadata && typeof data.metadata === 'object' ? data.metadata : {}) as Record<string, unknown>,
+    };
+  }
+
+  async savePlayerState(worldId: string, quests: Record<string, unknown>, discoveries: string[], metadata: Record<string, unknown> = {}) {
+    const { data: auth } = await this.client.auth.getUser();
+    if (!auth.user) return null;
+    const { data, error } = await this.client.from('grid_world_player_state').upsert({
+      world_id: worldId,
+      user_id: auth.user.id,
+      quests,
+      discoveries,
+      metadata,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'world_id,user_id' }).select('world_id,updated_at').single();
+    if (error) throw error;
+    return data;
+  }
+
   async save(snapshot: GridWorldContentSnapshot) {
     const { data: auth } = await this.client.auth.getUser();
     if (!auth.user) return null;
@@ -51,3 +83,13 @@ export class GridWorldContentAuthority {
     return data;
   }
 }
+
+
+export interface GridWorldPlayerState {
+  worldId: string;
+  userId: string;
+  quests: Record<string, unknown>;
+  discoveries: string[];
+  metadata?: Record<string, unknown>;
+}
+
