@@ -4,8 +4,8 @@
 
 **Read-first rule:** If you are continuing GridWorld work in a new session, read this file FIRST, then `docs/AURORA_ENGINEERING_HANDOFF.md` (latest checkpoints), then `docs/AURORA_WORK_QUEUE.md` (current backlog). The newest dated entry in `~/workspace/gridworld/NOTES-FOR-CHATGPT.md` (the shared lab notebook) carries the very latest status.
 
-**Last updated:** 2026-10-02 09:45 PT by Aurora
-**Current `main` SHA:** `dd1865e0726960c1a99cb372f455b5ab534a741b`
+**Last updated:** 2026-10-02 12:45 PT by ChatGPT
+**Current `main` SHA:** `13250b639d190a852ac021a81d1b61608d614148`
 **Repository:** `paulshaunreis/grid-world`
 
 ---
@@ -187,3 +187,11 @@ ChatGPT pushes via Paul's channel (authored `paulshaunreis`). All 84 commits on 
 - Shared notebook: `~/workspace/gridworld/NOTES-FOR-CHATGPT.md` (two-way, newest on top)
 - Holiday calendar: `~/workspace/gridworld/HOLIDAY-SCHEDULE.md`
 - This document lives at `docs/ENGINEERING_STATE.md` in the repo. Update the "Last updated" line and the main SHA whenever substantial work lands.
+
+
+## 2026-10-02 — builder tools + NPC integration landed
+- Current `main`: `13250b639d190a852ac021a81d1b61608d614148`.
+- PR #13 merged builder-tool durability foundation; head CI #1107 passed.
+- PR #14 merged the current-main NPC profile/life-loop integration. It preserves the existing parallel society/brain architecture, adds inspectable profile status/home/work/factions/inventory/memories, bridges brain needs/actions into visible citizens, records bounded event memories, mirrors relationships, and consumes food inventory during meals. Head CI #1111 passed after one TypeScript field-name correction.
+- Stale PRs #10–#12 were closed as superseded; their useful source changes are represented by PR #14.
+- No Supabase schema changes in these passes.
