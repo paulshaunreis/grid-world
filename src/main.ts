@@ -2561,6 +2561,23 @@ function animate(now: number) {
     if (socialAuthority) friendSystem.refresh(socialAuthority).catch(error => console.warn('Friend relationship sync failed.', error));
     const transform = player.getTransform();
     presence?.update(transform).catch(console.error);
+    if (partySystem) {
+      partySystem.current()
+        .then(members => {
+          partyHud.update(members).catch(error => console.warn('Party HUD profile sync failed.', error));
+          const me = members.find(member => member.userId === identity.id);
+          if (me) {
+            partySystem.updateVitals(me.partyId, {
+              healthCurrent: combatSystem.getHealth?.() ?? me.healthCurrent,
+              healthMax: combatSystem.getMaxHealth?.() ?? me.healthMax,
+              level: me.level,
+              worldId: String(livingWorld.getSnapshot().world ?? 'first-light'),
+              regionId: 'first-light',
+            }).catch(error => console.warn('Party vitals sync failed.', error));
+          }
+        })
+        .catch(error => console.warn('Party roster sync failed.', error));
+    }
     combatAuthority?.sync(transform, 'first-light').then(result => {
       if (!result) return;
       if (result.state) {
