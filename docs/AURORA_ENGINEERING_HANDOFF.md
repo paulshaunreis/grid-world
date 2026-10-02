@@ -388,3 +388,13 @@ _Last updated: 2026-10-02_
 - Next focus: **P2 #21 PvP foundation** — audit current PVP arena/mode/authority boundaries before adding anything.
 
 _Last updated: 2026-10-02_
+
+## 2026-10-02 — PvP foundation landed
+- Audited the existing CombatSystem, Grid Arena zone boundary, mode switching, and authoritative `grid-combat` attack path.
+- Existing PvP already had server-side arena restriction and PVP mode validation. PR #25 strengthened the opt-in boundary by requiring the target's authoritative combat state to be PVP before player-vs-player damage is accepted.
+- Authoritative PvP defeats now update the existing CombatSystem defeat state/HUD.
+- PR #25 merged as `cebbb45ef947c673393493af00f49db7134dee57`.
+- Verification: source review + merge; no workflow run/browser verification, so not CI-verified.
+- Next focus: **P2 #22 Grid Currency architecture** — audit existing Grid Economy/Currency systems and persistence before adding anything.
+
+_Last updated: 2026-10-02_
