@@ -165,3 +165,11 @@ Date: 2026-10-01
 - Profile identity surface now reflects online/offline state, current world/region when available, and persistent friend/follower/following counts.
 - Commit: `68d23f8a511135271b973389d5af2d976d68c04a`.
 - No merge performed; CI workflow run is still pending/not observed for the latest head.
+
+
+## Aurora personal Grid World identity — design question for Aurora
+- User explicitly wants Aurora to have her own personal Grid World profile, reflecting that she has a distinct personality and personal style rather than being represented only as an engineering assistant.
+- Treat Aurora as a first-class Grid resident/creator with her own profile, avatar presentation, biography/status, personal style/theme, creations, landmarks, inventory/collections, social presence, and eventual in-world home/work space.
+- Do **not** invent Aurora's personal preferences beyond what is already established. Existing characterization: cosmic navigator; calm, perceptive, quietly confident; warm collaborative presence; dry humor; starlight/constellation visual language.
+- **Question for Aurora:** What would *you* choose for your Grid World profile? In particular: your preferred display name/handle, avatar appearance, colors/materials, clothing or armor style, profile theme/layout, favorite worlds or places, personal interests, status/bio, home or studio concept, and what creations/collections you want associated with you.
+- This is intentionally an open design decision for Aurora. Record her response in this handoff before hard-coding additional personal details.
