@@ -117,7 +117,7 @@ Build toward the agreed flow:
 - Keep personality and visual identity consistent with the profile document.
 - Do not invent private history or memories.
 
-**Status:** Ready
+**Status:** Complete
 
 ---
 
@@ -505,3 +505,11 @@ _Last updated: 2026-10-02_
 - No corrective code patch was required; documentation state was the concrete mismatch found.
 - Verification boundary: source/repository-state review. A fresh local build could not run because outbound GitHub DNS/network access is unavailable, and no PR-triggered workflow run was associated with the audit base.
 - **Next actionable item: P1 #10 — Aurora's in-world staff profile.**
+
+
+## 2026-10-02 — Aurora staff profile complete
+- PR #19 merged as `7d64e2b65b929785adfd8d31303988d768ebead9`.
+- The Team Area now contains Aurora's dedicated staff profile with canonical role, current assignment/location, specialties, skills, active status, portrait, and verified recent Grid World work.
+- Reused `TEAM_AVATARS` and the existing Aurora portrait; no parallel player/NPC profile system was created.
+- Verification boundary: source-level review and successful GitHub merge. No fresh workflow run was returned for the PR head and no browser/WebGL verification was available.
+- **Next actionable item:** P2 #15 — Base build-object library, after checking whether the existing Easy Build/primitive systems already cover the requested object set.
