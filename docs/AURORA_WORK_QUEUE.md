@@ -31,7 +31,7 @@
 - Do not claim verification unless it actually ran.
 - Record concrete findings here.
 
-**Status:** Ready
+**Status:** Complete
 
 ### 2. Website/world link and interaction audit
 - Verify important website navigation and in-world UI routes.
@@ -39,7 +39,7 @@
 - Look for dead buttons, missing destinations, runtime errors, and misleading placeholder states.
 - Fix the highest-impact defects first.
 
-**Status:** Ready
+**Status:** Complete
 
 ### 3. Integrate terrain brush work safely
 - Review the existing Grid Matter terrain brush implementation.
@@ -62,7 +62,7 @@ Build toward the agreed flow:
 - Support gates/pylons while allowing destination-specific visuals.
 - Preserve room for future NPC teleportation using the same destination-selection architecture.
 
-**Status:** Ready
+**Status:** Complete
 
 ### 5. Landmarks and Waypoints
 - Add persistent Landmark/Waypoint data.
@@ -71,7 +71,7 @@ Build toward the agreed flow:
 - Make the data model usable by both web UI and world UI.
 - Keep room for sharing/public landmarks later.
 
-**Status:** Ready
+**Status:** Complete
 
 ### 6. Party health and party HUD
 - Show party members and their current health/status in a readable party panel.
@@ -79,7 +79,7 @@ Build toward the agreed flow:
 - Connect party state to avatar/player state rather than hard-coded demo data.
 - Make the component compatible with future PvE/PvP systems.
 
-**Status:** Ready
+**Status:** Complete
 
 ### 7. Camera and movement controls
 - Remove dependence on the V key for camera behavior.
@@ -88,7 +88,7 @@ Build toward the agreed flow:
 - Check desktop input conflicts and make controls discoverable.
 - Verify movement remains compatible with UI interaction and future building mode.
 
-**Status:** Ready
+**Status:** Complete
 
 ---
 
@@ -151,7 +151,7 @@ Build toward the agreed flow:
 - Connect movement/teleport choices to schedules, work, social activity, quests, and world geography.
 - Avoid teleporting NPCs into invalid/unloaded destinations.
 
-**Status:** Ready
+**Status:** Complete
 
 ---
 
@@ -496,3 +496,12 @@ _Last updated: 2026-10-02_
 - **Next actionable item:** P0.1 current-main stability/integration audit, then proceed to the highest-priority Ready item that is not already implemented.
 
 _Last updated: 2026-10-02_
+
+
+## 2026-10-02 — P0.1 stability/integration audit complete
+- Audit base: `2618b3bf56358885fb7bf8a92906917c2849faca`.
+- Current repository state and NPC/profile/progression/certificate seams were reviewed after reading the notes first.
+- PR #7 and PR #8 are confirmed closed.
+- No corrective code patch was required; documentation state was the concrete mismatch found.
+- Verification boundary: source/repository-state review. A fresh local build could not run because outbound GitHub DNS/network access is unavailable, and no PR-triggered workflow run was associated with the audit base.
+- **Next actionable item: P1 #10 — Aurora's in-world staff profile.**
