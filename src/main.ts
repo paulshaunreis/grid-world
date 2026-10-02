@@ -82,6 +82,7 @@ import { mountGridAuthPanel } from './ui/GridAuthPanel';
 import { GridSocialService } from './social/GridSocialService';
 import { GridProfileService } from './social/GridProfileService';
 import { GridProfileAuthority } from './social/GridProfileAuthority';
+import { GridWorldAuthority } from './social/GridWorldAuthority';
 import { mountGridCommunityPanel } from './ui/GridCommunityPanel';
 import { GridVoiceModifierSystem } from './audio/GridVoiceModifierSystem';
 import type { GridAgeBand } from './social/GridContentAccess';
@@ -135,6 +136,7 @@ const socialAuthority = supabaseConfigured ? new GridSocialAuthority(cloudPersis
 const friendSystem = new GridFriendSystem();
 const profileService = cloudPersistence ? new GridProfileService(cloudPersistence.getClient()) : null;
 const profileAuthority = cloudPersistence ? new GridProfileAuthority(cloudPersistence.getClient()) : null;
+const gridWorldAuthority = cloudPersistence ? new GridWorldAuthority(cloudPersistence.getClient()) : null;
 const partySystem = cloudPersistence ? new GridPartySystem(cloudPersistence.getClient()) : null;
 const partyHud = mountGridPartyHud(cloudPersistence?.getClient());
 const teleportExperience = mountTeleportExperience();
@@ -541,6 +543,56 @@ const gridChakras = new GridChakraSystem();
 const gridAlchemy = new GridAlchemySystem();
 const gridKarma = new GridKarmaSystem();
 world.scene.add(gridMinerals.root);
+async function persistFactoryWorld(result: ReturnType<typeof createWorldFromDescription>) {
+  if (!gridWorldAuthority) return false;
+  try {
+    await cloudReady;
+    const saved = await gridWorldAuthority.create(result.world);
+    if (!saved) return false;
+    await recordGridActivity(
+      'WORLD_CREATE',
+      'Created a world',
+      'Created ' + result.world.label + ' from Creator Studio and saved it to the Grid World registry.',
+      result.world.id,
+      'first-light',
+      { worldId: result.world.id, name: result.world.label, description: result.world.description, inferredTags: result.inferredTags, persistent: true },
+    );
+    addChatMessage('WORLD REGISTRY', result.world.label + ' is now persistent and available for re-entry.', 'system');
+    return true;
+  } catch (error) {
+    console.warn('Persistent world save unavailable; runtime world remains active.', error);
+    addChatMessage('WORLD REGISTRY', result.world.label + ' is active locally, but cloud persistence is unavailable.', 'system');
+    return false;
+  }
+}
+
+async function hydratePersistentWorlds() {
+  if (!gridWorldAuthority) return;
+  try {
+    await cloudReady;
+    const rows = await gridWorldAuthority.listPublic();
+    for (const row of rows) {
+      const definition = GridWorldAuthority.toDefinition(row);
+      const result = { world: registerNetworkWorld(definition), inferredTags: [...(definition.tags ?? [])] };
+      connectFactoryWorldToAll({ ...result, dna: undefined as never, connectedWorlds: [] });
+      registerWorldTransitNode(definition);
+      teleportSystem.syncWorldConnections();
+      worldArchitecture.rebuild();
+      worldEnvironment.rebuild();
+      creatureEcology.registerWorld(definition);
+      worldResources.registerWorld(definition);
+      gridMinerals.registerWorld(definition);
+      npcSociety.registerWorld(definition);
+      worldEvolution.registerWorld(definition.id);
+      evolutionaryPopulations.registerWorld(definition.id);
+      ecologicalWeb.registerWorld(definition.id);
+    }
+    if (rows.length) addChatMessage('WORLD REGISTRY', rows.length + ' persistent world' + (rows.length === 1 ? '' : 's') + ' synchronized for re-entry.', 'system');
+  } catch (error) {
+    console.warn('Persistent world registry unavailable; continuing with local worlds.', error);
+  }
+}
+
 const createFactoryWorld = (name: string, description: string) => {
   const result = createWorldFromDescription({ name, description });
   connectFactoryWorldToAll(result);
@@ -559,6 +611,8 @@ const createFactoryWorld = (name: string, description: string) => {
   addChatMessage('WORLD FACTORY', result.world.label + ' joined the Grid · ' + result.inferredTags.join(' · '), 'system');
   return result;
 };
+
+void hydratePersistentWorlds();
 
 const worldFactoryPanel = mountWorldFactoryPanel({
   onCreate: createFactoryWorld,
@@ -1470,14 +1524,7 @@ const creatorStudio = mountCreatorStudio({
   },
   onCreateWorld: (name, description) => {
     const result = createFactoryWorld(name, description);
-    void recordGridActivity(
-      'WORLD_CREATE',
-      'Created a world',
-      'Created ' + result.world.label + ' from Creator Studio.',
-      result.world.id,
-      'first-light',
-      { worldId: result.world.id, name: result.world.label, description, inferredTags: result.inferredTags },
-    );
+    void persistFactoryWorld(result);
   },
   onMessage: message => addChatMessage('CREATOR STUDIO', message, 'system'),
   security: gridSecurity,
