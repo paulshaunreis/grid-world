@@ -1542,6 +1542,8 @@ function openIdentityPanel() {
   identityName.select();
 }
 
+window.addEventListener('grid:open-identity', () => openIdentityPanel());
+
 function closeIdentityPanel() {
   identityPanel.classList.remove('open');
 }
