@@ -1893,7 +1893,7 @@ addEventListener('keydown', event => {
   }
 });
 
-addEventListener('keydown', () => {
+addEventListener('keydown', (event) => {
   if (event.code !== 'KeyP' || event.repeat) return;
   const target = interaction.findTarget();
   if (!target) return;
