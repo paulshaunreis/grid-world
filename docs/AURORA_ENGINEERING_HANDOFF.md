@@ -329,3 +329,11 @@ _Last updated: 2026-10-02
 - No fresh local build was possible because this environment cannot resolve `github.com`; GitHub reported no PR-triggered workflow for the audit base. Verification is therefore source/repository-state level, not a new build claim.
 - Corrective work: synchronized the written engineering records and marked P0.1 complete.
 - **Next actionable item: P1 #10 — Aurora's in-world staff profile**, followed by the next highest-priority Ready item that is not already implemented.
+
+
+## 2026-10-02 — Aurora in-world staff profile complete
+- PR #19 merged as `7d64e2b65b929785adfd8d31303988d768ebead9`.
+- Updated `src/ui/TeamArea.ts` to present Aurora as Grid World Staff — AI Engineer / Creative Navigator, including assignment, location, specialties, skills, active status, portrait, and recent verified work.
+- Kept the implementation additive to the existing Team Area and roster. No new profile architecture and no private/unverified personal history.
+- Verification: source review + merge. No PR-triggered workflow run was returned for the head, and no browser verification was available.
+- Next queue focus: **P2 #15 Base build-object library**, with an audit-first pass against existing primitives/build mode.
