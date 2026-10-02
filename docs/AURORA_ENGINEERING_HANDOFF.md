@@ -310,3 +310,11 @@ _Last updated: 2026-10-02_
 - Next: verify CI, merge if green, then move to the next queue item.
 
 _Last updated: 2026-10-02
+
+
+## 2026-10-02 — NPC transit + skill certificates landed
+- PR #16 merged as `9ae6615232e78a9355a212a46b08089f368b1516`; head CI #1121 passed.
+- PR #17 merged as `3d74237af611daededa48ecc19410be8b1bab786`; head CI #1124 passed after fixing the player-profile certificate initialization caught by TypeScript.
+- The stale certificate PR #5 was closed; its useful design was ported onto current main with no duplicate profile/progression system.
+- Certificate state remains Grid-issued/in-Grid only; `externalVerificationReady` is false until a real external verification integration exists.
+- Next focus: P0.1 current-main health/integration audit, then the highest-priority non-duplicate queue item.
