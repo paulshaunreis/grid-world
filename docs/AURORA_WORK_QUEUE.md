@@ -269,7 +269,9 @@ Expose these through Build Mode with original Grid World controls.
 
 **Status:** Complete — PR #30 merged as `611cff994d3e7312f161586e76d6a7c5148e7e73`. Existing WindowManager now mounts major panels; shared theme chrome/health styling extended. Source-reviewed L0; no CI/browser verification claimed.
 
-**Next:** P3 #27 World-specific presentation7. World-specific presentation
+**Next:** P3 #27 World-specific presentation
+
+### 27. World-specific presentation
 - Ensure each starter world can look and feel distinct.
 - Preserve the “many worlds variable” direction.
 - Do not automatically turn concept-only districts into implemented gameplay.
