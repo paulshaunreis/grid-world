@@ -232,7 +232,7 @@ Expose these through Build Mode with original Grid World controls.
 - Design the data model for at least 10 currency types without hard-coding a fixed maximum.
 - Add transaction/audit concepts before adding simulated complexity.
 
-**Status:** Ready
+**Status:** Complete
 
 ### 23. Marketplace integration
 - Connect NPC production and drops to listings.
