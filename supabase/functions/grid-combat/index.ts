@@ -189,14 +189,29 @@ Deno.serve(async (req: Request) => {
 
     if (action === "ledger_read") {
       const limit=Math.min(Math.max(Math.floor(Number(body.limit ?? 25)),1),100);
-      const { data: transactions, error } = await admin
-        .from("grid_ledger_transactions")
-        .select("id,idempotency_key,transaction_type,status,memo,metadata,created_at,grid_ledger_entries!inner(user_id,currency_id,amount)")
-        .eq("actor_user_id",user.id)
+      const { data: entries, error: entryError } = await admin
+        .from("grid_ledger_entries")
+        .select("transaction_id,user_id,currency_id,amount,created_at")
+        .eq("user_id",user.id)
         .order("created_at",{ascending:false})
         .limit(limit);
-      if (error) throw error;
-      return json({ok:true,action,transactions:transactions ?? []});
+      if (entryError) throw entryError;
+      const transactionIds=[...new Set((entries ?? []).map((entry:any)=>String(entry.transaction_id)))];
+      if (!transactionIds.length) return json({ok:true,action,transactions:[]});
+      const { data: transactions, error: transactionError } = await admin
+        .from("grid_ledger_transactions")
+        .select("id,idempotency_key,actor_user_id,transaction_type,status,memo,metadata,created_at")
+        .in("id",transactionIds);
+      if (transactionError) throw transactionError;
+      const byId=new Map((transactions ?? []).map((transaction:any)=>[String(transaction.id),transaction]));
+      return json({
+        ok:true,
+        action,
+        transactions:(entries ?? []).map((entry:any)=>({
+          ...byId.get(String(entry.transaction_id)),
+          entry:{currency_id:String(entry.currency_id),amount:Number(entry.amount),created_at:entry.created_at},
+        })).filter((transaction:any)=>transaction.id),
+      });
     }
 
     if (action === "npc_memory_read") {
