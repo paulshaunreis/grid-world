@@ -1926,13 +1926,10 @@ renderer.domElement.addEventListener('pointermove', event => {
   if (!cameraPanning) return;
   if (cameraPanMode === 'PAN') {
     const panScale = event.shiftKey ? 0.012 : 0.006;
-    const right = new THREE.Vector3(Math.cos(cameraYaw), 0, -Math.sin(cameraYaw));
-    const up = new THREE.Vector3(0, 1, 0);
     cameraPanX -= event.movementX * panScale;
     cameraPanY += event.movementY * panScale;
     cameraPanX = THREE.MathUtils.clamp(cameraPanX, -12, 12);
     cameraPanY = THREE.MathUtils.clamp(cameraPanY, -8, 8);
-    void right; void up;
     return;
   }
   const sensitivity = event.shiftKey ? 0.004 : 0.008;
@@ -1991,6 +1988,7 @@ addEventListener('keydown', event => {
     cameraPitch = 0.32;
     cameraYaw = player.heading;
     cameraPanning = false;
+    cameraPanMode = 'ORBIT';
     status.textContent = 'THIRD PERSON · ALT+LMB / RMB ORBIT · MMB PAN · WHEEL ZOOM · WASD WALK';
   }
 });
