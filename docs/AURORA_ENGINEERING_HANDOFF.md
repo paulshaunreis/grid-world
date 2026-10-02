@@ -318,3 +318,14 @@ _Last updated: 2026-10-02
 - The stale certificate PR #5 was closed; its useful design was ported onto current main with no duplicate profile/progression system.
 - Certificate state remains Grid-issued/in-Grid only; `externalVerificationReady` is false until a real external verification integration exists.
 - Next focus: P0.1 current-main health/integration audit, then the highest-priority non-duplicate queue item.
+
+
+## 2026-10-02 — P0.1 current-main stability/integration audit complete
+- Audit base: `2618b3bf56358885fb7bf8a92906917c2849faca`.
+- Read the current work queue, handoff, and engineering state before auditing.
+- Checked current package scripts, recent commit history, open PR state, and the NPC profile/job/certificate integration seams.
+- PR #7 and PR #8 are confirmed **closed** and superseded; neither should be revived.
+- No concrete code defect, duplicate certificate system, or profile/progression contract mismatch was found in the inspected current-main seams.
+- No fresh local build was possible because this environment cannot resolve `github.com`; GitHub reported no PR-triggered workflow for the audit base. Verification is therefore source/repository-state level, not a new build claim.
+- Corrective work: synchronized the written engineering records and marked P0.1 complete.
+- **Next actionable item: P1 #10 — Aurora's in-world staff profile**, followed by the next highest-priority Ready item that is not already implemented.

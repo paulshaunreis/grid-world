@@ -4,8 +4,8 @@
 
 **Read-first rule:** If you are continuing GridWorld work in a new session, read this file FIRST, then `docs/AURORA_ENGINEERING_HANDOFF.md` (latest checkpoints), then `docs/AURORA_WORK_QUEUE.md` (current backlog). The newest dated entry in `~/workspace/gridworld/NOTES-FOR-CHATGPT.md` (the shared lab notebook) carries the very latest status.
 
-**Last updated:** 2026-10-02 12:45 PT by ChatGPT
-**Current `main` SHA:** `13250b639d190a852ac021a81d1b61608d614148`
+**Last updated:** 2026-10-02 13:55 PT by ChatGPT
+**Current `main` SHA at audit base:** `2618b3bf56358885fb7bf8a92906917c2849faca`
 **Repository:** `paulshaunreis/grid-world`
 
 ---
@@ -202,4 +202,14 @@ ChatGPT pushes via Paul's channel (authored `paulshaunreis`). All 84 commits on 
 - PR #16 merged as `9ae6615232e78a9355a212a46b08089f368b1516`; head CI #1121 passed. NPC cross-world travel now routes through authoritative GridTeleportSystem authorization and shared transit presentation/VFX, retaining the authorized destination through the trip.
 - PR #17 merged as `3d74237af611daededa48ecc19410be8b1bab786`; head CI #1124 passed. NPC skill certificates are issued by the existing job progression system at bounded skill thresholds, stored on NPC profiles, and shown in target profiles. External accreditation is not claimed.
 - Stale PR #5 was closed without merge after its certificate design was ported to current main. No Supabase schema changes were made.
-- Open stale PRs #7 (camera pan) and #8 (party health persistence) remain non-mergeable and are not being merged blindly; the underlying camera/party HUD features already exist on current main.
+- PR #7 (camera pan) and PR #8 (party health persistence) are closed without merge; their underlying camera/party HUD functionality already exists on current main.
+
+
+## 2026-10-02 — P0.1 current-main stability/integration audit
+- Audit base: `2618b3bf56358885fb7bf8a92906917c2849faca`.
+- Inspected the current queue, handoff, master state, package/build configuration, recent commits, open PR state, and the main NPC/profile/progression/certificate integration seams.
+- Confirmed the repository has no npm test script; `build` is analyzer + TypeScript + Vite.
+- Confirmed PR #7 and PR #8 are closed, not open stale work.
+- Reviewed `NPCProfileRecord`, `NPCJobProgressionSystem`, `NPCSkillCertificateSystem`, and the NPC profile persistence layer for duplicate certificate/progression/profile contracts. No new code defect or duplicate implementation requiring a corrective patch was identified.
+- The latest GitHub workflow lookup for the audit base returned no associated PR-triggered workflow run, and the local environment could not clone the repository because outbound GitHub DNS/network access is unavailable. Therefore this audit is source/repository-state verified, **not a fresh local build verification**.
+- Documentation was the only corrective change required: synchronize the engineering records and advance the queue to the next actionable P1 item.
