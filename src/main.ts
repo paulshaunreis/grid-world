@@ -1717,6 +1717,8 @@ const creatorStudio = mountCreatorStudio({
   terrain: {
     setMode: mode => gridMatterTerrain.setMode(mode),
     setEnabled: enabled => gridMatterTerrain.setEnabled(enabled),
+    setBrushRadius: radius => gridMatterTerrain.setBrushRadius(radius),
+    setBrushStrength: strength => gridMatterTerrain.setBrushStrength(strength),
   },
   onCreateWorld: (name, description) => {
     const result = createFactoryWorld(name, description);

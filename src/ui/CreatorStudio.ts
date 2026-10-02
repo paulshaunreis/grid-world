@@ -3,8 +3,10 @@ import type { GridSecuritySystem } from '../core/GridSecuritySystem';
 
 export interface CreatorStudioOptions {
   terrain: {
-    setMode: (mode: 'CARVE' | 'BUILD') => void;
+    setMode: (mode: 'CARVE' | 'BUILD' | 'RAISE' | 'LOWER' | 'SMOOTH' | 'FLATTEN') => void;
     setEnabled: (enabled: boolean) => void;
+    setBrushRadius?: (radius: number) => void;
+    setBrushStrength?: (strength: number) => void;
   };
   onCreateWorld?: (name: string, description: string) => void;
   onMessage?: (message: string) => void;
@@ -108,6 +110,12 @@ export function mountCreatorStudio(options: CreatorStudioOptions) {
         </div>`;
       root.querySelector<HTMLButtonElement>('#gcs-carve')?.addEventListener('click', () => options.terrain.setMode('CARVE'));
       root.querySelector<HTMLButtonElement>('#gcs-build')?.addEventListener('click', () => options.terrain.setMode('BUILD'));
+      root.querySelector<HTMLButtonElement>('#gcs-raise')?.addEventListener('click', () => options.terrain.setMode('RAISE'));
+      root.querySelector<HTMLButtonElement>('#gcs-lower')?.addEventListener('click', () => options.terrain.setMode('LOWER'));
+      root.querySelector<HTMLButtonElement>('#gcs-smooth')?.addEventListener('click', () => options.terrain.setMode('SMOOTH'));
+      root.querySelector<HTMLButtonElement>('#gcs-flatten')?.addEventListener('click', () => options.terrain.setMode('FLATTEN'));
+      root.querySelector<HTMLInputElement>('#gcs-radius')?.addEventListener('input', event => options.terrain.setBrushRadius?.(Number((event.target as HTMLInputElement).value)));
+      root.querySelector<HTMLInputElement>('#gcs-strength')?.addEventListener('input', event => options.terrain.setBrushStrength?.(Number((event.target as HTMLInputElement).value)));
       root.querySelector<HTMLButtonElement>('#gcs-toggle')?.addEventListener('click', () => options.terrain.setEnabled(true));
       return;
     }

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { getWorlds } from './GridWorldRegistry';
 
-export type GridMatterEditMode = 'CARVE' | 'BUILD';
+export type GridMatterEditMode = 'CARVE' | 'BUILD' | 'RAISE' | 'LOWER' | 'SMOOTH' | 'FLATTEN';
 
 /** A persisted Grid Matter unit, intentionally distinct from conventional voxel terminology. */
 
@@ -28,6 +28,7 @@ export class GridMatterTerrainSystem {
   private mode: GridMatterEditMode = 'CARVE';
   private enabled = false;
   private brushRadius = 0;
+  private brushStrength = 1;
   private pointerPainting = false;
   private readonly storageKey = 'grid-world:grid-matter-terrain-v1';
 
@@ -74,6 +75,8 @@ export class GridMatterTerrainSystem {
   getMode() { return this.mode; }
   setBrushRadius(radius:number) { this.brushRadius = Math.max(0, Math.min(4, Math.floor(radius))); }
   getBrushRadius() { return this.brushRadius; }
+  setBrushStrength(strength:number) { this.brushStrength = Math.max(1, Math.min(3, Math.floor(strength))); }
+  getBrushStrength() { return this.brushStrength; }
 
   private rebuildMesh(state:WorldMatterState) {
     state.mesh.clear();
@@ -112,15 +115,39 @@ export class GridMatterTerrainSystem {
         }
       }
     }
-    if (this.mode==='BUILD') {
-      const bx=Math.floor((local.x+normal.x*.55)/state.size);
-      const by=Math.floor((local.y+normal.y*.55)/state.size);
-      const bz=Math.floor((local.z+normal.z*.55)/state.size);
-      for (const [ox,oy,oz] of offsets) state.cells.add(keyOf(bx+ox,by+oy,bz+oz));
-    } else {
+    const bx=Math.floor((local.x+normal.x*.55)/state.size);
+    const by=Math.floor((local.y+normal.y*.55)/state.size);
+    const bz=Math.floor((local.z+normal.z*.55)/state.size);
+    const addAt = (x:number,y:number,z:number) => { if (y >= 0) state.cells.add(keyOf(x,y,z)); };
+    const removeAt = (x:number,y:number,z:number) => { if (y > 0) state.cells.delete(keyOf(x,y,z)); };
+    const applyBuild = () => {
+      for (let pass=0; pass<this.brushStrength; pass++) for (const [ox,oy,oz] of offsets) addAt(bx+ox,by+oy,bz+oz);
+    };
+    const applyCarve = () => {
+      for (let pass=0; pass<this.brushStrength; pass++) for (const [ox,oy,oz] of offsets) removeAt(center.x+ox,center.y+oy,center.z+oz);
+    };
+    if (this.mode==='BUILD' || this.mode==='RAISE') {
+      applyBuild();
+    } else if (this.mode==='CARVE' || this.mode==='LOWER') {
+      applyCarve();
+    } else if (this.mode==='FLATTEN') {
+      const planeY = center.y;
       for (const [ox,oy,oz] of offsets) {
-        const cy=center.y+oy;
-        if (cy>0) state.cells.delete(keyOf(center.x+ox,cy,center.z+oz));
+        const x=center.x+ox, z=center.z+oz;
+        for (const key of [...state.cells]) {
+          const [cx,cy,cz]=key.split(',').map(Number);
+          if (cx===x && cz===z && cy>planeY) state.cells.delete(key);
+        }
+        if (this.brushStrength > 1) for (let y=0;y<planeY;y++) addAt(x,y,z);
+      }
+    } else if (this.mode==='SMOOTH') {
+      const snapshot=new Set(state.cells);
+      for (const [ox,oy,oz] of offsets) {
+        const x=center.x+ox,y=center.y+oy,z=center.z+oz;
+        let neighbors=0;
+        for (const [dx,dy,dz] of [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]]) if (snapshot.has(keyOf(x+dx,y+dy,z+dz))) neighbors++;
+        if (neighbors >= 4) addAt(x,y,z);
+        else if (neighbors <= 2) removeAt(x,y,z);
       }
     }
     this.rebuildMesh(state);
@@ -182,6 +209,10 @@ export class GridMatterTerrainSystem {
     }
     if (event.key.toLowerCase()==='b') this.mode='BUILD';
     if (event.key.toLowerCase()==='c') this.mode='CARVE';
+    if (event.key.toLowerCase()==='r') this.mode='RAISE';
+    if (event.key.toLowerCase()==='l') this.mode='LOWER';
+    if (event.key.toLowerCase()==='s') this.mode='SMOOTH';
+    if (event.key.toLowerCase()==='f') this.mode='FLATTEN';
     if (event.key === '[') this.setBrushRadius(this.brushRadius - 1);
     if (event.key === ']') this.setBrushRadius(this.brushRadius + 1);
   };
