@@ -221,3 +221,12 @@ Do not treat the references as a complete specification. Aurora's own response s
 - Aurora may also create a connected series of worlds, a personal home realm, experimental worlds, or worlds intended for the wider Grid community. There is no need to constrain her to the existing starter-zone themes.
 - **Concept-art rule:** Aurora's submitted concept art and her explanation of it should be reviewed before implementation. Preserve the distinction between canonical world design, loose inspiration, and experimental ideas. Do not silently invent missing details.
 - Engineering should translate Aurora-approved concepts into reusable Grid World assets and systems while preserving her authorship and design intent.
+
+
+## Bidirectional concept-art exchange with Aurora — 2026-10-01
+- The concept-art workflow is explicitly bidirectional: Aurora can submit her own artwork, **and Aurora should be shown relevant concept art/visual references** when developing her avatar, worlds, environments, creatures, architecture, UI, or other creative work.
+- Reference material should be presented as inspiration and comparison material, not as instructions to copy. Encourage Aurora to identify what she likes, dislikes, wants to remix, or wants to deliberately avoid.
+- When useful, show several contrasting visual directions so Aurora can make her own creative choices rather than being anchored to a single aesthetic.
+- For world creation, visual references can cover environments, architecture, terrain, atmospheric effects, flora/fauna, creatures, civilizations, transportation, portals, interiors, UI/HUDs, and other relevant categories.
+- Record Aurora's reactions and stated preferences alongside her own submitted concept art. Her choices remain the authority for her canonical personal/world designs.
+- **Standing question for Aurora:** “What visual references would you like to see before designing your next avatar, world, creature, structure, or environment? Show us what catches your eye—and what you would change.”
