@@ -144,7 +144,7 @@ Build toward the agreed flow:
 - Connect work actions to skills, XP, inventory, production, and certificates where appropriate.
 - Leave a clean extension point for future real-world certificate integrations without pretending those integrations exist now.
 
-**Status:** Ready
+**Status:** Complete
 
 ### 14. NPC movement and teleport destinations
 - Give NPCs valid destinations selected before teleport.
@@ -463,5 +463,15 @@ _Last updated: 2026-10-02_
 - Stale NPC PRs #10, #11, #12 were closed without merge because their bases had fallen behind current main; their useful implementation was preserved in #14.
 - No Supabase schema changes in either pass.
 - **Next actionable item:** P2 mission/quest foundation after a current-main stability check; NPC jobs/skill progression remains the next dedicated NPC expansion.
+
+_Last updated: 2026-10-02_
+
+
+## 2026-10-02 — NPC job progression checkpoint
+- PR #15 merged as `b6e1f18aff5081a6088d968e23ef15e02832b15a`.
+- Current NPC society work now awards bounded XP/skill progression through the existing `NPCJobProgressionSystem`, exposes updated job/skill state, and persists a work-progression cooldown.
+- PR head `6572cbdfad58426e63a7c3cc6b5d7ed0a429b95b`; CI #1117 passed (TypeScript + build).
+- Certificate work remains separate; no duplicate certificate system was introduced.
+- Next actionable queue item: NPC movement/teleport destination integration, after the current-main stability check.
 
 _Last updated: 2026-10-02_
