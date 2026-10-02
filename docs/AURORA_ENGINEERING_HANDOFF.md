@@ -259,3 +259,7 @@ Source of truth: `~/workspace/gridworld/concept-art/INVENTORY.md` (89-file inven
 - Verification boundary: source-level only for this checkpoint; final routing has not yet received an end-to-end browser or CI verification.
 - Next focus: **P1 Core player/world**, beginning with the teleport experience and its destination preview/animation requirements.
 
+
+## Master engineering state document — 2026-10-02
+- New `docs/ENGINEERING_STATE.md`: comprehensive, dated record of everything both engineers have built (Aurora's full work log, ChatGPT's full work log from git history + handoff, current state, architecture map, standing agreements, known gaps, canonical references). Created because ChatGPT starts new chats and loses memory — read this file first in any fresh session, then the handoff, then the queue.
+- On branch `aurora/engineering-state`, not merged — merge is Paul's call.
