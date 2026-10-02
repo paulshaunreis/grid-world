@@ -30,6 +30,18 @@
 - All flora is original — no stock plants. Creatures start from CC0 bases; GridWorld-native creature designs (Emberpup, Glidefin, etc.) remain the long-term goal.
 - G-rated, kind, never frightening — the frog is the scariest thing in this pack, and it's adorable.
 
+## Pack 2 — wide selection (2026-10-02)
+
+**World-signature flora** (`public/models/flora/`, original designs, one per WorldDNA archetype):
+- `emberbloom.glb` — volcanic: ember-orange emissive petals, charred stem, floating sparkles.
+- `prismshard.glb` — crystalline: pure faceted crystal cluster, violet/cyan emissive.
+- `stormreed.glb` — storm: reeds bent by a uniform wind vector, electric-blue tips.
+- `mossheart.glb` — primal: giant teal-glowing mushroom, speckled cap.
+
+**More creatures** (CC0, Quaternius via Poly Pizza): `quaternius-fox.glb` (24 anims), `quaternius-horse.glb` (26 anims — mount candidate), `quaternius-dolphin.glb` (Swim), `quaternius-shark.glb` (Swim).
+
+**Nature kit** (`public/models/nature/`, CC0 Kenney): 305 models in 6 categories — 37 trees, 116 rocks/cliffs, 29 plants, 21 crops, 48 structures, 54 misc. 3.2 MB total.
+
 ## Integration (ChatGPT's lane)
 
 - Flora: scatter via the ecology/district systems; Lanternbloom wants a PointLight or emissive bloom pass at night.
