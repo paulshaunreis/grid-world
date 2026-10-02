@@ -602,3 +602,17 @@ _Last updated: 2026-10-02_
 - PR #27 merged as `f64bd6cb73fe20b5c8e6108d356dcdcf4ba60547`.
 - No duplicate marketplace transaction system was introduced. The existing authoritative Bazaar settlement + ledger remains the transaction boundary.
 - **Next actionable item: P2 #24 Economics dashboard.**
+
+
+## 2026-10-02 — Economics dashboard landed
+- P2 #24 **Complete**.
+- PR #28 merged as `1f96cf768b853a682db73c1888dcd274c8a8ee41`.
+- Extended the existing Grid Economy architecture; no parallel economy or database schema was introduced.
+- Added authoritative `economics_read` telemetry to `grid-combat`, aggregating internal ledger activity, credits/debits, currency activity, and internal rate history.
+- Added an ECONOMICS tab to `GridEconomyPanel` with 24-hour metrics and an activity graph.
+- The dashboard explicitly identifies the data as Grid-internal and not real-world financial data.
+- `grid-combat` deployed live as version 16 with JWT verification.
+- Verification: merged main re-fetched at `1f96cf768b853a682db73c1888dcd274c8a8ee41`; Edge Function live deployment verified. GitHub Actions returned no workflow runs for the feature head, so this is **not CI-verified**. Browser/WebGL verification remains outstanding.
+- **Next actionable item:** P3 #25 Living-world visual pass.
+
+_Last updated: 2026-10-02_
