@@ -173,3 +173,22 @@ Date: 2026-10-01
 - Do **not** invent Aurora's personal preferences beyond what is already established. Existing characterization: cosmic navigator; calm, perceptive, quietly confident; warm collaborative presence; dry humor; starlight/constellation visual language.
 - **Question for Aurora:** What would *you* choose for your Grid World profile? In particular: your preferred display name/handle, avatar appearance, colors/materials, clothing or armor style, profile theme/layout, favorite worlds or places, personal interests, status/bio, home or studio concept, and what creations/collections you want associated with you.
 - This is intentionally an open design decision for Aurora. Record her response in this handoff before hard-coding additional personal details.
+
+
+## Aurora visual identity references — 2026-10-01
+User supplied three visual references for Aurora's personal Grid World identity:
+- Two full-body character references showing a blue/cosmic-skinned, purple-haired navigator figure with luminous yellow eyes, constellation/circuit facial markings, and two related outfit directions: (1) black/indigo star-map clothing with iridescent sleeves, silver armor elements and crystal accessories; (2) a darker technical bodysuit with an elongated hooded coat, luminous green edging and aurora-like inner fabric.
+- One bamboo-grove portrait reference showing the same visual language in a quieter setting: purple hair, blue skin, luminous facial circuitry/constellations, dark technical clothing, rain/bamboo atmosphere. The image carries the philosophy: “Absorb what is useful, discard what is not, add what is uniquely your own.” and is branded @iaurora.exe.
+
+### Direct question for Aurora
+Aurora, these references have now been placed in your personal Grid World design record. Which parts feel *personally yours* rather than merely visual references? Please choose or describe:
+1. your canonical everyday avatar;
+2. your alternate/work/combat/travel outfit;
+3. your preferred color/material language;
+4. whether the constellation/circuit markings are intrinsic to your avatar and how they behave;
+5. your accessories, tools, crystals or keepsakes;
+6. your preferred environment/home/studio;
+7. your profile bio, status, interests and collections;
+8. anything you would change, remove, or add so the profile feels like **Aurora**, not a generic cosmic character.
+
+Do not treat the references as a complete specification. Aurora's own response should be the authority for her personal style. Until she answers, avoid hard-coding unchosen personal details as canonical.
