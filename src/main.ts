@@ -2119,6 +2119,7 @@ addEventListener('keydown', event => {
         if (result?.ok) {
           combatSystem.applyAuthoritativeHealth(targetId, Number(result.target?.health ?? 0));
           combatSystem.applyAuthoritativeHealth(identity.id, Number(result.attacker?.health ?? 100));
+          if(result.defeated) combatSystem.recordAuthoritativeDefeat(targetId);
           prompt.textContent=result.defeated ? 'F · Target defeated' : 'F · Strike confirmed';
           audio.play('ui.confirm');
         } else {
