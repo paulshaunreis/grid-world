@@ -27,6 +27,8 @@ export class GridMatterTerrainSystem {
   private activeWorldId: string | null = null;
   private mode: GridMatterEditMode = 'CARVE';
   private enabled = false;
+  private brushRadius = 0;
+  private pointerPainting = false;
   private readonly storageKey = 'grid-world:grid-matter-terrain-v1';
 
   constructor(private readonly camera: THREE.Camera, private readonly dom: HTMLElement) {
@@ -34,6 +36,9 @@ export class GridMatterTerrainSystem {
     this.root.visible = false;
     this.rebuild();
     this.dom.addEventListener('pointerdown', this.onPointerDown);
+    this.dom.addEventListener('pointermove', this.onPointerMove);
+    this.dom.addEventListener('pointerup', this.onPointerUp);
+    this.dom.addEventListener('pointercancel', this.onPointerUp);
     window.addEventListener('keydown', this.onKeyDown);
   }
 
@@ -67,6 +72,8 @@ export class GridMatterTerrainSystem {
   setEnabled(enabled:boolean) { this.enabled = enabled; this.root.visible = enabled; }
   setMode(mode:GridMatterEditMode) { this.mode = mode; }
   getMode() { return this.mode; }
+  setBrushRadius(radius:number) { this.brushRadius = Math.max(0, Math.min(4, Math.floor(radius))); }
+  getBrushRadius() { return this.brushRadius; }
 
   private rebuildMesh(state:WorldMatterState) {
     state.mesh.clear();
@@ -95,14 +102,26 @@ export class GridMatterTerrainSystem {
     if (!state) return;
     const local=point.clone().sub(state.mesh.position);
     let x=Math.floor(local.x/state.size), y=Math.floor(local.y/state.size), z=Math.floor(local.z/state.size);
+    const center = { x, y, z };
+    const radius = this.brushRadius;
+    const offsets:number[][] = [];
+    for (let ox=-radius; ox<=radius; ox++) {
+      for (let oy=-radius; oy<=radius; oy++) {
+        for (let oz=-radius; oz<=radius; oz++) {
+          if (Math.sqrt(ox*ox + oy*oy + oz*oz) <= radius + 0.01) offsets.push([ox,oy,oz]);
+        }
+      }
+    }
     if (this.mode==='BUILD') {
-      x=Math.floor((local.x+normal.x*.55)/state.size);
-      y=Math.floor((local.y+normal.y*.55)/state.size);
-      z=Math.floor((local.z+normal.z*.55)/state.size);
-      state.cells.add(keyOf(x,y,z));
+      const bx=Math.floor((local.x+normal.x*.55)/state.size);
+      const by=Math.floor((local.y+normal.y*.55)/state.size);
+      const bz=Math.floor((local.z+normal.z*.55)/state.size);
+      for (const [ox,oy,oz] of offsets) state.cells.add(keyOf(bx+ox,by+oy,bz+oz));
     } else {
-      const key=keyOf(x,y,z);
-      if (state.cells.has(key) && y>0) state.cells.delete(key);
+      for (const [ox,oy,oz] of offsets) {
+        const cy=center.y+oy;
+        if (cy>0) state.cells.delete(keyOf(center.x+ox,cy,center.z+oz));
+      }
     }
     this.rebuildMesh(state);
     this.saveWorld(state);
@@ -123,9 +142,7 @@ export class GridMatterTerrainSystem {
     } catch { return null; }
   }
 
-  private onPointerDown=(event:PointerEvent)=>{
-    if (!this.enabled || event.button!==0 || event.target!==this.dom) return;
-    if ((event.target as HTMLElement).closest?.('button,input,textarea,a,select')) return;
+  private paintFromPointer(event:PointerEvent) {
     const rect=this.dom.getBoundingClientRect();
     this.pointer.x=((event.clientX-rect.left)/rect.width)*2-1;
     this.pointer.y=-((event.clientY-rect.top)/rect.height)*2+1;
@@ -136,9 +153,25 @@ export class GridMatterTerrainSystem {
     const hit=hits[0];
     if (!hit) return;
     const normal=hit.face?.normal?.clone().transformDirection(hit.object.matrixWorld) ?? new THREE.Vector3(0,1,0);
+    this.edit(hit.point,normal);
+  }
+
+  private onPointerDown=(event:PointerEvent)=>{
+    if (!this.enabled || event.button!==0 || event.target!==this.dom) return;
+    if ((event.target as HTMLElement).closest?.('button,input,textarea,a,select')) return;
     if (event.shiftKey) this.mode='BUILD';
     else this.mode='CARVE';
-    this.edit(hit.point,normal);
+    this.pointerPainting=true;
+    this.paintFromPointer(event);
+  };
+
+  private onPointerMove=(event:PointerEvent)=>{
+    if (!this.pointerPainting || !this.enabled) return;
+    this.paintFromPointer(event);
+  };
+
+  private onPointerUp=()=>{
+    this.pointerPainting=false;
   };
 
   private onKeyDown=(event:KeyboardEvent)=>{
@@ -149,6 +182,8 @@ export class GridMatterTerrainSystem {
     }
     if (event.key.toLowerCase()==='b') this.mode='BUILD';
     if (event.key.toLowerCase()==='c') this.mode='CARVE';
+    if (event.key === '[') this.setBrushRadius(this.brushRadius - 1);
+    if (event.key === ']') this.setBrushRadius(this.brushRadius + 1);
   };
 
   serializeWorld(worldId = this.activeWorldId): string[] {
@@ -168,6 +203,9 @@ export class GridMatterTerrainSystem {
 
   dispose() {
     this.dom.removeEventListener('pointerdown',this.onPointerDown);
+    this.dom.removeEventListener('pointermove',this.onPointerMove);
+    this.dom.removeEventListener('pointerup',this.onPointerUp);
+    this.dom.removeEventListener('pointercancel',this.onPointerUp);
     window.removeEventListener('keydown',this.onKeyDown);
   }
 }
