@@ -410,3 +410,14 @@ _Last updated: 2026-10-02_
 - Verification: Supabase migration/schema/deployment checks succeeded; GitHub returned no workflow run for the merge commit and no browser/WebGL verification was available, so this pass is not CI-verified.
 - Security advisor results remain unchanged, including the existing `grid_operator_policy_rules` RLS finding; do not conflate that with the currency work.
 - **Next: P2 #23 Marketplace integration.**
+
+
+## 2026-10-02 — Marketplace integration complete
+- PR #27 merged as `f64bd6cb73fe20b5c8e6108d356dcdcf4ba60547`.
+- Audited the existing Bazaar, inventory, NPC production/market, material drops, and staff marketplace tables first.
+- Existing NPC production already feeds `NPCMarketSystem`; no duplicate marketplace transaction system was introduced.
+- Added shared `src/economy/GridMarketplaceItem.ts` metadata contract: display name, category, quality, tags, art key, model key.
+- Extended `grid_bazaar_listings` with marketplace metadata and future 3D-preview keys. Existing authoritative `grid_bazaar_create_listing` and `grid_bazaar_buy` remain the settlement boundary.
+- Player inventory reads and Bazaar reads now expose marketplace-ready metadata; Economy UI surfaces the item identity/category and art/model keys.
+- Supabase live schema verified; `grid-combat` deployed as version 15 with JWT verification enabled.
+- **Next: P2 #24 Economics dashboard.**
