@@ -12,6 +12,7 @@ import { NPCJobProgressionSystem } from './NPCJobProgressionSystem';
 import { GridMaterialDropSystem } from './GridMaterialDropSystem';
 import { NPCProductionSystem } from './NPCProductionSystem';
 import { NPCMarketSystem } from './NPCMarketSystem';
+import { GridNpcBrain, type GridNpcAction } from '../npc/GridNpcBrain';
 
 export type CitizenState = 'WORK'|'TRAVEL'|'GATHER'|'TALK'|'REST'|'CELEBRATE'|'EAT';
 export type CitizenRole = 'NAVIGATOR'|'GARDENER'|'ARTISAN'|'KEEPER'|'RANGER';
@@ -51,6 +52,7 @@ type Citizen = {
   gateCooldown:number;
   travelStage:'IDLE'|'APPROACH_GATE'|'TRANSIT';
   gatePosition:THREE.Vector3;
+  brain: GridNpcBrain;
 };
 
 export interface SocietySnapshot {
@@ -107,6 +109,8 @@ export class NPCSocietySystem {
   readonly root = new THREE.Group();
   private citizens: Citizen[] = [];
   private profiles = new Map<string, NPCProfileRecord>();
+  /** Rich needs/memory brain for the visible citizen layer; deliberately bridged, not a replacement for society state. */
+  private brains = new Map<string, GridNpcBrain>();
   private relationships = new NPCRelationshipNetwork();
   private inventory = new NPCInventorySystem();
   private progression = new NPCJobProgressionSystem();
@@ -178,6 +182,15 @@ export class NPCSocietySystem {
     });
     this.profiles.set(name, profile);
     this.inventory.seed(profile);
+    const brain = new GridNpcBrain(profile.id, name, {
+      sociability: role === 'KEEPER' ? .35 : role === 'NAVIGATOR' ? .65 : .55,
+      curiosity: role === 'RANGER' || role === 'NAVIGATOR' ? .75 : .5,
+      diligence: role === 'ARTISAN' || role === 'GARDENER' ? .72 : .58,
+      caution: role === 'KEEPER' || role === 'RANGER' ? .72 : .5,
+      playfulness: role === 'ARTISAN' ? .68 : .45,
+      empathy: role === 'GARDENER' || role === 'KEEPER' ? .7 : .5,
+    });
+    this.brains.set(name, brain);
     root.userData.npcProfile = profile;
     root.userData.inventory = profile.inventory;
     root.userData.jobProgression = profile.occupation;
@@ -193,10 +206,10 @@ export class NPCSocietySystem {
       root.add(canopy,counter,sigil);
     }
     this.root.add(root);
-    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0,merchant,merchantStock:merchant?0:0,merchantStress:0,merchantMood:'CALM',merchantOpen:true,merchantSchedule:name.length%6,schedulePhase:(name.length%10)/10,travelTimer:8+name.length%9,travelTarget:new THREE.Vector3(wx,0,wz),travelMode:'WALK',travelPurpose:'WORK',travelWorld:world,selectedDestination:world,gateCooldown:0,travelStage:'IDLE',gatePosition:new THREE.Vector3(hx,0,hz)});
+    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0,merchant,merchantStock:merchant?0:0,merchantStress:0,merchantMood:'CALM',merchantOpen:true,merchantSchedule:name.length%6,schedulePhase:(name.length%10)/10,travelTimer:8+name.length%9,travelTarget:new THREE.Vector3(wx,0,wz),travelMode:'WALK',travelPurpose:'WORK',travelWorld:world,selectedDestination:world,gateCooldown:0,travelStage:'IDLE',gatePosition:new THREE.Vector3(hx,0,hz),brain});
   }
 
-  private chooseState(c:Citizen,event:string,phase:string,pressure=0,stability=1) {
+  private chooseState(c:Citizen,event:string,phase:string,pressure=0,stability=1,brainAction?:GridNpcAction) {
     if (pressure > .72 && c.role === 'RANGER') return 'TRAVEL';
     if (stability < .4 && c.energy < .6) return 'REST';
     if(event==='MARKET' && c.world==='ARTS') return 'GATHER';
@@ -206,7 +219,16 @@ export class NPCSocietySystem {
     if(event==='AURORA' && c.world==='CITADEL') return 'CELEBRATE';
     if(c.energy<.22) return 'REST';
     if(c.social>.78) return 'TALK';
-    return c.phase%2>.9 ? 'GATHER' : 'WORK';
+    switch (brainAction) {
+      case 'eat': return 'EAT';
+      case 'rest': return 'REST';
+      case 'socialize': return 'TALK';
+      case 'work': return 'WORK';
+      case 'explore': return 'TRAVEL';
+      case 'play': return 'CELEBRATE';
+      case 'help': return 'WORK';
+      default: return c.phase%2>.9 ? 'GATHER' : 'WORK';
+    }
   }
 
   update(delta:number,playerX=0,playerZ=0,world:EcologyWorld='HARBOR',event: LivingWorldEventKind='QUIET',phase='DAY',ecology?:EcologySnapshot,consequences?:WorldConsequenceSnapshot,dayFraction?:number) {
@@ -249,6 +271,28 @@ export class NPCSocietySystem {
         ? (phase === 'NIGHT' ? 23 : phase === 'DAWN' ? 6 : phase === 'DUSK' ? 19 : 12)
         : hourOfDayFromDayFraction(dayFraction);
       const routinePhase = routinePhaseFor(resolveNpcRoutine(c.role), hourOfDay);
+      const foodAvailable = (this.profiles.get(c.name)?.inventory ?? []).some(item => item.category === 'FOOD' && item.quantity > 0);
+      const nearbyNpcIds = this.citizens
+        .filter(other => other !== c && other.world === c.world && c.root.position.distanceTo(other.root.position) < 8)
+        .map(other => other.name);
+      c.brain.update(delta, {
+        nearbyNpcIds,
+        isDaytime: hourOfDay >= 6 && hourOfDay < 20,
+        safe: stability > .35 && pressure < .85,
+        hasWork: true,
+        hasFood: foodAvailable,
+        routinePhase,
+      });
+      c.root.userData.npcBrainAction = c.brain.state.currentAction;
+      c.root.userData.npcNeeds = { ...c.brain.state.needs };
+      const profile = this.profiles.get(c.name);
+      if (profile) {
+        const remembered = c.brain.state.memories.slice(0, 8).map(memory => memory.summary);
+        const mergedMemories = [...remembered, ...profile.memories].filter((value, index, list) => value && list.indexOf(value) === index);
+        profile.memories = mergedMemories.slice(0, 32);
+        profile.relationshipIds = this.relationships.forNPC(c.name).map(rel => rel.sourceId === c.name ? rel.targetId : rel.sourceId);
+        c.root.userData.npcProfile = profile;
+      }
       c.stateTimer-=delta;
       c.travelTimer-=delta;
       c.gateCooldown=Math.max(0,c.gateCooldown-delta);
@@ -311,7 +355,7 @@ export class NPCSocietySystem {
         const side = (queue % 2 === 0 ? 1 : -1) * (1.8 + Math.floor(queue/2)*1.2);
         c.target.set(c.gatePosition.x + side, 0, c.gatePosition.z + 2.2 + Math.floor(queue/2)*1.1);
       }
-      if(c.stateTimer<=0){ c.state=this.chooseState(c,event.toUpperCase(),phase,pressure,stability); c.stateTimer=5+(c.phase%6); }
+      if(c.stateTimer<=0){ c.state=this.chooseState(c,event.toUpperCase(),phase,pressure,stability,c.brain.state.currentAction); c.stateTimer=5+(c.phase%6); }
       if(c.merchant) {
         const clock = performance.now() / 1000 + c.merchantSchedule * 11;
         const cycle = (clock % 120) / 120;
@@ -429,6 +473,7 @@ export class NPCSocietySystem {
           .sort((a, b) => c.root.position.distanceTo(a.root.position) - c.root.position.distanceTo(b.root.position))[0];
         if (nearby && c.root.position.distanceTo(nearby.root.position) < 7) {
           this.relationships.interact(c.name, nearby.name, .006, .003);
+          c.brain.meet(nearby.name, .006);
         }
       }
       c.phase+=delta*.5;
@@ -545,6 +590,16 @@ export class NPCSocietySystem {
       if (record.profile && typeof record.profile === 'object') {
         const profile = record.profile as NPCProfileRecord;
         this.profiles.set(citizen.name, profile);
+        if (!this.brains.has(citizen.name)) this.brains.set(citizen.name, new GridNpcBrain(profile.id, citizen.name));
+        citizen.brain.hydrateMemories((profile.memories ?? []).map((summary, index) => ({
+          id: profile.id + ':profile-memory:' + index,
+          summary,
+          eventType: 'profile',
+          valence: 0,
+          importance: .25,
+          confidence: .7,
+          createdAt: new Date().toISOString(),
+        })));
         citizen.root.userData.npcProfile = profile;
         citizen.root.userData.inventory = profile.inventory;
         citizen.root.userData.jobProgression = profile.occupation;
