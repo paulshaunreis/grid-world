@@ -382,3 +382,14 @@ _Last updated: 2026-10-02_
 - P0.2 remains active; next audit target is the remaining account/auth, transit, quest, creator, and secondary toolbar/navigation surfaces.
 
 _Last updated: 2026-10-02_
+
+
+## P0.2 interaction audit checkpoint — 2026-10-02 (routing consolidation)
+- Reviewed account/auth, Creator, Quest, transit, and secondary HUD controls.
+- Confirmed account/auth, Creator Studio, Quest panel, and transit destination selection already have live handlers; the transit panel is used by the gate interaction flow.
+- Found duplicate SOCIAL/TEAM listeners alongside the centralized HUD router. Consolidated SOCIAL into the centralized router and removed the redundant dedicated SOCIAL/TEAM listeners.
+- Final routing commit: `8e1b5dc8b86d6536ddae729758eacd2728dee394` on `main`.
+- Verification: source-level fetch confirmed centralized TEAM and SOCIAL routing, plus existing auth/Creator/Quest/transit handlers. No workflow run was available yet; not CI-verified.
+- P0.2 remains active for remaining secondary controls and end-to-end navigation checks.
+
+_Last updated: 2026-10-02_
