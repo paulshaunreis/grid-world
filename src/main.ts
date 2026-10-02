@@ -1595,6 +1595,7 @@ document.querySelectorAll<HTMLButtonElement>('.grid-dock [data-tool]').forEach(b
     else if (tool === 'field') fieldGuide.open();
     else if (tool === 'qr') qrScanner.open();
     else if (tool === 'team') teamArea.open();
+    else if (tool === 'social') gridCommunityPanel?.open();
     else if (tool === 'settings') openIdentityPanel();
     else if (tool === 'inventory' || tool === 'wallet') gridEconomyPanel.open();
     else addChatMessage('GRID', tool + ' surface opened.', 'system');
