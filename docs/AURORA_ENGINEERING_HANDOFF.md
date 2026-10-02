@@ -343,3 +343,28 @@ Do not treat the references as a complete specification. Aurora's own response s
 ### Current next target
 
 - Make the persistent world's actual content durable: world-specific builds, terrain edits, placed objects, NPC/creature state, quests and discoveries should be keyed to the persistent world_id, then restored when the resident re-enters.
+
+
+## Persistent world content pass — 2026-10-02
+
+- Added durable world-content storage keyed by persistent world_id.
+- Supabase now has `grid_world_content` for shared world builds, Grid Matter terrain, consequence history, NPC snapshots, creature snapshots, and metadata.
+- Supabase now has `grid_world_player_state` for per-user quest/discovery progress, avoiding the mistake of treating a world's quest progress as globally shared.
+- Both new tables have RLS enabled. World content is publicly readable only for enabled worlds (or the owner), while writes are owner-scoped. Player state is user-scoped.
+- Added `src/social/GridWorldContentAuthority.ts` to load/save both shared world content and per-user world state.
+- `GridMatterTerrainSystem` now exposes world-scoped `serializeWorld()` / `restoreWorld()`.
+- `QuestSystem` now exposes `exportState()` / `importState()` so visited/interacted/discovery and quest progress can follow the resident into the correct persistent world.
+- `WorldConsequenceSystem` now exposes `exportState()` / `importState()` so discoveries and living-world consequence history can survive re-entry.
+- `main.ts` now tracks persistent world IDs, saves the active persistent world's builds/terrain/consequences/NPC/creature snapshots, and restores them when re-entering. Persistent-world builds are stored in `grid_world_content` rather than the special First Light collaborative build region.
+- The restore loop also clears the persistent build layer when returning to a non-persistent built-in world, preventing content leakage between worlds.
+- NPC/creature snapshots currently persist identity/position/selected metadata and are restored on re-entry; deeper behavioral-state hydration remains a follow-up.
+- Live Supabase verification confirms both new tables exist with RLS enabled.
+- Repository migration files were added for the content table, build column, and per-user player state.
+- Current branch head: `9c470887cb725530f7d260ee97ae0d423f7700fc`.
+- CI status: no workflow run/status has been returned yet for this head, so this pass is **not CI-verified**.
+- Draft PR #1 remains open/draft; no merge performed.
+
+### Next target
+
+- Verify CI/build on the persistence pass.
+- Then deepen NPC/creature state hydration (behavioral state, inventories, relationships, evolution state) and connect persistent world permissions so builders other than the owner can safely contribute without weakening RLS.
