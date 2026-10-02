@@ -1,4 +1,5 @@
 import { readVersioned, writeVersioned } from '../core/VersionedStorage';
+import type { NpcRoutinePhase } from './NpcDailyRoutine';
 
 export type GridNpcAction =
   | 'eat' | 'rest' | 'socialize' | 'work' | 'explore'
@@ -179,6 +180,8 @@ export class GridNpcBrain {
     safe?: boolean;
     hasWork?: boolean;
     hasFood?: boolean;
+    /** Day-cycle routine phase from NpcDailyRoutine; biases but never overrides extreme needs. */
+    routinePhase?: NpcRoutinePhase;
   } = {}): GridNpcAction {
     const n = this.state.needs;
     const p = this.personality;
@@ -202,6 +205,15 @@ export class GridNpcBrain {
     const memoryBias = this.recall(undefined, 2).reduce((sum, memory) => sum + memory.valence * memory.importance, 0);
     scores.socialize += Math.max(0, memoryBias) * .12;
 
+    // Day-cycle routine: a steady rhythm under the needs. Needs still win when
+    // extreme because their scores grow as they deplete.
+    switch (context.routinePhase) {
+      case 'sleep': scores.rest += 1.3; break;
+      case 'work': scores.work += 1.0; break;
+      case 'meal': scores.eat += context.hasFood === false ? 0.15 : 1.25; break;
+      case 'leisure': scores.socialize += 0.3; scores.play += 0.3; break;
+    }
+
     return (Object.keys(scores) as GridNpcAction[])
       .sort((a, b) => scores[b] - scores[a])[0];
   }
@@ -212,6 +224,8 @@ export class GridNpcBrain {
     safe?: boolean;
     hasWork?: boolean;
     hasFood?: boolean;
+    /** Day-cycle routine phase from NpcDailyRoutine; biases but never overrides extreme needs. */
+    routinePhase?: NpcRoutinePhase;
   } = {}) {
     const delta = Math.min(deltaSeconds, 5);
     const n = this.state.needs;

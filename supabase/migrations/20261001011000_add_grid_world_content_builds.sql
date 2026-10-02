@@ -1,0 +1,1 @@
+alter table public.grid_world_content add column if not exists builds jsonb not null default '[]'::jsonb;

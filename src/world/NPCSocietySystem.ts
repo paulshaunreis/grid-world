@@ -3,8 +3,17 @@ import type { EcologyWorld, EcologySnapshot } from './CreatureEcologySystem';
 import { traversalHit, steerAround } from './TraversalSystem';
 import type { WorldConsequenceSnapshot } from './WorldConsequenceSystem';
 import { getWorlds } from './GridWorldRegistry';
+import type { LivingWorldEventKind } from './GridLivingWorld';
+import { hourOfDayFromDayFraction, resolveNpcRoutine, routinePhaseFor } from '../npc/NpcDailyRoutine';
+import { createNPCProfile, type NPCProfileRecord } from './NPCProfile';
+import { NPCRelationshipNetwork, type NPCRelationship } from './NPCRelationshipSystem';
+import { NPCInventorySystem } from './NPCInventorySystem';
+import { NPCJobProgressionSystem } from './NPCJobProgressionSystem';
+import { GridMaterialDropSystem } from './GridMaterialDropSystem';
+import { NPCProductionSystem } from './NPCProductionSystem';
+import { NPCMarketSystem } from './NPCMarketSystem';
 
-export type CitizenState = 'WORK'|'TRAVEL'|'GATHER'|'TALK'|'REST'|'CELEBRATE';
+export type CitizenState = 'WORK'|'TRAVEL'|'GATHER'|'TALK'|'REST'|'CELEBRATE'|'EAT';
 export type CitizenRole = 'NAVIGATOR'|'GARDENER'|'ARTISAN'|'KEEPER'|'RANGER';
 
 type Citizen = {
@@ -97,6 +106,14 @@ function createGateVFX(world:EcologyWorld, colorOverride?:number) {
 export class NPCSocietySystem {
   readonly root = new THREE.Group();
   private citizens: Citizen[] = [];
+  private profiles = new Map<string, NPCProfileRecord>();
+  private relationships = new NPCRelationshipNetwork();
+  private inventory = new NPCInventorySystem();
+  private progression = new NPCJobProgressionSystem();
+  private materialDrops = new GridMaterialDropSystem();
+  private production = new NPCProductionSystem(this.materialDrops, this.inventory);
+  private market = new NPCMarketSystem();
+  private marketedProduction = new Set<string>();
   private gates=new Map<EcologyWorld,THREE.Group>();
   private gateBusy=new Map<EcologyWorld,number>();
   private transitTrafficRecorder: ((source:EcologyWorld,destination:EcologyWorld,queueDepth:number)=>void) | null = null;
@@ -105,8 +122,16 @@ export class NPCSocietySystem {
 
   constructor() {
     this.root.name='grid-npc-society';
+    this.root.add(this.materialDrops.root, this.production.root);
     for(const world of getWorlds()) this.registerWorld(world);
     for (const [name,role,world,hx,hz,wx,wz] of CITIZENS) this.spawn(name,role,world,hx,hz,wx,wz);
+    for (let i = 0; i < this.citizens.length; i++) {
+      for (let j = i + 1; j < this.citizens.length; j++) {
+        const a = this.citizens[i], b = this.citizens[j];
+        if (a.world === b.world) this.relationships.connect(a.name, b.name, 'friend', .18);
+        else if (a.role === b.role) this.relationships.connect(a.name, b.name, 'faction', .08);
+      }
+    }
   }
 
   /** Runtime-created worlds receive a gate and a small native society without editing this system. */
@@ -138,6 +163,26 @@ export class NPCSocietySystem {
     root.add(body,head,badge); root.position.set(hx,0,hz);
     const merchant = ['Mara','Sela','Caro','Orin','Rook'].includes(name);
     root.userData={gridObjectKind:'npc',interactable:true,interactionName:name,role,world,combatFaction:'NPC',maxHealth:120,damage:6,merchant,marketWorld:merchant?world:undefined,npcProfileId:merchant?('npc.merchant.'+name.toLowerCase()):undefined,profileAvailable:true,logAvailable:true};
+    const profile = createNPCProfile({
+      id: 'npc.' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      displayName: name,
+      role,
+      archetype: role.toLowerCase(),
+      world,
+      gender: 'unspecified',
+      traits: merchant ? ['merchant', 'social'] : ['citizen', role.toLowerCase()],
+      skills: { [role.toLowerCase()]: 1 },
+      occupation: { title: role, workplaceId: world.toLowerCase() + '-workplace', progression: 0 },
+      home: { world, x: hx, y: 0, z: hz },
+      tags: merchant ? ['merchant'] : ['citizen'],
+    });
+    this.profiles.set(name, profile);
+    this.inventory.seed(profile);
+    root.userData.npcProfile = profile;
+    root.userData.inventory = profile.inventory;
+    root.userData.jobProgression = profile.occupation;
+    root.userData.relationships = () => this.relationships.forNPC(name);
+
     if (merchant) {
       const canopy=new THREE.Mesh(new THREE.ConeGeometry(.62,.38,8),new THREE.MeshStandardMaterial({color:0x263d49,roughness:.6,metalness:.15}));
       canopy.position.y=1.45;
@@ -164,7 +209,7 @@ export class NPCSocietySystem {
     return c.phase%2>.9 ? 'GATHER' : 'WORK';
   }
 
-  update(delta:number,playerX=0,playerZ=0,world:EcologyWorld='HARBOR',event='QUIET',phase='DAY',ecology?:EcologySnapshot,consequences?:WorldConsequenceSnapshot) {
+  update(delta:number,playerX=0,playerZ=0,world:EcologyWorld='HARBOR',event: LivingWorldEventKind='QUIET',phase='DAY',ecology?:EcologySnapshot,consequences?:WorldConsequenceSnapshot,dayFraction?:number) {
     const pressure=consequences?.pressure ?? 0;
     const stability=consequences?.stability ?? 1;
     const now=performance.now()*.001;
@@ -197,7 +242,17 @@ export class NPCSocietySystem {
       c.stateTimer-=delta;
       c.travelTimer-=delta;
       c.gateCooldown=Math.max(0,c.gateCooldown-delta);
-      if (c.travelTimer <= 0) {
+      // Day-cycle routine: each role keeps a data-driven daily rhythm (sleep /
+      // work / meal / leisure). When no dayFraction is passed (older callers),
+      // fall back to the coarse phase string so behavior degrades gracefully.
+      const hourOfDay = dayFraction === undefined
+        ? (phase === 'NIGHT' ? 23 : phase === 'DAWN' ? 6 : phase === 'DUSK' ? 19 : 12)
+        : hourOfDayFromDayFraction(dayFraction);
+      const routinePhase = routinePhaseFor(resolveNpcRoutine(c.role), hourOfDay);
+      c.stateTimer-=delta;
+      c.travelTimer-=delta;
+      c.gateCooldown=Math.max(0,c.gateCooldown-delta);
+      if (c.travelTimer <= 0 && routinePhase !== 'sleep') {
         c.travelTimer = 18 + (c.phase % 11);
         const worlds:EcologyWorld[] = getWorlds().map(candidate=>candidate.id);
         let purpose:'WORK'|'TRADE'|'FESTIVAL'|'EMERGENCY'|'RELATIONSHIP' = 'WORK';
@@ -272,6 +327,26 @@ export class NPCSocietySystem {
           c.state = event.toUpperCase() === 'MARKET' ? 'TALK' : 'WORK';
         }
       }
+      if (c.travelStage === 'IDLE' && c.state !== 'CELEBRATE') {
+        if (routinePhase === 'sleep') c.state = 'REST';
+        else if (routinePhase === 'meal' && c.state !== 'TRAVEL') c.state = 'EAT';
+      }
+      c.energy=Math.max(0,c.energy-delta*(c.state==='WORK'?.012:.005));
+      c.social=Math.max(0,c.social-delta*.006);
+      if(c.state==='REST') c.energy=Math.min(1,c.energy+delta*.045);
+      if(c.state==='EAT') c.energy=Math.min(1,c.energy+delta*.02);
+      if(c.state==='TALK') { c.social=Math.min(1,c.social+delta*.035); talking++; }
+      if(c.state==='WORK') {
+        working++;
+        const profile = this.profiles.get(c.name);
+        if (profile) {
+          this.progression.award(profile, delta * .7);
+          c.root.userData.inventory = profile.inventory;
+          c.root.userData.jobProgression = profile.occupation;
+          if (profile.level > 1) c.root.userData.npcLevel = profile.level;
+        }
+      }
+      if(c.state==='GATHER') gathering++;
       if(c.merchant) {
         c.root.userData.marketPrompt = c.merchantMood === 'WORRIED' ? 'SUPPLIES LOW' : c.merchantMood === 'BUSY' ? 'MARKET ACTIVE' : 'TRADE';
         const sigil = c.root.children.find(child => child instanceof THREE.Mesh && child.geometry instanceof THREE.TorusGeometry) as THREE.Mesh | undefined;
@@ -283,12 +358,6 @@ export class NPCSocietySystem {
         c.root.userData.merchantOpen = c.merchantOpen;
         c.root.userData.marketPrompt = c.merchantOpen ? (c.merchantMood === 'WORRIED' ? 'SUPPLIES LOW' : c.merchantMood === 'BUSY' ? 'MARKET ACTIVE' : 'TRADE') : (c.merchantStress > .72 ? 'RESTOCKING' : 'CLOSED');
       }
-      c.energy=Math.max(0,c.energy-delta*(c.state==='WORK'?.012:.005));
-      c.social=Math.max(0,c.social-delta*.006);
-      if(c.state==='REST') c.energy=Math.min(1,c.energy+delta*.045);
-      if(c.state==='TALK') { c.social=Math.min(1,c.social+delta*.035); talking++; }
-      if(c.state==='WORK') working++;
-      if(c.state==='GATHER') gathering++;
       if(c.travelStage==='APPROACH_GATE'){
         c.state='TRAVEL';
         c.target.copy(c.gatePosition);
@@ -319,7 +388,7 @@ export class NPCSocietySystem {
           c.gateCooldown=10;
         }
       } else {
-        const destination=(c.state==='REST'||c.state==='TALK'||c.state==='CELEBRATE')?c.home:c.workplace;
+        const destination=(c.state==='REST'||c.state==='TALK'||c.state==='CELEBRATE'||c.state==='EAT')?c.home:c.workplace;
         c.target.copy(destination);
       }
       const hit=traversalHit(c.root.position,c.target,.32);
@@ -354,8 +423,35 @@ export class NPCSocietySystem {
       if(gatePulse>0) c.root.userData.gatePulse=Math.max(0,gatePulse-delta*1.8);
       c.root.userData.gateDeparture=false;
       c.root.userData.gateArrival=false;
+      if (c.state === 'TALK') {
+        const nearby = this.citizens
+          .filter(other => other !== c && other.world === c.world)
+          .sort((a, b) => c.root.position.distanceTo(a.root.position) - c.root.position.distanceTo(b.root.position))[0];
+        if (nearby && c.root.position.distanceTo(nearby.root.position) < 7) {
+          this.relationships.interact(c.name, nearby.name, .006, .003);
+        }
+      }
       c.phase+=delta*.5;
     }
+    this.production.update(delta, this.getWorkingCitizens(), this.profiles);
+    for (const item of this.production.getRecent(64)) {
+      if (this.marketedProduction.has(item.id)) continue;
+      const merchant = this.citizens.find(c => c.merchant && c.world === item.worldId);
+      if (!merchant) continue;
+      const merchantProfile = this.profiles.get(merchant.name);
+      if (!merchantProfile) continue;
+      this.market.seedMerchant(merchantProfile, 100);
+      this.market.seedBalance(item.npcId, this.market.getBalance(item.npcId) || 25);
+      const listing = this.market.restockFromProduction(item, merchantProfile.id);
+      merchant.merchantStock += item.quantity;
+      merchant.root.userData.merchantStock = merchant.merchantStock;
+      merchant.root.userData.lastRestock = listing;
+      this.marketedProduction.add(item.id);
+    }
+    this.root.userData.production=this.production.getRecent(32);
+    this.root.userData.marketListings=this.market.getListings(world);
+    this.root.userData.marketTrades=this.market.getTrades(32);
+    this.root.userData.materialDrops=this.materialDrops.getSnapshot();
     const signal=event.toUpperCase()!=='QUIET'?event.toUpperCase():(ecology?.state||'QUIET');
     this.snapshot={population:this.citizens.length,active,working,gathering,talking,world,signal};
     this.root.userData.society=this.snapshot;
@@ -372,5 +468,96 @@ export class NPCSocietySystem {
   setTransitTrafficRecorder(recorder: (source:EcologyWorld,destination:EcologyWorld,queueDepth:number)=>void) { this.transitTrafficRecorder = recorder; }
 
   getSnapshot(){return this.snapshot;}
+  getNPCProfile(name:string){ return this.profiles.get(name); }
+  getRelationships(name:string){ return this.relationships.forNPC(name); }
+  getRelationshipSnapshot(){ return this.relationships.snapshot(); }
+  getNPCInventory(name:string){ const profile=this.profiles.get(name); return profile ? this.inventory.snapshot(profile) : []; }
+  getNPCProduction(limit=25){ return this.production.getRecent(limit); }
+  getMaterialDrops(){ return this.materialDrops.getSnapshot(); }
+  getMarketListings(worldId?:string){ return this.market.getListings(worldId); }
+  getMarketTrades(limit=25){ return this.market.getTrades(limit); }
+  getNPCGridCoin(name:string){ const profile=this.profiles.get(name); return profile ? this.market.getBalance(profile.id) : 0; }
+  buyNPCMarketListing(listingId:string,buyerName:string,quantity=1){
+    const buyer=this.profiles.get(buyerName);
+    if(!buyer) return null;
+    const trade=this.market.buy(listingId,buyer.id,quantity);
+    if(trade){
+      const merchant=this.citizens.find(c=>this.profiles.get(c.name)?.id===trade.sellerId);
+      if(merchant){
+        merchant.merchantStock=Math.max(0,merchant.merchantStock-trade.quantity);
+        merchant.root.userData.merchantStock=merchant.merchantStock;
+      }
+    }
+    return trade;
+  }
+  collectMaterialDrop(id:string){ return this.materialDrops.collect(id); }
+  awardNPCJobXP(name:string, amount:number, skill?:string){ const profile=this.profiles.get(name); return profile ? this.progression.award(profile, amount, skill) : null; }
+  exportPersistentState(worldId?: string) {
+    const citizens = this.citizens.filter(c => !worldId || c.world === worldId).map(c => {
+      const profile = this.profiles.get(c.name);
+      return {
+        name: c.name,
+        world: c.world,
+        state: c.state,
+        energy: c.energy,
+        social: c.social,
+        phase: c.phase,
+        stateTimer: c.stateTimer,
+        travelTimer: c.travelTimer,
+        selectedDestination: c.selectedDestination,
+        travelPurpose: c.travelPurpose,
+        travelWorld: c.travelWorld,
+        travelMode: c.travelMode,
+        travelStage: c.travelStage,
+        position: [c.root.position.x, c.root.position.y, c.root.position.z],
+        profile: profile ? structuredClone(profile) : null,
+      };
+    });
+    return {
+      version: 2,
+      worldId,
+      citizens,
+      relationships: this.relationships.snapshot().filter(r => !worldId || citizens.some(c => c.name === r.sourceId || c.name === r.targetId)),
+    };
+  }
+
+  importPersistentState(raw: unknown, worldId: string) {
+    if (!raw || typeof raw !== 'object') return;
+    const state = raw as Record<string, unknown>;
+    const citizens = Array.isArray(state.citizens) ? state.citizens as Array<Record<string, unknown>> : [];
+    for (const record of citizens) {
+      if (record.world !== worldId || typeof record.name !== 'string') continue;
+      const citizen = this.citizens.find(c => c.name === record.name && c.world === worldId);
+      if (!citizen) continue;
+      if (typeof record.state === 'string') citizen.state = record.state as CitizenState;
+      for (const key of ['energy','social','phase','stateTimer','travelTimer'] as const) {
+        if (typeof record[key] === 'number' && Number.isFinite(record[key])) (citizen as any)[key] = record[key];
+      }
+      if (typeof record.selectedDestination === 'string') citizen.selectedDestination = record.selectedDestination;
+      if (typeof record.travelWorld === 'string') citizen.travelWorld = record.travelWorld;
+      if (typeof record.travelPurpose === 'string') citizen.travelPurpose = record.travelPurpose as Citizen['travelPurpose'];
+      if (typeof record.travelMode === 'string') citizen.travelMode = record.travelMode as Citizen['travelMode'];
+      if (typeof record.travelStage === 'string') citizen.travelStage = record.travelStage as Citizen['travelStage'];
+      if (Array.isArray(record.position) && record.position.length === 3) {
+        const p = record.position.map(Number);
+        if (p.every(Number.isFinite)) citizen.root.position.set(p[0], p[1], p[2]);
+      }
+      if (record.profile && typeof record.profile === 'object') {
+        const profile = record.profile as NPCProfileRecord;
+        this.profiles.set(citizen.name, profile);
+        citizen.root.userData.npcProfile = profile;
+        citizen.root.userData.inventory = profile.inventory;
+        citizen.root.userData.jobProgression = profile.occupation;
+      }
+    }
+    const relationships = Array.isArray(state.relationships) ? state.relationships as NPCRelationship[] : [];
+    for (const rel of relationships) {
+      if (rel.sourceId && rel.targetId) {
+        const restored = this.relationships.connect(rel.sourceId, rel.targetId, rel.kind, 0);
+        if (restored) Object.assign(restored, rel);
+      }
+    }
+  }
+
   getWorkingCitizens(){return this.citizens.filter(c=>c.state==='WORK'||c.state==='GATHER').map(c=>({id:c.name,world:c.world,position:c.root.position.clone(),role:c.role}));}
 }

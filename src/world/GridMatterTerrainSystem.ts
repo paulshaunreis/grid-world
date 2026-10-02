@@ -151,6 +151,21 @@ export class GridMatterTerrainSystem {
     if (event.key.toLowerCase()==='c') this.mode='CARVE';
   };
 
+  serializeWorld(worldId = this.activeWorldId): string[] {
+    if (!worldId) return [];
+    const state = this.worlds.get(worldId);
+    return state ? [...state.cells] : [];
+  }
+
+  restoreWorld(worldId: string, cells: unknown) {
+    const state = this.worlds.get(worldId);
+    if (!state || !Array.isArray(cells)) return;
+    const valid = cells.filter(v => typeof v === 'string' && /^-?\\d+,-?\\d+,-?\\d+$/.test(v as string)) as string[];
+    state.cells = new Set(valid);
+    this.rebuildMesh(state);
+    this.saveWorld(state);
+  }
+
   dispose() {
     this.dom.removeEventListener('pointerdown',this.onPointerDown);
     window.removeEventListener('keydown',this.onKeyDown);

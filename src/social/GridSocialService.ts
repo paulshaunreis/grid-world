@@ -3,6 +3,28 @@ import type {GridContentRating,GridAgeBand} from './GridContentAccess';
 export interface GridSocialProfile{user_id:string;age_band:GridAgeBand;gender_identity:string;pronouns:string;orientation:string;profile_privacy:string;friend_privacy:string;follow_privacy:string;online_status_privacy:string;voice_privacy:string;}
 export class GridSocialService{
   constructor(private readonly client:SupabaseClient){}
+  async publicProfile(userId?:string){
+    const uid=userId??(await this.client.auth.getUser()).data.user?.id;
+    if(!uid)return null;
+    const [{data:profile,error:profileError},{data:presence,error:presenceError},{data:connections,error:connectionError}]=await Promise.all([
+      this.client.from('profiles').select('id,handle,display_name,avatar_image_url,avatar_style,avatar_ready,account_created_at').eq('id',uid).maybeSingle(),
+      this.client.from('grid_account_presence').select('online,world_id,region_id,last_seen_at').eq('user_id',uid).maybeSingle(),
+      this.client.from('grid_social_connections').select('requester_id,target_id,kind,status').or('requester_id.eq.'+uid+',target_id.eq.'+uid),
+    ]);
+    if(profileError)throw profileError;if(presenceError)throw presenceError;if(connectionError)throw connectionError;
+    if(!profile)return null;
+    const rows=connections??[];
+    return {
+      id:String(profile.id),handle:String(profile.handle??''),displayName:String(profile.display_name??profile.handle??'Grid Traveler'),
+      avatarImageUrl:profile.avatar_image_url?String(profile.avatar_image_url):undefined,avatarStyle:profile.avatar_style?String(profile.avatar_style):undefined,
+      avatarReady:Boolean(profile.avatar_ready),accountCreatedAt:String(profile.account_created_at??''),online:Boolean(presence?.online),
+      worldId:presence?.world_id?String(presence.world_id):undefined,regionId:presence?.region_id?String(presence.region_id):undefined,
+      lastSeenAt:presence?.last_seen_at?String(presence.last_seen_at):undefined,
+      friends:rows.filter((x:any)=>x.kind==='friend'&&x.status==='active').length,
+      followers:rows.filter((x:any)=>x.kind==='follow'&&x.status==='active'&&x.target_id===uid).length,
+      following:rows.filter((x:any)=>x.kind==='follow'&&x.status==='active'&&x.requester_id===uid).length,
+    };
+  }
   async preferences(){const {data,error}=await this.client.from('grid_account_social').select('*').maybeSingle();if(error)throw error;return data as GridSocialProfile|null;}
   async savePreferences(input:Omit<GridSocialProfile,'user_id'>){const {data,error}=await this.client.rpc('grid_social_set_preferences',{p_age_band:input.age_band,p_gender_identity:input.gender_identity,p_pronouns:input.pronouns,p_orientation:input.orientation,p_profile_privacy:input.profile_privacy,p_friend_privacy:input.friend_privacy,p_follow_privacy:input.follow_privacy,p_online_status_privacy:input.online_status_privacy,p_voice_privacy:input.voice_privacy});if(error)throw error;return data as GridSocialProfile;}
   async canAccess(rating:GridContentRating){const {data,error}=await this.client.rpc('grid_age_band_allowed',{required_rating:rating});if(error)throw error;return Boolean(data);}

@@ -49,6 +49,7 @@ import { createTeamWorkSystem } from './world/TeamWorkSystem';
 import { GridSecuritySystem } from './core/GridSecuritySystem';
 import { CreatureEcologySystem, type EcologyWorld } from './world/CreatureEcologySystem';
 import { NPCSocietySystem } from './world/NPCSocietySystem';
+import { hourOfDayFromDayFraction, resolveNpcRoutine, routinePhaseFor } from './npc/NpcDailyRoutine';
 import { RelationshipStorySystem } from './world/RelationshipStorySystem';
 import { TraversalSystem } from './world/TraversalSystem';
 import { QuestSystem } from './world/QuestSystem';
@@ -68,7 +69,7 @@ import { WorldEvolutionSystem } from './world/WorldEvolutionSystem';
 import { EvolutionaryPopulationSystem } from './world/EvolutionaryPopulationSystem';
 import { EcologicalWebSystem } from './world/EcologicalWebSystem';
 import { EcologicalInteractionSystem } from './world/EcologicalInteractionSystem';
-import { getWorlds, getWorldConnections } from './world/GridWorldRegistry';
+import { getWorld, getWorlds, getWorldConnections, connectWorld, registerNetworkWorld } from './world/GridWorldRegistry';
 import { GridChakraSystem } from './world/GridChakraSystem';
 import { GridAlchemySystem } from './world/GridAlchemySystem';
 import { GridKarmaSystem } from './world/GridKarmaSystem';
@@ -79,6 +80,10 @@ import { mountGridEconomyPanel } from './ui/GridEconomyPanel';
 import { GridAuthService } from './auth/GridAuthService';
 import { mountGridAuthPanel } from './ui/GridAuthPanel';
 import { GridSocialService } from './social/GridSocialService';
+import { GridProfileService } from './social/GridProfileService';
+import { GridProfileAuthority } from './social/GridProfileAuthority';
+import { GridWorldAuthority } from './social/GridWorldAuthority';
+import { GridWorldContentAuthority } from './social/GridWorldContentAuthority';
 import { mountGridCommunityPanel } from './ui/GridCommunityPanel';
 import { GridVoiceModifierSystem } from './audio/GridVoiceModifierSystem';
 import type { GridAgeBand } from './social/GridContentAccess';
@@ -95,6 +100,9 @@ import { GridTeleportInviteAuthority } from './social/GridTeleportInviteAuthorit
 import { mountGridTeleportInvitePanel, openTeleportDestinationPicker } from './ui/GridTeleportInvitePanel';
 import './ui/grid-teleport-invites.css';
 import { mountGridLandmarkInventory } from './ui/GridLandmarkInventory';
+import { mountGridTargetProfile, showNPCProfile } from './ui/GridTargetProfile';
+import './ui/grid-target-profile.css';
+
 import './ui/grid-landmark-inventory.css';
 import { mountGridPartyHud } from './ui/GridPartyHud';
 import { mountGridPartyInvitePanel } from './ui/GridPartyInvitePanel';
@@ -127,6 +135,13 @@ const worldSnapshotManager = new GridWorldSnapshotManager('first-light');
 const cloudPersistence = supabaseConfigured ? new SupabasePersistence(SUPABASE_URL!, SUPABASE_PUBLISHABLE_KEY!) : null;
 const socialAuthority = supabaseConfigured ? new GridSocialAuthority(cloudPersistence!.getClient()) : null;
 const friendSystem = new GridFriendSystem();
+const profileService = cloudPersistence ? new GridProfileService(cloudPersistence.getClient()) : null;
+const profileAuthority = cloudPersistence ? new GridProfileAuthority(cloudPersistence.getClient()) : null;
+const gridWorldAuthority = cloudPersistence ? new GridWorldAuthority(cloudPersistence.getClient()) : null;
+const gridWorldContentAuthority = cloudPersistence ? new GridWorldContentAuthority(cloudPersistence.getClient()) : null;
+const persistentWorldIds = new Set<string>();
+let activePersistentContentWorldId: string | null = null;
+let persistentContentSaveTimer = 0;
 const partySystem = cloudPersistence ? new GridPartySystem(cloudPersistence.getClient()) : null;
 const partyHud = mountGridPartyHud(cloudPersistence?.getClient());
 const teleportExperience = mountTeleportExperience();
@@ -134,8 +149,18 @@ const teleportInviteAuthority = cloudPersistence ? new GridTeleportInviteAuthori
 const partyInviteAuthority = cloudPersistence ? new GridPartyInviteAuthority(cloudPersistence.getClient()) : null;
 let invitePanel:ReturnType<typeof mountGridTeleportInvitePanel>|null=null;
 const teleportPreviewUrlForDestination=(destination:{id:string})=>{const world=(destination.id.match(/^world-gate:(.+)$/)?.[1]??destination.id).toLowerCase();return '/worlds/'+world+'.svg';};
-const landmarkAuthority = cloudPersistence ? new GridLandmarkAuthority(cloudPersistence.getClient()) : null;
-if (landmarkAuthority) mountGridLandmarkInventory(landmarkAuthority);
+const landmarkAuthority = cloudPersistence ? new GridLandmarkAuthority(cloudPersistence.getClient(), (item) => {
+  void recordGridActivity('LANDMARK_SAVE','Saved destination','Saved '+item.label+' to your '+item.itemType.toLowerCase()+' collection.',String(livingWorld.getSnapshot().world),'first-light',{itemType:item.itemType,label:item.label,landmarkId:item.landmarkId??null});
+}) : null;
+if (landmarkAuthority) {
+  mountGridLandmarkInventory(landmarkAuthority);
+  window.addEventListener('grid:landmark-select', (event) => {
+    const item = (event as CustomEvent).detail as { label?:string; itemType?:string; metadata?:Record<string,unknown> } | undefined;
+    if (!item) return;
+    void recordGridActivity('LANDMARK_USE','Landmark selected', 'Selected '+(item.label ?? 'a saved destination')+' from the '+(item.itemType ?? 'LANDMARK').toLowerCase()+' inventory.', String(livingWorld.getSnapshot().world), 'first-light', { itemType:item.itemType ?? 'LANDMARK', label:item.label ?? '' });
+  });
+}
+const targetProfilePanel = mountGridTargetProfile();
 
 
 type HudTheme = 'cyan' | 'violet' | 'magenta' | 'emerald' | 'amber' | 'white';
@@ -265,6 +290,17 @@ const voiceTargetButton = document.querySelector<HTMLButtonElement>('#voice-targ
 const voice = new GridVoiceSystem();
 const audio = new GridAudioSystem();
 const voiceModifier = new GridVoiceModifierSystem();
+let lastProfileActivityWorld:string|null=null;
+let lastProfileActivityKills=0;
+let lastProfileActivityResourceAt=0;
+let lastProfileActivityConsequenceId='';
+let lastProfileActivityQuestCompleted=0;
+let lastProfileActivityBuildVersion=-1;
+let lastProfileActivityPartySize=0;
+async function recordGridActivity(kind:string,title:string,body:string,worldId?:string,regionId?:string,metadata:Record<string,unknown>={}) {
+  if (!profileAuthority) return;
+  try { await profileAuthority.recordActivity({kind,title,body,worldId,regionId,metadata}); } catch (error) { console.warn('Grid profile activity unavailable.',error); }
+}
 
 function addChatMessage(sender: string, message: string, kind: 'player' | 'system' | 'team' = 'player') {
   if (kind !== 'player') audio.play('chat.receive');
@@ -512,6 +548,62 @@ const gridChakras = new GridChakraSystem();
 const gridAlchemy = new GridAlchemySystem();
 const gridKarma = new GridKarmaSystem();
 world.scene.add(gridMinerals.root);
+async function persistFactoryWorld(result: ReturnType<typeof createWorldFromDescription>) {
+  if (!gridWorldAuthority) return false;
+  try {
+    await cloudReady;
+    const saved = await gridWorldAuthority.create(result.world);
+    if (!saved) return false;
+    persistentWorldIds.add(result.world.id);
+    await recordGridActivity(
+      'WORLD_CREATE',
+      'Created a world',
+      'Created ' + result.world.label + ' from Creator Studio and saved it to the Grid World registry.',
+      result.world.id,
+      'first-light',
+      { worldId: result.world.id, name: result.world.label, description: result.world.description, inferredTags: result.inferredTags, persistent: true },
+    );
+    addChatMessage('WORLD REGISTRY', result.world.label + ' is now persistent and available for re-entry.', 'system');
+    return true;
+  } catch (error) {
+    console.warn('Persistent world save unavailable; runtime world remains active.', error);
+    addChatMessage('WORLD REGISTRY', result.world.label + ' is active locally, but cloud persistence is unavailable.', 'system');
+    return false;
+  }
+}
+
+async function hydratePersistentWorlds() {
+  if (!gridWorldAuthority) return;
+  try {
+    await cloudReady;
+    const rows = await gridWorldAuthority.listPublic();
+    for (const row of rows) {
+      const definition = GridWorldAuthority.toDefinition(row);
+      persistentWorldIds.add(definition.id);
+      const world = registerNetworkWorld(definition);
+      for (const other of getWorlds()) {
+        if (other.id === world.id) continue;
+        connectWorld(world.id, other.id);
+        connectWorld(other.id, world.id);
+      }
+      registerWorldTransitNode(definition);
+      teleportSystem.syncWorldConnections();
+      worldArchitecture.rebuild();
+      worldEnvironment.rebuild();
+      creatureEcology.registerWorld(definition);
+      worldResources.registerWorld(definition);
+      gridMinerals.registerWorld(definition);
+      npcSociety.registerWorld(definition);
+      worldEvolution.registerWorld(definition.id);
+      evolutionaryPopulations.registerWorld(definition.id);
+      ecologicalWeb.registerWorld(definition.id);
+    }
+    if (rows.length) addChatMessage('WORLD REGISTRY', rows.length + ' persistent world' + (rows.length === 1 ? '' : 's') + ' synchronized for re-entry.', 'system');
+  } catch (error) {
+    console.warn('Persistent world registry unavailable; continuing with local worlds.', error);
+  }
+}
+
 const createFactoryWorld = (name: string, description: string) => {
   const result = createWorldFromDescription({ name, description });
   connectFactoryWorldToAll(result);
@@ -603,11 +695,77 @@ const operatorService = cloudPersistence ? new GridOperatorService(cloudPersiste
 const operatorPresence = new GridOperatorPresence(operatorService, voice, questSystem, () => { const snap = livingWorld.getSnapshot(); return { world: String(snap.world), event: String(snap.event) }; }, (sender, message) => addChatMessage(sender, message, 'system'));
 const operatorButton = document.querySelector<HTMLButtonElement>('[data-tool="operator"]');
 operatorButton?.addEventListener('click', () => operatorPresence.toggle());
-mountWorldAtlas(() => ({ world: (livingWorld.getSnapshot().world as EcologyWorld), event: livingWorld.getSnapshot().event, consequences: worldConsequences.getSnapshot(), resources: worldResources.getSnapshot(), inventory: worldResources.getInventory(), market: marketQuotes, transit: teleportSystem.trafficSnapshot() }));
+const enterWorldFromAtlas = (worldId:string) => {
+  const currentWorld = String(livingWorld.getSnapshot().world);
+  if (worldId === currentWorld) {
+    addChatMessage('GRID TRANSIT', 'You are already in ' + (getWorld(worldId)?.label ?? worldId) + '.', 'system');
+    return;
+  }
+  const sourceNodeId = 'world-gate:' + currentWorld.toLowerCase();
+  const destinationId = 'world-gate:' + worldId.toLowerCase();
+  const sourceNode = teleportSystem.get(sourceNodeId);
+  const destinationNode = teleportSystem.get(destinationId);
+  if (!sourceNode || !destinationNode) {
+    addChatMessage('GRID TRANSIT', 'That world is not currently linked into the live transit network.', 'system');
+    audio.play('ui.error');
+    return;
+  }
+  const result = teleportSystem.request({
+    actorId: cloudIdentity.id,
+    nodeId: sourceNodeId,
+    destinationId,
+    nowSeconds: performance.now() / 1000,
+    relationship: 'public',
+    ageBand: accountAgeBand,
+  });
+  if (!result.ok || !result.destination) {
+    addChatMessage('GRID TRANSIT', 'Grid Omni could not authorize that route: ' + result.reason + '.', 'system');
+    audio.play('ui.error');
+    return;
+  }
+  const destination = result.destination;
+  teleportExperience.show(destination, 'departing');
+  createTeleportAvatarEffect(player.avatar, 850);
+  teleportSystem.recordTraffic(sourceNodeId, destination.id);
+  addChatMessage('GRID TRANSIT', 'Route locked: ' + destination.displayName + '. Destination preview loaded; transit engaged.', 'system');
+  audio.play('world.portal', .8);
+  window.setTimeout(() => {
+    const arrival = new THREE.Vector3(destination.position.x, Math.max(0, destination.position.y), destination.position.z);
+    const backward = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), destination.yaw);
+    arrival.addScaledVector(backward, Math.max(2.5, destination.clearanceRadius));
+    player.restoreTransform({ x: arrival.x, y: arrival.y, z: arrival.z, yaw: destination.yaw });
+    teleportExperience.show(destination, 'arriving');
+    createTeleportAvatarEffect(player.avatar, 700);
+    audio.play('world.portal', 1);
+    addChatMessage('GRID TRANSIT', 'Arrived at ' + destination.displayName + '. Persistent world re-entry complete.', 'system');
+    void recordGridActivity('WORLD_VISIT', 'Entered world', 'Entered persistent world ' + destination.displayName + ' from the Grid Atlas.', worldId, 'first-light', { worldId, persistent: true, reentry: true });
+    if (cloudPersistence) {
+      void cloudPersistence.getClient().from('grid_teleport_events').insert({
+        actor_id: cloudIdentity.id,
+        source_node_id: sourceNodeId,
+        destination_node_id: destination.id,
+        result: 'teleported',
+      });
+    }
+  }, 850);
+};
+
+mountWorldAtlas(
+  () => ({
+    world: (livingWorld.getSnapshot().world as EcologyWorld),
+    event: livingWorld.getSnapshot().event,
+    consequences: worldConsequences.getSnapshot(),
+    resources: worldResources.getSnapshot(),
+    inventory: worldResources.getInventory(),
+    market: marketQuotes,
+    transit: teleportSystem.trafficSnapshot(),
+  }),
+  enterWorldFromAtlas,
+);
 marketPanel = mountMarketPanel(() => worldResources.getInventory(), () => marketQuotes, () => combatAuthority);
 const gridEconomyPanel = mountGridEconomyPanel(() => combatAuthority);
 const gridSocialService = cloudPersistence ? new GridSocialService(cloudPersistence.getClient()) : null;
-const gridCommunityPanel = gridSocialService ? mountGridCommunityPanel(gridSocialService, voiceModifier, { displayName: identity.displayName, id: identity.id, createdAt: identity.createdAt }) : null;
+const gridCommunityPanel = gridSocialService ? mountGridCommunityPanel(gridSocialService, voiceModifier, { displayName: identity.displayName, id: identity.id, createdAt: identity.createdAt }, gridWorldContentAuthority ? { authority: gridWorldContentAuthority, getWorldId: () => String(livingWorld.getSnapshot().world) } : undefined) : null;
 void gridSocialService?.setPresence(false).catch(()=>undefined);
 const gridSocialButton = document.querySelector<HTMLButtonElement>('[data-tool="social"]');
 gridSocialButton?.addEventListener('click',()=>gridCommunityPanel?.open());
@@ -1124,6 +1282,7 @@ const cloudReady = cloudPersistence
 
       if (authenticated) {
         easyBuildSystem.setOwnerUserId(cloudIdentity.id);
+        await syncBuildAccessRole(String(livingWorld.getSnapshot().world));
         combatAuthority = new GridCombatAuthority(cloudPersistence.getClient());
         void refreshMarketQuotes();
         presence?.setIdentity(cloudIdentity);
@@ -1157,6 +1316,8 @@ const cloudReady = cloudPersistence
       return authenticated;
     })()
   : Promise.resolve(false);
+
+void hydratePersistentWorlds();
 
 // Render locally first. Cloud persistence is optional and must never prevent the 3D world from booting.
 const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.1, 500);
@@ -1432,6 +1593,87 @@ window.setInterval(() => {
 
 const gridMatterTerrain = new GridMatterTerrainSystem(camera, renderer.domElement);
 world.scene.add(gridMatterTerrain.root);
+
+async function savePersistentWorldContent(worldId: string) {
+  if (!gridWorldContentAuthority || !persistentWorldIds.has(worldId) || !cloudAuthenticated) return;
+  try {
+    const npcState = npcSociety.exportPersistentState(worldId);
+    const creatureState = creatureEcology.exportPersistentState(worldId);
+    const questState = questSystem.exportState();
+    const builds = easyBuildSystem.serialize().map(build => ({
+      objectId: build.objectId,
+      definitionId: build.id,
+      position: build.position,
+      rotation: build.rotation,
+      scale: build.scale,
+      ownerUserId: build.ownerUserId || cloudIdentity.id,
+    }));
+    await gridWorldContentAuthority.save({
+      worldId,
+      builds,
+      terrain: gridMatterTerrain.serializeWorld(worldId),
+      quests: {},
+      consequences: worldConsequences.exportState(),
+      npcState: [npcState as unknown as Record<string, unknown>],
+      creatureState: [creatureState as unknown as Record<string, unknown>],
+      metadata: { savedAt: new Date().toISOString(), version: 2 },
+    });
+    await gridWorldContentAuthority.savePlayerState(
+      worldId,
+      questState as unknown as Record<string, unknown>,
+      Array.isArray(questState.interacted) ? questState.interacted as string[] : [],
+      { savedAt: new Date().toISOString(), version: 2 },
+    );
+  } catch (error) {
+    console.warn('Persistent world content save unavailable.', error);
+  }
+}
+
+async function syncBuildAccessRole(worldId: string) {
+  if (!cloudAuthenticated || !persistentWorldIds.has(worldId) || !gridWorldContentAuthority) {
+    easyBuildSystem.setAccessRole('owner');
+    return;
+  }
+  try {
+    const role = await gridWorldContentAuthority.getRole(worldId);
+    easyBuildSystem.setAccessRole(role);
+    if (!role) addChatMessage('GRID BUILDER', 'You have no build permissions in this world.', 'system');
+  } catch (error) {
+    easyBuildSystem.setAccessRole('viewer');
+    console.warn('Build role lookup unavailable.', error);
+  }
+}
+
+async function loadPersistentWorldContent(worldId: string) {
+  if (!gridWorldContentAuthority || !persistentWorldIds.has(worldId)) return;
+  try {
+    const [content, playerState] = await Promise.all([
+      gridWorldContentAuthority.load(worldId),
+      gridWorldContentAuthority.loadPlayerState(worldId),
+    ]);
+    gridMatterTerrain.setActiveWorld(worldId);
+    gridMatterTerrain.restoreWorld(worldId, content?.terrain ?? []);
+    easyBuildSystem.restore(content?.builds ?? []);
+    if (content?.consequences) worldConsequences.importState(content.consequences);
+    if (content?.npcState?.[0]) npcSociety.importPersistentState(content.npcState[0], worldId);
+    if (content?.creatureState?.[0]) creatureEcology.importPersistentState(content.creatureState[0], worldId);
+    if (playerState?.quests) questSystem.importState(playerState.quests);
+    activePersistentContentWorldId = worldId;
+    await syncBuildAccessRole(worldId);
+    addChatMessage('WORLD STATE', 'Restored persistent content for ' + (getWorld(worldId)?.label ?? worldId) + '.', 'system');
+  } catch (error) {
+    console.warn('Persistent world content restore unavailable.', error);
+  }
+}
+
+async function syncPersistentWorldContent(worldId: string) {
+  if (activePersistentContentWorldId === worldId) return;
+  if (activePersistentContentWorldId) await savePersistentWorldContent(activePersistentContentWorldId);
+  activePersistentContentWorldId = null;
+  if (persistentWorldIds.has(worldId)) await loadPersistentWorldContent(worldId);
+  else { easyBuildSystem.restore([]); await syncBuildAccessRole(worldId); }
+}
+
 easyBuildSystem.attach(camera, world.scene, renderer.domElement);
 
 const creatorStudio = mountCreatorStudio({
@@ -1439,7 +1681,10 @@ const creatorStudio = mountCreatorStudio({
     setMode: mode => gridMatterTerrain.setMode(mode),
     setEnabled: enabled => gridMatterTerrain.setEnabled(enabled),
   },
-  onCreateWorld: createFactoryWorld,
+  onCreateWorld: (name, description) => {
+    const result = createFactoryWorld(name, description);
+    void persistFactoryWorld(result);
+  },
   onMessage: message => addChatMessage('CREATOR STUDIO', message, 'system'),
   security: gridSecurity,
   subjectId: identity.id,
@@ -1534,6 +1779,8 @@ function openIdentityPanel() {
   identityName.focus();
   identityName.select();
 }
+
+window.addEventListener('grid:open-identity', () => openIdentityPanel());
 
 function closeIdentityPanel() {
   identityPanel.classList.remove('open');
@@ -1634,6 +1881,10 @@ function savePlayer() {
   if (cloudPersistence && cloudAuthenticated) {
     const buildVersion = Number(easyBuildSystem.root.userData.buildStateVersion ?? 0);
     if (buildVersion !== cloudBuildVersion) {
+      if (lastProfileActivityBuildVersion >= 0 && buildVersion !== lastProfileActivityBuildVersion) {
+        void recordGridActivity('BUILD','Created or changed a build','Updated a structure or object in First Light.',''+livingWorld.getSnapshot().world,'first-light',{buildVersion});
+      }
+      lastProfileActivityBuildVersion = buildVersion;
       const builds = easyBuildSystem.serialize().map(build => ({ objectId: build.objectId, definitionId: build.id, position: build.position as [number,number,number], rotation: build.rotation as [number,number,number], scale: build.scale as [number,number,number], ownerUserId: typeof (build as any).ownerUserId === 'string' ? (build as any).ownerUserId : cloudIdentity.id }));
       cloudPersistence.saveBuilds(cloudIdentity, 'first-light', 'first-light', builds).then(() => {
         cloudBuildVersion = buildVersion;
@@ -1888,6 +2139,50 @@ addEventListener('keydown', event => {
   }
 });
 
+addEventListener('keydown', (event) => {
+  if (event.code !== 'KeyP' || event.repeat) return;
+  const target = interaction.findTarget();
+  if (!target) return;
+  const profile = target.object.userData.npcProfile as import('./world/NPCProfile').NPCProfileRecord | undefined;
+  const getRelationships = target.object.userData.relationships as (() => Array<{kind?:string;otherId?:string;affinity?:number;trust?:number}>) | undefined;
+  if (profile) {
+    showNPCProfile(profile, getRelationships?.() ?? []);
+    prompt.textContent = 'P · PROFILE OPEN';
+    audio.play('ui.focus');
+    return;
+  }
+  const remoteId = target.object.userData.remotePlayerId ? String(target.object.userData.remotePlayerId) : null;
+  if (!remoteId || !profileService) return;
+  void profileService.get(remoteId).then(async publicProfile => {
+    if (!publicProfile) return;
+    const state=await profileService.connectionState(remoteId);
+    showNPCProfile({
+      id:publicProfile.id,
+      displayName:publicProfile.displayName,
+      role:'PLAYER',
+      archetype:'player',
+      world:publicProfile.worldId ?? 'UNKNOWN',
+      gender:'unspecified',
+      level:1,
+      experience:0,
+      traits:[publicProfile.online?'ONLINE':'OFFLINE'],
+      skills:{},
+      occupation:{title:'Grid Citizen',progression:0},
+      home:{world:publicProfile.worldId ?? 'UNKNOWN',x:0,y:0,z:0},
+      memories:[],
+      relationshipIds:[],
+      factionIds:[],
+      inventory:[],
+      tags:publicProfile.handle ? ['@'+publicProfile.handle] : []
+    },[],{
+      onFriend:()=>void socialAuthority?.requestFriend(remoteId).then(()=>addChatMessage('SOCIAL','Friend request sent.','system')).catch(()=>addChatMessage('SOCIAL','Friend request could not be sent.','system')),
+      onFollow:()=>void gridSocialService?.toggleConnection(remoteId,'follow').then(active=>addChatMessage('SOCIAL',active?'Now following '+publicProfile.displayName+'.':'Unfollowed '+publicProfile.displayName+'.','system')).catch(()=>addChatMessage('SOCIAL','Follow action could not be completed.','system')),
+      onMessage:()=>{chatInput.focus();chatInput.value='@'+(publicProfile.handle??remoteId)+' ';}, onPublicProfile:()=>{ const handle=publicProfile.handle??remoteId; window.open('/profile.html?handle='+encodeURIComponent(handle),'_blank','noopener,noreferrer'); }
+    });
+    prompt.textContent = 'P · PROFILE OPEN';
+    if(state.friend) addChatMessage('SOCIAL','You are already friends with '+publicProfile.displayName+'.','system');
+  }).catch(()=>addChatMessage('SOCIAL','Public profile is unavailable right now.','system'));
+});
 addEventListener('beforeunload', savePlayer);
 addEventListener('beforeunload', () => { presence?.disconnect().catch(() => undefined); });
 
@@ -1944,9 +2239,21 @@ function animate(now: number) {
     if (mineralSyncTimer >= 8) { mineralSyncTimer = 0; void syncGridMinerals(); }
     if(merchantRefreshTimer > 12) { merchantRefreshTimer = 0; void refreshMerchantMarket(); }
   const livingSnapshot = livingWorld.getSnapshot();
+  const questSnapshot = questSystem.getSnapshot();
+  if (questSnapshot.completed > lastProfileActivityQuestCompleted) {
+    const completed = questSnapshot.completed - lastProfileActivityQuestCompleted;
+    lastProfileActivityQuestCompleted = questSnapshot.completed;
+    void recordGridActivity('QUEST_COMPLETE','Quest completed','Completed '+completed+' quest'+(completed===1?'':'s')+' in '+String(livingSnapshot.world)+'.',String(livingSnapshot.world),'first-light',{completed,totalCompleted:questSnapshot.completed,reward:questSnapshot.reward});
+  }
   gridChakras.update(dt, []);
-  gridMatterTerrain.setActiveWorld(String(livingSnapshot.world));
+  const activeWorldId = String(livingSnapshot.world);
+  gridMatterTerrain.setActiveWorld(activeWorldId);
   gridMatterTerrain.rebuild();
+  if (activePersistentContentWorldId !== activeWorldId) void syncPersistentWorldContent(activeWorldId);
+  if (persistentWorldIds.has(activeWorldId)) {
+    persistentContentSaveTimer += dt;
+    if (persistentContentSaveTimer >= 20) { persistentContentSaveTimer = 0; void savePersistentWorldContent(activeWorldId); }
+  }
   gridMinerals.update(dt, livingSnapshot.world as EcologyWorld);
   const consequenceSnapshot = worldConsequences.getSnapshot();
   creatureEcology.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, consequenceSnapshot, undefined, { weather: livingSnapshot.weather, temperatureC: livingSnapshot.temperatureC, windX: livingSnapshot.windX, windZ: livingSnapshot.windZ, season: livingSnapshot.season });
@@ -2039,7 +2346,19 @@ function animate(now: number) {
       creatureAttackTimer=0;
     }
   }
-  npcSociety.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, ecologySnapshot, consequenceSnapshot);
+  // Day-cycle for NPCs: fraction of the real-world 24h day, matching the living-world phase clock.
+  const npcDayFraction = ((((Date.now() / 1000) % 86400) + 86400) % 86400) / 86400;
+  npcSociety.update(dt, player.avatar.position.x, player.avatar.position.z, livingSnapshot.world as EcologyWorld, livingSnapshot.event, livingSnapshot.phase, ecologySnapshot, consequenceSnapshot, npcDayFraction);
+  if (lastProfileActivityWorld !== String(livingSnapshot.world)) {
+    const enteredWorld = String(livingSnapshot.world);
+    lastProfileActivityWorld = enteredWorld;
+    void recordGridActivity('WORLD_VISIT','Entered '+enteredWorld,'Explored '+enteredWorld+' in the living Grid.',enteredWorld,'first-light',{event:livingSnapshot.event,phase:livingSnapshot.phase});
+  }
+  const latestPlayerConsequence = worldConsequences.getRecentHistory().filter(item => item.kind === 'PLAYER_DISCOVERY').at(-1);
+  if (latestPlayerConsequence && latestPlayerConsequence.id !== lastProfileActivityConsequenceId) {
+    lastProfileActivityConsequenceId = latestPlayerConsequence.id;
+    void recordGridActivity('DISCOVERY','Discovery recorded',latestPlayerConsequence.text,String(latestPlayerConsequence.world),'first-light',{consequenceId:latestPlayerConsequence.id,event:latestPlayerConsequence.event});
+  }
   guardCommandSystem.ensureDefaults(String(livingSnapshot.world));
   npcMaterialDropTimer += dt;
   const societySnapshot = npcSociety.getSnapshot();
@@ -2052,13 +2371,14 @@ function animate(now: number) {
   combatSystem.syncScene(world.scene);
   combatSystem.update(dt, identity.id);
   const combatSnapshot = combatSystem.getSnapshot();
-  if (partySystem && performance.now()/1000-lastPartyPoll>3) { lastPartyPoll=performance.now()/1000; void partySystem.current().then(members=>{partyHud.update(members, Object.fromEntries(regionCollaborators.map(p=>[p.id,p.displayName]))); partyControlButton.style.display=members.some(m=>m.userId===cloudIdentity.id)?'block':'none';}).catch(()=>undefined); }
+  if (partySystem && performance.now()/1000-lastPartyPoll>3) { lastPartyPoll=performance.now()/1000; void partySystem.current().then(members=>{partyHud.update(members, Object.fromEntries(regionCollaborators.map(p=>[p.id,p.displayName]))); partyControlButton.style.display=members.some(m=>m.userId===cloudIdentity.id)?'block':'none'; if (members.length !== lastProfileActivityPartySize) { if (lastProfileActivityPartySize > 0 || members.length > 1) void recordGridActivity('PARTY','Party roster changed',members.length > 1 ? 'Party now has '+members.length+' members.' : 'Party roster returned to solo.',String(livingSnapshot.world),'first-light',{partySize:members.length}); lastProfileActivityPartySize=members.length; }}).catch(()=>undefined); }
   if (partySystem && performance.now()/1000-lastPartyDestinationPoll>1) { lastPartyDestinationPoll=performance.now()/1000; void partyDestinationTick(); }
   if (presence && performance.now()/1000-lastVitalsPublish>1) { lastVitalsPublish=performance.now()/1000; void presence.update(player.getTransform(), { health:combatSnapshot.playerHealth, maxHealth:combatSnapshot.playerMaxHealth, regionRole:currentBuildRole }); }
   questSystem.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, societySnapshot, player.avatar.position.x, player.avatar.position.z);
   if (combatSnapshot.kills > lastCombatKills) {
     const defeated = combatSnapshot.kills - lastCombatKills;
     lastCombatKills = combatSnapshot.kills;
+    void recordGridActivity('COMBAT','Combat victory','Defeated '+defeated+' hostile target'+(defeated===1?'':'s')+' in '+String(livingSnapshot.world)+'.',String(livingSnapshot.world),'first-light',{kills:combatSnapshot.kills,defeated});
     for (let dropIndex=0; dropIndex<defeated; dropIndex++) {
       materialDropSystem.createDrop('creature-'+combatSnapshot.kills+'-'+dropIndex,'CREATURE',String(livingSnapshot.world),player.avatar.position.clone().add(new THREE.Vector3((Math.random()-.5)*1.6,.35,(Math.random()-.5)*1.6)),combatSnapshot.kills+dropIndex);
     }
@@ -2181,7 +2501,7 @@ function animate(now: number) {
   const hudWorldState = document.querySelector<HTMLElement>('#hud-world-state');
   const hudWorldSignal = document.querySelector<HTMLElement>('#hud-world-signal');
   if (hudWorldState) hudWorldState.textContent = livingSnapshot.world + ' · ' + livingSnapshot.phase + ' · ' + livingSnapshot.season;
-  if (hudWorldSignal) hudWorldSignal.textContent = livingSnapshot.event + ' · ' + livingSnapshot.weather + ' · ' + Math.round(livingSnapshot.temperatureC) + '°C · HUM ' + Math.round(livingSnapshot.humidity*100) + '% · ' + ecologySnapshot.active + '/' + ecologySnapshot.population + ' CREATURES · ' + societySnapshot.working + ' WORKING · ' + societySnapshot.talking + ' TALKING · ' + storySnapshot.activeStories + ' STORIES · STABILITY ' + Math.round(consequenceSnapshotAfterUpdate.stability*100) + '% · ECO GEN ' + evolutionState.generation + ' · EVOLUTION ' + (evolutionaryPopulations.get(livingSnapshot.world as EcologyWorld)?.generation ?? 1) + ' · FOOD WEB ' + ecologicalWebSnapshot.map(population => population.role + ' ' + Math.round(population.health*100) + '%').join(' / ');
+  if (hudWorldSignal) hudWorldSignal.textContent = livingSnapshot.eventFlavor + ' · ' + livingSnapshot.weather + ' · ' + Math.round(livingSnapshot.temperatureC) + '°C · HUM ' + Math.round(livingSnapshot.humidity*100) + '% · ' + ecologySnapshot.active + '/' + ecologySnapshot.population + ' CREATURES · ' + societySnapshot.working + ' WORKING · ' + societySnapshot.talking + ' TALKING · ' + storySnapshot.activeStories + ' STORIES · STABILITY ' + Math.round(consequenceSnapshotAfterUpdate.stability*100) + '% · ECO GEN ' + evolutionState.generation + ' · EVOLUTION ' + (evolutionaryPopulations.get(livingSnapshot.world as EcologyWorld)?.generation ?? 1) + ' · FOOD WEB ' + ecologicalWebSnapshot.map(population => population.role + ' ' + Math.round(population.health*100) + '%').join(' / ');
   artDirector.update(dt, player.avatar.position.x, player.avatar.position.z);
   worldSkins.update(dt, player.avatar.position.x, player.avatar.position.z);
   worldArchitecture.update(dt);
@@ -2190,7 +2510,7 @@ function animate(now: number) {
   foundationLayer.update(dt, frame.elapsedSeconds);
   for (const remote of remotePlayers.values()) remote.update(dt);
   for (const avatar of teamAvatars) avatar.update(dt);
-  for (const actor of crowdActors) actor.update(dt);
+  for (const actor of crowdActors) actor.update(dt, { routinePhase: routinePhaseFor(resolveNpcRoutine(), hourOfDayFromDayFraction(npcDayFraction)) });
   for (const pylon of omniLayer.pylons) pylon.update(dt);
   const transitTime = performance.now() / 1000;
   for (const visual of teleportVisuals) {

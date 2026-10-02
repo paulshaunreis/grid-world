@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { createStarterPBRMaterial } from '../engine/GridPBRLibrary';
 import { GridNpcBrain, type GridNpcPersonality } from '../npc/GridNpcBrain';
+import type { NpcRoutinePhase } from '../npc/NpcDailyRoutine';
 
 export type GridActorKind = 'npc' | 'animal' | 'user-test';
 
@@ -97,7 +98,7 @@ export class GridCrowdActor {
     }));
   }
 
-  update(delta: number) {
+  update(delta: number, options?: { routinePhase?: NpcRoutinePhase }) {
     this.phase += delta;
     this.targetTimer -= delta;
     if (this.targetTimer <= 0) {
@@ -109,7 +110,7 @@ export class GridCrowdActor {
       );
     }
 
-    this.brain.update(delta, { isDaytime: true, safe: true, hasWork: this.definition.kind === 'npc', hasFood: true });
+    this.brain.update(delta, { isDaytime: true, safe: true, hasWork: this.definition.kind === 'npc', hasFood: true, routinePhase: options?.routinePhase });
     const action = this.brain.state.currentAction;
     const speed = (this.definition.speed ?? .55) * (action === 'rest' ? .15 : action === 'work' ? 1 : action === 'explore' ? 1.2 : .75);
     const dx = this.target.x - this.group.position.x;

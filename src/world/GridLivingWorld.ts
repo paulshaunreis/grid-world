@@ -10,7 +10,13 @@ interface LivingPlant { root: THREE.Group; sway: number; }
 interface LivingCreature { root: THREE.Group; phase: number; radius: number; speed: number; center: THREE.Vector3; habitat: 'HARBOR' | 'GARDENS' | 'CITADEL' | 'ARTS' | 'WILDS'; }
 export type LivingSeason = 'SPRING' | 'SUMMER' | 'AUTUMN' | 'WINTER';
 export type LivingWeather = 'CLEAR' | 'CLOUDY' | 'RAIN' | 'MIST' | 'STORM' | 'SNOW' | 'AURORA' | 'BLOOM' | 'WIND';
-export interface LivingWorldSnapshot { world: string; event: string; phase: 'DAWN' | 'DAY' | 'DUSK' | 'NIGHT'; season: LivingSeason; weather: LivingWeather; temperatureC: number; humidity: number; windX: number; windZ: number; activity: number; ecology: number; }
+// Explicit world-event kind. Logic code must match against this — never human-readable flavor text.
+export type LivingWorldEventKind = 'QUIET' | 'TIDE' | 'MIGRATION' | 'MARKET' | 'BLOOM' | 'AURORA' | 'STORM';
+export const WORLD_EVENT_FLAVOR: Record<LivingWorldEventKind, string> = {
+  QUIET:'The world is breathing', TIDE:'The tide is turning in the harbor', MIGRATION:'The herds are on the move',
+  MARKET:'The market is bustling', BLOOM:'The gardens are in bloom', AURORA:'Aurora light dances over the Crown', STORM:'A storm is rolling through',
+};
+export interface LivingWorldSnapshot { world: string; event: LivingWorldEventKind; eventFlavor: string; phase: 'DAWN' | 'DAY' | 'DUSK' | 'NIGHT'; season: LivingSeason; weather: LivingWeather; temperatureC: number; humidity: number; windX: number; windZ: number; activity: number; ecology: number; }
 
 export class GridLivingWorld {
   readonly root = new THREE.Group();
@@ -25,7 +31,7 @@ export class GridLivingWorld {
   private worldEvent: 'quiet' | 'tide' | 'migration' | 'market' | 'bloom' | 'aurora' | 'storm' = 'quiet';
   private readonly eventSignal: THREE.Mesh;
   private activeWorld = 'HARBOR';
-  private snapshot: LivingWorldSnapshot = { world: 'HARBOR', event: 'QUIET', phase: 'DAY', season: 'SPRING', weather: 'CLEAR', temperatureC: 15, humidity: .58, windX: 0, windZ: 0, activity: 1, ecology: 70 };
+  private snapshot: LivingWorldSnapshot = { world: 'HARBOR', event: 'QUIET', eventFlavor: WORLD_EVENT_FLAVOR.QUIET, phase: 'DAY', season: 'SPRING', weather: 'CLEAR', temperatureC: 15, humidity: .58, windX: 0, windZ: 0, activity: 1, ecology: 70 };
 
   constructor() {
     this.root.name = 'grid-living-world';
@@ -222,7 +228,8 @@ export class GridLivingWorld {
     else if (humidity > .55) weather = 'CLOUDY';
     const ecologyBase = Math.round((50 + climate.vegetationBias * 35 + dna.ambientLife * 8) * (.78 + (evolution?.biodiversity ?? .62) * .44));
     const activity = this.worldEvent === 'migration' ? 1.8 : this.worldEvent === 'bloom' ? 1.35 : this.worldEvent === 'storm' ? .72 : 1;
-    this.snapshot = { world: this.activeWorld, event: this.worldEvent.toUpperCase(), phase, season, weather, temperatureC, humidity, windX, windZ, activity, ecology: THREE.MathUtils.clamp(ecologyBase, 0, 100) };
+    const eventKind = this.worldEvent.toUpperCase() as LivingWorldEventKind;
+    this.snapshot = { world: this.activeWorld, event: eventKind, eventFlavor: WORLD_EVENT_FLAVOR[eventKind], phase, season, weather, temperatureC, humidity, windX, windZ, activity, ecology: THREE.MathUtils.clamp(ecologyBase, 0, 100) };
     const pressure = consequences?.pressure ?? 0;
     const stability = consequences?.stability ?? 1;
     const consequenceFactor = stability < .4 ? .7 : pressure > .6 ? 1.18 : 1;
