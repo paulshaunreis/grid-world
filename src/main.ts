@@ -1468,7 +1468,17 @@ const creatorStudio = mountCreatorStudio({
     setMode: mode => gridMatterTerrain.setMode(mode),
     setEnabled: enabled => gridMatterTerrain.setEnabled(enabled),
   },
-  onCreateWorld: createFactoryWorld,
+  onCreateWorld: (name, description) => {
+    const result = createFactoryWorld(name, description);
+    void recordGridActivity(
+      'WORLD_CREATE',
+      'Created a world',
+      'Created ' + result.world.label + ' from Creator Studio.',
+      result.world.id,
+      'first-light',
+      { worldId: result.world.id, name: result.world.label, description, inferredTags: result.inferredTags },
+    );
+  },
   onMessage: message => addChatMessage('CREATOR STUDIO', message, 'system'),
   security: gridSecurity,
   subjectId: identity.id,
