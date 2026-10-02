@@ -329,3 +329,11 @@ _Last updated: 2026-10-02_
 - `src/ui/grid-themes.css`: extended shared panel chrome, focus/hover treatment, theme-aware health/profile meters, and reduced-motion handling.
 - Verification level: L0 source review only. No GitHub Actions run was returned for the feature head; no browser/WebGL verification claimed.
 - Queue: P3 #26 UI visual system marked complete for this increment; next P3 #27 world-specific presentation.
+
+
+## 2026-10-02 — world-specific presentation (PR #31)
+- Added presentation DNA to `WorldDNA` instead of creating a second world-style system.
+- Added tag-derived geometry/weather signatures for elemental and specialized worlds.
+- Generated architecture and environment now consume the presentation profile.
+- PR #31 merged as `a1f62e526a65f07560b2fe162523666b7979e01e`.
+- Verification: L0 source review; no CI/browser verification claimed.
