@@ -107,7 +107,7 @@ import './ui/grid-target-profile.css';
 import './ui/grid-landmark-inventory.css';
 import { mountGridPartyHud } from './ui/GridPartyHud';
 import { mountGridPartyInvitePanel } from './ui/GridPartyInvitePanel';
-import { mountTeleportExperience, createTeleportAvatarEffect } from './ui/GridTeleportExperience';
+import { mountTeleportExperience, createTeleportAvatarEffect, teleportPreviewUrl } from './ui/GridTeleportExperience';
 import { GridWorldMediaSystem } from './media/GridWorldMediaSystem';
 import { GridWorldRecordSystem } from './media/GridWorldRecordSystem';
 import { GridShopSystem } from './market/GridShopSystem';
@@ -149,7 +149,7 @@ const teleportExperience = mountTeleportExperience();
 const teleportInviteAuthority = cloudPersistence ? new GridTeleportInviteAuthority(cloudPersistence.getClient()) : null;
 const partyInviteAuthority = cloudPersistence ? new GridPartyInviteAuthority(cloudPersistence.getClient()) : null;
 let invitePanel:ReturnType<typeof mountGridTeleportInvitePanel>|null=null;
-const teleportPreviewUrlForDestination=(destination:{id:string})=>{const world=(destination.id.match(/^world-gate:(.+)$/)?.[1]??destination.id).toLowerCase();return '/worlds/'+world+'.svg';};
+const teleportPreviewUrlForDestination=(destination:{id:string})=>teleportPreviewUrl(destination as {id:string;displayName:string;regionId:string;position:{x:number;y:number;z:number};yaw:number;clearanceRadius:number});
 const landmarkAuthority = cloudPersistence ? new GridLandmarkAuthority(cloudPersistence.getClient(), (item) => {
   void recordGridActivity('LANDMARK_SAVE','Saved destination','Saved '+item.label+' to your '+item.itemType.toLowerCase()+' collection.',String(livingWorld.getSnapshot().world),'first-light',{itemType:item.itemType,label:item.label,landmarkId:item.landmarkId??null});
 }) : null;
