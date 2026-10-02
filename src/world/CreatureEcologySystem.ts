@@ -177,7 +177,7 @@ export class CreatureEcologySystem {
     return c.curiosity>.62?'EXPLORE':'FORAGE';
   }
 
-  update(delta:number,playerX=0,playerZ=0,world:EcologyWorld='HARBOR',event: LivingWorldEventKind='QUIET',phase:'DAWN'|'DAY'|'DUSK'|'NIGHT'='DAY,consequences?:WorldConsequenceSnapshot,transitFlow=0,environment?:{weather?:string;temperatureC?:number;windX?:number;windZ?:number;season?:string}){
+  update(delta:number,playerX=0,playerZ=0,world:EcologyWorld='HARBOR',event: LivingWorldEventKind='QUIET',phase:'DAWN'|'DAY'|'DUSK'|'NIGHT'='DAY',consequences?:WorldConsequenceSnapshot,transitFlow=0,environment?:{weather?:string;temperatureC?:number;windX?:number;windZ?:number;season?:string}){
     const pressure=consequences?.pressure??0,stability=consequences?.stability??1,transitBoost=THREE.MathUtils.clamp(transitFlow*.08,0,.45),eventName=event.toUpperCase(),weather=(environment?.weather??'CLEAR').toUpperCase();
     const temperatureC=environment?.temperatureC??getClimateProfile(deriveWorldDNA(getWorlds().find(candidate=>candidate.id===world)?.tags??[]).climate).baseTemperatureC,wind=Math.hypot(environment?.windX??0,environment?.windZ??0);
     for(const key of Object.keys(this.activeStates) as CreatureLifeState[])this.activeStates[key]=0;
