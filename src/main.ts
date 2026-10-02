@@ -153,14 +153,8 @@ const teleportPreviewUrlForDestination=(destination:{id:string})=>teleportPrevie
 const landmarkAuthority = cloudPersistence ? new GridLandmarkAuthority(cloudPersistence.getClient(), (item) => {
   void recordGridActivity('LANDMARK_SAVE','Saved destination','Saved '+item.label+' to your '+item.itemType.toLowerCase()+' collection.',String(livingWorld.getSnapshot().world),'first-light',{itemType:item.itemType,label:item.label,landmarkId:item.landmarkId??null});
 }) : null;
-if (landmarkAuthority) {
-  mountGridLandmarkInventory(landmarkAuthority);
-  window.addEventListener('grid:landmark-select', (event) => {
-    const item = (event as CustomEvent).detail as { label?:string; itemType?:string; metadata?:Record<string,unknown> } | undefined;
-    if (!item) return;
-    void recordGridActivity('LANDMARK_USE','Landmark selected', 'Selected '+(item.label ?? 'a saved destination')+' from the '+(item.itemType ?? 'LANDMARK').toLowerCase()+' inventory.', String(livingWorld.getSnapshot().world), 'first-light', { itemType:item.itemType ?? 'LANDMARK', label:item.label ?? '' });
-  });
-}
+let landmarkInventoryRoot: HTMLElement | null = null;
+if (landmarkAuthority) landmarkInventoryRoot = mountGridLandmarkInventory(landmarkAuthority);
 const targetProfilePanel = mountGridTargetProfile();
 
 
@@ -1597,7 +1591,8 @@ document.querySelectorAll<HTMLButtonElement>('.grid-dock [data-tool]').forEach(b
     else if (tool === 'team') teamArea.open();
     else if (tool === 'social') gridCommunityPanel?.open();
     else if (tool === 'settings') openIdentityPanel();
-    else if (tool === 'inventory' || tool === 'wallet') gridEconomyPanel.open();
+    else if (tool === 'inventory') openLandmarkInventory();
+    else if (tool === 'wallet') gridEconomyPanel.open();
     else addChatMessage('GRID', tool + ' surface opened.', 'system');
   });
 });
@@ -1712,6 +1707,57 @@ const creatorStudio = mountCreatorStudio({
 const interaction = new InteractionSystem(camera, world.scene);
 
 const prompt = document.querySelector<HTMLDivElement>('#interaction-prompt')!;
+
+async function openLandmarkInventory(){
+  if(!landmarkAuthority){addChatMessage('LANDMARKS','Saved destinations require Grid account services.','system');return;}
+  if(!landmarkInventoryRoot || !document.body.contains(landmarkInventoryRoot)) landmarkInventoryRoot=mountGridLandmarkInventory(landmarkAuthority);
+}
+
+async function teleportToSavedLandmark(item:{label?:string;itemType?:string;metadata?:Record<string,unknown>}){
+  const metadata=item.metadata??{};
+  const worldId=String(metadata.worldId??'');
+  const p=metadata.position;
+  if(!worldId || !p || typeof p!=='object'){addChatMessage('GRID TRANSIT','This saved destination has incomplete route data.','system');return;}
+  const pos=p as {x?:unknown;y?:unknown;z?:unknown;yaw?:unknown};
+  const x=Number(pos.x),y=Number(pos.y),z=Number(pos.z),yaw=Number(pos.yaw??0);
+  if(![x,y,z,yaw].every(Number.isFinite)){addChatMessage('GRID TRANSIT','This saved destination has invalid coordinates.','system');return;}
+  const currentWorld=String(livingWorld.getSnapshot().world??'');
+  const label=item.label??'Saved destination';
+  const preview={id:'waypoint:'+worldId.toLowerCase(),displayName:label,regionId:String(metadata.regionId??'first-light'),position:{x,y,z},yaw,clearanceRadius:2};
+  if(currentWorld!==worldId){
+    const worldNode=teleportSystem.get('world-gate:'+worldId.toLowerCase());
+    const sourceNode=teleportSystem.get('world-gate:'+currentWorld.toLowerCase());
+    if(!sourceNode||!worldNode){addChatMessage('GRID TRANSIT','The saved world is not currently linked into the live transit network.','system');return;}
+    const route=teleportSystem.request({actorId:cloudIdentity.id,nodeId:sourceNode.id,destinationId:worldNode.id,nowSeconds:performance.now()/1000,relationship:'public',ageBand:accountAgeBand});
+    if(!route.ok||!route.destination){addChatMessage('GRID TRANSIT','Grid Omni could not authorize the saved route: '+route.reason+'.','system');audio.play('ui.error');return;}
+    const destination=route.destination;
+    teleportExperience.show(destination,'departing');createTeleportAvatarEffect(player.avatar,850);teleportSystem.recordTraffic(sourceNode.id,destination.id);
+    addChatMessage('GRID TRANSIT','Saved destination selected: '+label+'. Entering '+destination.displayName+'.','system');audio.play('world.portal',.8);
+    window.setTimeout(()=>{player.restoreTransform({x:destination.position.x,y:Math.max(0,destination.position.y),z:destination.position.z,yaw:destination.yaw});window.setTimeout(()=>{player.restoreTransform({x,y,z,yaw});teleportExperience.show(preview,'arriving');createTeleportAvatarEffect(player.avatar,700);prompt.textContent='E · Arrived at '+label+' ✓';addChatMessage('GRID TRANSIT','Arrived at saved '+(item.itemType??'WAYPOINT').toLowerCase()+': '+label+'.','system');audio.play('world.portal',1);},120);},850);
+    return;
+  }
+  teleportExperience.show(preview,'departing');createTeleportAvatarEffect(player.avatar,850);addChatMessage('GRID TRANSIT','Saved destination selected: '+label+'. Transit engaged.','system');audio.play('world.portal',.8);
+  window.setTimeout(()=>{player.restoreTransform({x,y,z,yaw});teleportExperience.show(preview,'arriving');createTeleportAvatarEffect(player.avatar,700);prompt.textContent='E · Arrived at '+label+' ✓';addChatMessage('GRID TRANSIT','Arrived at saved '+(item.itemType??'WAYPOINT').toLowerCase()+': '+label+'.','system');audio.play('world.portal',1);},850);
+}
+
+window.addEventListener('grid:landmark-create-current',()=>{
+  if(!landmarkAuthority)return;
+  const label=window.prompt('Save current location as','My Waypoint');
+  if(label===null||!label.trim())return;
+  const worldId=String(livingWorld.getSnapshot().world??'FIRST-LIGHT');
+  const regionId=WORLD_TO_REGION[worldId]??'first-light';
+  const position={x:player.avatar.position.x,y:player.avatar.position.y,z:player.avatar.position.z,yaw:player.heading};
+  void landmarkAuthority.createWaypoint({label:label.trim(),itemType:'WAYPOINT',worldId,regionId,position,previewImageUrl:teleportPreviewUrl({id:'world-gate:'+worldId.toLowerCase(),displayName:label.trim(),regionId,position:{x:position.x,y:position.y,z:position.z},yaw:position.yaw??0,clearanceRadius:2}),description:'Saved from the Grid World traveler at the current location.',tags:['saved','waypoint',worldId.toLowerCase()]})
+    .then(result=>{window.dispatchEvent(new CustomEvent('grid:landmark-created',{detail:result.item}));addChatMessage('LANDMARKS','Saved '+label.trim()+' to your waypoint inventory.','system');})
+    .catch(error=>{addChatMessage('LANDMARKS','Could not save this destination. Sign in to persist landmarks.','system');console.warn('Landmark creation failed.',error);});
+});
+window.addEventListener('grid:landmark-select',(event)=>{
+  const item=(event as CustomEvent).detail as {label?:string;itemType?:string;metadata?:Record<string,unknown>}|undefined;
+  if(!item)return;
+  void recordGridActivity('LANDMARK_USE','Landmark selected','Selected '+(item.label??'a saved destination')+' from the '+(item.itemType??'LANDMARK').toLowerCase()+' inventory.',String(livingWorld.getSnapshot().world),'first-light',{itemType:item.itemType??'LANDMARK',label:item.label??''});
+  void teleportToSavedLandmark(item);
+});
+
 const creatorButton = document.querySelector<HTMLButtonElement>('#creator-button')!;
 const creatorPanel = document.querySelector<HTMLDivElement>('#creator-panel')!;
 const creatorCode = document.querySelector<HTMLPreElement>('#creator-code')!;
