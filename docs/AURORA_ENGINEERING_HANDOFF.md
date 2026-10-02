@@ -154,3 +154,42 @@ When Aurora or another engineer continues:
 - Update it after substantial work.
 - Add the newest commit SHA and exact verification result.
 - Explicitly list anything that is unfinished or uncertain.
+
+## Aurora engine art pass — concept art wired into game surfaces
+Date: 2026-10-01 (branch `aurora/website-refresh`)
+
+Source of truth: `~/workspace/gridworld/concept-art/INVENTORY.md` (89-file inventory) and `concept-art/maps/districts/DISTRICT-NOTES.md` (canonical districts/zones). Originals preserved in concept-art/ — art was copied, never moved.
+
+### Changes made
+1. **Districts → minimap** (`src/theme/districts.ts` new, `src/theme/districtZones.ts` new, `src/ui/Minimap.ts`, `src/main.ts`)
+   - Ported canonical district identities (9 regions, live/development status).
+   - New districtZones module: 5 districts per built region with canonical names, zone types, purposes, and planning anchors (from DISTRICT-NOTES.md).
+   - Minimap footer now shows `REGION · <zone> · <DISTRICT>` via nearest-district lookup against the active world's center. 4 in-development regions have no districts defined — no gameplay wired for them.
+
+2. **Team turnarounds → TEAM panel** (`public/team/portraits/*.webp` ×24, `src/ui/TeamArea.ts`)
+   - Head/shoulders portraits cropped from the front view of each turnaround sheet (256px webp, 240KB total).
+   - TEAM panel member cards now show portraits with lazy loading and graceful fallback.
+
+3. **World-look → teleport previews** (`public/world/loading-*.webp` ×3, `src/ui/GridTeleportExperience.ts`)
+   - First Light street → Harbor/Citadel destinations; wilderness → Gardens/Wilds; interior → Arts. SVG fallback preserved for anything unmatched.
+
+4. **Overworld map → Atlas** (`public/atlas/overworld-map.webp`, `src/ui/WorldAtlas.ts`)
+   - Map backdrop added to the teleport Atlas UI. New "IN DEVELOPMENT · CONCEPT ONLY" section lists the 4 unbuilt regions as non-selectable — no travel, no gameplay.
+
+5. **Citizens → NPC presentation** (`src/ui/GridTargetProfile.ts`, `src/ui/grid-target-profile.css`)
+   - NPC profiles now show a deterministic varied portrait (initials on id-hashed hue). No baked-in appearance assumptions; citizen flavor names NOT hard-coded as NPCs.
+
+### Commits
+- `afbb811` — Website refresh: team section, honesty fixes, concept art wiring (prior pass, same branch)
+- `043e5b1` — Engine art pass: districts, team, maps, loading screens wired
+
+### Verification
+- `npx tsc --noEmit` (standalone, no node_modules): error output IDENTICAL to unmodified baseline — zero new errors introduced. (Baseline carries pre-existing env errors: missing three/supabase/css-module declarations.)
+- No CI run yet for these commits. Do not call CI-verified.
+- Not pushed. Awaiting Paul's approval per standing rule.
+
+### Still pending
+- Citizen sheets need resize/compress pass before any direct web use (noted in inventory).
+- In-world advisor bodies from turnarounds (future 3D work).
+- District geometry/minimap boundary rendering (anchors are planning-level).
+- The 4 in-development regions remain concept-only by design.
