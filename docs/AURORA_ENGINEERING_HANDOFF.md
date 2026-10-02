@@ -440,3 +440,14 @@ Do not treat the references as a complete specification. Aurora's own response s
   - `608db50813fbedb678b9b72f7ed2f6d15c3d792d` — restrict Build Mode undo to permitted objects.
   - `883a4d2d908c886e5b698e50b79d4d9344136d40` — preserve build ownership during world persistence.
 - New commits have not yet returned a completed CI result.
+
+
+## World collaborator management UI — 2026-10-02
+
+- Added persistent collaborator roster retrieval to `GridWorldContentAuthority`.
+- Added a WORLD ACCESS tab to the Social panel.
+- World owners can search existing Grid users, grant access, change roles between viewer/builder/editor/admin, and remove collaborators.
+- Non-owners can see their current world role but cannot mutate access.
+- Existing Supabase RLS remains the authoritative enforcement layer; the UI does not replace server-side permissions.
+- Commits: `c04f4d46c2da35dc8627198ce02e4c33257dce96`, `d8eaab599f5d6ec4a396948dd5cd68bf95f1f8fb`, `274805bc3cc665be17c778afdb2424a2c0d66ff5`, `10f25b5644e1134706d0e95831d3e1473cc60f02`.
+- CI verification is pending for this pass.
