@@ -1,5 +1,7 @@
 # Grid World Architecture
 
+> See [`docs/ARCHITECTURE_MAP.md`](./ARCHITECTURE_MAP.md) for the current implementation-level onboarding map. This document remains the higher-level boundary/strategy reference.
+
 ## Direction
 
 Grid World is a persistent cyber-fantasy social world built around three principles:
