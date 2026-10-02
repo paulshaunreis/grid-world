@@ -201,3 +201,11 @@ Source of truth: `~/workspace/gridworld/concept-art/INVENTORY.md` (89-file inven
 - The earlier `aurora/website-refresh` art pass is therefore no longer merely awaiting approval; its resulting work is present in the current main history.
 - The user has requested that Aurora's working context stay synchronized with the live repository. Treat **main at the SHA above as the authoritative live baseline** when resuming Aurora work.
 - PR #4 (Grid Matter brush terrain) exists as a separate feature change. Its repository state must be checked before treating that feature as merged; do not infer merge status from a non-null merge SHA alone.
+
+
+## Persistent Aurora Work Queue — 2026-10-01
+- Added `docs/AURORA_WORK_QUEUE.md` as the persistent task queue for Aurora.
+- Aurora is expected to check the queue approximately every 10 minutes and continue the highest-priority actionable item without requiring a new “go” message when standing authorization applies.
+- The queue covers stability/integration first, then teleportation, landmarks/waypoints, party health, camera controls, profiles, NPC life systems, building/terrain, missions, PvE/PvP, economy, presentation, and documentation.
+- The queue explicitly requires honest verification states and preservation of Aurora's existing work.
+- After substantial work, Aurora should update both the queue and this handoff with the exact implementation/commit/PR/verification state.
