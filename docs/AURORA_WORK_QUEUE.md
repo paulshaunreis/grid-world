@@ -144,7 +144,9 @@ Build toward the agreed flow:
 - Connect work actions to skills, XP, inventory, production, and certificates where appropriate.
 - Leave a clean extension point for future real-world certificate integrations without pretending those integrations exist now.
 
-**Status:** Ready
+**Status:** In review
+
+**Checkpoint — 2026-10-02:** Added `NPCSkillCertificateSystem`, connected certificate issuance to `NPCJobProgressionSystem`, stored certificates on NPC profiles, and surfaced earned certificates in NPC target profiles. External verification remains explicitly unimplemented (`externalVerificationReady: false`). PR #5: `aurora/npc-skill-certificates`. No workflow run is available yet.
 
 ### 14. NPC movement and teleport destinations
 - Give NPCs valid destinations selected before teleport.
