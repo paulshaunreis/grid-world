@@ -220,7 +220,7 @@ Expose these through Build Mode with original Grid World controls.
 - Ensure PvP cannot accidentally affect protected/social/building areas.
 - Keep the system modular so future rulesets can differ by world.
 
-**Status:** Ready
+**Status:** Complete
 
 ---
 
@@ -563,5 +563,16 @@ _Last updated: 2026-10-02_
 - PR #24 merged as 03a787af6a5b99deb0d62634329c91771ad1f95b.
 - Verification: source-level checks + successful merge. GitHub returned no workflow run for PR #24 head; no browser/WebGL verification was available. Therefore this is not CI-verified.
 - Next actionable item: P2 #21 PvP foundation.
+
+_Last updated: 2026-10-02_
+
+## P2 #21 PvP foundation completion checkpoint — 2026-10-02
+- Audited the existing CombatSystem, arena boundaries, mode switching, and authoritative grid-combat function before changing code.
+- Existing PvP was already constrained to the Grid Arena and server-validated. Strengthened the existing opt-in boundary by requiring the target's authoritative combat state to also be PVP before a player-vs-player attack is accepted.
+- Authoritative PvP defeats now feed the existing CombatSystem defeat state/HUD.
+- No new combat system or database schema was introduced; SAFE/PVE boundaries and arena routing remain intact.
+- PR #25 merged as cebbb45ef947c673393493af00f49db7134dee57.
+- Verification: source-level checks + successful merge. No GitHub Actions workflow run was returned for the PR head; no browser/WebGL verification was available. Therefore this is not CI-verified.
+- Next actionable item: P2 #22 Grid Currency architecture.
 
 _Last updated: 2026-10-02_
