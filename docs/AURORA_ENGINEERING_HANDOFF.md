@@ -337,3 +337,9 @@ _Last updated: 2026-10-02
 - Kept the implementation additive to the existing Team Area and roster. No new profile architecture and no private/unverified personal history.
 - Verification: source review + merge. No PR-triggered workflow run was returned for the head, and no browser verification was available.
 - Next queue focus: **P2 #15 Base build-object library**, with an audit-first pass against existing primitives/build mode.
+
+
+## 2026-10-02 — Base build-object library confirmed complete
+- Existing `GridBuildLibrary` already covers the requested primitive and starter architectural/prop library; `GridEasyBuildSystem` exposes it through Build Mode.
+- No code change was required for queue item #15.
+- Next focus: **P0 #3 — integrate terrain brush work safely.**
