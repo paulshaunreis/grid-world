@@ -751,7 +751,7 @@ const enterWorldFromAtlas = (worldId:string) => {
   }, 850);
 };
 
-mountWorldAtlas(
+const worldAtlas = mountWorldAtlas(
   () => ({
     world: (livingWorld.getSnapshot().world as EcologyWorld),
     event: livingWorld.getSnapshot().event,
@@ -1593,7 +1593,7 @@ document.querySelectorAll<HTMLButtonElement>('.grid-dock [data-tool]').forEach(b
     const tool = button.dataset.tool;
     if (tool === 'profile') openIdentityPanel();
     else if (tool === 'build') easyBuildSystem.open();
-    else if (tool === 'map') minimap.element.classList.toggle('grid-highlight');
+    else if (tool === 'map') worldAtlas.open();
     else if (tool === 'field') fieldGuide.open();
     else if (tool === 'qr') qrScanner.open();
     else if (tool === 'settings') openIdentityPanel();
