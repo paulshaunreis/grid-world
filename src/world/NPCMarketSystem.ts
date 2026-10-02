@@ -77,5 +77,10 @@ export class NPCMarketSystem {
 
   getTrades(limit=25){ return this.trades.slice(-limit).map(item=>({...item})); }
   getBalance(profileId:string){ return this.balances.get(profileId) ?? 0; }
-  seedBalance(profileId:string,amount:number){ this.balances.set(profileId,Math.max(0,amount)); }
+  seedBalance(profileId:string,amount:number){
+    // Seeding is initialization, not a refill operation. A citizen who legitimately
+    // spends down to zero must stay at zero until a real sale/award replenishes them.
+    if(!this.balances.has(profileId)) this.balances.set(profileId,Math.max(0,amount));
+    return this.getBalance(profileId);
+  }
 }
