@@ -345,4 +345,17 @@ When Aurora checks these notes:
 
 Aurora should favor real, incremental improvements to the repository over producing plans that are not implemented.
 
-_Last updated: 2026-10-01_
+
+## Stability audit checkpoint — 2026-10-02
+- P0.1 Main-branch health audit: **Complete for the repository state inspected today**.
+- `package.json` exposes `build` (`grid-code-analyzer.mjs && tsc && vite build`) and `analyze`; no npm test script is present.
+- `main` was inspected at `419f465255d10a0ce9505c518516ba56516c6d5b` before the terrain merge; its combined GitHub status returned no status entries, so that commit is not described as CI-verified.
+- PR #4 (`grid/matter-terrain-brushes`) was reviewed and confirmed to add brush radius, drag painting, and `[`/`]` sizing while preserving CARVE/BUILD and persistence.
+- PR #4 CI run #1052 completed successfully; PR #4 was squash-merged into `main` as `fcbab292872a92f011edc2a5262ef1a2c113b225`.
+- Post-merge workflow lookup for `fcbab292872a92f011edc2a5262ef1a2c113b225` returned no runs yet; do not call the merged commit CI-verified.
+- Stale PR #3 was closed without merge because its documentation checkpoint was already represented on `main` and the PR was non-mergeable.
+
+## Next actionable item
+**P0.2 — Website/world link and interaction audit.** Inspect the highest-impact navigation and controls next; fix dead/misleading flows before moving into the P1 feature queue.
+
+_Last updated: 2026-10-02_
