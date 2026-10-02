@@ -139,3 +139,12 @@ Date: 2026-10-01
 ### Next integration target
 - Verify CI.
 - Then connect public profile pages more deeply to creations/worlds/achievements and make the in-world remote-player profile offer a direct public-profile action without duplicating account data.
+
+
+## Follow-up pass — in-world public profile bridge
+Date: 2026-10-01
+
+- `src/ui/GridTargetProfile.ts` now exposes a PUBLIC PROFILE action alongside Friend/Follow/Message.
+- `src/main.ts` wires remote-player profiles to `/profile.html?handle=...`, opening the same persistent web profile used by the community panel.
+- Commits: `714bb65f0132c540c16d35859ece379723a0c555`, `3499981c063a3b624150c5f4659274c9ad2babd5`.
+- No merge performed. CI for the newest commit has not yet been checked.
