@@ -115,23 +115,47 @@ export class GridWorldContentAuthority {
     if (!world?.owner_user_id) return null;
     const role = await this.getRole(snapshot.worldId);
     if (!role || role === 'viewer') return null;
+
+    // Builders are allowed to persist their own builds, but they must not be able
+    // to replace the entire shared world snapshot. Merge only their owned build
+    // records into the authoritative snapshot and preserve every other field.
+    let payload = snapshot;
+    if (role === 'builder' && auth.user.id !== world.owner_user_id) {
+      const current = await this.load(snapshot.worldId);
+      const incomingOwned = snapshot.builds.filter(build => String(build.ownerUserId ?? '') === auth.user!.id);
+      const incomingIds = new Set(incomingOwned.map(build => String(build.objectId ?? '')));
+      const preservedOtherOwners = (current?.builds ?? []).filter(build => {
+        const owner = String(build.ownerUserId ?? '');
+        return owner !== auth.user!.id && !incomingIds.has(String(build.objectId ?? ''));
+      });
+      payload = {
+        worldId: snapshot.worldId,
+        builds: [...preservedOtherOwners, ...incomingOwned],
+        terrain: current?.terrain ?? snapshot.terrain,
+        quests: current?.quests ?? snapshot.quests,
+        consequences: current?.consequences ?? snapshot.consequences,
+        npcState: current?.npcState ?? snapshot.npcState,
+        creatureState: current?.creatureState ?? snapshot.creatureState,
+        metadata: current?.metadata ?? snapshot.metadata ?? {},
+      };
+    }
+
     const { data, error } = await this.client.from('grid_world_content').upsert({
-      world_id: snapshot.worldId,
+      world_id: payload.worldId,
       owner_user_id: world.owner_user_id,
-      builds: snapshot.builds,
-      terrain: snapshot.terrain,
-      quests: snapshot.quests,
-      consequences: snapshot.consequences,
-      npc_state: snapshot.npcState,
-      creature_state: snapshot.creatureState,
-      metadata: snapshot.metadata ?? {},
+      builds: payload.builds,
+      terrain: payload.terrain,
+      quests: payload.quests,
+      consequences: payload.consequences,
+      npc_state: payload.npcState,
+      creature_state: payload.creatureState,
+      metadata: payload.metadata ?? {},
       updated_at: new Date().toISOString(),
     }, { onConflict: 'world_id' }).select('world_id,updated_at').single();
     if (error) throw error;
     return data;
   }
 }
-
 
 export interface GridWorldPlayerState {
   worldId: string;
@@ -140,4 +164,3 @@ export interface GridWorldPlayerState {
   discoveries: string[];
   metadata?: Record<string, unknown>;
 }
-
