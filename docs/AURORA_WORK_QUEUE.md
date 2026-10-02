@@ -177,7 +177,7 @@ Expose these through Build Mode with original Grid World controls.
 - Keep an Advanced mode for deeper manipulation.
 - Avoid copying another game's UI or protected presentation.
 
-**Status:** Ready
+**Status:** Complete
 
 ### 17. Material-based custom building tools
 - Create a foundation for tools that players can make from materials.
@@ -533,3 +533,13 @@ _Last updated: 2026-10-02_
 - No duplicate terrain implementation or corrective integration patch was justified.
 - Verification boundary: source-level integration review plus PR #4's recorded successful CI run; no fresh current-main workflow/browser run was available.
 - **Next actionable item:** P2 #16 — Advanced building controls.
+
+
+## 2026-10-02 — P2 Advanced Build controls complete
+- PR #20 merged as `7bad351ec8a261281ffa6f5f39f1235b2bbdeaf6`.
+- Extended the existing `GridEasyBuildSystem` rather than creating a parallel builder.
+- Added additive multi-selection, X/Y/Z alignment, persistent logical grouping metadata, group clearing, and multi-object move/rotate/scale behavior.
+- Group metadata is included in serialized world-build records and restored from persistent world content.
+- Existing permissions, snapping, copy/paste, placement, primitive library, and material-crafted tools remain intact.
+- Verification boundary: source review and successful merge; GitHub returned no workflow run for the PR head, and no browser verification was available.
+- **Next actionable item:** P2 #18 — terrain sculpting continuation, after checking the existing Grid Matter brush for the next missing clay-like/voxel capability.
