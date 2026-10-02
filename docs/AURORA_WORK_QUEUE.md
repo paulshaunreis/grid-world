@@ -412,3 +412,16 @@ _Last updated: 2026-10-02_
 - Verification boundary: source/asset verification only; no CI or browser run for the final preview commits.
 - **Next actionable item: P1 Core player/world — landmarks/waypoints inventory and save/use flow.**
 
+
+
+## P1 party/camera checkpoint — 2026-10-02
+- Party health/HUD was audited before implementation. It is already wired in `main`: party roster polling updates `GridPartyHud`, combat snapshots publish authoritative health/max-health through presence, and the party HUD renders each member's HP.
+- No duplicate party-health implementation was added.
+- Camera audit found the requested manual camera controls already present: RMB/Alt+LMB orbit, wheel zoom, M mouselook, pointer-lock mouse aim, and no V-key dependency.
+- Added the remaining direct scene-pan control: middle-mouse drag now pans camera offsets with bounded movement. Control hints were updated accordingly.
+- Branch: `grid/camera-pan-controls`; PR #7; head `82a4c627cca30033e4f56886b13bb0443264d025`.
+- Verification: source-level audit and implementation completed; CI/browser verification is pending. PR #7 is not merged or CI-verified.
+- PR #6 (landmarks/waypoints) remains open and unverified; do not treat its work as present on main until merged.
+- Next actionable P1 item after camera verification: player/profile/NPC-life integration, beginning with profile persistence/target presentation as appropriate from the queue.
+
+_Last updated: 2026-10-02_
