@@ -228,3 +228,10 @@ ChatGPT pushes via Paul's channel (authored `paulshaunreis`). All 84 commits on 
 ## 2026-10-02 — Terrain integration confirmed
 - Current main contains the merged Grid Matter brush implementation and persistent world integration.
 - No corrective code change was required during the audit.
+
+
+## 2026-10-02 — Advanced Build controls landed
+- PR #20 → `7bad351ec8a261281ffa6f5f39f1235b2bbdeaf6`.
+- Existing Build Mode was extended with multi-selection, alignment, logical grouping, and multi-object transforms.
+- No parallel builder system was introduced.
+- Verification boundary: source review and merge; no fresh CI/browser run returned.
