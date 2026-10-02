@@ -4,6 +4,7 @@ export interface GridProfilePost{id:string;user_id:string;body:string;visibility
 export interface GridArenaRanking{user_id:string;rating:number;wins:number;losses:number;matches:number;season:string;updated_at:string;}
 export interface GridProfileLandmark{id:string;user_id:string;name:string;world_id:string;region_id:string;position:Record<string,unknown>;preview_image_url?:string|null;description:string;tags:unknown[];created_at:string;}
 export interface GridPlayerInventoryItem{item_id:string;quantity:number;updated_at:string;}
+export interface GridProfileActivity{id:string;user_id:string;kind:string;title:string;body:string;visibility:'public'|'friends'|'private';world_id?:string|null;region_id?:string|null;metadata:Record<string,unknown>;created_at:string;}
 export interface GridProfileMedia{id:string;user_id:string;post_id?:string|null;kind:'IMAGE'|'VIDEO';url:string;thumbnail_url?:string|null;caption:string;metadata:Record<string,unknown>;created_at:string;}
 export class GridProfileAuthority{
  constructor(private readonly client:SupabaseClient){}
@@ -15,5 +16,7 @@ export class GridProfileAuthority{
  async ranking(userId:string){const {data,error}=await this.client.from('grid_arena_rankings').select('*').eq('user_id',userId).maybeSingle();if(error)throw error;return data as GridArenaRanking|null;}
  async landmarks(userId:string){const {data,error}=await this.client.from('grid_landmarks').select('*').eq('user_id',userId).order('created_at',{ascending:false});if(error)throw error;return (data??[]) as GridProfileLandmark[];}
  async inventory(userId:string){const {data,error}=await this.client.from('grid_player_inventory').select('*').eq('user_id',userId).order('updated_at',{ascending:false});if(error)throw error;return (data??[]) as GridPlayerInventoryItem[];}
+ async activity(userId:string,limit=30){const {data,error}=await this.client.from('grid_profile_activity').select('*').eq('user_id',userId).eq('visibility','public').order('created_at',{ascending:false}).limit(limit);if(error)throw error;return (data??[]) as GridProfileActivity[];}
+ async recordActivity(input:{kind:string;title:string;body?:string;worldId?:string;regionId?:string;metadata?:Record<string,unknown>}){const {data:{user}}=await this.client.auth.getUser();if(!user) return null;const {data,error}=await this.client.from('grid_profile_activity').insert({user_id:user.id,kind:input.kind,title:input.title,body:input.body??'',world_id:input.worldId??null,region_id:input.regionId??null,metadata:input.metadata??{}}).select('*').single();if(error)throw error;return data as GridProfileActivity;}
  async media(userId:string){const {data,error}=await this.client.from('grid_profile_media').select('*').eq('user_id',userId).order('created_at',{ascending:false});if(error)throw error;return (data??[]) as GridProfileMedia[];}
 }
