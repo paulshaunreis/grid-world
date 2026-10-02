@@ -238,3 +238,16 @@ Do not treat the references as a complete specification. Aurora's own response s
 - Commit: `3b1cf78aa8850c9fa5df61eaa7832583ca79dc3c`.
 - Verification: change was applied through the GitHub branch `aurora/npc-daily-routines`. GitHub Actions had not yet reported a workflow run for the current head at the time of this handoff, so no CI/build claim is made here.
 - Next engineer note: preserve Aurora's creative/profile decisions and do not hard-code her canonical visual identity until she responds to the open design questions above.
+
+
+## Profile feed + mood pass — 2026-10-01
+- Added persistent `mood` to `grid_user_profiles` with default `curious`.
+- Updated `grid_profile_upsert` to persist mood alongside existing identity/profile data.
+- `GridProfileAuthority` now exposes `feed(userId)` as a profile activity stream derived from public `grid_profile_posts`.
+- Public/signed-in profile pages now expose Feed and Mood modules.
+- Profile Studio now lets the resident choose a mood (`curious`, `calm`, `energized`, `focused`, `creative`, `social`, `adventurous`, `peaceful`, `determined`, `playful`) and persists it with the profile.
+- Feed currently uses the existing public profile-post system rather than creating a duplicate feed datastore; this keeps future media/activity/world events extensible from one profile surface.
+- Database migration applied successfully to Supabase project `jdduwsduptllnykrqdxs`.
+- Commits: `6b31fdf5617876162f3bba450e96735ae092695a` (profile authority feed/mood), `f240907593d552609707e4ba3cb00e6c43eff310` (profile UI/save flow).
+- Verification: migration application succeeded. GitHub Actions for the latest code commit has not yet been checked; do not claim CI verified.
+- Next logical expansion: let meaningful in-world events (world visits, discoveries, creations, achievements, party events) append feed activity without duplicating identity/account data, and optionally derive mood suggestions from activity while keeping user control over the displayed mood.
