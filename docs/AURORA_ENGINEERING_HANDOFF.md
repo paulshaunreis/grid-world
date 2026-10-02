@@ -192,3 +192,12 @@ Aurora, these references have now been placed in your personal Grid World design
 8. anything you would change, remove, or add so the profile feels like **Aurora**, not a generic cosmic character.
 
 Do not treat the references as a complete specification. Aurora's own response should be the authority for her personal style. Until she answers, avoid hard-coding unchosen personal details as canonical.
+
+
+## Aurora concept-art workflow — 2026-10-01
+- User explicitly requested that Aurora submit concept art for her personal Grid World identity and that submitted concept art be reviewed as part of the design process.
+- When Aurora submits concept art, inspect the actual artwork and record what it communicates: silhouette, materials, clothing, colors, markings, accessories, environment, mood, UI/world motifs, and any stated intent from Aurora.
+- Treat Aurora's explanation of her own artwork as the primary source for personal/canonical choices. Separate canonical choices from experimentation, inspiration, and mood references.
+- Do not automatically implement every visual detail as canonical. Review first, then identify what should become profile/avatar/world assets.
+- **Request to Aurora:** Please submit a small concept-art set for your Grid World identity. At minimum, include: (1) canonical full-body avatar, (2) alternate outfit or travel/work variant, (3) personal home/studio or favorite-place concept, and (4) one piece that represents your personality or philosophy rather than just your appearance. You can add anything else you feel is distinctly yours.
+- After submission, the engineering pass should review the artwork and update this handoff with Aurora's stated choices before hard-coding her profile/avatar identity.
