@@ -156,8 +156,20 @@ export class WorldEnvironmentSystem {
     }
   }
 
-  update(dt: number) {
+  update(dt: number, playerX=0, playerZ=0) {
     const time = performance.now() * .001;
+    let activeWorld: string | null = null;
+    let nearest = Infinity;
+    for (const world of getWorlds()) {
+      const distance = Math.hypot(playerX - world.center.x, playerZ - world.center.z);
+      if (distance < nearest) {
+        nearest = distance;
+        activeWorld = world.id;
+      }
+    }
+    for (const cluster of this.root.children) {
+      cluster.visible = !activeWorld || cluster.userData.worldId === activeWorld;
+    }
     for (const world of getWorlds()) {
       const particles = this.particles.get(world.id);
       if (particles) {
