@@ -43,6 +43,16 @@ export class GridWorldContentAuthority {
     return (data?.role as 'viewer'|'builder'|'editor'|'admin'|undefined) ?? null;
   }
 
+  async listCollaborators(worldId: string): Promise<Array<{userId:string;role:'viewer'|'builder'|'editor'|'admin'}>> {
+    const { data, error } = await this.client.from('grid_world_collaborators')
+      .select('user_id,role').eq('world_id', worldId).order('created_at', { ascending: true });
+    if (error) throw error;
+    return (data ?? []).map(row => ({
+      userId: String(row.user_id),
+      role: row.role as 'viewer'|'builder'|'editor'|'admin',
+    }));
+  }
+
   async setCollaboratorRole(worldId: string, userId: string, role: 'viewer'|'builder'|'editor'|'admin') {
     const { data: auth } = await this.client.auth.getUser();
     if (!auth.user) return false;
