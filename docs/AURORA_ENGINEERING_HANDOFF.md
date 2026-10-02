@@ -239,3 +239,13 @@ Source of truth: `~/workspace/gridworld/concept-art/INVENTORY.md` (89-file inven
 - Source-level verification was completed after the write. GitHub reported no workflow runs for the commit yet, so this change is **not CI-verified**.
 - Continue P0.2 with account/auth, transit, quest, creator, and secondary toolbar/navigation controls.
 
+
+
+## P0.2 interaction audit checkpoint — 2026-10-02 (routing consolidation)
+- Reviewed account/auth, Creator Studio, Quest panel, transit selection, and secondary HUD controls.
+- Confirmed the transit panel is not dead code: teleport gate interaction calls its destination chooser before route authorization/execution. Account/auth, Creator, and Quest controls also have live handlers.
+- Found redundant SOCIAL/TEAM listeners in addition to the centralized `.grid-dock [data-tool]` router. Consolidated SOCIAL into that router and removed the redundant dedicated SOCIAL/TEAM listeners.
+- Final routing commit: **`8e1b5dc8b86d6536ddae729758eacd2728dee394`** on `main`.
+- Source-level verification confirmed the centralized routes and existing auth/Creator/Quest/transit handlers. No workflow run was available yet, so the commit is not CI-verified.
+- Continue P0.2 with remaining secondary controls and end-to-end navigation checks.
+
