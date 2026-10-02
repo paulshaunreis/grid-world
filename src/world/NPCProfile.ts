@@ -1,6 +1,18 @@
 export type NPCGender = 'unspecified' | 'female' | 'male' | 'nonbinary';
 export type NPCRelationKind = 'family' | 'friend' | 'rival' | 'mentor' | 'faction';
 
+export interface NPCSkillCertificateRecord {
+  id: string;
+  npcId: string;
+  skill: string;
+  title: string;
+  level: number;
+  issuer: string;
+  earnedAt: number;
+  inGridValid: boolean;
+  externalVerificationReady: boolean;
+}
+
 export interface NPCInventoryItem {
   id: string;
   name: string;
@@ -35,12 +47,13 @@ export interface NPCProfileRecord {
   relationshipIds: string[];
   factionIds: string[];
   inventory: NPCInventoryItem[];
+  certificates: NPCSkillCertificateRecord[];
   tags: string[];
   status?: NPCProfileStatus;
 }
 
-export function createNPCProfile(input: Omit<NPCProfileRecord, 'level' | 'experience' | 'memories' | 'relationshipIds' | 'factionIds' | 'inventory' | 'tags'> & Partial<Pick<NPCProfileRecord, 'level' | 'experience' | 'memories' | 'relationshipIds' | 'factionIds' | 'inventory' | 'tags'>>): NPCProfileRecord {
-  return { level: 1, experience: 0, memories: [], relationshipIds: [], factionIds: [], inventory: [], tags: [], ...input };
+export function createNPCProfile(input: Omit<NPCProfileRecord, 'level' | 'experience' | 'memories' | 'relationshipIds' | 'factionIds' | 'inventory' | 'certificates' | 'tags'> & Partial<Pick<NPCProfileRecord, 'level' | 'experience' | 'memories' | 'relationshipIds' | 'factionIds' | 'inventory' | 'certificates' | 'tags'>>): NPCProfileRecord {
+  return { level: 1, experience: 0, memories: [], relationshipIds: [], factionIds: [], inventory: [], certificates: [], tags: [], ...input };
 }
 
 export function profileSummary(profile: NPCProfileRecord) {
@@ -56,6 +69,7 @@ export function profileSummary(profile: NPCProfileRecord) {
     inventoryCount: profile.inventory.reduce((sum, item) => sum + item.quantity, 0),
     relationshipCount: profile.relationshipIds.length,
     factionCount: profile.factionIds.length,
+    certificateCount: profile.certificates.length,
     memoryCount: profile.memories.length,
     status: profile.status?.label ?? 'UNSPECIFIED',
   };

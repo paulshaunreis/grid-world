@@ -475,3 +475,14 @@ _Last updated: 2026-10-02_
 - Next actionable queue item: NPC movement/teleport destination integration, after the current-main stability check.
 
 _Last updated: 2026-10-02_
+
+## NPC skill certificates — 2026-10-02
+- Ported the stale certificate design onto current main instead of merging PR #5 directly.
+- Added `NPCSkillCertificateSystem` with bounded skill thresholds (25/50/75/90), Grid-issued certificate records, and explicit `externalVerificationReady: false` until a real external verification integration exists.
+- Connected certificate issuance to the existing `NPCJobProgressionSystem`, added certificate persistence to `NPCProfileRecord`, and surfaced earned certificates in NPC target profiles.
+- Fresh branch: `grid/npc-skill-certificates-current-main`.
+- Implementation commits: `57a5360f7cd98c5a879f108f659930cf86486818`, `e5170dab83cdeee58dbb72357d0d0de1457d8af8`, `12ab09705b667313bc2706ba4b7d59f4707648c3`, `8e5670d5f6aeb66253cdb23b63c7ce9c7e65ee13`.
+- Verification: source-level review complete; CI pending on the new PR.
+- Next after CI: merge if green, then continue with the next highest-priority non-duplicate item.
+
+_Last updated: 2026-10-02_

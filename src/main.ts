@@ -2263,6 +2263,7 @@ addEventListener('keydown', (event) => {
       relationshipIds:[],
       factionIds:[],
       inventory:[],
+      certificates:[],
       tags:publicProfile.handle ? ['@'+publicProfile.handle] : []
     },[],{
       onFriend:()=>void socialAuthority?.requestFriend(remoteId).then(()=>addChatMessage('SOCIAL','Friend request sent.','system')).catch(()=>addChatMessage('SOCIAL','Friend request could not be sent.','system')),
