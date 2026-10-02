@@ -11,6 +11,8 @@ export interface MinimapOptions {
   regions: WorldRegionRegistry;
   getPlayer: () => { x: number; z: number; yaw: number };
   getMarkers: () => MinimapMarker[];
+  /** Optional: resolve a district label for the player's position. */
+  getDistrictLabel?: () => string | null;
 }
 
 export class Minimap {
@@ -112,7 +114,11 @@ export class Minimap {
 
     const region = this.options.regions.findAt(player.x, player.z);
     const regionLabel = this.element.querySelector<HTMLSpanElement>('#minimap-region');
-    if (regionLabel) regionLabel.textContent = region ? `REGION · ${region.definition.zoneId.toUpperCase()}` : 'REGION · FRONTIER';
+    const districtLabel = this.options.getDistrictLabel?.() ?? null;
+    if (regionLabel) {
+      const base = region ? `REGION · ${region.definition.zoneId.toUpperCase()}` : 'REGION · FRONTIER';
+      regionLabel.textContent = districtLabel ? `${base} · ${districtLabel.toUpperCase()}` : base;
+    }
 
     const compass = this.element.querySelector<HTMLSpanElement>('#minimap-compass');
     if (compass) compass.textContent = `N · ${Math.round((player.yaw * 180 / Math.PI + 360) % 360)}°`;

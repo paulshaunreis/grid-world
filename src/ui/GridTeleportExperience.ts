@@ -1,9 +1,17 @@
 import * as THREE from 'three';
 import type { GridTeleportDestination } from '../engine/GridTeleport';
 
+/** Destination preview art: world-look concept pieces first, SVG fallback. */
+const WORLD_PREVIEW_ART: Record<string, string> = {
+  harbor: '/world/loading-firstlight.webp',
+  citadel: '/world/loading-firstlight.webp',
+  gardens: '/world/loading-wilderness.webp',
+  wilds: '/world/loading-wilderness.webp',
+  arts: '/world/loading-interior.webp',
+};
 export function teleportPreviewUrl(destination:GridTeleportDestination){
   const world=(destination.id.match(/^world-gate:(.+)$/)?.[1]??destination.id).toLowerCase();
-  return '/worlds/'+world+'.svg';
+  return WORLD_PREVIEW_ART[world] ?? '/worlds/'+world+'.svg';
 }
 export function mountTeleportExperience(){
   const overlay=document.createElement('section'); overlay.className='grid-teleport-overlay'; overlay.innerHTML='<div class="grid-teleport-card"><div class="grid-teleport-kicker">GRID TRANSIT // ROUTE LOCKED</div><img data-teleport-image alt="Destination preview"><div data-teleport-name class="grid-teleport-name"></div><div data-teleport-status class="grid-teleport-status"></div></div>';

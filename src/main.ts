@@ -69,7 +69,8 @@ import { WorldEvolutionSystem } from './world/WorldEvolutionSystem';
 import { EvolutionaryPopulationSystem } from './world/EvolutionaryPopulationSystem';
 import { EcologicalWebSystem } from './world/EcologicalWebSystem';
 import { EcologicalInteractionSystem } from './world/EcologicalInteractionSystem';
-import { getWorld, getWorlds, getWorldConnections, connectWorld, registerNetworkWorld } from './world/GridWorldRegistry';
+import { getWorld, getWorlds, getWorldConnections, connectWorld, registerNetworkWorld, getWorldCenter } from './world/GridWorldRegistry';
+import { districtAt, WORLD_TO_REGION } from './theme/districtZones';
 import { GridChakraSystem } from './world/GridChakraSystem';
 import { GridAlchemySystem } from './world/GridAlchemySystem';
 import { GridKarmaSystem } from './world/GridKarmaSystem';
@@ -1099,6 +1100,24 @@ const minimap = new Minimap({
     z: player.avatar.position.z,
     yaw: player.heading,
   }),
+  getDistrictLabel: () => {
+    try {
+      const worldId = String(livingWorld.getSnapshot().world ?? '');
+      const regionId = WORLD_TO_REGION[worldId];
+      if (!regionId) return null;
+      const center = getWorldCenter(worldId);
+      const d = districtAt(
+        regionId,
+        player.avatar.position.x,
+        player.avatar.position.z,
+        center?.x ?? 0,
+        center?.z ?? 0,
+      );
+      return d ? d.name : null;
+    } catch {
+      return null;
+    }
+  },
   getMarkers: () => [
     { id: 'player', x: player.avatar.position.x, z: player.avatar.position.z, kind: 'player' },
     ...teamAvatars.map(avatar => ({

@@ -10,7 +10,7 @@ export function mountGridTargetProfile(){
   root=document.createElement('section');
   root.id='grid-target-profile';
   root.className='grid-target-profile';
-  root.innerHTML='<div class="grid-target-profile-card"><div class="grid-target-profile-actions"><button type="button" data-profile-action="friend">FRIEND</button><button type="button" data-profile-action="follow">FOLLOW</button><button type="button" data-profile-action="message">MESSAGE</button><button type="button" data-profile-action="public">PUBLIC PROFILE</button></div><button class="grid-target-profile-close" type="button">×</button><div class="grid-target-profile-kicker">GRID PROFILE</div><div class="grid-target-profile-name"></div><div class="grid-target-profile-meta"></div><div class="grid-target-profile-bars"></div><div class="grid-target-profile-section"><b>TRAITS</b><div class="grid-target-profile-traits"></div></div><div class="grid-target-profile-section"><b>SKILLS</b><div class="grid-target-profile-skills"></div></div><div class="grid-target-profile-section"><b>RELATIONSHIPS</b><div class="grid-target-profile-relations"></div></div></div>';
+  root.innerHTML='<div class="grid-target-profile-card"><div class="grid-target-profile-actions"><button type="button" data-profile-action="friend">FRIEND</button><button type="button" data-profile-action="follow">FOLLOW</button><button type="button" data-profile-action="message">MESSAGE</button><button type="button" data-profile-action="public">PUBLIC PROFILE</button></div><button class="grid-target-profile-close" type="button">×</button><div class="grid-target-profile-kicker">GRID PROFILE</div><div class="grid-target-profile-identity"><div class="grid-target-profile-portrait"></div><div><div class="grid-target-profile-name"></div><div class="grid-target-profile-meta"></div></div></div><div class="grid-target-profile-bars"></div><div class="grid-target-profile-section"><b>TRAITS</b><div class="grid-target-profile-traits"></div></div><div class="grid-target-profile-section"><b>SKILLS</b><div class="grid-target-profile-skills"></div></div><div class="grid-target-profile-section"><b>RELATIONSHIPS</b><div class="grid-target-profile-relations"></div></div></div>';
   document.body.appendChild(root);
   root.querySelector('.grid-target-profile-close')?.addEventListener('click',()=>root!.classList.remove('open'));
   return root;
@@ -19,6 +19,15 @@ export function mountGridTargetProfile(){
 export function showNPCProfile(profile:NPCProfileRecord, relationships:Array<{kind?:string;otherId?:string;affinity?:number;trust?:number}> = [], actions:GridProfileActions = {}){
   const root=mountGridTargetProfile();
   const set=(selector:string,value:string)=>{const el=root!.querySelector(selector);if(el)el.innerHTML=value;};
+  // Deterministic varied portrait: initials on an id-hashed hue. Every NPC
+  // reads as a distinct individual; no baked-in appearance assumptions.
+  const seed = String((profile as {id?: unknown}).id ?? profile.displayName ?? '?');
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  const hue = hash % 360;
+  const initials = profile.displayName.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?';
+  set('.grid-target-profile-portrait',
+    '<span style="background:conic-gradient(from ' + hue + 'deg,hsl(' + hue + ',65%,42%),hsl(' + ((hue + 50) % 360) + ',65%,30%),#0a1420">' + esc(initials) + '</span>');
   set('.grid-target-profile-name',esc(profile.displayName));
   set('.grid-target-profile-meta',esc(profile.role)+' · '+esc(profile.occupation.title)+' · LEVEL '+profile.level+' · '+esc(profile.world));
   const xp=Math.min(100,Math.round(profile.experience%100));
