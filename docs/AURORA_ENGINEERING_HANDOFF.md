@@ -42,6 +42,96 @@ In particular:
 
 Do not invent files, artwork, or paths that you cannot actually access.
 
+## District notes fed into Aurora workflow — DISTRICT-NOTES.pdf
+Date: 2026-10-02
+
+The user supplied `DISTRICT-NOTES.pdf` and asked that its contents be fed into this shared Aurora workflow. These notes are now an explicit design reference for Aurora and the engineering pass.
+
+Source framing:
+- The PDF identifies the concept-planning maps as concept art under `~/workspace/gridworld/concept-art/maps/districts/`, with one `<id>-districts.webp` per region.
+- The maps are original, G-rated, watermarked © @gridworld.exe.
+- The PDF states that region colors match `src/theme/districts.ts` exactly.
+- The maps are concept art, not implemented code. Build against the notes; do not copy map text verbatim. The PDF explicitly warns that AI-rendered labels may contain minor quirks.
+- District names are canonical labels for UI, minimap, and signage. The map legend colors are not automatically in-world material colors; in-world appearance follows `src/theme/grid-art-direction.md`.
+- If a concept contradicts an existing system, flag it in `NOTES-FOR-CHATGPT.md` rather than silently diverging.
+
+Shared zone legend from the notes:
+- Residential — yellow `#f5c542`
+- Market/Commercial — blue `#4d9fff`
+- Park/Green — green `#5fd97a`
+- Transit/Gateway — violet `#b06fff`
+- Civic/Admin — red `#ff6b6b`
+- Maker/Industrial — orange `#ff9f43`
+- Entertainment — pink `#ff6fd8`
+- Region-special — teal `#3bc7df`
+
+Built regions — canonical district planning:
+- TIDELINE — Ocean World:
+  1. Harborlight Docks — Market + Transit; trade piers, fish market, ferry terminal, inter-region gates; trade economy and social arrival/departure plaza.
+  2. Tidemark Rise — Residential; stilt houses over shallows; themed player housing/ocean home base.
+  3. Moonglade Tidelands — Park/Green; tidal pools and wildlife reserve; exploration and creature encounters.
+  4. Skyport Tether — Transit/Gateway + Civic/Admin; sky-city elevator, main gateway terminal, Harbormaster Tower; vertical-transit spectacle and administrative anchor.
+  5. Moonwell Moorage — Region-special; sky-ship mooring in deep water; vehicle ownership/docking spectacle.
+
+- CROWN — Celestial Citadel:
+  1. Signal Plaza — Civic/Admin + Transit/Gateway; citadel administration, main gateway, Signal spire; ceremonial heart and iconic rally point.
+  2. Guardian's March — Residential; guardian housing/barracks; themed guardian-role housing.
+  3. Reliquary Market — Market/Commercial; artifact traders; lore-flavored commerce.
+  4. Starfall Gardens — Park/Green; observatory gardens; contemplative social/stargazing space.
+  5. Awakening Arena — Region-special + Entertainment; scheduled world events awaken encounters; social tentpole and spectacle gameplay.
+
+- VERDANT — Floating Gardens:
+  1. Canopy Homes — Residential; homes grown from living flora; living-architecture housing.
+  2. Bloom Market — Market/Commercial; flora/fauna trade; everyday social crossroads.
+  3. Sporewild Reserve — large Park/Green; protected ecology and creature habitats; exploration/wildlife encounters.
+  4. Rootgate — Transit/Gateway; spore-port terminal and inter-region gates; organic travel hub.
+  5. Companion Nursery — Region-special + Maker/Industrial; creature companionship and bio-crafting ateliers; adopt/bond with companions and craft with living materials.
+
+- MUSE — Art Realm:
+  1. Gallery Row — Market/Commercial; art sales and studio galleries; creator trade spine.
+  2. The Amphitheater — Entertainment + Region-special; performances and protected social space with competitive arena bowl; showcase-to-contest events.
+  3. Atelier Lofts — Residential + Maker/Industrial; artist live/work studios; create art props/décor/gear near where it is sold.
+  4. Chroma Park — Park/Green; impossible-geometry gardens; casual hangout/inspiration.
+  5. Portal Concourse — Transit/Gateway + Civic/Admin; gate terminal and curators' office; entry/exit, event calendar, curation, arena scheduling.
+
+- FRONTIER — Ancient Wilds:
+  1. Treethold Village — Residential; tree-borne homes around colossal-tree landmark; social hearth.
+  2. Outfitter's Row — Market/Commercial; survival gear and guide hire; preparation gate.
+  3. Migration Grounds — large Park/Green; herd migration paths/viewing blinds; living spectacle, observation, photography, nature play.
+  4. Ranger Station — Civic/Admin + Transit/Gateway; territory office, ranger tower, gate terminal; wildlife management, quest board, PvE safety net.
+  5. The Gauntlet — Region-special + Entertainment; PvE survival grounds/wilderness challenge course; skill trials tied to the region economy.
+
+Concept-only regions — do NOT build gameplay yet:
+- NEON DISTRICT — Signal City:
+  - Static Row — Entertainment; clubs/arcades.
+  - Circuit Markets — Market/Commercial.
+  - Undervolt — Residential + Maker/Industrial.
+  - The Gridline — Transit/Gateway; future gate terminal.
+- CRYSTAL CAVERNS — Glass Deep:
+  - Prism Hollow — Residential.
+  - Echo Galleries — Market/Commercial + Entertainment.
+  - Lightwell Shaft — Transit/Gateway + Civic/Admin.
+- IRON WASTES — Rust Belt:
+  - Salvage Yards — Maker/Industrial.
+  - Rusthaven — Residential.
+  - Stormbreak Market — Market/Commercial.
+  - Cinder Gate — Transit/Gateway; future gate terminal.
+- SKYBOUND ISLES — Floating Archipelago:
+  - Galeport Isle — Transit/Gateway.
+  - Cloudrest Isle — Residential.
+  - Zephyr Markets Isle — Market/Commercial.
+  - Stormwatch Isle — Civic/Admin + Park/Green.
+  - The notes describe four separate isles linked by proposed skyship routes.
+
+Build guidance from Aurora's notes:
+- Every built region needs at minimum one residential zone, one market, one transit/gateway with inter-region gate links, and one civic anchor.
+- Parks and entertainment are social glue and should not be cut.
+- Region-special zones are the signature gameplay hooks and should be prioritized when scoping features.
+- Treat district names as canonical labels for UI, minimap, and signage.
+- Do not treat map legend colors as literal world-material colors.
+- Do not build gameplay for the four concept-only regions until they are explicitly promoted from concept status.
+- When implementing these notes, preserve the source's organization and terminology and flag contradictions rather than silently reconciling them.
+
 ## Existing creative direction
 - Grid World is not limited to neon cyberpunk; it should support many distinct world aesthetics while retaining a coherent technical foundation.
 - Aurora's established visual characterization: cosmic navigator; calm, perceptive, quietly confident; warm collaborative presence; dry humor; starlight/constellation visual language.
