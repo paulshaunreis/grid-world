@@ -108,7 +108,9 @@ Build toward the agreed flow:
 - Connect profile information to the existing NPC life loop.
 - Make profiles useful for gameplay rather than merely decorative.
 
-**Status:** Ready
+**Status:** In review
+
+**Checkpoint — 2026-10-02:** Audited the existing NPC profile architecture before changing it. `NPCProfileRecord` already carried identity, role, world/home, occupation, traits, skills, level, memories, relationships, factions, inventory, and tags; `GridTargetProfile` was only surfacing traits, skills, and relationships. PR #10 expands the existing target profile to show optional live status, home/work, factions/tags, inventory, and recent memories, and adds `NPCProfileStatus` plus richer summary counts. No parallel profile system or Supabase schema change was introduced. Branch `grid/npc-profile-expansion`, PR #10, head `dfb2d824660ff809b410c5666b54426d7ef2185c`. GitHub has not reported a workflow run for the head yet; not CI-verified.
 
 ### 10. Aurora's own in-world staff profile
 - Implement the canonical Aurora profile from `docs/AURORA_PROFILE.md`.
@@ -444,3 +446,15 @@ _Last updated: 2026-10-02_
 - GitHub Actions CI run #1090 succeeded for head `aa636da0bdf7c475ede47766ae638c9a2cfcae91`.
 - PR #9 was squash-merged into `main` as `f53799d06e22b3fc0e114b1c5e2beedce11e961b`.
 - Next: P1 NPC profile expansion, after auditing the existing NPC profile implementation to avoid duplicating fields/systems.
+
+
+## P1 NPC profile expansion checkpoint — 2026-10-02
+- PR #10 `grid/npc-profile-expansion` implements the audited NPC profile expansion on top of current `main`.
+- Files: `src/world/NPCProfile.ts`, `src/ui/GridTargetProfile.ts`, `src/ui/grid-target-profile.css`.
+- Existing fields are reused; optional `NPCProfileStatus` provides a place for live status without inventing a new runtime source of truth.
+- Target profile now surfaces status, home/work, traits, skills, relationships, factions/tags, inventory, and recent memories. The panel is scrollable for the expanded information.
+- No Supabase schema change. PR #5's unmerged certificate work was deliberately not duplicated.
+- Verification: branch source inspection completed; no local checkout was available in this session and GitHub workflow lookup for head `dfb2d824660ff809b410c5666b54426d7ef2185c` returned no runs yet. Therefore the PR is not CI-verified.
+- Next after PR #10 review: NPC life-loop integration pass, unless a higher-priority stability finding or PR review decision supersedes it.
+
+_Last updated: 2026-10-02_
