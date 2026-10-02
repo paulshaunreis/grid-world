@@ -293,3 +293,14 @@ Do not treat the references as a complete specification. Aurora's own response s
 - Landmark activity remains on commits `56f0a4b` / `dea111e`.
 - Verification: no workflow run is currently reported for the newest media commit, so CI verification is still pending.
 - Next target: wire Creator Studio world-generation acceptance/publish into activity, then verify the accumulated activity path with CI.
+
+
+## Creator Studio world-creation activity pass — 2026-10-01
+- src/main.ts now wraps the Creator Studio onCreateWorld callback around the existing createFactoryWorld path.
+- A WORLD_CREATE profile activity is recorded only after the world factory returns a created world, so rejected/invalid Creator Studio requests do not create a false feed entry.
+- Activity metadata includes world ID, world name, description, and inferred world tags; the existing persistent grid_profile_activity surface remains the single feed store.
+- The World Factory panel continues to use the shared createFactoryWorld path without duplicating this Creator Studio-specific activity event.
+- Commit: 16bd8d730e4dd0d1de4550be0b2f8cd9db7eb157 — Record Creator Studio world creation activity.
+- Verification: CI for this newest commit has not yet been checked. Do not claim build/typecheck verification until GitHub Actions reports success.
+- Draft PR #1 remains open/draft; no merge was performed.
+- Next target: verify the accumulated profile activity chain in CI, then continue connecting Creator Studio publishing/creation records to the public profile without introducing duplicate identity or creation datastores.
