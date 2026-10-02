@@ -272,3 +272,15 @@ PR #6 `grid/landmarks-waypoints-flow` passed GitHub Actions CI run #1080 success
 
 ## Master engineering state document merged — 2026-10-02
 - `docs/ENGINEERING_STATE.md` is now on `main` (merged from `aurora/engineering-state` with Paul's approval). Fresh-chat rule: read ENGINEERING_STATE.md first, then this handoff, then the work queue. Keep its "Last updated" line and main SHA current when substantial work lands.
+
+
+## P1 NPC life-loop integration — 2026-10-02
+- Audited the current NPC architecture before implementation. Visible `NPCSocietySystem` already contains routine scheduling, movement/travel, relationship interactions, inventory, jobs, production, market, and persistence. `GridNpcBrain` separately provides bounded needs, memory, relationship cognition, and action selection. The engineering state explicitly says these visible and brain systems are parallel and should not be ripped out/unified without Paul.
+- PR #11 bridges them instead of replacing either system.
+- `NPCSocietySystem` now keeps a `GridNpcBrain` per visible citizen, passes routine phase, nearby citizens, safety, work, and food context into the brain, exposes brain action/needs through `userData`, lets the brain influence the existing state chooser, and records social meetings through both relationship and brain memory systems.
+- Existing NPC profiles now receive bounded brain memory summaries and relationship IDs during the life loop. Meals consume one FOOD inventory item on a 20-second cooldown, connecting needs to the existing inventory system.
+- Branch `grid/npc-life-loop-integration`; PR #11; latest head `0eb8ef1cc9652818898b45e17b2b82fb767f69b4`.
+- CI run #1099 is in progress; do not call this CI-verified until a successful result is observed. Local build was not run because this session has no repository checkout.
+- Main remains unchanged. Merge is Paul's decision.
+
+_Last updated: 2026-10-02_
