@@ -83,7 +83,7 @@ const sectionLabels: Record<string, string> = {
 
 async function save() {
   localStorage.setItem(key, JSON.stringify(draft));
-  if(profileAuthority&&profileClient){try{const {data:{user}}=await profileClient.auth.getUser();if(user){await profileAuthority.save({handle:draft.handle,displayName:draft.displayName,bio:draft.bio,status:draft.status,mood,theme:draft.theme,layout:draft.layout});mood=profile.mood||'curious';cloudMedia=await profileAuthority.media(user.id);cloudPosts=await profileAuthority.posts(user.id);cloudFeed=await profileAuthority.feed(user.id);cloudLandmarks=await profileAuthority.landmarks(user.id);cloudInventory=await profileAuthority.inventory(user.id);arenaRanking=await profileAuthority.ranking(user.id);render();return;}}catch(error){console.warn('Cloud profile save unavailable; local profile retained.',error);}}
+  if(profileAuthority&&profileClient){try{const {data:{user}}=await profileClient.auth.getUser();if(user){await profileAuthority.save({handle:draft.handle,displayName:draft.displayName,bio:draft.bio,status:draft.status,mood,theme:draft.theme,layout:draft.layout});cloudMedia=await profileAuthority.media(user.id);cloudPosts=await profileAuthority.posts(user.id);cloudFeed=await profileAuthority.feed(user.id);cloudLandmarks=await profileAuthority.landmarks(user.id);cloudInventory=await profileAuthority.inventory(user.id);arenaRanking=await profileAuthority.ranking(user.id);render();return;}}catch(error){console.warn('Cloud profile save unavailable; local profile retained.',error);}}
   const status=document.querySelector('#save-status');if(status)status.textContent='Saved locally · ready for Grid Identity';
 }
 
@@ -103,7 +103,7 @@ function render() {
 
         <label>Display name<input id="displayName" value="${escapeHtml(draft.displayName)}"></label>
         <label>Handle<input id="handle" value="@${escapeHtml(draft.handle)}"></label>
-        <label>Status<input id="status" value="${escapeHtml(draft.status)}"></label>
+        <label>Status<input id="status" value="${escapeHtml(draft.status)}"></label><label>Mood<select id="mood">${['curious','calm','energized','focused','creative','social','adventurous','peaceful','determined','playful'].map(m=>`<option value="${m}" ${mood===m?'selected':''}>${m}</option>`).join('')}</select></label>
         <label>About me<textarea id="bio">${escapeHtml(draft.bio)}</textarea></label>
 
         <div class="control-section">
@@ -179,6 +179,7 @@ function bind() {
   document.querySelector<HTMLInputElement>('#displayName')?.addEventListener('input', e => { draft.displayName=(e.target as HTMLInputElement).value; renderPreviewOnly(); });
   document.querySelector<HTMLInputElement>('#handle')?.addEventListener('input', e => { draft.handle=(e.target as HTMLInputElement).value.replace(/^@/,''); renderPreviewOnly(); });
   document.querySelector<HTMLInputElement>('#status')?.addEventListener('input', e => { draft.status=(e.target as HTMLInputElement).value; renderPreviewOnly(); });
+  document.querySelector<HTMLSelectElement>('#mood')?.addEventListener('change', e => { mood=(e.target as HTMLSelectElement).value; render(); });
   document.querySelector<HTMLTextAreaElement>('#bio')?.addEventListener('input', e => { draft.bio=(e.target as HTMLTextAreaElement).value; renderPreviewOnly(); });
   document.querySelector('#save')?.addEventListener('click', save);
   document.querySelector('#upload-media')?.addEventListener('click', async()=>{
