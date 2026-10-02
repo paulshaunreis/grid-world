@@ -42,6 +42,17 @@
 
 **Nature kit** (`public/models/nature/`, CC0 Kenney): 305 models in 6 categories — 37 trees, 116 rocks/cliffs, 29 plants, 21 crops, 48 structures, 54 misc. 3.2 MB total.
 
+## Pack 3 — size spread (2026-10-02)
+
+Paul asked for small, big, and massive creatures. Nine more CC0 Quaternius animals via Poly Pizza (all three.js verified):
+
+- **Massive:** `quaternius-whale.glb` (Swim), `quaternius-dragon.glb` (5 anims — Attack, Attack2, Death, Flying).
+- **Big:** `quaternius-wolf.glb` (24 anims), `quaternius-stag.glb` (26 anims — Headbutt/Kick attacks).
+- **Small:** `quaternius-bunny.glb` (14 anims), `quaternius-crab.glb` (10 anims — Dance!), `quaternius-butterflyfish.glb` (6 anims).
+- **Tiny:** `quaternius-bee.glb` (static, 0 anims — ambient critter), `quaternius-spider.glb` (5 anims).
+
+Creature roster is now 16 total: 7 land mammals/reptile-amphibians, 2 sea mammals, 4 fish, 1 dragon, 2 insects/arachnids.
+
 ## Integration (ChatGPT's lane)
 
 - Flora: scatter via the ecology/district systems; Lanternbloom wants a PointLight or emissive bloom pass at night.
