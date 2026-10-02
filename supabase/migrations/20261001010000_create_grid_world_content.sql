@@ -1,7 +1,6 @@
 create table public.grid_world_content (
   world_id text primary key references public.grid_worlds(id) on delete cascade,
   owner_user_id uuid not null references auth.users(id) on delete cascade,
-  builds jsonb not null default '[]'::jsonb,
   terrain jsonb not null default '[]'::jsonb,
   quests jsonb not null default '{}'::jsonb,
   consequences jsonb not null default '{}'::jsonb,
