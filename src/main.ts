@@ -1282,6 +1282,7 @@ const cloudReady = cloudPersistence
 
       if (authenticated) {
         easyBuildSystem.setOwnerUserId(cloudIdentity.id);
+        await syncBuildAccessRole(String(livingWorld.getSnapshot().world));
         combatAuthority = new GridCombatAuthority(cloudPersistence.getClient());
         void refreshMarketQuotes();
         presence?.setIdentity(cloudIdentity);
@@ -1628,6 +1629,21 @@ async function savePersistentWorldContent(worldId: string) {
   }
 }
 
+async function syncBuildAccessRole(worldId: string) {
+  if (!cloudAuthenticated || !persistentWorldIds.has(worldId) || !gridWorldContentAuthority) {
+    easyBuildSystem.setAccessRole('owner');
+    return;
+  }
+  try {
+    const role = await gridWorldContentAuthority.getRole(worldId);
+    easyBuildSystem.setAccessRole(role);
+    if (!role) addChatMessage('GRID BUILDER', 'You have no build permissions in this world.', 'system');
+  } catch (error) {
+    easyBuildSystem.setAccessRole('viewer');
+    console.warn('Build role lookup unavailable.', error);
+  }
+}
+
 async function loadPersistentWorldContent(worldId: string) {
   if (!gridWorldContentAuthority || !persistentWorldIds.has(worldId)) return;
   try {
@@ -1643,6 +1659,7 @@ async function loadPersistentWorldContent(worldId: string) {
     if (content?.creatureState?.[0]) creatureEcology.importPersistentState(content.creatureState[0], worldId);
     if (playerState?.quests) questSystem.importState(playerState.quests);
     activePersistentContentWorldId = worldId;
+    await syncBuildAccessRole(worldId);
     addChatMessage('WORLD STATE', 'Restored persistent content for ' + (getWorld(worldId)?.label ?? worldId) + '.', 'system');
   } catch (error) {
     console.warn('Persistent world content restore unavailable.', error);
@@ -1654,7 +1671,7 @@ async function syncPersistentWorldContent(worldId: string) {
   if (activePersistentContentWorldId) await savePersistentWorldContent(activePersistentContentWorldId);
   activePersistentContentWorldId = null;
   if (persistentWorldIds.has(worldId)) await loadPersistentWorldContent(worldId);
-  else easyBuildSystem.restore([]);
+  else { easyBuildSystem.restore([]); await syncBuildAccessRole(worldId); }
 }
 
 easyBuildSystem.attach(camera, world.scene, renderer.domElement);
