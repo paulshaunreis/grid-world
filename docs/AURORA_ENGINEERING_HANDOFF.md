@@ -368,3 +368,13 @@ _Last updated: 2026-10-02
 - Next: P2 #19 mission/quest foundation, after auditing the substantial existing QuestSystem/DynamicQuestSystem before adding anything.
 
 _Last updated: 2026-10-02_
+
+## 2026-10-02 — Mission/quest foundation checkpoint
+- Audited the existing `QuestSystem`, `DynamicQuestSystem`, and `QuestPanel`; the mission engine was already substantial and was extended rather than replaced.
+- PR #22 merged as `6fd95acdf6a559b05e00abc8c1be9223b6eae549`.
+- Added reusable quest prerequisites, ONCE/DAILY/WEEKLY/MONTHLY/YEARLY cadence, bounded completion history, and v2→v3 local-save migration.
+- Quest journal now surfaces cadence and prerequisite count.
+- Verification: source-level review and successful merge. No GitHub Actions run was available for the PR head, so this is not CI-verified; no browser verification was performed.
+- **Next:** P2 #20 PvE foundation; audit existing CombatSystem/GridCombatAuthority first.
+
+_Last updated: 2026-10-02_
