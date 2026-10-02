@@ -412,3 +412,17 @@ _Last updated: 2026-10-02_
 - Verification boundary: source/asset verification only; no CI or browser run for the final preview commits.
 - **Next actionable item: P1 Core player/world — landmarks/waypoints inventory and save/use flow.**
 
+
+
+## P1 landmarks/waypoints implementation checkpoint — 2026-10-02
+- Implemented the existing Landmark/Waypoint foundation instead of creating a parallel system.
+- Added persistent current-location waypoint creation through `grid_landmarks` + `grid_landmark_items`.
+- Inventory now supports select/use, pin/unpin, rename, delete, and save-current-location.
+- INVENTORY HUD routing now opens the Landmark/Waypoint inventory; WALLET remains on the economy surface.
+- Selecting a saved destination now requires an explicit user selection before transit effects begin, then uses destination preview/avatar effects and Grid transit authorization for cross-world routes.
+- Supabase verification: `grid_landmarks` and `grid_landmark_items` both exist with RLS enabled and owner policies; current row counts are 0/0.
+- Branch: `grid/landmarks-waypoints-flow`; PR #6; head `8dfe7dbaa3ca4e9a5d05fa87ac9fef29b1e53c00`.
+- CI/browser verification is still pending; do not describe PR #6 as verified or merged.
+- Next: after PR #6 verification, continue P1 party health/HUD, then camera/movement controls.
+
+_Last updated: 2026-10-02_
