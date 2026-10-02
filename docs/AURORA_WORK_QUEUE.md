@@ -101,7 +101,7 @@ Build toward the agreed flow:
 - Keep privacy boundaries explicit.
 - Reuse the same architecture for NPC profiles where possible, while keeping player-only fields separate.
 
-**Status:** Ready
+**Status:** Complete
 
 ### 9. NPC profile expansion
 - Ensure NPCs have inspectable profiles with identity, role, world/home, occupation, traits, skills, level, relationships, memories, inventory, factions/tags, and current status where available.
@@ -435,3 +435,12 @@ _Last updated: 2026-10-02_
 - Next actionable P1 item: party health/HUD, then camera/movement controls. Existing implementations should be audited rather than duplicated.
 
 _Last updated: 2026-10-02_
+
+
+## P1 unified profile architecture completion — 2026-10-02
+- PR #9 `grid/unified-profile-read-path` was reviewed against current `main` before merge.
+- `GridProfileService.get()` now reads `grid_user_profiles` as the Grid-facing public profile contract and falls back to legacy `profiles` for older accounts.
+- Presence remains sourced from `grid_account_presence`; no schema change was required.
+- GitHub Actions CI run #1090 succeeded for head `aa636da0bdf7c475ede47766ae638c9a2cfcae91`.
+- PR #9 was squash-merged into `main` as `f53799d06e22b3fc0e114b1c5e2beedce11e961b`.
+- Next: P1 NPC profile expansion, after auditing the existing NPC profile implementation to avoid duplicating fields/systems.
