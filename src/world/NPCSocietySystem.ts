@@ -54,6 +54,7 @@ type Citizen = {
   gatePosition:THREE.Vector3;
   brain: GridNpcBrain;
   mealCooldown:number;
+  memoryCooldown:number;
 };
 
 export interface SocietySnapshot {
@@ -207,7 +208,7 @@ export class NPCSocietySystem {
       root.add(canopy,counter,sigil);
     }
     this.root.add(root);
-    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0,merchant,merchantStock:merchant?0:0,merchantStress:0,merchantMood:'CALM',merchantOpen:true,merchantSchedule:name.length%6,schedulePhase:(name.length%10)/10,travelTimer:8+name.length%9,travelTarget:new THREE.Vector3(wx,0,wz),travelMode:'WALK',travelPurpose:'WORK',travelWorld:world,selectedDestination:world,gateCooldown:0,travelStage:'IDLE',gatePosition:new THREE.Vector3(hx,0,hz),brain,mealCooldown:0});
+    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0,merchant,merchantStock:merchant?0:0,merchantStress:0,merchantMood:'CALM',merchantOpen:true,merchantSchedule:name.length%6,schedulePhase:(name.length%10)/10,travelTimer:8+name.length%9,travelTarget:new THREE.Vector3(wx,0,wz),travelMode:'WALK',travelPurpose:'WORK',travelWorld:world,selectedDestination:world,gateCooldown:0,travelStage:'IDLE',gatePosition:new THREE.Vector3(hx,0,hz),brain,mealCooldown:0,memoryCooldown:0});
   }
 
   private chooseState(c:Citizen,event:string,phase:string,pressure=0,stability=1,brainAction?:GridNpcAction) {
@@ -266,6 +267,7 @@ export class NPCSocietySystem {
       c.travelTimer-=delta;
       c.gateCooldown=Math.max(0,c.gateCooldown-delta);
       c.mealCooldown=Math.max(0,c.mealCooldown-delta);
+      c.memoryCooldown=Math.max(0,c.memoryCooldown-delta);
       // Day-cycle routine: each role keeps a data-driven daily rhythm (sleep /
       // work / meal / leisure). When no dayFraction is passed (older callers),
       // fall back to the coarse phase string so behavior degrades gracefully.
@@ -377,6 +379,11 @@ export class NPCSocietySystem {
         if (routinePhase === 'sleep') c.state = 'REST';
         else if (routinePhase === 'meal' && c.state !== 'TRAVEL') c.state = 'EAT';
       }
+      const remember = (eventType:string, summary:string, subjectId?:string, valence=.1, importance=.32) => {
+        if (c.memoryCooldown > 0) return;
+        c.brain.remember({ subjectId, eventType, summary, valence, importance, confidence: .82 });
+        c.memoryCooldown = 8;
+      };
       c.energy=Math.max(0,c.energy-delta*(c.state==='WORK'?.012:.005));
       c.social=Math.max(0,c.social-delta*.006);
       if(c.state==='REST') c.energy=Math.min(1,c.energy+delta*.045);
@@ -389,6 +396,7 @@ export class NPCSocietySystem {
             this.inventory.remove(profile,food.id,1);
             c.mealCooldown=20;
             c.root.userData.lastMeal=food.name;
+            remember('meal', 'Ate ' + food.name + '.', food.id, .05, .22);
           }
         }
       }
@@ -401,9 +409,10 @@ export class NPCSocietySystem {
           c.root.userData.inventory = profile.inventory;
           c.root.userData.jobProgression = profile.occupation;
           if (profile.level > 1) c.root.userData.npcLevel = profile.level;
+          if (profile.occupation.progression > 0) remember('work', 'Worked as ' + profile.occupation.title + '.', profile.occupation.workplaceId, .08, .3);
         }
       }
-      if(c.state==='GATHER') gathering++;
+      if(c.state==='GATHER') { gathering++; remember('discovery', 'Looked for useful materials nearby.', c.world, .04, .2); }
       if(c.merchant) {
         c.root.userData.marketPrompt = c.merchantMood === 'WORRIED' ? 'SUPPLIES LOW' : c.merchantMood === 'BUSY' ? 'MARKET ACTIVE' : 'TRADE';
         const sigil = c.root.children.find(child => child instanceof THREE.Mesh && child.geometry instanceof THREE.TorusGeometry) as THREE.Mesh | undefined;
@@ -426,6 +435,7 @@ export class NPCSocietySystem {
           c.root.userData.gateQueuePosition = 0;
           c.root.userData.destinationSelected=true;
           c.root.userData.gateDeparture=true;
+          remember('travel', 'Traveled toward ' + c.selectedDestination + '.', c.selectedDestination, .06, .34);
           c.root.userData.travelEffect='GATE_TRANSIT';
           c.root.userData.gatePulse=1;
           c.root.visible=false;
@@ -434,6 +444,7 @@ export class NPCSocietySystem {
           c.root.visible=true;
           c.root.userData.travelEffect='ARRIVAL';
           c.root.userData.gateArrival=true;
+          remember('arrival', 'Arrived in ' + c.world + '.', c.world, .1, .38);
           c.root.userData.gatePulse=1;
           c.root.userData.gateQueuePosition = 0;
           this.transitTrafficRecorder?.(c.world, c.selectedDestination, Number(c.root.userData.gateQueuePosition ?? 0));
@@ -505,6 +516,8 @@ export class NPCSocietySystem {
       merchant.root.userData.merchantStock = merchant.merchantStock;
       merchant.root.userData.lastRestock = listing;
       this.marketedProduction.add(item.id);
+      const producer = this.citizens.find(c => c.name === item.npcId);
+      if (producer) producer.brain.remember({ subjectId: item.itemId, eventType: 'production', summary: 'Produced ' + item.quantity + ' × ' + item.itemId + '.', valence: .12, importance: .34, confidence: .86 });
     }
     this.root.userData.production=this.production.getRecent(32);
     this.root.userData.marketListings=this.market.getListings(world);
