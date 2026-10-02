@@ -567,6 +567,8 @@ Deno.serve(async (req: Request) => {
       const rule=creatureRule(String(target.species));
       if(!rule) return json({ok:false,error:"unknown_creature"},400);
       const now=Date.now();
+      const zone=zoneFor(Number(state.x),Number(state.z));
+      if(zone!=="PVE" || state.mode!=="PVE") return json({ok:false,error:"pve_not_allowed",zone,mode:state.mode},403);
       if(target.respawn_at && new Date(target.respawn_at).getTime()>now) return json({ok:false,error:"creature_down"},409);
       if(Number(target.health)<=0) return json({ok:false,error:"creature_down"},409);
       if(Number(state.health)<=0) return json({ok:false,error:"combatant_down"},409);
@@ -592,6 +594,8 @@ Deno.serve(async (req: Request) => {
       const rule=creatureRule(String(target.species));
       if(!rule) return json({ok:false,error:"unknown_creature"},400);
       const now=Date.now();
+      const zone=zoneFor(Number(state.x),Number(state.z));
+      if(zone!=="PVE" || state.mode!=="PVE") return json({ok:false,error:"pve_not_allowed",zone,mode:state.mode},403);
       if(target.respawn_at && new Date(target.respawn_at).getTime()>now) return json({ok:false,error:"creature_down"},409);
       if(Number(target.health)<=0 || Number(state.health)<=0) return json({ok:false,error:"combatant_down"},409);
       const range=distance(state,target);
