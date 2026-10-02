@@ -325,3 +325,21 @@ Do not treat the references as a complete specification. Aurora's own response s
 
 - Continue the same persistence loop into world re-entry UX: select a persistent world from the public/profile surface, resolve its gate/destination, show the existing teleport preview/VFX, and enter the stored world without creating a duplicate runtime record.
 - Then connect persistent world records to world-specific creations/builds so a created world is not only a registry entry but a durable place containing its own evolving content.
+
+
+## Persistent world re-entry pass — 2026-10-01
+
+- Grid Atlas world cards now expose an ENTER WORLD action.
+- Atlas accepts a world-selection callback rather than owning teleport logic, preserving the separation between world discovery UI and Grid Transit.
+- main.ts now resolves the selected world to its persistent world-gate:* transit node, validates the route through GridTeleportSystem.request, shows the existing destination preview/teleport VFX, moves the avatar to the stored destination, and records a WORLD_VISIT activity with persistent/reentry metadata.
+- Teleport traffic and the existing grid_teleport_events persistence path are reused; no second teleport implementation was created.
+- Because GridLivingWorld determines its active world from the player's position against the world registry, arriving at the stored world coordinates naturally switches the active living-world context.
+- Atlas closes before transit begins so the destination preview/VFX are unobstructed.
+- Commits: 0aae73216330b97091cae1ebc32f6af30ede86e6 (Atlas entry action), e94ec240f59681bfe4912594eafad30b8536bad8 (Atlas close-before-entry), 67ee09f3af1b94f850795e1b6c3715d6e27f0e40 (persistent re-entry flow), 1f491417dca2663d024b93033ecf4a754d34cbe5 (world lookup import).
+- Verification: no GitHub Actions workflow run has yet been returned for the latest code commit. Do not claim CI/build verification for this pass until a workflow reports success.
+- Local typecheck/test execution was not performed.
+- Draft PR #1 remains open/draft; no merge was performed.
+
+### Current next target
+
+- Make the persistent world's actual content durable: world-specific builds, terrain edits, placed objects, NPC/creature state, quests and discoveries should be keyed to the persistent world_id, then restored when the resident re-enters.
