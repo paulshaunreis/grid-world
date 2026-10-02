@@ -192,7 +192,7 @@ Expose these through Build Mode with original Grid World controls.
 - Brush radius, drag editing, carve/build, persistence, serialization, and future clay-like sculpting should share a coherent model.
 - Keep the architecture capable of smaller voxel/cube edits and higher-level sculpting.
 
-**Status:** Ready
+**Status:** Complete
 
 ---
 
@@ -543,3 +543,15 @@ _Last updated: 2026-10-02_
 - Existing permissions, snapping, copy/paste, placement, primitive library, and material-crafted tools remain intact.
 - Verification boundary: source review and successful merge; GitHub returned no workflow run for the PR head, and no browser verification was available.
 - **Next actionable item:** P2 #18 — terrain sculpting continuation, after checking the existing Grid Matter brush for the next missing clay-like/voxel capability.
+
+
+## P2 #18 terrain sculpting completion checkpoint — 2026-10-02
+- Extended the existing Grid Matter terrain model; no parallel terrain system was introduced.
+- Added clay-style sculpt modes: RAISE, LOWER, SMOOTH, and FLATTEN, alongside existing CARVE/BUILD.
+- Added bounded brush strength (1–3) and exposed radius/strength plus all sculpt modes in Creator Studio.
+- Preserved local persistence, serialization/restore, world integration, and existing keyboard controls; added R/L/S/F shortcuts.
+- PR #21 merged as `ae9e26ebe7d1cfcb7b355a978a4d81b870b433b3`.
+- Verification: source/diff review and successful merge; no GitHub Actions workflow run was available for the PR head, so this is not CI-verified and has not had browser/WebGL verification.
+- **Next actionable item: P2 #19 Mission/quest foundation.**
+
+_Last updated: 2026-10-02_
