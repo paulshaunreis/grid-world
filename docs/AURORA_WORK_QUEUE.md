@@ -393,3 +393,14 @@ _Last updated: 2026-10-02_
 - P0.2 remains active for remaining secondary controls and end-to-end navigation checks.
 
 _Last updated: 2026-10-02_
+
+
+## P0.2 completion checkpoint — 2026-10-02
+- Completed source-level HUD/navigation audit across primary and secondary controls.
+- Verified routing for profile, inventory, wallet, map, field, QR, build, team, social, settings, operator, account/auth, Creator Studio, Quest, voice target, social friend/message/teleport, and transit destination selection.
+- Consolidated duplicate SOCIAL/TEAM listeners into the centralized HUD router.
+- No additional concrete dead navigation path was identified in the audited `src/main.ts` surface.
+- Verification boundary: this is a source-level audit; no end-to-end browser run or CI run was available for the final routing commit.
+- **P0.2 complete. Next actionable item: P1 Core player/world — teleport experience, then landmarks/waypoints, party health/HUD, camera/movement controls.**
+
+_Last updated: 2026-10-02_
