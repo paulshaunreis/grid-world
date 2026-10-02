@@ -80,6 +80,7 @@ import { mountGridEconomyPanel } from './ui/GridEconomyPanel';
 import { GridAuthService } from './auth/GridAuthService';
 import { mountGridAuthPanel } from './ui/GridAuthPanel';
 import { GridSocialService } from './social/GridSocialService';
+import { GridProfileService } from './social/GridProfileService';
 import { mountGridCommunityPanel } from './ui/GridCommunityPanel';
 import { GridVoiceModifierSystem } from './audio/GridVoiceModifierSystem';
 import type { GridAgeBand } from './social/GridContentAccess';
@@ -131,6 +132,7 @@ const worldSnapshotManager = new GridWorldSnapshotManager('first-light');
 const cloudPersistence = supabaseConfigured ? new SupabasePersistence(SUPABASE_URL!, SUPABASE_PUBLISHABLE_KEY!) : null;
 const socialAuthority = supabaseConfigured ? new GridSocialAuthority(cloudPersistence!.getClient()) : null;
 const friendSystem = new GridFriendSystem();
+const profileService = cloudPersistence ? new GridProfileService(cloudPersistence.getClient()) : null;
 const partySystem = cloudPersistence ? new GridPartySystem(cloudPersistence.getClient()) : null;
 const partyHud = mountGridPartyHud(cloudPersistence?.getClient());
 const teleportExperience = mountTeleportExperience();
@@ -1898,11 +1900,44 @@ addEventListener('keydown', (event) => {
   const target = interaction.findTarget();
   if (!target) return;
   const profile = target.object.userData.npcProfile as import('./world/NPCProfile').NPCProfileRecord | undefined;
-  if (!profile) return;
   const getRelationships = target.object.userData.relationships as (() => Array<{kind?:string;otherId?:string;affinity?:number;trust?:number}>) | undefined;
-  showNPCProfile(profile, getRelationships?.() ?? []);
-  prompt.textContent = 'P · PROFILE OPEN';
-  audio.play('ui.focus');
+  if (profile) {
+    showNPCProfile(profile, getRelationships?.() ?? []);
+    prompt.textContent = 'P · PROFILE OPEN';
+    audio.play('ui.focus');
+    return;
+  }
+  const remoteId = target.object.userData.remotePlayerId ? String(target.object.userData.remotePlayerId) : null;
+  if (!remoteId || !profileService) return;
+  void profileService.get(remoteId).then(async publicProfile => {
+    if (!publicProfile) return;
+    const state=await profileService.connectionState(remoteId);
+    showNPCProfile({
+      id:publicProfile.id,
+      displayName:publicProfile.displayName,
+      role:'PLAYER',
+      archetype:'player',
+      world:publicProfile.worldId ?? 'UNKNOWN',
+      gender:'unspecified',
+      level:1,
+      experience:0,
+      traits:[publicProfile.online?'ONLINE':'OFFLINE'],
+      skills:{},
+      occupation:{title:'Grid Citizen',progression:0},
+      home:{world:publicProfile.worldId ?? 'UNKNOWN',x:0,y:0,z:0},
+      memories:[],
+      relationshipIds:[],
+      factionIds:[],
+      inventory:[],
+      tags:publicProfile.handle ? ['@'+publicProfile.handle] : []
+    },[],{
+      onFriend:()=>void socialAuthority?.requestFriend(remoteId).then(()=>addChatMessage('SOCIAL','Friend request sent.','system')).catch(()=>addChatMessage('SOCIAL','Friend request could not be sent.','system')),
+      onFollow:()=>void gridSocialService?.toggleConnection(remoteId,'follow').then(active=>addChatMessage('SOCIAL',active?'Now following '+publicProfile.displayName+'.':'Unfollowed '+publicProfile.displayName+'.','system')).catch(()=>addChatMessage('SOCIAL','Follow action could not be completed.','system')),
+      onMessage:()=>{chatInput.focus();chatInput.value='@'+(publicProfile.handle??remoteId)+' ';}
+    });
+    prompt.textContent = 'P · PROFILE OPEN';
+    if(state.friend) addChatMessage('SOCIAL','You are already friends with '+publicProfile.displayName+'.','system');
+  }).catch(()=>addChatMessage('SOCIAL','Public profile is unavailable right now.','system'));
 });
 addEventListener('beforeunload', savePlayer);
 addEventListener('beforeunload', () => { presence?.disconnect().catch(() => undefined); });
