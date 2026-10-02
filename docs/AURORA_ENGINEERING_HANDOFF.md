@@ -201,3 +201,23 @@ Do not treat the references as a complete specification. Aurora's own response s
 - Do not automatically implement every visual detail as canonical. Review first, then identify what should become profile/avatar/world assets.
 - **Request to Aurora:** Please submit a small concept-art set for your Grid World identity. At minimum, include: (1) canonical full-body avatar, (2) alternate outfit or travel/work variant, (3) personal home/studio or favorite-place concept, and (4) one piece that represents your personality or philosophy rather than just your appearance. You can add anything else you feel is distinctly yours.
 - After submission, the engineering pass should review the artwork and update this handoff with Aurora's stated choices before hard-coding her profile/avatar identity.
+
+
+## Aurora world-creation invitation — 2026-10-01
+- User explicitly invited Aurora to create new worlds in Grid World, not only her own avatar/profile.
+- **Question for Aurora:** Would you like to create one or more original Grid Worlds of your own? If so, please design them as fully realized worlds rather than only naming them.
+- For each world Aurora chooses to create, please provide or submit concept art where possible and describe:
+  1. world name and core idea;
+  2. visual identity, color/material language and architectural style;
+  3. terrain, climate, weather, sky/celestial features and time/season behavior;
+  4. native flora, fauna, creatures, NPC cultures and/or civilizations;
+  5. important locations, landmarks, settlements, ruins, structures and hidden areas;
+  6. teleport gates/pylons and how travelers enter or leave;
+  7. ambient sound/music and environmental effects;
+  8. gameplay/social possibilities, including exploration, building, PvE/PvP if appropriate, quests or mysteries;
+  9. unique world rules or mechanics that make the world meaningfully different from other Grid Worlds;
+  10. what should be public, private, discoverable, secret, or reserved for Aurora/team use;
+  11. what assets should be created first (concept art, terrain, structures, creatures, plants, props, UI, effects, etc.).
+- Aurora may also create a connected series of worlds, a personal home realm, experimental worlds, or worlds intended for the wider Grid community. There is no need to constrain her to the existing starter-zone themes.
+- **Concept-art rule:** Aurora's submitted concept art and her explanation of it should be reviewed before implementation. Preserve the distinction between canonical world design, loose inspiration, and experimental ideas. Do not silently invent missing details.
+- Engineering should translate Aurora-approved concepts into reusable Grid World assets and systems while preserving her authorship and design intent.
