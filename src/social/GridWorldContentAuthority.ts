@@ -100,9 +100,14 @@ export class GridWorldContentAuthority {
   async save(snapshot: GridWorldContentSnapshot) {
     const { data: auth } = await this.client.auth.getUser();
     if (!auth.user) return null;
+    const { data: world, error: worldError } = await this.client.from('grid_worlds').select('owner_user_id').eq('id', snapshot.worldId).maybeSingle();
+    if (worldError) throw worldError;
+    if (!world?.owner_user_id) return null;
+    const role = await this.getRole(snapshot.worldId);
+    if (!role || role === 'viewer') return null;
     const { data, error } = await this.client.from('grid_world_content').upsert({
       world_id: snapshot.worldId,
-      owner_user_id: auth.user.id,
+      owner_user_id: world.owner_user_id,
       builds: snapshot.builds,
       terrain: snapshot.terrain,
       quests: snapshot.quests,
