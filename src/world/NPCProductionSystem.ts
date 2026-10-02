@@ -62,7 +62,7 @@ export class NPCProductionSystem {
       };
       this.produced.push(item);
       this.inventory.add(profile,{
-        id:item.id,name:item.name,category:item.category,quantity:0,quality:item.quality,
+        id:item.id,name:item.name,category:item.category,quality:item.quality,
         equipped:false
       },quantity);
       const drop=this.drops.createDrop(worker.id,'NPC',worker.world,worker.position, this.drops.seedFor(item.id));
