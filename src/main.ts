@@ -96,6 +96,9 @@ import { GridTeleportInviteAuthority } from './social/GridTeleportInviteAuthorit
 import { mountGridTeleportInvitePanel, openTeleportDestinationPicker } from './ui/GridTeleportInvitePanel';
 import './ui/grid-teleport-invites.css';
 import { mountGridLandmarkInventory } from './ui/GridLandmarkInventory';
+import { mountGridTargetProfile, showNPCProfile } from './ui/GridTargetProfile';
+import './ui/grid-target-profile.css';
+
 import './ui/grid-landmark-inventory.css';
 import { mountGridPartyHud } from './ui/GridPartyHud';
 import { mountGridPartyInvitePanel } from './ui/GridPartyInvitePanel';
@@ -137,6 +140,7 @@ let invitePanel:ReturnType<typeof mountGridTeleportInvitePanel>|null=null;
 const teleportPreviewUrlForDestination=(destination:{id:string})=>{const world=(destination.id.match(/^world-gate:(.+)$/)?.[1]??destination.id).toLowerCase();return '/worlds/'+world+'.svg';};
 const landmarkAuthority = cloudPersistence ? new GridLandmarkAuthority(cloudPersistence.getClient()) : null;
 if (landmarkAuthority) mountGridLandmarkInventory(landmarkAuthority);
+const targetProfilePanel = mountGridTargetProfile();
 
 
 type HudTheme = 'cyan' | 'violet' | 'magenta' | 'emerald' | 'amber' | 'white';
@@ -1889,6 +1893,17 @@ addEventListener('keydown', event => {
   }
 });
 
+addEventListener('keydown', () => {
+  if (event.code !== 'KeyP' || event.repeat) return;
+  const target = interaction.findTarget();
+  if (!target) return;
+  const profile = target.object.userData.npcProfile as import('./world/NPCProfile').NPCProfileRecord | undefined;
+  if (!profile) return;
+  const getRelationships = target.object.userData.relationships as (() => Array<{kind?:string;otherId?:string;affinity?:number;trust?:number}>) | undefined;
+  showNPCProfile(profile, getRelationships?.() ?? []);
+  prompt.textContent = 'P · PROFILE OPEN';
+  audio.play('ui.focus');
+});
 addEventListener('beforeunload', savePlayer);
 addEventListener('beforeunload', () => { presence?.disconnect().catch(() => undefined); });
 
