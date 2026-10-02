@@ -277,6 +277,10 @@ const voiceModifier = new GridVoiceModifierSystem();
 let lastProfileActivityWorld:string|null=null;
 let lastProfileActivityKills=0;
 let lastProfileActivityResourceAt=0;
+let lastProfileActivityConsequenceId='';
+let lastProfileActivityQuestCompleted=0;
+let lastProfileActivityBuildVersion=-1;
+let lastProfileActivityPartySize=0;
 async function recordGridActivity(kind:string,title:string,body:string,worldId?:string,regionId?:string,metadata:Record<string,unknown>={}) {
   if (!profileAuthority) return;
   try { await profileAuthority.recordActivity({kind,title,body,worldId,regionId,metadata}); } catch (error) { console.warn('Grid profile activity unavailable.',error); }
@@ -1652,6 +1656,10 @@ function savePlayer() {
   if (cloudPersistence && cloudAuthenticated) {
     const buildVersion = Number(easyBuildSystem.root.userData.buildStateVersion ?? 0);
     if (buildVersion !== cloudBuildVersion) {
+      if (lastProfileActivityBuildVersion >= 0 && buildVersion !== lastProfileActivityBuildVersion) {
+        void recordGridActivity('BUILD','Created or changed a build','Updated a structure or object in First Light.',''+livingWorld.getSnapshot().world,'first-light',{buildVersion});
+      }
+      lastProfileActivityBuildVersion = buildVersion;
       const builds = easyBuildSystem.serialize().map(build => ({ objectId: build.objectId, definitionId: build.id, position: build.position as [number,number,number], rotation: build.rotation as [number,number,number], scale: build.scale as [number,number,number], ownerUserId: typeof (build as any).ownerUserId === 'string' ? (build as any).ownerUserId : cloudIdentity.id }));
       cloudPersistence.saveBuilds(cloudIdentity, 'first-light', 'first-light', builds).then(() => {
         cloudBuildVersion = buildVersion;
@@ -2006,6 +2014,12 @@ function animate(now: number) {
     if (mineralSyncTimer >= 8) { mineralSyncTimer = 0; void syncGridMinerals(); }
     if(merchantRefreshTimer > 12) { merchantRefreshTimer = 0; void refreshMerchantMarket(); }
   const livingSnapshot = livingWorld.getSnapshot();
+  const questSnapshot = questSystem.getSnapshot();
+  if (questSnapshot.completed > lastProfileActivityQuestCompleted) {
+    const completed = questSnapshot.completed - lastProfileActivityQuestCompleted;
+    lastProfileActivityQuestCompleted = questSnapshot.completed;
+    void recordGridActivity('QUEST_COMPLETE','Quest completed','Completed '+completed+' quest'+(completed===1?'':'s')+' in '+String(livingSnapshot.world)+'.',String(livingSnapshot.world),'first-light',{completed,totalCompleted:questSnapshot.completed,reward:questSnapshot.reward});
+  }
   gridChakras.update(dt, []);
   gridMatterTerrain.setActiveWorld(String(livingSnapshot.world));
   gridMatterTerrain.rebuild();
@@ -2109,6 +2123,11 @@ function animate(now: number) {
     lastProfileActivityWorld = enteredWorld;
     void recordGridActivity('WORLD_VISIT','Entered '+enteredWorld,'Explored '+enteredWorld+' in the living Grid.',enteredWorld,'first-light',{event:livingSnapshot.event,phase:livingSnapshot.phase});
   }
+  const latestPlayerConsequence = worldConsequences.getRecentHistory().filter(item => item.kind === 'PLAYER_DISCOVERY').at(-1);
+  if (latestPlayerConsequence && latestPlayerConsequence.id !== lastProfileActivityConsequenceId) {
+    lastProfileActivityConsequenceId = latestPlayerConsequence.id;
+    void recordGridActivity('DISCOVERY','Discovery recorded',latestPlayerConsequence.text,String(latestPlayerConsequence.world),'first-light',{consequenceId:latestPlayerConsequence.id,event:latestPlayerConsequence.event});
+  }
   guardCommandSystem.ensureDefaults(String(livingSnapshot.world));
   npcMaterialDropTimer += dt;
   const societySnapshot = npcSociety.getSnapshot();
@@ -2121,7 +2140,7 @@ function animate(now: number) {
   combatSystem.syncScene(world.scene);
   combatSystem.update(dt, identity.id);
   const combatSnapshot = combatSystem.getSnapshot();
-  if (partySystem && performance.now()/1000-lastPartyPoll>3) { lastPartyPoll=performance.now()/1000; void partySystem.current().then(members=>{partyHud.update(members, Object.fromEntries(regionCollaborators.map(p=>[p.id,p.displayName]))); partyControlButton.style.display=members.some(m=>m.userId===cloudIdentity.id)?'block':'none';}).catch(()=>undefined); }
+  if (partySystem && performance.now()/1000-lastPartyPoll>3) { lastPartyPoll=performance.now()/1000; void partySystem.current().then(members=>{partyHud.update(members, Object.fromEntries(regionCollaborators.map(p=>[p.id,p.displayName]))); partyControlButton.style.display=members.some(m=>m.userId===cloudIdentity.id)?'block':'none'; if (members.length !== lastProfileActivityPartySize) { if (lastProfileActivityPartySize > 0 || members.length > 1) void recordGridActivity('PARTY','Party roster changed',members.length > 1 ? 'Party now has '+members.length+' members.' : 'Party roster returned to solo.',String(livingSnapshot.world),'first-light',{partySize:members.length}); lastProfileActivityPartySize=members.length; }}).catch(()=>undefined); }
   if (partySystem && performance.now()/1000-lastPartyDestinationPoll>1) { lastPartyDestinationPoll=performance.now()/1000; void partyDestinationTick(); }
   if (presence && performance.now()/1000-lastVitalsPublish>1) { lastVitalsPublish=performance.now()/1000; void presence.update(player.getTransform(), { health:combatSnapshot.playerHealth, maxHealth:combatSnapshot.playerMaxHealth, regionRole:currentBuildRole }); }
   questSystem.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, societySnapshot, player.avatar.position.x, player.avatar.position.z);
