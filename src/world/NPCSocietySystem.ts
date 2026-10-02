@@ -50,6 +50,7 @@ type Citizen = {
   travelPurpose:'WORK'|'TRADE'|'FESTIVAL'|'EMERGENCY'|'RELATIONSHIP';
   travelWorld:EcologyWorld;
   selectedDestination:EcologyWorld;
+  teleportDestination?:GridTeleportDestination;
   gateCooldown:number;
   travelStage:'IDLE'|'APPROACH_GATE'|'TRANSIT';
   gatePosition:THREE.Vector3;
@@ -212,7 +213,7 @@ export class NPCSocietySystem {
       root.add(canopy,counter,sigil);
     }
     this.root.add(root);
-    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0,merchant,merchantStock:merchant?0:0,merchantStress:0,merchantMood:'CALM',merchantOpen:true,merchantSchedule:name.length%6,schedulePhase:(name.length%10)/10,travelTimer:8+name.length%9,travelTarget:new THREE.Vector3(wx,0,wz),travelMode:'WALK',travelPurpose:'WORK',travelWorld:world,selectedDestination:world,gateCooldown:0,travelStage:'IDLE',gatePosition:new THREE.Vector3(hx,0,hz),brain,mealCooldown:0,memoryCooldown:0,workProgressCooldown:12});
+    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0,merchant,merchantStock:merchant?0:0,merchantStress:0,merchantMood:'CALM',merchantOpen:true,merchantSchedule:name.length%6,schedulePhase:(name.length%10)/10,travelTimer:8+name.length%9,travelTarget:new THREE.Vector3(wx,0,wz),travelMode:'WALK',travelPurpose:'WORK',travelWorld:world,selectedDestination:world,teleportDestination:undefined,gateCooldown:0,travelStage:'IDLE',gatePosition:new THREE.Vector3(hx,0,hz),brain,mealCooldown:0,memoryCooldown:0,workProgressCooldown:12});
   }
 
   private chooseState(c:Citizen,event:string,phase:string,pressure=0,stability=1,brainAction?:GridNpcAction) {
@@ -333,11 +334,13 @@ export class NPCSocietySystem {
             c.travelMode = 'WALK';
             c.travelStage = 'IDLE';
             c.root.userData.destinationSelected = false;
+            c.teleportDestination = undefined;
             c.root.userData.travelEffect = 'WALKING';
             c.travelTarget.copy(destination);
             c.target.copy(destination);
           } else {
             c.travelMode = 'TELEPORT';
+            c.teleportDestination = authorizedDestination;
           c.root.userData.travelEffect = 'GATE_TRANSIT';
           c.root.userData.destinationSelected = true;
           c.root.userData.selectedDestination = c.selectedDestination;
@@ -465,7 +468,7 @@ export class NPCSocietySystem {
           remember('travel', 'Traveled toward ' + c.selectedDestination + '.', c.selectedDestination, .06, .34);
           c.root.userData.travelEffect='GATE_TRANSIT';
           c.root.userData.gatePulse=1;
-          const destinationNode = this.teleportDestinationResolver?.('npc:' + c.name, c.world, c.selectedDestination) ?? null;
+          const destinationNode = c.teleportDestination;
           if (!destinationNode) {
             c.travelStage='IDLE';
             c.travelMode='WALK';
@@ -651,6 +654,7 @@ export class NPCSocietySystem {
       }
       if (typeof record.selectedDestination === 'string') citizen.selectedDestination = record.selectedDestination;
       if (typeof record.travelWorld === 'string') citizen.travelWorld = record.travelWorld;
+      if (record.teleportDestination && typeof record.teleportDestination === 'object') citizen.teleportDestination = record.teleportDestination as GridTeleportDestination;
       if (typeof record.travelPurpose === 'string') citizen.travelPurpose = record.travelPurpose as Citizen['travelPurpose'];
       if (typeof record.travelMode === 'string') citizen.travelMode = record.travelMode as Citizen['travelMode'];
       if (typeof record.travelStage === 'string') citizen.travelStage = record.travelStage as Citizen['travelStage'];
