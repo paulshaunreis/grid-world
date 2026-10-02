@@ -486,3 +486,13 @@ _Last updated: 2026-10-02_
 - Next after CI: merge if green, then continue with the next highest-priority non-duplicate item.
 
 _Last updated: 2026-10-02_
+
+
+## 2026-10-02 — NPC transit + certificates completion
+- P1 NPC movement/teleport destination integration: **Complete** via PR #16 → `9ae6615232e78a9355a212a46b08089f368b1516`; CI #1121 passed.
+- NPC skill certificates: **Complete** via PR #17 → `3d74237af611daededa48ecc19410be8b1bab786`; CI #1124 passed. Stale PR #5 closed after porting its useful implementation onto current main.
+- Current main is `3d74237af611daededa48ecc19410be8b1bab786`.
+- PR #7 and PR #8 remain open but stale/non-mergeable; do not merge them blindly because camera and party HUD functionality already exists in current main.
+- **Next actionable item:** P0.1 current-main stability/integration audit, then proceed to the highest-priority Ready item that is not already implemented.
+
+_Last updated: 2026-10-02_
