@@ -274,6 +274,15 @@ export class CombatSystem {
   }
 
   applyAuthoritativeCreatureState(id:string, health:number, maxHealth:number, alive:boolean){
+    const combatant=this.combatants.get(id);
+    if(combatant){
+      combatant.maxHealth=maxHealth;
+      combatant.health=Math.max(0,Math.min(maxHealth,health));
+      combatant.alive=alive && combatant.health>0;
+      combatant.root.userData.health=combatant.health;
+      combatant.root.userData.maxHealth=maxHealth;
+      combatant.root.visible=combatant.alive;
+    }
     const root=this.root.parent?.getObjectByProperty('userData.combatId',id);
     if(root){
       root.userData.health=Math.max(0,Math.min(maxHealth,health));
@@ -281,6 +290,15 @@ export class CombatSystem {
       root.visible=alive && health>0;
     }
     this.updateHud();
+  }
+
+  recordAuthoritativeKill(targetId:string){
+    const target=this.combatants.get(targetId);
+    if(!target || !target.alive) return false;
+    target.alive=false;
+    this.kills++;
+    this.targetId=targetId;
+    return true;
   }
 
   getSnapshot(){return this.snapshot;}
