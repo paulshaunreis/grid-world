@@ -244,3 +244,11 @@ ChatGPT pushes via Paul's channel (authored `paulshaunreis`). All 84 commits on 
 - **Next actionable item:** P2 #19 Mission/quest foundation. Audit the existing quest systems first; do not duplicate them.
 
 _Last updated: 2026-10-02_
+
+## 2026-10-02 — Current main after mission foundation
+- PR #22 merged as `6fd95acdf6a559b05e00abc8c1be9223b6eae549`.
+- Quest foundation now includes prerequisites, recurring cadence, completion history, and legacy save migration while retaining existing dynamic missions and objectives.
+- Verification boundary: source review + merge; no workflow run for PR head and no browser verification.
+- **Next actionable item:** P2 #20 PvE foundation. Audit the existing CombatSystem/GridCombatAuthority before adding combat infrastructure.
+
+_Last updated: 2026-10-02_
