@@ -320,3 +320,12 @@ _Last updated: 2026-10-02_
 - **Next actionable item:** P3 #26 UI visual system.
 
 _Last updated: 2026-10-02_
+
+
+## 2026-10-02 — UI visual system increment (PR #30)
+- Aurora's existing theme foundation was audited first: shared HUD accent tokens, site↔world theme sync, UI styles, and persistent WindowManager were already present.
+- PR #30 merged as `611cff994d3e7312f161586e76d6a7c5148e7e73`.
+- `src/main.ts`: mounted Party Link, Field Guide, Mission Journal, Team Workshop, Grid Social, Grid Omni Economy, and Grid Profile into the existing WindowManager.
+- `src/ui/grid-themes.css`: extended shared panel chrome, focus/hover treatment, theme-aware health/profile meters, and reduced-motion handling.
+- Verification level: L0 source review only. No GitHub Actions run was returned for the feature head; no browser/WebGL verification claimed.
+- Queue: P3 #26 UI visual system marked complete for this increment; next P3 #27 world-specific presentation.
