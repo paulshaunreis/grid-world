@@ -2568,8 +2568,8 @@ function animate(now: number) {
           const me = members.find(member => member.userId === identity.id);
           if (me) {
             partySystem.updateVitals(me.partyId, {
-              healthCurrent: combatSystem.getHealth?.() ?? me.healthCurrent,
-              healthMax: combatSystem.getMaxHealth?.() ?? me.healthMax,
+              healthCurrent: combatSystem.getSnapshot().playerHealth || me.healthCurrent,
+              healthMax: combatSystem.getSnapshot().playerMaxHealth || me.healthMax,
               level: me.level,
               worldId: String(livingWorld.getSnapshot().world ?? 'first-light'),
               regionId: 'first-light',
