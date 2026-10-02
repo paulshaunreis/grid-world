@@ -304,3 +304,24 @@ Do not treat the references as a complete specification. Aurora's own response s
 - Verification: CI for this newest commit has not yet been checked. Do not claim build/typecheck verification until GitHub Actions reports success.
 - Draft PR #1 remains open/draft; no merge was performed.
 - Next target: verify the accumulated profile activity chain in CI, then continue connecting Creator Studio publishing/creation records to the public profile without introducing duplicate identity or creation datastores.
+
+
+## Persistent world registry pass — 2026-10-01
+
+- Added `public.grid_worlds` as the durable world registry for Creator Studio-generated worlds.
+- Added `src/social/GridWorldAuthority.ts` for authenticated world creation, public-world listing, owner listing, and conversion back to the runtime `GridWorldDefinition`.
+- Creator Studio world creation now keeps the existing runtime generation path, then persists the resulting world after cloud authentication is ready.
+- `WORLD_CREATE` profile activity now records the persistent-save result rather than treating runtime-only generation as durable.
+- Startup now hydrates enabled persistent worlds into the runtime registry and reconnects them to world transit, architecture, environment, ecology, resources, minerals, NPC society, evolution, populations, and ecological web systems.
+- Profile Studio now reads persistent created worlds and renders them in the **My Grid Worlds** module, while retaining saved landmarks as the fallback destination surface.
+- Supabase migration file: `supabase/migrations/20261001000000_create_grid_worlds.sql`.
+- Supabase migration applied successfully to project `jdduwsduptllnykrqdxs`; the live `public.grid_worlds` table was verified present with RLS enabled and the expected world fields.
+- Security advisor output was reviewed. Existing project-wide SECURITY DEFINER notices remain unrelated to this new table; the new table itself uses direct RLS ownership/public-read policies and no SECURITY DEFINER function.
+- Code verification: GitHub Actions **Grid World CI run #1004 succeeded** on commit `f9b2e5ecb909f244956b0bf15ad01a046fa6f07b`.
+- Local typecheck/test execution was not performed; the repo still has no npm `test` script and local checkout limitations remain.
+- Draft PR #1 remains open/draft; no merge was performed.
+
+### Current next target
+
+- Continue the same persistence loop into world re-entry UX: select a persistent world from the public/profile surface, resolve its gate/destination, show the existing teleport preview/VFX, and enter the stored world without creating a duplicate runtime record.
+- Then connect persistent world records to world-specific creations/builds so a created world is not only a registry entry but a durable place containing its own evolving content.
