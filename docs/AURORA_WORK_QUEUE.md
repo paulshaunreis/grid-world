@@ -169,7 +169,7 @@ Create a reusable primitive/object library beginning with:
 
 Expose these through Build Mode with original Grid World controls.
 
-**Status:** Ready
+**Status:** Complete
 
 ### 16. Advanced building controls
 - Research/implement a practical manipulation model inspired by modern home/build editors.
@@ -513,3 +513,14 @@ _Last updated: 2026-10-02_
 - Reused `TEAM_AVATARS` and the existing Aurora portrait; no parallel player/NPC profile system was created.
 - Verification boundary: source-level review and successful GitHub merge. No fresh workflow run was returned for the PR head and no browser/WebGL verification was available.
 - **Next actionable item:** P2 #15 — Base build-object library, after checking whether the existing Easy Build/primitive systems already cover the requested object set.
+
+
+## 2026-10-02 — P2 base build-object library audit complete
+- Audited `src/world/GridBuildLibrary.ts` and `src/world/GridEasyBuildSystem.ts` before adding anything.
+- Confirmed the requested reusable library already exists and is wired into Build Mode.
+- Primitive set includes cube, sphere, cylinder, cone, torus, and plane.
+- Structural set includes wall/floor/roof panels, columns, arches, stairs, platforms, windows, doors, railings, and beams.
+- Existing furniture/nature/utility categories include bench, lamp, table, chair, crate, tree, rock, bush, planter, light post, sign, and beacon.
+- Build Mode already exposes BASIC/ADVANCED modes, placement preview, snapping, rotation, scale, copy/paste, undo, permissions, persistence/restore, and material/tool integration.
+- No duplicate object-library implementation was created.
+- **Next actionable item remains P0 #3 — integrate terrain brush work safely.**
