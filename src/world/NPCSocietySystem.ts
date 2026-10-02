@@ -3,6 +3,7 @@ import type { EcologyWorld, EcologySnapshot } from './CreatureEcologySystem';
 import { traversalHit, steerAround } from './TraversalSystem';
 import type { WorldConsequenceSnapshot } from './WorldConsequenceSystem';
 import { getWorlds } from './GridWorldRegistry';
+import type { LivingWorldEventKind } from './GridLivingWorld';
 import { hourOfDayFromDayFraction, resolveNpcRoutine, routinePhaseFor } from '../npc/NpcDailyRoutine';
 import { createNPCProfile, type NPCProfileRecord } from './NPCProfile';
 import { NPCRelationshipNetwork } from './NPCRelationshipSystem';
@@ -208,7 +209,7 @@ export class NPCSocietySystem {
     return c.phase%2>.9 ? 'GATHER' : 'WORK';
   }
 
-  update(delta:number,playerX=0,playerZ=0,world:EcologyWorld='HARBOR',event='QUIET',phase='DAY',ecology?:EcologySnapshot,consequences?:WorldConsequenceSnapshot,dayFraction?:number) {
+  update(delta:number,playerX=0,playerZ=0,world:EcologyWorld='HARBOR',event: LivingWorldEventKind='QUIET',phase='DAY',ecology?:EcologySnapshot,consequences?:WorldConsequenceSnapshot,dayFraction?:number) {
     const pressure=consequences?.pressure ?? 0;
     const stability=consequences?.stability ?? 1;
     const now=performance.now()*.001;
