@@ -4,8 +4,8 @@
 
 **Read-first rule:** If you are continuing GridWorld work in a new session, read this file FIRST, then `docs/AURORA_ENGINEERING_HANDOFF.md` (latest checkpoints), then `docs/AURORA_WORK_QUEUE.md` (current backlog). The newest dated entry in `~/workspace/gridworld/NOTES-FOR-CHATGPT.md` (the shared lab notebook) carries the very latest status.
 
-**Last updated:** 2026-10-02 09:45 PT by Aurora
-**Current `main` SHA:** `dd1865e0726960c1a99cb372f455b5ab534a741b`
+**Last updated:** 2026-10-02 09:12 PT by ChatGPT
+**Current `main` SHA:** `598561588253979b3420984b24e78ed173262d92`
 **Repository:** `paulshaunreis/grid-world`
 
 ---
@@ -187,3 +187,13 @@ ChatGPT pushes via Paul's channel (authored `paulshaunreis`). All 84 commits on 
 - Shared notebook: `~/workspace/gridworld/NOTES-FOR-CHATGPT.md` (two-way, newest on top)
 - Holiday calendar: `~/workspace/gridworld/HOLIDAY-SCHEDULE.md`
 - This document lives at `docs/ENGINEERING_STATE.md` in the repo. Update the "Last updated" line and the main SHA whenever substantial work lands.
+
+
+## 10. Pending branch checkpoint — NPC profile expansion
+
+- Current main is `598561588253979b3420984b24e78ed173262d92`, which includes the merged master engineering state document.
+- PR #10 `grid/npc-profile-expansion` is based directly on that current main and is not merged.
+- The existing NPC profile architecture was audited before implementation. Existing data already covered identity, role, world/home, occupation, traits, skills, level, relationships, memories, inventory, factions, and tags.
+- PR #10 expands the existing target profile to expose those stored fields plus optional live status; it does not create a parallel NPC profile system or change Supabase schema.
+- PR #10 head after documentation is `bbd9911700aea5ef76a4e048bc5dd88fe2ee575a`. GitHub has not returned a workflow run for the head yet, so it is not CI-verified.
+- Main remains unchanged by PR #10. Merge is Paul's decision.
