@@ -180,6 +180,11 @@ ChatGPT pushes via Paul's channel (authored `paulshaunreis`). All 84 commits on 
 - No npm test script; only `tests/npc-daily-routine.test.ts` exists.
 - The 4 in-development regions remain concept-only by design.
 
+## 2026-10-02 — Aurora staff profile landed
+- Latest feature merge: PR #19 → `7d64e2b65b929785adfd8d31303988d768ebead9`.
+- Aurora now has a dedicated in-world staff profile in the Team Area, using her canonical role and existing portrait/roster data. The profile exposes current assignment, location, specialties, skills, status, and verified recent work.
+- Verification boundary: source review and successful merge; no fresh workflow run or browser verification was available for PR #19.
+
 ## 9. Canonical references
 
 - Concept art: `~/workspace/gridworld/concept-art/` (`INVENTORY.md`, `CREATIVE-SUMMARY.md`, `maps/districts/DISTRICT-NOTES.md`)
