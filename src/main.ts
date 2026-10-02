@@ -765,7 +765,7 @@ mountWorldAtlas(
 marketPanel = mountMarketPanel(() => worldResources.getInventory(), () => marketQuotes, () => combatAuthority);
 const gridEconomyPanel = mountGridEconomyPanel(() => combatAuthority);
 const gridSocialService = cloudPersistence ? new GridSocialService(cloudPersistence.getClient()) : null;
-const gridCommunityPanel = gridSocialService ? mountGridCommunityPanel(gridSocialService, voiceModifier, { displayName: identity.displayName, id: identity.id, createdAt: identity.createdAt }) : null;
+const gridCommunityPanel = gridSocialService ? mountGridCommunityPanel(gridSocialService, voiceModifier, { displayName: identity.displayName, id: identity.id, createdAt: identity.createdAt }, gridWorldContentAuthority ? { authority: gridWorldContentAuthority, getWorldId: () => String(livingWorld.getSnapshot().world) } : undefined) : null;
 void gridSocialService?.setPresence(false).catch(()=>undefined);
 const gridSocialButton = document.querySelector<HTMLButtonElement>('[data-tool="social"]');
 gridSocialButton?.addEventListener('click',()=>gridCommunityPanel?.open());
