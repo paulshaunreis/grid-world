@@ -34,7 +34,7 @@ export interface NPCProfileRecord {
 }
 
 export function createNPCProfile(input: Omit<NPCProfileRecord, 'level' | 'experience' | 'memories' | 'relationshipIds' | 'factionIds' | 'inventory' | 'certificates' | 'tags'> & Partial<Pick<NPCProfileRecord, 'level' | 'experience' | 'memories' | 'relationshipIds' | 'factionIds' | 'inventory' | 'certificates' | 'tags'>>): NPCProfileRecord {
-  return { level: 1, experience: 0, memories: [], relationshipIds: [], factionIds: [], inventory: [], tags: [], ...input };
+  return { level: 1, experience: 0, memories: [], relationshipIds: [], factionIds: [], inventory: [], certificates: [], tags: [], ...input };
 }
 
 export function profileSummary(profile: NPCProfileRecord) {
