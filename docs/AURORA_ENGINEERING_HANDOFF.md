@@ -251,3 +251,12 @@ Do not treat the references as a complete specification. Aurora's own response s
 - Commits: `6b31fdf5617876162f3bba450e96735ae092695a` (profile authority feed/mood), `f240907593d552609707e4ba3cb00e6c43eff310` (profile UI/save flow).
 - Verification: migration application succeeded. GitHub Actions for the latest code commit has not yet been checked; do not claim CI verified.
 - Next logical expansion: let meaningful in-world events (world visits, discoveries, creations, achievements, party events) append feed activity without duplicating identity/account data, and optionally derive mood suggestions from activity while keeping user control over the displayed mood.
+
+## Live profile activity feed — 2026-10-01
+- Added `grid_profile_activity` in Supabase with public/friends/private visibility, world/region context, metadata, timestamps, and RLS.
+- `GridProfileAuthority` now records and reads persistent activity entries.
+- In-world `main.ts` records profile activity when a resident enters a world and when combat victories occur; this is deliberately event-driven rather than a per-frame feed write.
+- Profile pages now consume the persistent activity stream, so the Feed can show world visits and combat activity alongside ordinary profile posts.
+- CI had already succeeded on the preceding profile mood commit (`f240907...`, run #983). The latest activity commits still require CI verification.
+- Latest activity commits: `dfeb10cd28233e634ad6f5e977e9d8a48f7c047e`, `2e181bccf6498a8eca5835ed71847fabf5221eb4`, `42e05b5a81b6cec997915ed04da03b545c373a70`.
+- Next expansion: add similarly bounded activity events for discoveries, quest completion, building/creation, landmark saves, social/party milestones, and major world events; keep user mood explicit/user-controlled and treat automated mood as a suggestion only.
