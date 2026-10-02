@@ -404,3 +404,11 @@ _Last updated: 2026-10-02_
 - **P0.2 complete. Next actionable item: P1 Core player/world — teleport experience, then landmarks/waypoints, party health/HUD, camera/movement controls.**
 
 _Last updated: 2026-10-02_
+
+## P1 teleport experience checkpoint — 2026-10-02
+- Teleport experience already existed end-to-end: destination selection, destination preview overlay, avatar transit/arrival effects, gate state, safe clearance, traffic recording, and persisted teleport events.
+- Hardened presentation by routing previews through the shared `teleportPreviewUrl()` resolver and aligning built-in world IDs with the canonical assets: TIDELINE, CROWN, VERDANT, MUSE, FRONTIER.
+- Verified every referenced `/public/worlds/*.svg` preview asset exists in the repository tree.
+- Verification boundary: source/asset verification only; no CI or browser run for the final preview commits.
+- **Next actionable item: P1 Core player/world — landmarks/waypoints inventory and save/use flow.**
+
