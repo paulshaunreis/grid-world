@@ -282,3 +282,15 @@ _Last updated: 2026-10-02_
 - `grid-combat` deployed live as version 14 with JWT verification.
 - Verification boundary: Supabase live verification succeeded; no GitHub workflow run was returned for the merge commit and no browser/WebGL verification was available. Not CI-verified.
 - **Next actionable item:** P2 #23 Marketplace integration.
+
+
+## 2026-10-02 — Marketplace integration landed
+- PR #27 merged as `f64bd6cb73fe20b5c8e6108d356dcdcf4ba60547`.
+- Extended the existing Grid Bazaar rather than creating a second marketplace transaction system.
+- Added `GridMarketplaceItem` shared metadata: display name, category, quality, tags, art key, model key.
+- `grid_bazaar_listings` now stores item metadata and future 3D-preview keys. Existing authoritative listing creation and purchase RPCs remain the settlement boundary and connect to the currency ledger.
+- Player inventory reads are marketplace-ready; Bazaar/inventory UI exposes metadata and future preview keys.
+- Existing NPC production → NPCMarketSystem restock flow and material-drop pipeline were preserved; NPC listings now carry the same shared metadata contract.
+- Supabase schema verified live and `grid-combat` deployed as version 15 with JWT verification.
+- Verification boundary: source review, Supabase schema/deployment verification, and successful merge; no fresh browser/WebGL verification and no CI run was returned for the merge commit.
+- **Next actionable item:** P2 #24 Economics dashboard.
