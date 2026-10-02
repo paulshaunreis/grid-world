@@ -492,5 +492,72 @@ export class NPCSocietySystem {
   }
   collectMaterialDrop(id:string){ return this.materialDrops.collect(id); }
   awardNPCJobXP(name:string, amount:number, skill?:string){ const profile=this.profiles.get(name); return profile ? this.progression.award(profile, amount, skill) : null; }
+  exportPersistentState(worldId?: string) {
+    const citizens = this.citizens.filter(c => !worldId || c.world === worldId).map(c => {
+      const profile = this.profiles.get(c.name);
+      return {
+        name: c.name,
+        world: c.world,
+        state: c.state,
+        energy: c.energy,
+        social: c.social,
+        phase: c.phase,
+        stateTimer: c.stateTimer,
+        travelTimer: c.travelTimer,
+        selectedDestination: c.selectedDestination,
+        travelPurpose: c.travelPurpose,
+        travelWorld: c.travelWorld,
+        travelMode: c.travelMode,
+        travelStage: c.travelStage,
+        position: [c.root.position.x, c.root.position.y, c.root.position.z],
+        profile: profile ? structuredClone(profile) : null,
+      };
+    });
+    return {
+      version: 2,
+      worldId,
+      citizens,
+      relationships: this.relationships.snapshot().filter(r => !worldId || citizens.some(c => c.name === r.sourceId || c.name === r.targetId)),
+    };
+  }
+
+  importPersistentState(raw: unknown, worldId: string) {
+    if (!raw || typeof raw !== 'object') return;
+    const state = raw as Record<string, unknown>;
+    const citizens = Array.isArray(state.citizens) ? state.citizens as Array<Record<string, unknown>> : [];
+    for (const record of citizens) {
+      if (record.world !== worldId || typeof record.name !== 'string') continue;
+      const citizen = this.citizens.find(c => c.name === record.name && c.world === worldId);
+      if (!citizen) continue;
+      if (typeof record.state === 'string') citizen.state = record.state as CitizenState;
+      for (const key of ['energy','social','phase','stateTimer','travelTimer'] as const) {
+        if (typeof record[key] === 'number' && Number.isFinite(record[key])) (citizen as any)[key] = record[key];
+      }
+      if (typeof record.selectedDestination === 'string') citizen.selectedDestination = record.selectedDestination;
+      if (typeof record.travelWorld === 'string') citizen.travelWorld = record.travelWorld;
+      if (typeof record.travelPurpose === 'string') citizen.travelPurpose = record.travelPurpose as Citizen['travelPurpose'];
+      if (typeof record.travelMode === 'string') citizen.travelMode = record.travelMode as Citizen['travelMode'];
+      if (typeof record.travelStage === 'string') citizen.travelStage = record.travelStage as Citizen['travelStage'];
+      if (Array.isArray(record.position) && record.position.length === 3) {
+        const p = record.position.map(Number);
+        if (p.every(Number.isFinite)) citizen.root.position.set(p[0], p[1], p[2]);
+      }
+      if (record.profile && typeof record.profile === 'object') {
+        const profile = record.profile as NPCProfileRecord;
+        this.profiles.set(citizen.name, profile);
+        citizen.root.userData.npcProfile = profile;
+        citizen.root.userData.inventory = profile.inventory;
+        citizen.root.userData.jobProgression = profile.occupation;
+      }
+    }
+    const relationships = Array.isArray(state.relationships) ? state.relationships as NPCRelationship[] : [];
+    for (const rel of relationships) {
+      if (rel.sourceId && rel.targetId) {
+        const restored = this.relationships.connect(rel.sourceId, rel.targetId, rel.kind, 0);
+        if (restored) Object.assign(restored, rel);
+      }
+    }
+  }
+
   getWorkingCitizens(){return this.citizens.filter(c=>c.state==='WORK'||c.state==='GATHER').map(c=>({id:c.name,world:c.world,position:c.root.position.clone(),role:c.role}));}
 }
