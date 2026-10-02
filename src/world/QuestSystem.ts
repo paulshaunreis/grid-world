@@ -69,6 +69,28 @@ recordCombatKill(species:string,world:EcologyWorld){
     this.syncMarkers();this.save();this.root.userData.quests=this.getSnapshot();
     return true;
   }
+ exportState() {
+    const quests: QuestState = {};
+    for (const q of this.quests) quests[q.id] = { progress: q.progress, status: q.status };
+    return { quests, dynamic: this.quests.filter(q => q.id.startsWith('dynamic-')), visited: [...this.visited], interacted: [...this.interacted], rewardBank: this.rewardBank };
+  }
+
+  importState(raw: unknown) {
+    if (!raw || typeof raw !== 'object') return;
+    const p = raw as Record<string, unknown>;
+    const saved = p.quests && typeof p.quests === 'object' ? p.quests as QuestState : {};
+    for (const q of this.quests) {
+      const state = saved[q.id];
+      if (state) { q.progress = Number(state.progress) || 0; q.status = state.status; }
+    }
+    if (Array.isArray(p.visited)) this.visited = new Set(p.visited.filter(v => typeof v === 'string') as EcologyWorld[]);
+    if (Array.isArray(p.interacted)) this.interacted = new Set(p.interacted.filter(v => typeof v === 'string') as string[]);
+    if (typeof p.rewardBank === 'number' && Number.isFinite(p.rewardBank)) this.rewardBank = p.rewardBank;
+    this.syncMarkers();
+    this.root.userData.quests = this.getSnapshot();
+    this.save();
+  }
+
  getSnapshot(){return {active:this.quests.filter(q=>q.status==='ACTIVE').length,available:this.quests.filter(q=>q.status==='AVAILABLE').length,turnIn:this.quests.filter(q=>q.status==='TURN_IN').length,completed:this.quests.filter(q=>q.status==='COMPLETE').length,total:this.quests.length,reward:this.rewardBank};}
  getQuests(){return this.quests.map(q=>({...q}));}
 }
