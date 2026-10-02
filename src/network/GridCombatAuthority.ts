@@ -54,6 +54,8 @@ export interface CombatServerResult {
   creature?: AuthoritativeCreatureState;
   memories?: Array<Record<string,unknown>>;
   memory?: Record<string,unknown>;
+  wallets?: Array<{user_id:string;currency_id:string;currency_code:string;currency_name:string;balance:number}>;
+  transactions?: Array<Record<string,unknown>>;
 }
 
 export class GridCombatAuthority {
@@ -158,7 +160,17 @@ export class GridCombatAuthority {
     return data;
   }
 
-  async walletRead(): Promise<CombatServerResult | null> { const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', { body:{action:'wallet_read'} }); if(error) throw error; return data; }
+  async walletRead(): Promise<CombatServerResult | null> {
+    const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', { body:{action:'wallet_read'} });
+    if(error) throw error;
+    return data;
+  }
+
+  async ledgerRead(limit=25): Promise<CombatServerResult | null> {
+    const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', { body:{action:'ledger_read',limit} });
+    if(error) throw error;
+    return data;
+  }
 
   async inventoryRead(): Promise<CombatServerResult | null> {
     const { data, error } = await this.client.functions.invoke<CombatServerResult>('grid-combat', { body:{action:'inventory_read'} });
