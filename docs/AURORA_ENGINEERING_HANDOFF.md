@@ -85,6 +85,22 @@ Date: 2026-10-01
 - Avoid introducing duplicate systems when an existing service already owns the same data.
 - Preserve Aurora's branch conventions and review her patches rather than replacing them.
 
+## Latest patch review — Aurora patch re-upload
+Date: 2026-10-01
+
+- Reviewed uploaded `aurora-gridworld-fixes (1).patch` (Aurora, two commits).
+- The patch contains the NPC daily-routine work plus the boot-HUD, touch-panel, and explicit living-world event-kind hardening.
+- Those changes are already present in the active branch; representative current file blobs include `NpcDailyRoutine.ts`, the routine-aware `GridNpcBrain`, `GridCrowdActor`, `NPCSocietySystem`, `GridLivingWorld`, `CreatureEcologySystem`, `GridTouchController`, and the related HUD CSS.
+- No duplicate patch application was made. This preserves the newer party/profile/world work already on the branch.
+- Important: the uploaded patch is based on an older branch state, so applying it wholesale now would risk reverting newer work.
+
+### Newer branch work observed after the patch
+- Party HUD now binds to live profile identities and avatars.
+- Authoritative party management and synchronized group transit APIs were added.
+- Party controls/group transit polling and active-world quest scoping were added/fixed.
+- Current latest commit observed on the branch: `c5c639f7aca3127d07d8216cd198c68d8b9173ce` — “Keep quest progress scoped to the active world”.
+- No GitHub Actions workflow run was returned for that latest commit at review time, so its CI status is not claimed here.
+
 ## Suggested next work
 1. Verify commit `97aa5c5...` through GitHub Actions.
 2. Connect persistent profiles to the web/community identity surface: profile pages, creations/media, worlds, achievements, friends/followers, and NPC profile continuity.
