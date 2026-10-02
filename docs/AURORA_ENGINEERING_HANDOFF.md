@@ -269,3 +269,6 @@ Verification: Supabase schema/policy inspection succeeded and a read-only row-co
 
 ## P1 landmarks/waypoints completion — 2026-10-02
 PR #6 `grid/landmarks-waypoints-flow` passed GitHub Actions CI run #1080 successfully and was squash-merged to `main` as `fbb28ed999064b853554403dd0e2ab90971a09ed`. The persistent landmark/waypoint flow is now live on main. Next queue item remains party health/HUD, followed by camera/movement controls; both must be audited against existing implementations before adding code.
+
+## Master engineering state document merged — 2026-10-02
+- `docs/ENGINEERING_STATE.md` is now on `main` (merged from `aurora/engineering-state` with Paul's approval). Fresh-chat rule: read ENGINEERING_STATE.md first, then this handoff, then the work queue. Keep its "Last updated" line and main SHA current when substantial work lands.
