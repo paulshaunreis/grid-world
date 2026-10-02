@@ -97,6 +97,51 @@ export class CreatureEcologySystem {
     for(const species of generated)this.spawnSpecies(species,dna.ecology.lifeDensity>1.3?3:2);
   }
 
+  exportPersistentState(worldId?: string) {
+    return {
+      version: 2,
+      worldId,
+      creatures: this.creatures.filter(c => !worldId || c.species.world === worldId).map((c, index) => ({
+        id: c.root.userData.combatId ?? c.species.id + ':' + index,
+        speciesId: c.species.id,
+        world: c.species.world,
+        state: c.state,
+        stateTimer: c.stateTimer,
+        phase: c.phase,
+        hunger: c.hunger,
+        energy: c.energy,
+        social: c.social,
+        curiosity: c.curiosity,
+        genome: c.genome ?? null,
+        position: [c.root.position.x, c.root.position.y, c.root.position.z],
+        rotationY: c.root.rotation.y,
+      })),
+    };
+  }
+
+  importPersistentState(raw: unknown, worldId: string) {
+    if (!raw || typeof raw !== 'object') return;
+    const state = raw as Record<string, unknown>;
+    const records = Array.isArray(state.creatures) ? state.creatures as Array<Record<string, unknown>> : [];
+    for (const record of records) {
+      if (record.world !== worldId) continue;
+      const id = String(record.id ?? '');
+      const creature = this.creatures.find(c => String(c.root.userData.combatId ?? '') === id);
+      if (!creature) continue;
+      if (typeof record.state === 'string') creature.state = record.state as CreatureLifeState;
+      for (const key of ['stateTimer','phase','hunger','energy','social','curiosity'] as const) {
+        if (typeof record[key] === 'number' && Number.isFinite(record[key])) (creature as any)[key] = record[key];
+      }
+      if (record.genome && typeof record.genome === 'object') creature.genome = record.genome as CreatureGenome;
+      if (Array.isArray(record.position) && record.position.length === 3) {
+        const p = record.position.map(Number);
+        if (p.every(Number.isFinite)) creature.root.position.set(p[0], p[1], p[2]);
+      }
+      if (typeof record.rotationY === 'number') creature.root.rotation.y = record.rotationY;
+      if (creature.genome) creature.root.userData.evolution = { generation: creature.genome.generation, lineage: creature.genome.lineage, traits: this.traits(creature.genome) };
+    }
+  }
+
   getSpeciesIds(){return this.creatures.map(c=>({world:c.species.world,id:c.species.id})).filter((v,i,a)=>a.findIndex(x=>x.world===v.world&&x.id===v.id)===i);}
 
   applyEvolution(getGenome:(world:EcologyWorld,speciesId:string)=>CreatureGenome|undefined){
