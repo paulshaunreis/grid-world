@@ -186,6 +186,25 @@ export class WorldConsequenceSystem {
     this.add('NEW_SPECIES',world,'EVOLUTION',name.replaceAll('-',' ')+' has emerged as a new evolutionary form (generation '+generation+').',.16,now);
   }
 
+  exportState() {
+    return {
+      history: this.history.slice(-MAX_HISTORY),
+      pressure: this.pressure,
+      stability: this.stability,
+    };
+  }
+
+  importState(raw: unknown) {
+    if (!raw || typeof raw !== 'object') return;
+    const p = raw as Record<string, unknown>;
+    if (Array.isArray(p.history)) this.history = p.history.slice(-MAX_HISTORY) as WorldConsequence[];
+    if (p.pressure && typeof p.pressure === 'object') this.pressure = { ...this.pressure, ...(p.pressure as Record<EcologyWorld, number>) };
+    if (p.stability && typeof p.stability === 'object') this.stability = { ...this.stability, ...(p.stability as Record<EcologyWorld, number>) };
+    this.snapshot = { ...this.snapshot, history: this.history.slice(-8), pressure: this.pressure[this.snapshot.world] ?? 0, stability: this.stability[this.snapshot.world] ?? 1, last: this.history.at(-1)?.text ?? 'The Grid is quiet.' };
+    this.root.userData.snapshot = this.snapshot;
+    this.save();
+  }
+
   getSnapshot(){return this.snapshot;}
   recordResourceGathered(world:EcologyWorld, kind:string, amount:number){
     this.add('ECOLOGY_SHIFT',world,this.lastEvent.split(':')[1]??'QUIET',`Resource flow: +${amount} ${kind.replaceAll('_',' ')}`,.04,Date.now()/1000);
