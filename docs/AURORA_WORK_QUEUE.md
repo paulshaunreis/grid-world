@@ -299,7 +299,9 @@ Maintain a concise map of:
 
 The goal is to make onboarding another engineer possible without reverse-engineering the whole repository.
 
-**Status:** Ready
+**Status:** Complete — added `docs/ARCHITECTURE_MAP.md` from the current main implementation. Source/document reviewed at L0; no CI/browser verification claimed.
+
+**Next:** P3 #29 Aurora engineering handoff
 
 ### 29. Aurora engineering handoff
 - Keep `docs/AURORA_ENGINEERING_HANDOFF.md` current.
@@ -632,3 +634,12 @@ _Last updated: 2026-10-02_
 - **Next actionable item:** P3 #26 UI visual system.
 
 _Last updated: 2026-10-02_
+
+
+## 2026-10-02 — Architecture map checkpoint
+- P3 #28 **Complete** for the current documentation increment.
+- Added `docs/ARCHITECTURE_MAP.md` as a concise onboarding map of Omni Grid Core direction, Grid Engine/runtime boundaries, world hierarchy, NPCs, profiles/social, creator/matter systems, combat/quests, economy, UI, persistence/Supabase, and future multiplayer/network adapters.
+- Audited existing `docs/ARCHITECTURE.md`, `docs/WORLD-ARCHITECTURE.md`, `docs/OMNI-ARCHITECTURE.md`, `src/main.ts`, the world registry/region/district systems, World Atlas/minimap, NPC/profile/combat/economy seams before writing it.
+- No runtime code or database schema was changed.
+- Verification: L0 source/document review only. No CI/browser verification claimed.
+- **Next actionable item:** P3 #29 Aurora engineering handoff.

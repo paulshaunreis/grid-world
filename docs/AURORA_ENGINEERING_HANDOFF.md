@@ -467,3 +467,13 @@ _Last updated: 2026-10-02_
 - Unlimited world registration and concept-only region boundaries were preserved.
 - Verification: L0 source review only; no CI/browser/WebGL verification claimed.
 - Next: P3 #28 Architecture map.
+
+
+## Checkpoint — 2026-10-02 — architecture map
+- Branch: `grid/architecture-map`, based on main `6a43af94b1a19707b8b70277ffefe6eb77c9ca50`.
+- Added `docs/ARCHITECTURE_MAP.md` as the concise engineer-onboarding map.
+- The map records current boundaries rather than presenting the long-term Omni Grid Core / Grid Engine vision as already implemented.
+- It covers world hierarchy and unlimited registration, runtime/rendering, NPC/profile/social, creator/matter, quests/combat, economy, UI/navigation, Supabase authority, and future multiplayer/network adapters.
+- Existing architecture documents were preserved; no parallel runtime system or database schema was introduced.
+- Verification: **L0 source/document review**. No CI/browser verification.
+- Next queue item: **P3 #29 Aurora engineering handoff**.
