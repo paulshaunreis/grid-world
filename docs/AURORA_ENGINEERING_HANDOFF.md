@@ -451,3 +451,25 @@ Do not treat the references as a complete specification. Aurora's own response s
 - Existing Supabase RLS remains the authoritative enforcement layer; the UI does not replace server-side permissions.
 - Commits: `c04f4d46c2da35dc8627198ce02e4c33257dce96`, `d8eaab599f5d6ec4a396948dd5cd68bf95f1f8fb`, `274805bc3cc665be17c778afdb2424a2c0d66ff5`, `10f25b5644e1134706d0e95831d3e1473cc60f02`.
 - CI verification is pending for this pass.
+
+
+## Collaboration persistence hardening — 2026-10-01
+
+- Verified the preceding collaborator-management head through GitHub Actions: **Grid World CI run #1042 succeeded**.
+- Reviewed GridWorldContentAuthority.save() and identified a destructive authorization edge case: a builder could submit a full world snapshot and potentially overwrite other collaborators' shared builds/state despite Build Mode restricting which objects the builder could edit.
+- Hardened src/social/GridWorldContentAuthority.ts:
+  - owner/editor/admin retain full snapshot persistence;
+  - builder persistence is merged against the authoritative current world snapshot;
+  - builder-owned build records are the only shared build records a builder can replace/remove;
+  - builds owned by other users are preserved;
+  - terrain, quests, consequences, NPC state, creature state, and metadata are preserved from the authoritative snapshot for builders.
+- Commit: a0eff078b07cf7cfcb9759a4b35ee8e2c8a7c03c.
+- Verification: no GitHub Actions workflow run has been returned yet for this new commit. Do not call it CI-verified until a successful run appears.
+- No merge performed; draft PR #1 remains open/draft.
+- This is a defense-in-depth layer; Supabase RLS remains authoritative.
+
+### Next target
+
+- Verify commit a0eff078... through CI.
+- Then make collaborative build synchronization/realtime behavior explicit so simultaneous builders see persisted object changes without polling the whole world snapshot.
+- Preserve the same ownership boundary when realtime INSERT/UPDATE/DELETE events are introduced.
