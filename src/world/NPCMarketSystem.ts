@@ -1,5 +1,6 @@
 import type { NPCProfileRecord } from './NPCProfile';
 import type { NPCProducedItem } from './NPCProductionSystem';
+import { marketplaceItemMetadata, type GridMarketplaceItemMetadata } from '../economy/GridMarketplaceItem';
 
 export interface NPCMarketListing {
   id:string;
@@ -12,6 +13,7 @@ export interface NPCMarketListing {
   unitPrice:number;
   currency:'GRID_COIN';
   quality:number;
+  metadata:GridMarketplaceItemMetadata;
   createdAt:number;
 }
 
@@ -44,7 +46,7 @@ export class NPCMarketSystem {
     const listing:NPCMarketListing={
       id,sellerId,worldId:item.worldId,itemId:item.id,itemName:item.name,
       category:item.category,quantity:item.quantity,unitPrice:Math.max(.01,unitPrice),
-      currency:'GRID_COIN',quality:item.quality,createdAt:Date.now()
+      currency:'GRID_COIN',quality:item.quality,metadata:marketplaceItemMetadata(item.id,item.quality),createdAt:Date.now()
     };
     this.listings.set(id,listing);
     return listing;

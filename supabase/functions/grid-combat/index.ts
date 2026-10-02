@@ -322,7 +322,23 @@ Deno.serve(async (req: Request) => {
       if(mineralError) throw mineralError;
       const merged=new Map<string,number>((inventory??[]).map((row:any)=>[String(row.item_id),Number(row.quantity)]));
       for(const row of minerals??[]) merged.set(String(row.mineral_kind),Number(row.amount));
-      return json({ok:true,action,inventory:[...merged.entries()].map(([item_id,quantity])=>({item_id,quantity}))});
+      const inventory=[...merged.entries()].map(([item_id,quantity])=>{
+        const normalized=String(item_id).toUpperCase();
+        const slug=normalized.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+        const category=normalized.startsWith('GRID_')?'RESOURCE':normalized.includes('FOOD')||normalized==='GRID_RATION'?'FOOD':normalized.includes('TOOL')?'TOOL':normalized.includes('QUEST')?'QUEST':normalized.includes('BLUEPRINT')?'BLUEPRINT':'MATERIAL';
+        return {
+          item_id,
+          quantity,
+          marketplace:{
+            display_name:normalized.toLowerCase().split('_').map((part:string)=>part.charAt(0).toUpperCase()+part.slice(1)).join(' '),
+            category,
+            art_key:'marketplace/item/'+slug,
+            model_key:'marketplace/model/'+slug,
+            tags:[String(category).toLowerCase(),...normalized.split('_').slice(0,2).map((value:string)=>value.toLowerCase())],
+          },
+        };
+      });
+      return json({ok:true,action,inventory});
     }
 
     if (action === "resource_gather") {
@@ -391,7 +407,7 @@ Deno.serve(async (req: Request) => {
     }
 
     if (action === "bazaar_list") {
-      const {data:listings,error}=await admin.from("grid_bazaar_listings").select("id,seller_type,seller_user_id,seller_npc_id,world_id,item_id,remaining,currency_id,unit_price,status,created_at").eq("status","ACTIVE").order("created_at",{ascending:false}).limit(120);
+      const {data:listings,error}=await admin.from("grid_bazaar_listings").select("id,seller_type,seller_user_id,seller_npc_id,world_id,item_id,item_name,category,quality,art_key,model_key,metadata,remaining,currency_id,unit_price,status,created_at").eq("status","ACTIVE").order("created_at",{ascending:false}).limit(120);
       if(error) throw error;
       return json({ok:true,action,listings:listings ?? []});
     }

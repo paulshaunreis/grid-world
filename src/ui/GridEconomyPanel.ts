@@ -1,5 +1,6 @@
 import type { GridCombatAuthority } from '../network/GridCombatAuthority';
 import { GRID_COIN_DENOMINATIONS } from '../economy/GridCurrencySystem';
+import { marketplaceItemMetadata } from '../economy/GridMarketplaceItem';
 
 export function mountGridEconomyPanel(authority:()=>GridCombatAuthority|null){
   const panel=document.createElement('section');
@@ -29,14 +30,14 @@ export function mountGridEconomyPanel(authority:()=>GridCombatAuthority|null){
       }
       else if(current==='inventory'){
         const r=await a.inventoryRead(); const rows=(r as any)?.inventory??[];
-        contentBox.innerHTML='<div class="grid-economy-list">'+rows.map((x:any)=>'<div class="grid-economy-row"><b>'+esc(String(x.item_id))+'</b><strong>'+Number(x.quantity).toLocaleString()+'</strong><button data-list="'+esc(String(x.item_id))+'">LIST 1</button></div>').join('')+'</div>';
+        contentBox.innerHTML='<div class="grid-economy-list">'+rows.map((x:any)=>{const m=x.marketplace??{};return '<div class="grid-economy-row"><div><b>'+esc(String(m.display_name??x.item_id))+'</b><small>'+esc(String(m.category??'MATERIAL'))+' · 3D: '+esc(String(m.model_key??''))+'</small></div><strong>'+Number(x.quantity).toLocaleString()+'</strong><button data-list="'+esc(String(x.item_id))+'">LIST 1</button></div>';}).join('')+'</div>';
         contentBox.querySelectorAll<HTMLButtonElement>('[data-list]').forEach(b=>b.onclick=async()=>{const price=Number(window.prompt('Unit price in Grid currency:', '5')??'0');if(!Number.isFinite(price)||price<=0)return;b.disabled=true;try{const rr=await a.bazaarCreate('GRID_BAZAAR',b.dataset.list!,1,'grid',price);status.textContent=(rr as any)?.ok?'Asset listed in Grid Bazaar.':'Listing rejected.';await render();}catch{status.textContent='Listing rejected by Grid authority.'}b.disabled=false;});
       } else if(current==='vault'){
         const r=await a.vaultRead(); const rows=(r as any)?.vault??[];
         contentBox.innerHTML='<div class="grid-economy-list">'+rows.map((x:any)=>'<div class="grid-economy-row"><b>'+esc(String(x.item_id))+'</b><strong>'+Number(x.quantity).toLocaleString()+'</strong><small>mined '+Number(x.mined_quantity).toLocaleString()+'</small></div>').join('')+'</div>';
       } else if(current==='bazaar'){
         const r=await a.bazaarList(); const rows=(r as any)?.listings??[];
-        contentBox.innerHTML='<div class="grid-economy-list">'+rows.map((x:any)=>'<div class="grid-economy-row"><div><b>'+esc(String(x.item_id))+'</b><small>'+esc(String(x.seller_type==='NPC'?x.seller_npc_id:'USER'))+' · '+esc(String(x.currency_id))+'</small></div><strong>'+Number(x.unit_price).toFixed(2)+'</strong><button data-buy="'+esc(String(x.id))+'">BUY 1</button><span>'+Number(x.remaining).toLocaleString()+' left</span></div>').join('')||'<p>No active Bazaar listings.</p>';
+        contentBox.innerHTML='<div class="grid-economy-list">'+rows.map((x:any)=>{const m=x.metadata??marketplaceItemMetadata(String(x.item_id),x.quality);return '<div class="grid-economy-row"><div><b>'+esc(String(x.item_name??m.displayName??x.item_id))+'</b><small>'+esc(String(x.category??m.category))+' · '+esc(String(x.seller_type==='NPC'?x.seller_npc_id:'USER'))+' · '+esc(String(x.currency_id))+'</small><small>3D: '+esc(String(x.model_key??m.modelKey))+' · Art: '+esc(String(x.art_key??m.artKey))+'</small></div><strong>'+Number(x.unit_price).toFixed(2)+'</strong><button data-buy="'+esc(String(x.id))+'">BUY 1</button><span>'+Number(x.remaining).toLocaleString()+' left</span></div>';}).join('')||'<p>No active Bazaar listings.</p>';
         contentBox.querySelectorAll<HTMLButtonElement>('[data-buy]').forEach(b=>b.onclick=async()=>{b.disabled=true;try{const rr=await a.bazaarBuy(b.dataset.buy!,1);status.textContent=(rr as any)?.ok?'Purchase secured in your inventory and Vault.':'Purchase rejected.';await render();}catch(e){status.textContent='Purchase rejected by Grid authority.'}b.disabled=false;});
       } else if(current==='elements'){
         contentBox.innerHTML='<div class="grid-element-card"><b>STARFORGE-119</b><span>Au + Ag + C → Aurorium (Ao), Grid synthetic element 119</span><button data-trans="STARFORGE-119">TRANSMUTE</button></div><div class="grid-element-card"><b>STARFORGE-120</b><span>Cu + Si + O → Luminite (LuG), Grid synthetic element 120</span><button data-trans="STARFORGE-120">TRANSMUTE</button></div><div class="grid-element-card"><b>STARFORGE-121</b><span>Fe + C + Si + O → Verdanium (Vd), Grid synthetic element 121</span><button data-trans="STARFORGE-121">TRANSMUTE</button></div>';
