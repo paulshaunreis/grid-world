@@ -53,6 +53,7 @@ type Citizen = {
   travelStage:'IDLE'|'APPROACH_GATE'|'TRANSIT';
   gatePosition:THREE.Vector3;
   brain: GridNpcBrain;
+  mealCooldown:number;
 };
 
 export interface SocietySnapshot {
@@ -206,7 +207,7 @@ export class NPCSocietySystem {
       root.add(canopy,counter,sigil);
     }
     this.root.add(root);
-    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0,merchant,merchantStock:merchant?0:0,merchantStress:0,merchantMood:'CALM',merchantOpen:true,merchantSchedule:name.length%6,schedulePhase:(name.length%10)/10,travelTimer:8+name.length%9,travelTarget:new THREE.Vector3(wx,0,wz),travelMode:'WALK',travelPurpose:'WORK',travelWorld:world,selectedDestination:world,gateCooldown:0,travelStage:'IDLE',gatePosition:new THREE.Vector3(hx,0,hz),brain});
+    this.citizens.push({root,name,role,world,state:'REST',home:new THREE.Vector3(hx,0,hz),workplace:new THREE.Vector3(wx,0,wz),social:.55,energy:.8,stateTimer:2+name.length,phase:name.length,target:new THREE.Vector3(wx,0,wz),jumpVelocity:0,jumpCooldown:1.5+(name.length%4)*.6,jumpPhase:name.length*.7,jumpStyle:name.length%3,jumpTargetY:0,jumpCount:0,merchant,merchantStock:merchant?0:0,merchantStress:0,merchantMood:'CALM',merchantOpen:true,merchantSchedule:name.length%6,schedulePhase:(name.length%10)/10,travelTimer:8+name.length%9,travelTarget:new THREE.Vector3(wx,0,wz),travelMode:'WALK',travelPurpose:'WORK',travelWorld:world,selectedDestination:world,gateCooldown:0,travelStage:'IDLE',gatePosition:new THREE.Vector3(hx,0,hz),brain,mealCooldown:0});
   }
 
   private chooseState(c:Citizen,event:string,phase:string,pressure=0,stability=1,brainAction?:GridNpcAction) {
@@ -264,6 +265,7 @@ export class NPCSocietySystem {
       c.stateTimer-=delta;
       c.travelTimer-=delta;
       c.gateCooldown=Math.max(0,c.gateCooldown-delta);
+      c.mealCooldown=Math.max(0,c.mealCooldown-delta);
       // Day-cycle routine: each role keeps a data-driven daily rhythm (sleep /
       // work / meal / leisure). When no dayFraction is passed (older callers),
       // fall back to the coarse phase string so behavior degrades gracefully.
@@ -378,7 +380,18 @@ export class NPCSocietySystem {
       c.energy=Math.max(0,c.energy-delta*(c.state==='WORK'?.012:.005));
       c.social=Math.max(0,c.social-delta*.006);
       if(c.state==='REST') c.energy=Math.min(1,c.energy+delta*.045);
-      if(c.state==='EAT') c.energy=Math.min(1,c.energy+delta*.02);
+      if(c.state==='EAT') {
+        c.energy=Math.min(1,c.energy+delta*.02);
+        if(c.mealCooldown<=0){
+          const profile=this.profiles.get(c.name);
+          const food=profile?.inventory.find(item=>item.category==='FOOD' && item.quantity>0);
+          if(profile && food){
+            this.inventory.remove(profile,food.id,1);
+            c.mealCooldown=20;
+            c.root.userData.lastMeal=food.name;
+          }
+        }
+      }
       if(c.state==='TALK') { c.social=Math.min(1,c.social+delta*.035); talking++; }
       if(c.state==='WORK') {
         working++;
@@ -554,6 +567,7 @@ export class NPCSocietySystem {
         travelWorld: c.travelWorld,
         travelMode: c.travelMode,
         travelStage: c.travelStage,
+        mealCooldown: c.mealCooldown,
         position: [c.root.position.x, c.root.position.y, c.root.position.z],
         profile: profile ? structuredClone(profile) : null,
       };
@@ -583,6 +597,7 @@ export class NPCSocietySystem {
       if (typeof record.travelPurpose === 'string') citizen.travelPurpose = record.travelPurpose as Citizen['travelPurpose'];
       if (typeof record.travelMode === 'string') citizen.travelMode = record.travelMode as Citizen['travelMode'];
       if (typeof record.travelStage === 'string') citizen.travelStage = record.travelStage as Citizen['travelStage'];
+      if (typeof record.mealCooldown === 'number' && Number.isFinite(record.mealCooldown)) citizen.mealCooldown = Math.max(0, record.mealCooldown);
       if (Array.isArray(record.position) && record.position.length === 3) {
         const p = record.position.map(Number);
         if (p.every(Number.isFinite)) citizen.root.position.set(p[0], p[1], p[2]);
