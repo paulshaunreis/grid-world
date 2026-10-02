@@ -229,3 +229,13 @@ Source of truth: `~/workspace/gridworld/concept-art/INVENTORY.md` (89-file inven
 - Commit: **`cb87bdb84406136678fe23f05ea8fcc7ad1fc839`** on `main`.
 - Verification was source-level after commit; GitHub reported no workflow run yet for this commit, so it remains unverified by CI.
 - Continue P0.2 with the remaining high-impact navigation/control audit before P1 work.
+
+
+## P0.2 interaction audit checkpoint — 2026-10-02 (continued)
+- Continued the HUD navigation audit after the Grid Atlas fix.
+- `SOCIAL` target quick action was found to be misleading: it emitted a chat message instead of opening the already-mounted Social Manager. `TEAM` was exposed in the HUD but had no route even though `mountTeamArea()` was already mounted.
+- `src/main.ts` now routes the quick-action `SOCIAL` button to `gridCommunityPanel.open()` when available and routes HUD `TEAM` to `teamArea.open()`.
+- Commit: **`343b308a3581752932ba5adb7c78b340dce27010`** on `main`.
+- Source-level verification was completed after the write. GitHub reported no workflow runs for the commit yet, so this change is **not CI-verified**.
+- Continue P0.2 with account/auth, transit, quest, creator, and secondary toolbar/navigation controls.
+
