@@ -21,10 +21,11 @@ const GIVERS:Record<string,{world:EcologyWorld;position:[number,number]}>={
 Lyra:{world:'HARBOR',position:[0,-7]},Mara:{world:'HARBOR',position:[22,-24]},Sela:{world:'GARDENS',position:[23,20]},Caro:{world:'ARTS',position:[17,-15]},Rook:{world:'WILDS',position:[-25,22]},Orin:{world:'CITADEL',position:[-19,-18]},Aurora:{world:'ARTS',position:[0,-12]}
 };
 const STORAGE='grid-world:quest-state:v3';
+const LEGACY_STORAGE='grid-world:quest-state:v2';
 export class QuestSystem{
  readonly root=new THREE.Group(); private quests:Quest[]=[]; private visited=new Set<EcologyWorld>(); private interacted=new Set<string>(); private playerId='local'; private lastWorld:EcologyWorld='HARBOR'; private lastEvent='QUIET'; private rewardBank=0; private markers=new Map<string,THREE.Group>(); private saved:QuestState={}; private savedDynamic:Quest[]=[]; private completionHistory:Record<string,string[]>={};
  constructor(playerId='local'){this.playerId=playerId;this.root.name='grid-user-quests';this.load();for(const seed of SEEDS){const saved=this.saved[seed.id];this.quests.push({...seed,progress:saved?.progress??0,status:saved?.status??(seed.id==='first-steps'?'ACTIVE':'AVAILABLE'),completedAt:saved?.completedAt,completionCount:saved?.completionCount??0});}for(const seed of this.savedDynamic){const saved=this.saved[seed.id];this.quests.push({...seed,progress:saved?.progress??seed.progress??0,status:saved?.status??seed.status??'AVAILABLE',completedAt:saved?.completedAt,completionCount:saved?.completionCount??seed.completionCount??0});}this.syncMarkers();}
- private load(){try{const raw=localStorage.getItem(STORAGE+'-'+this.playerId);if(!raw)return;const p=JSON.parse(raw);if(p?.quests)this.saved=p.quests;if(Array.isArray(p?.dynamic))this.savedDynamic=p.dynamic;if(Array.isArray(p?.visited))this.visited=new Set(p.visited);if(Array.isArray(p?.interacted))this.interacted=new Set(p.interacted);if(typeof p?.rewardBank==='number')this.rewardBank=p.rewardBank;if(p?.completionHistory&&typeof p.completionHistory==='object')this.completionHistory=p.completionHistory;}catch{}}
+ private load(){try{const raw=localStorage.getItem(STORAGE+'-'+this.playerId)??localStorage.getItem(LEGACY_STORAGE+'-'+this.playerId);if(!raw)return;const p=JSON.parse(raw);if(p?.quests)this.saved=p.quests;if(Array.isArray(p?.dynamic))this.savedDynamic=p.dynamic;if(Array.isArray(p?.visited))this.visited=new Set(p.visited);if(Array.isArray(p?.interacted))this.interacted=new Set(p.interacted);if(typeof p?.rewardBank==='number')this.rewardBank=p.rewardBank;if(p?.completionHistory&&typeof p.completionHistory==='object')this.completionHistory=p.completionHistory;}catch{}}
  private save(){try{const quests:QuestState={};for(const q of this.quests)quests[q.id]={progress:q.progress,status:q.status,completedAt:q.completedAt,completionCount:q.completionCount};localStorage.setItem(STORAGE+'-'+this.playerId,JSON.stringify({quests,dynamic:this.quests.filter(q=>q.id.startsWith('dynamic-')),visited:[...this.visited],interacted:[...this.interacted],rewardBank:this.rewardBank,completionHistory:this.completionHistory}));}catch{}}
   private periodKey(cadence:QuestCadence, now=new Date()) {
     if(cadence==='ONCE') return 'once';
@@ -39,7 +40,7 @@ export class QuestSystem{
   private prerequisitesMet(q:Quest) {
     return !(q.prerequisiteIds??[]).some(id => {
       const prerequisite=this.quests.find(candidate=>candidate.id===id);
-      return !prerequisite || prerequisite.status!=='COMPLETE';
+      return !prerequisite || ((prerequisite.completionCount??0)<1 && prerequisite.status!=='COMPLETE');
     });
   }
   private recurringReady(q:Quest) {
