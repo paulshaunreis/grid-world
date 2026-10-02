@@ -476,7 +476,19 @@ export class NPCSocietySystem {
   getMarketListings(worldId?:string){ return this.market.getListings(worldId); }
   getMarketTrades(limit=25){ return this.market.getTrades(limit); }
   getNPCGridCoin(name:string){ const profile=this.profiles.get(name); return profile ? this.market.getBalance(profile.id) : 0; }
-  buyNPCMarketListing(listingId:string,buyerName:string,quantity=1){ const buyer=this.profiles.get(buyerName); return buyer ? this.market.buy(listingId,buyer.id,quantity) : null; }
+  buyNPCMarketListing(listingId:string,buyerName:string,quantity=1){
+    const buyer=this.profiles.get(buyerName);
+    if(!buyer) return null;
+    const trade=this.market.buy(listingId,buyer.id,quantity);
+    if(trade){
+      const merchant=this.citizens.find(c=>this.profiles.get(c.name)?.id===trade.sellerId);
+      if(merchant){
+        merchant.merchantStock=Math.max(0,merchant.merchantStock-trade.quantity);
+        merchant.root.userData.merchantStock=merchant.merchantStock;
+      }
+    }
+    return trade;
+  }
   collectMaterialDrop(id:string){ return this.materialDrops.collect(id); }
   awardNPCJobXP(name:string, amount:number, skill?:string){ const profile=this.profiles.get(name); return profile ? this.progression.award(profile, amount, skill) : null; }
   getWorkingCitizens(){return this.citizens.filter(c=>c.state==='WORK'||c.state==='GATHER').map(c=>({id:c.name,world:c.world,position:c.root.position.clone(),role:c.role}));}
