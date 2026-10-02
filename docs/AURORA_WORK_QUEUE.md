@@ -444,3 +444,16 @@ _Last updated: 2026-10-02_
 - GitHub Actions CI run #1090 succeeded for head `aa636da0bdf7c475ede47766ae638c9a2cfcae91`.
 - PR #9 was squash-merged into `main` as `f53799d06e22b3fc0e114b1c5e2beedce11e961b`.
 - Next: P1 NPC profile expansion, after auditing the existing NPC profile implementation to avoid duplicating fields/systems.
+
+
+## P1 NPC life-loop integration checkpoint — 2026-10-02
+- Audited the existing visible NPC society before changing it. `NPCSocietySystem` already owns daily routines, movement, relationships, inventory, job progression, production, market, travel, and persistence; `GridNpcBrain` separately owns richer needs/memories.
+- PR #11 `grid/npc-life-loop-integration` bridges those systems without replacing either: visible citizens now update their brain from routine/safety/work/food context, expose brain needs/action on the NPC object, feed brain decisions into the existing state chooser, record social meetings as brain memories, and mirror bounded brain memories/relationship IDs into the existing profile.
+- Meal state now consumes one FOOD inventory item on a cooldown, closing the needs ↔ inventory loop; production can replenish that inventory.
+- No Supabase schema change. Branch `grid/npc-life-loop-integration`.
+- Latest implementation head: `0eb8ef1cc9652818898b45e17b2b82fb767f69b4`.
+- GitHub Actions CI run #1099 is currently in progress for that head; not yet verified green. No local checkout/build was available in this session.
+- Main remains unchanged; merge is Paul's decision.
+- Next: review PR #11; after approval/merge, continue P1 NPC memory/relationship depth or NPC jobs/skill progression according to the current queue.
+
+_Last updated: 2026-10-02_
