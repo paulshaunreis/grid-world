@@ -249,3 +249,13 @@ Source of truth: `~/workspace/gridworld/concept-art/INVENTORY.md` (89-file inven
 - Source-level verification confirmed the centralized routes and existing auth/Creator/Quest/transit handlers. No workflow run was available yet, so the commit is not CI-verified.
 - Continue P0.2 with remaining secondary controls and end-to-end navigation checks.
 
+
+
+## P0.2 completion checkpoint — 2026-10-02
+- Completed the source-level website/world navigation audit.
+- Primary HUD tools and secondary controls were traced to their mounted panels/handlers, including account/auth, Creator Studio, Quest, transit selection, voice target, social actions, party controls, and operator controls.
+- Removed redundant SOCIAL/TEAM listeners and retained centralized HUD routing.
+- No additional concrete dead/misleading navigation path was identified in the audited main application surface.
+- Verification boundary: source-level only for this checkpoint; final routing has not yet received an end-to-end browser or CI verification.
+- Next focus: **P1 Core player/world**, beginning with the teleport experience and its destination preview/animation requirements.
+
