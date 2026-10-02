@@ -113,3 +113,29 @@ When Aurora or another engineer continues:
 - Update it after substantial work.
 - Add the newest commit SHA and exact verification result.
 - Explicitly list anything that is unfinished or uncertain.
+
+
+## Latest pass — persistent public profile continuity
+Date: 2026-10-01
+
+### Changes made
+- src/profile.ts
+  - Public profile routes now accept ?handle= and load the matching persistent grid_user_profiles record through GridProfileAuthority.
+  - The public page hydrates cloud profile identity, theme/layout, media, and arena ranking before rendering.
+  - Existing signed-in profile hydration remains the fallback when no public handle is supplied.
+- src/ui/GridCommunityPanel.ts
+  - SHARE PROFILE now copies a real /profile.html?handle=... public-profile link instead of only copying a handle string.
+  - This keeps web sharing connected to the same persistent profile identity used by the in-world social layer.
+
+### Commits
+- 965d68618fe18d887af9306215fc95afc4690163 — Load persistent profiles on public profile routes.
+- 061390f1e2b2235e6e7417500914dea73bd91e32 — Make profile sharing open the persistent public profile.
+
+### Verification
+- These changes were written to aurora/npc-daily-routines.
+- GitHub Actions verification for these new commits has not yet been checked; do not describe this pass as CI-verified until a successful workflow run is observed.
+- No merge was performed. Draft PR #1 remains open/draft.
+
+### Next integration target
+- Verify CI.
+- Then connect public profile pages more deeply to creations/worlds/achievements and make the in-world remote-player profile offer a direct public-profile action without duplicating account data.
