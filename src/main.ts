@@ -1182,6 +1182,15 @@ uiResetButton.hidden = true;
 uiResetButton.addEventListener('click', () => windowManager.resetLayout());
 hud.appendChild(uiResetButton);
 
+// Mount the existing major panels into the shared window system. This keeps
+// profile, party, social, quests, economy and creator surfaces movable without
+// creating a second layout manager.
+const registerPanel = (id: string, title: string, selector: string, movable = true) => {
+  const element = document.querySelector<HTMLElement>(selector);
+  if (!element) return;
+  windowManager.register({ id, title, element, defaultPosition: { x: 0, y: 0 }, movable, resizable: true });
+};
+
 windowManager.register({
   id: 'grid-chat',
   title: 'Grid Chat',
@@ -1830,6 +1839,14 @@ if (gridSessionAuth) {
 
 const avatarOptions = document.querySelector<HTMLDivElement>('#avatar-options')!;
 const hudOptions = document.querySelector<HTMLDivElement>('#hud-options')!;
+registerPanel('party-hud', 'Party Link', '.grid-party-hud');
+registerPanel('field-guide', 'Field Guide', '.field-guide');
+registerPanel('quest-journal', 'Mission Journal', '.gw-quest-panel');
+registerPanel('team-workshop', 'Team Workshop', '.gw-team-panel');
+registerPanel('social-panel', 'Grid Social', '.grid-social-card');
+registerPanel('economy-panel', 'Grid Omni Economy', '.grid-economy-card');
+registerPanel('target-profile', 'Grid Profile', '.grid-target-profile-card');
+
 windowManager.register({
   id: 'creator-console',
   title: 'Creator Console',
