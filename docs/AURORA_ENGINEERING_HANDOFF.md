@@ -148,3 +148,12 @@ Date: 2026-10-01
 - `src/main.ts` wires remote-player profiles to `/profile.html?handle=...`, opening the same persistent web profile used by the community panel.
 - Commits: `714bb65f0132c540c16d35859ece379723a0c555`, `3499981c063a3b624150c5f4659274c9ad2babd5`.
 - No merge performed. CI for the newest commit has not yet been checked.
+
+
+## Profile data integration pass — 2026-10-01
+- Reused existing Supabase tables rather than creating a parallel profile datastore.
+- `GridProfileAuthority` now reads `grid_landmarks` and `grid_player_inventory` in addition to persistent profile posts/media and arena ranking.
+- Public profile modules now render real saved landmarks/world destinations, public posts/creation activity, and inventory/collection data when available.
+- Supabase verification query confirmed the required tables are present; current database row counts are zero for these user-facing records, so empty-state UI is expected until users create data.
+- Commits: `f04d15ad0b2e7db0779cf9afea779fd68b5a9544`, `001d6bdd18a8fa8157901fedf2e4b29e05978801`.
+- No merge performed. GitHub Actions for the latest branch commit has not been observed yet.
