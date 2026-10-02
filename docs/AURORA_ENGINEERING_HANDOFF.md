@@ -414,3 +414,18 @@ Do not treat the references as a complete specification. Aurora's own response s
 ### Next target
 - Verify the new branch head through GitHub Actions.
 - Then connect collaborator management/status more visibly to the world/social UI, and continue testing Build Mode persistence/realtime behavior across owner, viewer, builder, editor, and admin roles.
+
+
+## CI repair follow-up — 2026-10-02
+
+- GitHub Actions run #1032 for prior head `5cf05b60463f0c825538e1d628e55d097397c571` failed TypeScript compilation.
+- Root cause was broader than the previously fixed import: `NPCSocietySystem.ts` had been accidentally reduced to its import section by a bad file update, removing its exported `NPCSocietySystem`, `SocietySnapshot`, and related implementation.
+- Restored the complete NPC society implementation from known-good commit `23c3b4a6c1a6527662e0f615db4e9c9d7b22f9c0`, retaining the required `NPCRelationship` type import.
+- Hardened strict TypeScript narrowing in role-aware Build Mode so optional selected objects are narrowed before mutation/copy operations.
+- Commits:
+  - `0404c65928d48e90c3062db112d3c69d51855aa2` — restore NPC society exports/persistence.
+  - `ee42dd0b7ba6db346f8264c1f12855a1ac703358` — fix strict typing in role-aware Build Mode.
+- Current branch head: `ee42dd0b7ba6db346f8264c1f12855a1ac703358`.
+- No completed CI run has yet been returned for this new head; combined status is currently empty.
+- GitHub currently reports PR #1 as open/draft/unmerged and temporarily `mergeable=false`; do not interpret that as a merge or as a verified build.
+- Local TypeScript verification remains unavailable.
