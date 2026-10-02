@@ -283,3 +283,13 @@ Do not treat the references as a complete specification. Aurora's own response s
 - Commits: `56f0a4b` and `dea111e`.
 - Verification: CI for the newest commit has not yet been checked.
 - Next target: creator/media activity at actual publish/upload boundaries, then verify the complete activity chain in CI.
+
+
+## Creator/media activity pass — 2026-10-01
+- Added `MEDIA_PUBLISH` activity to the profile media publishing flow in `src/profile.ts`.
+- The activity is recorded only after the profile post and every selected media object have been successfully persisted/uploaded.
+- Metadata includes item count, post ID, and MIME types; no media URLs are duplicated into the activity record.
+- Commit: `6f2710e15c5e0b0f9afdf971a083df60351e640b`.
+- Landmark activity remains on commits `56f0a4b` / `dea111e`.
+- Verification: no workflow run is currently reported for the newest media commit, so CI verification is still pending.
+- Next target: wire Creator Studio world-generation acceptance/publish into activity, then verify the accumulated activity path with CI.
