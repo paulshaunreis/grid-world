@@ -426,3 +426,12 @@ _Last updated: 2026-10-02_
 - Next: after PR #6 verification, continue P1 party health/HUD, then camera/movement controls.
 
 _Last updated: 2026-10-02_
+
+
+## P1 landmarks/waypoints completion checkpoint — 2026-10-02
+- PR #6 `grid/landmarks-waypoints-flow` was verified by GitHub Actions CI run #1080 with conclusion `success` on head `1b1af3a71a55d604938c094dba0195285f40ca3d`.
+- PR #6 was squash-merged into `main` as `fbb28ed999064b853554403dd0e2ab90971a09ed`.
+- Landmark/waypoint persistence, inventory actions, INVENTORY routing, and selected-destination transit are now part of main.
+- Next actionable P1 item: party health/HUD, then camera/movement controls. Existing implementations should be audited rather than duplicated.
+
+_Last updated: 2026-10-02_
