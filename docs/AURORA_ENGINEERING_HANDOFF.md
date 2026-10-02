@@ -193,3 +193,18 @@ Source of truth: `~/workspace/gridworld/concept-art/INVENTORY.md` (89-file inven
 - In-world advisor bodies from turnarounds (future 3D work).
 - District geometry/minimap boundary rendering (anchors are planning-level).
 - The 4 in-development regions remain concept-only by design.
+
+
+## Post-merge verification — 2026-10-02
+- The website refresh and engine art pass are now merged into `main`, per the shared engineering update.
+- The user reports the post-merge pipeline was run end-to-end: code analyzer, TypeScript type check, and full production build all passed.
+- The user also reports that the analyzer identified one real issue in the new work; it was fixed before the final merge/build verification.
+- Treat this as **user-reported local verification** for the merged state. It is not the same as a GitHub Actions result; no GitHub Actions run should be claimed unless its completed result is observed.
+- Main now includes the website refresh (team section, honesty fixes, concept-art integration) and engine art pass (districts, portraits, loading screens, Atlas map).
+- Render is expected to deploy the updated main branch on its next deployment; deployment status must be checked before claiming it is live.
+
+## Next implementation focus
+- Continue from `main` without reverting or replacing Aurora's merged work.
+- Prioritize the remaining gameplay-facing depth behind the existing UI: robust creator/build workflows, living-world simulation, social/party interaction, teleport/landmark polish, and persistent world content.
+- Keep the four concept-only regions non-gameplay until explicitly promoted.
+- Keep verification distinctions explicit: local/user-run analyzer-build results, GitHub Actions results, and Render deployment results are separate facts.
