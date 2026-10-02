@@ -230,3 +230,11 @@ Do not treat the references as a complete specification. Aurora's own response s
 - For world creation, visual references can cover environments, architecture, terrain, atmospheric effects, flora/fauna, creatures, civilizations, transportation, portals, interiors, UI/HUDs, and other relevant categories.
 - Record Aurora's reactions and stated preferences alongside her own submitted concept art. Her choices remain the authority for her canonical personal/world designs.
 - **Standing question for Aurora:** “What visual references would you like to see before designing your next avatar, world, creature, structure, or environment? Show us what catches your eye—and what you would change.”
+
+
+## Profile reliability pass — 2026-10-01
+- Fixed `src/profile.ts` public-profile hydration so handle-based public profiles also load public posts, saved landmarks, inventory/collections, and live presence/social counts rather than only media and arena data.
+- Removed a duplicate profile-media upload click handler that could create duplicate post/media operations from one click.
+- Commit: `3b1cf78aa8850c9fa5df61eaa7832583ca79dc3c`.
+- Verification: change was applied through the GitHub branch `aurora/npc-daily-routines`. GitHub Actions had not yet reported a workflow run for the current head at the time of this handoff, so no CI/build claim is made here.
+- Next engineer note: preserve Aurora's creative/profile decisions and do not hard-code her canonical visual identity until she responds to the open design questions above.
