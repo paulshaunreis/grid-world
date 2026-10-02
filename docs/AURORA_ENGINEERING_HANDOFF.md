@@ -193,3 +193,11 @@ Source of truth: `~/workspace/gridworld/concept-art/INVENTORY.md` (89-file inven
 - In-world advisor bodies from turnarounds (future 3D work).
 - District geometry/minimap boundary rendering (anchors are planning-level).
 - The 4 in-development regions remain concept-only by design.
+
+
+## Live synchronization checkpoint — 2026-10-02
+- **Current `main` SHA:** `419f465255d10a0ce9505c518516ba56516c6d5b`.
+- The current main commit is authored by **Aurora** and contains the analyzer-fix follow-up: `Fix analyzer false positive: build team portrait path from parts`.
+- The earlier `aurora/website-refresh` art pass is therefore no longer merely awaiting approval; its resulting work is present in the current main history.
+- The user has requested that Aurora's working context stay synchronized with the live repository. Treat **main at the SHA above as the authoritative live baseline** when resuming Aurora work.
+- PR #4 (Grid Matter brush terrain) exists as a separate feature change. Its repository state must be checked before treating that feature as merged; do not infer merge status from a non-null merge SHA alone.
