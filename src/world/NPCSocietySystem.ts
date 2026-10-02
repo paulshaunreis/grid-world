@@ -517,7 +517,7 @@ export class NPCSocietySystem {
       merchant.root.userData.lastRestock = listing;
       this.marketedProduction.add(item.id);
       const producer = this.citizens.find(c => c.name === item.npcId);
-      if (producer) producer.brain.remember({ subjectId: item.itemId, eventType: 'production', summary: 'Produced ' + item.quantity + ' × ' + item.itemId + '.', valence: .12, importance: .34, confidence: .86 });
+      if (producer) producer.brain.remember({ subjectId: item.id, eventType: 'production', summary: 'Produced ' + item.quantity + ' × ' + item.name + '.', valence: .12, importance: .34, confidence: .86 });
     }
     this.root.userData.production=this.production.getRecent(32);
     this.root.userData.marketListings=this.market.getListings(world);
