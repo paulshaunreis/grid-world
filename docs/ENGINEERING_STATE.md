@@ -235,3 +235,12 @@ ChatGPT pushes via Paul's channel (authored `paulshaunreis`). All 84 commits on 
 - Existing Build Mode was extended with multi-selection, alignment, logical grouping, and multi-object transforms.
 - No parallel builder system was introduced.
 - Verification boundary: source review and merge; no fresh CI/browser run returned.
+
+
+## 2026-10-02 — Current main after terrain sculpting
+- **main:** `ae9e26ebe7d1cfcb7b355a978a4d81b870b433b3`.
+- PR #21 merged the terrain sculpting continuation. Grid Matter now has CARVE/BUILD plus RAISE/LOWER/SMOOTH/FLATTEN, bounded brush strength, and Creator Studio controls.
+- No workflow run was available for the PR head; the merge is source-reviewed but not CI-verified. Browser/WebGL verification remains outstanding.
+- **Next actionable item:** P2 #19 Mission/quest foundation. Audit the existing quest systems first; do not duplicate them.
+
+_Last updated: 2026-10-02_
