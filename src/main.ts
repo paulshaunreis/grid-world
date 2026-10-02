@@ -532,6 +532,24 @@ npcSociety.setTransitTrafficRecorder((source, destination, queueDepth) => {
   addChatMessage('GRID TRANSIT', source + ' → ' + destination + ' · NPC route completed · queue ' + queueDepth + '.', 'system');
   void cloudPersistence?.getClient().rpc('grid_record_transit', { p_source_world: source, p_destination_world: destination, p_departures: 1, p_arrivals: 1, p_queue_depth: queueDepth });
 });
+npcSociety.setTeleportDestinationResolver((actorId, source, destination) => {
+  const sourceNodeId = 'world-gate:' + source.toLowerCase();
+  const destinationNodeId = 'world-gate:' + destination.toLowerCase();
+  const result = teleportSystem.request({
+    actorId,
+    nodeId: sourceNodeId,
+    destinationId: destinationNodeId,
+    nowSeconds: performance.now() / 1000,
+    relationship: 'public',
+  });
+  return result.ok ? result.destination ?? null : null;
+});
+npcSociety.setTransitPresentation((actorId, root, destination, phase) => {
+  const distance = root.position.distanceTo(player.avatar.position);
+  if (distance > 42) return;
+  teleportExperience.show(destination, phase);
+  if (phase === 'arriving') createTeleportAvatarEffect(root, 850);
+});
 const relationshipStories = new RelationshipStorySystem();
 const traversalSystem = new TraversalSystem();
 const questSystem = new QuestSystem(identity.id);
