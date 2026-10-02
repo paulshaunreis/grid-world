@@ -69,7 +69,7 @@ import { WorldEvolutionSystem } from './world/WorldEvolutionSystem';
 import { EvolutionaryPopulationSystem } from './world/EvolutionaryPopulationSystem';
 import { EcologicalWebSystem } from './world/EcologicalWebSystem';
 import { EcologicalInteractionSystem } from './world/EcologicalInteractionSystem';
-import { getWorlds, getWorldConnections } from './world/GridWorldRegistry';
+import { getWorlds, getWorldConnections, connectWorld } from './world/GridWorldRegistry';
 import { GridChakraSystem } from './world/GridChakraSystem';
 import { GridAlchemySystem } from './world/GridAlchemySystem';
 import { GridKarmaSystem } from './world/GridKarmaSystem';
@@ -573,8 +573,12 @@ async function hydratePersistentWorlds() {
     const rows = await gridWorldAuthority.listPublic();
     for (const row of rows) {
       const definition = GridWorldAuthority.toDefinition(row);
-      const result = { world: registerNetworkWorld(definition), inferredTags: [...(definition.tags ?? [])] };
-      connectFactoryWorldToAll({ ...result, dna: undefined as never, connectedWorlds: [] });
+      const world = registerNetworkWorld(definition);
+      for (const other of getWorlds()) {
+        if (other.id === world.id) continue;
+        connectWorld(world.id, other.id);
+        connectWorld(other.id, world.id);
+      }
       registerWorldTransitNode(definition);
       teleportSystem.syncWorldConnections();
       worldArchitecture.rebuild();
@@ -611,8 +615,6 @@ const createFactoryWorld = (name: string, description: string) => {
   addChatMessage('WORLD FACTORY', result.world.label + ' joined the Grid · ' + result.inferredTags.join(' · '), 'system');
   return result;
 };
-
-void hydratePersistentWorlds();
 
 const worldFactoryPanel = mountWorldFactoryPanel({
   onCreate: createFactoryWorld,
@@ -1240,6 +1242,8 @@ const cloudReady = cloudPersistence
       return authenticated;
     })()
   : Promise.resolve(false);
+
+void hydratePersistentWorlds();
 
 // Render locally first. Cloud persistence is optional and must never prevent the 3D world from booting.
 const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.1, 500);
