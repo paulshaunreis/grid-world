@@ -477,3 +477,14 @@ _Last updated: 2026-10-02_
 - Existing architecture documents were preserved; no parallel runtime system or database schema was introduced.
 - Verification: **L0 source/document review**. No CI/browser verification.
 - Next queue item: **P3 #29 Aurora engineering handoff**.
+
+
+## Checkpoint — 2026-10-02 — P3 #29 engineering handoff
+- **Current main:** `f24a1942425081dc20d740856aa7273cb1eef0e1` (Architecture Map merge, PR #32).
+- **Latest completed:** P3 #28 Architecture map. `docs/ARCHITECTURE_MAP.md` now describes the current implementation boundaries and explicitly separates them from the long-term Omni Grid Core / Grid Engine direction.
+- **Recent implementation sequence:** world-specific presentation (PR #31), unified UI visual system (PR #30), living-world visual gating (PR #29), economics/marketplace/currency (PRs #28/#27/#26), PvP/PvE/quest foundations (PRs #25/#24/#22), plus the earlier NPC/profile/job/certificate/teleport/build/terrain work recorded above.
+- **Verification truth:** recent increments are predominantly L0 source review because GitHub workflow runs were not returned for their feature heads. Do not describe them as CI-verified. Browser/WebGL and Render live verification remain outstanding unless a later checkpoint explicitly records them.
+- **Current architecture constraints:** audit-first; preserve existing systems; no duplicate Atlas/window/theme/profile/economy/combat/terrain architecture; client is not authoritative for protected state; concept-only regions remain non-playable until explicitly promoted.
+- **Current documentation status:** P3 #28 is complete. P3 #29 is the handoff maintenance item; this checkpoint keeps the handoff aligned with current main and the architecture map.
+- **Next actionable queue item:** P3 #30 Canon vs experiment tracking. Before implementing it, inspect existing canon/notes conventions and avoid creating a competing source of truth.
+- **Blocked/known follow-ups:** browser/WebGL verification, Render post-merge verification, and the existing `grid_operator_policy_rules` RLS finding remain separate follow-ups. Do not silently fold them into unrelated feature work.

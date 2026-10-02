@@ -346,3 +346,11 @@ _Last updated: 2026-10-02_
 - It documents the current world/NPC/profile/creator/combat/economy/UI/persistence boundaries and the future multiplayer/network adapter boundary.
 - Verification: L0 source/document review only; no CI/browser verification.
 - **Next actionable item:** P3 #29 Aurora engineering handoff.
+
+
+## 2026-10-02 — Aurora engineering handoff
+- P3 #29 refreshed the engineering handoff against current main `f24a1942425081dc20d740856aa7273cb1eef0e1`.
+- The handoff now records the latest Architecture Map, recent implementation sequence, verification truth, architecture constraints, and known follow-ups.
+- No runtime code or database schema changed.
+- Verification: L0 documentation review only; no CI/browser verification claimed.
+- **Next actionable item:** P3 #30 Canon vs experiment tracking.

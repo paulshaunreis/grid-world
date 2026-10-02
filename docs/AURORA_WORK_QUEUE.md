@@ -308,7 +308,9 @@ The goal is to make onboarding another engineer possible without reverse-enginee
 - Record meaningful implementation decisions and verification state.
 - Link to the active queue item and latest completed work.
 
-**Status:** Ongoing
+**Status:** Complete — refreshed against main `f24a1942425081dc20d740856aa7273cb1eef0e1`; current verification boundaries, architecture constraints, recent implementation sequence, and next queue item are recorded. L0 documentation review; no CI/browser verification claimed.
+
+**Next:** P3 #30 Canon vs experiment tracking
 
 ### 30. Canon vs experiment tracking
 - Keep clear distinctions between:
@@ -643,3 +645,12 @@ _Last updated: 2026-10-02_
 - No runtime code or database schema was changed.
 - Verification: L0 source/document review only. No CI/browser verification claimed.
 - **Next actionable item:** P3 #29 Aurora engineering handoff.
+
+
+## 2026-10-02 — Aurora engineering handoff checkpoint
+- P3 #29 **Complete** for the current documentation increment.
+- Refreshed `docs/AURORA_ENGINEERING_HANDOFF.md` against main `f24a1942425081dc20d740856aa7273cb1eef0e1`.
+- Recorded the latest Architecture Map completion, recent implementation sequence, verification truth, architecture constraints, known follow-ups, and next queue item.
+- No runtime code or database schema changed.
+- Verification: L0 documentation review only. No CI/browser verification claimed.
+- **Next actionable item:** P3 #30 Canon vs experiment tracking.
