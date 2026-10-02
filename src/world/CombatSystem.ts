@@ -283,5 +283,13 @@ export class CombatSystem {
     this.updateHud();
   }
 
+  recordAuthoritativeKill(targetId:string){
+    const target=this.combatants.get(targetId);
+    if(!target || target.alive) return false;
+    this.kills++;
+    this.targetId=targetId;
+    return true;
+  }
+
   getSnapshot(){return this.snapshot;}
 }
