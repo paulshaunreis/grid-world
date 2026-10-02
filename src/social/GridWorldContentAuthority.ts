@@ -32,6 +32,39 @@ export class GridWorldContentAuthority {
     };
   }
 
+  async getRole(worldId: string): Promise<'owner'|'viewer'|'builder'|'editor'|'admin'|null> {
+    const { data: auth } = await this.client.auth.getUser();
+    if (!auth.user) return null;
+    const { data: world, error: worldError } = await this.client.from('grid_worlds').select('owner_user_id').eq('id', worldId).maybeSingle();
+    if (worldError) throw worldError;
+    if (world?.owner_user_id === auth.user.id) return 'owner';
+    const { data, error } = await this.client.from('grid_world_collaborators').select('role').eq('world_id', worldId).eq('user_id', auth.user.id).maybeSingle();
+    if (error) throw error;
+    return (data?.role as 'viewer'|'builder'|'editor'|'admin'|undefined) ?? null;
+  }
+
+  async setCollaboratorRole(worldId: string, userId: string, role: 'viewer'|'builder'|'editor'|'admin') {
+    const { data: auth } = await this.client.auth.getUser();
+    if (!auth.user) return false;
+    const { data: world, error: worldError } = await this.client.from('grid_worlds').select('owner_user_id').eq('id', worldId).maybeSingle();
+    if (worldError) throw worldError;
+    if (world?.owner_user_id !== auth.user.id) return false;
+    const { error } = await this.client.from('grid_world_collaborators').upsert({ world_id: worldId, user_id: userId, role }, { onConflict: 'world_id,user_id' });
+    if (error) throw error;
+    return true;
+  }
+
+  async removeCollaborator(worldId: string, userId: string) {
+    const { data: auth } = await this.client.auth.getUser();
+    if (!auth.user) return false;
+    const { data: world, error: worldError } = await this.client.from('grid_worlds').select('owner_user_id').eq('id', worldId).maybeSingle();
+    if (worldError) throw worldError;
+    if (world?.owner_user_id !== auth.user.id) return false;
+    const { error } = await this.client.from('grid_world_collaborators').delete().eq('world_id', worldId).eq('user_id', userId);
+    if (error) throw error;
+    return true;
+  }
+
   async loadPlayerState(worldId: string): Promise<GridWorldPlayerState | null> {
     const { data: auth } = await this.client.auth.getUser();
     if (!auth.user) return null;
