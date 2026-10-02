@@ -260,3 +260,16 @@ Do not treat the references as a complete specification. Aurora's own response s
 - CI had already succeeded on the preceding profile mood commit (`f240907...`, run #983). The latest activity commits still require CI verification.
 - Latest activity commits: `dfeb10cd28233e634ad6f5e977e9d8a48f7c047e`, `2e181bccf6498a8eca5835ed71847fabf5221eb4`, `42e05b5a81b6cec997915ed04da03b545c373a70`.
 - Next expansion: add similarly bounded activity events for discoveries, quest completion, building/creation, landmark saves, social/party milestones, and major world events; keep user mood explicit/user-controlled and treat automated mood as a suggestion only.
+
+
+## Profile activity expansion — 2026-10-01
+- Extended `src/main.ts` so the persistent profile activity stream now captures bounded, event-driven milestones beyond world entry/combat:
+  - `QUEST_COMPLETE` when the quest completion count increases.
+  - `DISCOVERY` when the world consequence history records a new `PLAYER_DISCOVERY`.
+  - `BUILD` when a persisted build-state version changes after the initial baseline.
+  - `PARTY` when the authoritative party roster size changes after a meaningful party state exists.
+- Activity writes remain asynchronous and event-driven; there is no per-frame profile-feed write.
+- The existing `grid_profile_activity` store remains the single activity surface; no duplicate feed datastore was introduced.
+- Commit: `a978c3d425eedc9c46c24ac5f1f8d6dc7e6b52cd`.
+- Verification: GitHub Actions for this commit has not yet been checked. Do not claim CI/build verification until a successful workflow run is observed.
+- Next target: verify CI, then add landmark-save and creator/media activity at the owning event boundaries rather than polling or duplicating state.
