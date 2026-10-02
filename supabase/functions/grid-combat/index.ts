@@ -391,7 +391,7 @@ Deno.serve(async (req: Request) => {
     }
 
     if (action === "bazaar_list") {
-      const {data:listings,error}=await admin.from("grid_bazaar_listings").select("id,seller_type,seller_user_id,seller_npc_id,world_id,item_id,remaining,currency_id,unit_price,status,created_at").eq("status","ACTIVE").order("created_at",{ascending:false}).limit(120);
+      const {data:listings,error}=await admin.from("grid_bazaar_listings").select("id,seller_type,seller_user_id,seller_npc_id,world_id,item_id,item_name,category,quality,art_key,model_key,metadata,remaining,currency_id,unit_price,status,created_at").eq("status","ACTIVE").order("created_at",{ascending:false}).limit(120);
       if(error) throw error;
       return json({ok:true,action,listings:listings ?? []});
     }
