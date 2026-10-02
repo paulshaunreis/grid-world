@@ -273,6 +273,14 @@ export class CombatSystem {
     this.updateHud();
   }
 
+  recordAuthoritativeDefeat(id:string){
+    const combatant=this.combatants.get(id);
+    if(!combatant || combatant.alive) return false;
+    if(combatant.faction==='PLAYER' || combatant.faction==='TEAM') this.defeats++;
+    this.updateHud();
+    return true;
+  }
+
   applyAuthoritativeCreatureState(id:string, health:number, maxHealth:number, alive:boolean){
     const combatant=this.combatants.get(id);
     if(combatant){

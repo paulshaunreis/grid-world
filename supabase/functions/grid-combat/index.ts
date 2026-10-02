@@ -619,6 +619,7 @@ Deno.serve(async (req: Request) => {
 
       const zone = zoneFor(Number(attacker.x), Number(attacker.z));
       if (attacker.mode !== "PVP" || zone !== "PVP_ARENA") return json({ok:false,error:"pvp_not_allowed",zone,mode:attacker.mode},403);
+      if (target.data.mode !== "PVP") return json({ok:false,error:"target_not_opted_in",targetMode:target.data.mode},403);
       if (zoneFor(Number(target.data.x), Number(target.data.z)) !== "PVP_ARENA") return json({ok:false,error:"target_outside_arena"},403);
       if (Number(attacker.health) <= 0 || Number(target.data.health) <= 0) return json({ok:false,error:"combatant_down"},409);
 
