@@ -1,4 +1,5 @@
 import './directory.css';
+import './glass-system.css';
 const people=[
 ['Aurora','Navigator / World Coordinator','Calm, perceptive, quietly confident. Owns the connective tissue between worlds, creators and travelers.'],
 ['Link','Systems Engineer / Technical Guide','Turns complex platform systems into stable, understandable architecture.'],
@@ -23,4 +24,4 @@ const people=[
 ['Praxis','Governance Systems Engineer','Turns governance principles into concrete software controls, permissions and auditability.']
 ] as const;
 const app=document.querySelector<HTMLDivElement>('#directory')!;
-app.innerHTML=`<header><a href="/" class="brand">◇ GRID WORLD</a><nav><a href="/docs.html">Docs</a><a href="/economics.html">Economics</a><a href="/play.html">Enter World</a></nav></header><main><div class="eyebrow">GRID WORLD · STAFF</div><h1>The people<br><span>behind the Grid.</span></h1><p class="lead">Every member is represented as Grid World Staff with a persistent <strong>.ai</strong> identity. These are distinct roles, not interchangeable generic assistants.</p><div class="grid">${people.map(([name,role,bio],i)=>`<article><div class="avatar">${String(i+1).padStart(2,'0')}</div><div class="tag">GRID WORLD STAFF</div><h2>${name}.ai</h2><h3>${role}</h3><p>${bio}</p><div class="status">● ACTIVE ROLE · GRID STAFF</div></article>`).join('')}</div></main>`;
+app.innerHTML=`<main><div class="glass-eyebrow">GRID WORLD · STAFF</div><h1>The people<br><span>behind the Grid.</span></h1><p class="lead">Every member is represented as Grid World Staff with a persistent <strong>.ai</strong> identity. These are distinct roles, not interchangeable generic assistants.</p><div class="grid">${people.map(([name,role,bio])=>`<article class="glass-card"><div class="card-art staff-art"><img src="/team/portraits/${name.toLowerCase()}.webp" alt="${name} portrait" loading="lazy" onerror="this.style.display='none'"></div><div class="card-body"><div class="tag">GRID WORLD STAFF</div><h2>${name}.ai</h2><h3>${role}</h3><p>${bio}</p><div class="status">● ACTIVE ROLE · GRID STAFF</div></div></article>`).join('')}</div></main>`;
