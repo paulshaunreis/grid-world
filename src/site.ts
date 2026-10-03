@@ -505,5 +505,8 @@ document.querySelectorAll<HTMLButtonElement>('.more').forEach(button => button.a
 document.querySelectorAll<HTMLButtonElement>('[data-market-action]').forEach(button => button.addEventListener('click', () => toast((button.dataset.marketAction ?? 'Object') + ' opened in Marketplace.')));
 document.querySelectorAll<HTMLButtonElement>('[data-social]').forEach(button => button.addEventListener('click', () => toast((button.dataset.social ?? 'social').toUpperCase() + ' surface opened.')));
 document.querySelector('#login')?.addEventListener('click', () => toast('Grid Identity sign-in is coming next. Your in-world identity foundation is already in place.'));
-document.getElementById('operator-trigger')?.addEventListener('click',()=>operator?.open());
+document.getElementById('operator-trigger')?.addEventListener('click',()=>{
+  if(operator) operator.open();
+  else toast('Grid Operator needs the live services connection — unavailable in this build. Safety info lives under Community + Safety below.');
+});
 

@@ -12,7 +12,7 @@ const app=document.querySelector<HTMLDivElement>('#avatars')!;
 let concepts:Concept[]=fallback;
 
 function portrait(c:Concept){
-  return `<div class="portrait"><span class="sigil">${c.art_key}</span><div class="body stage-${c.life_stage}"></div><div class="head"></div></div>`;
+  return `<div class="portrait"><img src="/avatars/stage-${c.life_stage}.webp" alt="${c.concept_title} portrait" loading="lazy" onerror="this.style.display='none'"><span class="sigil">${c.art_key}</span></div>`;
 }
 function render(){
   const stages=[...new Set(concepts.map(c=>c.life_stage))];
