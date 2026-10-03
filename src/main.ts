@@ -2706,13 +2706,33 @@ function animate(now: number) {
   if (hudWorldSignal) hudWorldSignal.textContent = livingSnapshot.eventFlavor + ' · ' + livingSnapshot.weather + ' · ' + Math.round(livingSnapshot.temperatureC) + '°C · HUM ' + Math.round(livingSnapshot.humidity*100) + '% · ' + ecologySnapshot.active + '/' + ecologySnapshot.population + ' CREATURES · ' + societySnapshot.working + ' WORKING · ' + societySnapshot.talking + ' TALKING · ' + storySnapshot.activeStories + ' STORIES · STABILITY ' + Math.round(consequenceSnapshotAfterUpdate.stability*100) + '% · ECO GEN ' + evolutionState.generation + ' · EVOLUTION ' + (evolutionaryPopulations.get(livingSnapshot.world as EcologyWorld)?.generation ?? 1) + ' · FOOD WEB ' + ecologicalWebSnapshot.map(population => population.role + ' ' + Math.round(population.health*100) + '%').join(' / ');
   artDirector.update(dt, player.avatar.position.x, player.avatar.position.z);
   worldSkins.update(dt, player.avatar.position.x, player.avatar.position.z);
-  worldArchitecture.update(dt);
-  worldEnvironment.update(dt);
+  // World-scoped render systems receive the same active-world context as simulation systems.
+  // This prevents generated architecture/environment layers from leaking across worlds.
+  worldArchitecture.update(dt, player.avatar.position.x, player.avatar.position.z);
+  worldEnvironment.update(dt, player.avatar.position.x, player.avatar.position.z);
   teamWork.update(dt, frame.elapsedSeconds);
   foundationLayer.update(dt, frame.elapsedSeconds);
-  for (const remote of remotePlayers.values()) remote.update(dt);
+  // Keep scene actors world-scoped as well. Simulation already carries the active-world
+  // identity; this prevents remote/crowd visuals from bleeding into another world.
+  const activeWorldId = String(livingSnapshot.world);
+  const nearestWorldIdAt = (x:number, z:number) => {
+    let nearest = Infinity;
+    let nearestId = activeWorldId;
+    for (const candidate of getWorlds()) {
+      const distance = Math.hypot(x - candidate.center.x, z - candidate.center.z);
+      if (distance < nearest) { nearest = distance; nearestId = candidate.id; }
+    }
+    return nearestId;
+  };
+  for (const remote of remotePlayers.values()) {
+    remote.update(dt);
+    remote.group.visible = nearestWorldIdAt(remote.group.position.x, remote.group.position.z) === activeWorldId;
+  }
   for (const avatar of teamAvatars) avatar.update(dt);
-  for (const actor of crowdActors) actor.update(dt, { routinePhase: routinePhaseFor(resolveNpcRoutine(), hourOfDayFromDayFraction(npcDayFraction)) });
+  for (const actor of crowdActors) {
+    actor.update(dt, { routinePhase: routinePhaseFor(resolveNpcRoutine(), hourOfDayFromDayFraction(npcDayFraction)) });
+    actor.group.visible = nearestWorldIdAt(actor.group.position.x, actor.group.position.z) === activeWorldId;
+  }
   for (const pylon of omniLayer.pylons) pylon.update(dt);
   const transitTime = performance.now() / 1000;
   for (const visual of teleportVisuals) {
