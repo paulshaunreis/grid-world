@@ -1,19 +1,50 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Join Grid World</title><meta name="description" content="Create your Grid World identity and enter the living worlds."><link rel="stylesheet" href="/src/grid-page-visual.css"></head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Join Grid World</title><meta name="description" content="Create your Grid World identity and enter the living worlds."><link rel="stylesheet" href="/src/grid-page-visual.css">
+<style>
+  /* Image-based glass UI: real glass photography, not CSS boxes. */
+  .join-glass {
+    background: url("/ui/glass-panel.webp") center/cover no-repeat;
+    border: 1px solid rgba(100, 220, 255, .25);
+    border-radius: 18px;
+    box-shadow: 0 30px 90px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(180, 240, 255, .18);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .join-page-bg {
+    min-height: calc(100vh - 54px);
+    display: grid;
+    place-items: center;
+    padding: 40px 20px;
+    background: url("/art/grid-page-atlas.webp") center/cover no-repeat fixed;
+  }
+  .join-inner {
+    width: min(920px, 100%);
+    padding: 42px;
+  }
+  #join-status .join-notice { text-align: center; padding: 30px; }
+  #join-status .join-notice h3 { color: #8feeff; margin-bottom: 12px; }
+  #join-status .join-notice p { color: rgba(230,245,255,.72); margin-bottom: 20px; }
+</style>
+</head>
 <body class="grid-world-page">
 <header class="grid-global-nav"><a class="grid-nav-brand" href="/">◇ GRID WORLD</a><nav><a href="/">HOME</a><a href="/play.html">WORLD</a><a href="/profile.html">PROFILE</a><a href="/marketplace.html">MARKET</a><a href="/economics.html">ECONOMY</a><a href="/grid-world-studio.html">STUDIO</a><a href="/avatars.html">AVATARS</a><a href="/textures.html">TEXTURES</a><a href="/sound.html">SOUND</a><a href="/docs.html">DOCS</a><a href="/directory.html">STAFF</a><a href="/omni.html">OMNI</a></nav><a class="grid-nav-join" href="/join.html">JOIN GRID</a></header>
-<main style="min-height:calc(100vh - 54px);display:grid;place-items:center;padding:40px 20px">
-<section style="width:min(920px,100%);padding:42px;border:1px solid rgba(100,220,255,.18);background:rgba(5,13,23,.84);box-shadow:0 30px 90px rgba(0,0,0,.45);backdrop-filter:blur(18px)">
+<main class="join-page-bg">
+<section class="join-glass join-inner">
 <div style="font:700 10px/1 'IBM Plex Mono',monospace;letter-spacing:.2em;color:#79e9ff">GRID WORLD // ARRIVAL</div>
-<h1 style="font:700 clamp(42px,8vw,92px)/.95 system-ui;margin:16px 0">Create your<br><span style="color:#8feeff">place in the Grid.</span></h1>
-<p style="max-width:680px;color:rgba(230,245,255,.72);font:16px/1.7 system-ui">Create your Grid identity, choose an avatar, and enter First Light. Your account is the bridge between the website, social layer, economy, creator tools, and persistent worlds.</p>
-<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:28px"><a class="grid-nav-join" style="text-decoration:none;font:700 11px/1 'IBM Plex Mono',monospace" href="/play.html?auth=join">CREATE ACCOUNT</a><a style="padding:12px 16px;border:1px solid rgba(220,240,255,.18);color:#eaf8ff;text-decoration:none;font:700 11px/1 'IBM Plex Mono',monospace" href="/play.html?auth=login">ALREADY HAVE AN ACCOUNT</a><a style="padding:12px 16px;color:rgba(230,245,255,.65);text-decoration:none;font:700 11px/1 'IBM Plex Mono',monospace" href="/play.html">ENTER AS GUEST</a></div>
+<h1 style="font:700 clamp(42px,8vw,92px)/.95 system-ui;margin:16px 0;color:#eaf8ff">Create your<br><span style="color:#8feeff">place in the Grid.</span></h1>
+<p style="max-width:680px;color:rgba(230,245,255,.85);font:16px/1.7 system-ui">Create your Grid identity, choose an avatar, and enter First Light. Your account is the bridge between the website, social layer, economy, creator tools, and persistent worlds.</p>
+<div id="join-status"></div>
+<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:28px">
+<a href="#" id="join-login-link" style="padding:12px 16px;border:1px solid rgba(220,240,255,.18);color:#eaf8ff;text-decoration:none;font:700 11px/1 'IBM Plex Mono',monospace;background:rgba(5,13,23,.5)">ALREADY HAVE AN ACCOUNT</a>
+<a style="padding:12px 16px;color:rgba(230,245,255,.65);text-decoration:none;font:700 11px/1 'IBM Plex Mono',monospace" href="/play.html">ENTER AS GUEST</a>
+</div>
 <div style="margin-top:38px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
-<div style="padding:16px;border:1px solid rgba(100,220,255,.12)"><b>IDENTITY</b><br><small>Profile · avatar · style</small></div>
-<div style="padding:16px;border:1px solid rgba(100,220,255,.12)"><b>WORLDS</b><br><small>First Light · many worlds</small></div>
-<div style="padding:16px;border:1px solid rgba(100,220,255,.12)"><b>CREATION</b><br><small>Build · publish · collaborate</small></div>
-<div style="padding:16px;border:1px solid rgba(100,220,255,.12)"><b>COMMUNITY</b><br><small>People · events · media</small></div>
+<div class="join-glass" style="padding:16px;border-radius:12px"><b style="color:#eaf8ff">IDENTITY</b><br><small style="color:rgba(230,245,255,.6)">Profile · avatar · style</small></div>
+<div class="join-glass" style="padding:16px;border-radius:12px"><b style="color:#eaf8ff">WORLDS</b><br><small style="color:rgba(230,245,255,.6)">First Light · many worlds</small></div>
+<div class="join-glass" style="padding:16px;border-radius:12px"><b style="color:#eaf8ff">CREATION</b><br><small style="color:rgba(230,245,255,.6)">Build · publish · collaborate</small></div>
+<div class="join-glass" style="padding:16px;border-radius:12px"><b style="color:#eaf8ff">COMMUNITY</b><br><small style="color:rgba(230,245,255,.6)">People · events · media</small></div>
 </div>
 </section></main>
+<script type="module" src="/src/join.ts"></script>
 <script type="module" src="/src/site-theme.ts"></script></body></html>
