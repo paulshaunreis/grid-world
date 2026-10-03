@@ -16,7 +16,13 @@ Beneath the surface Grid lies the Undergrid — the realm where the world's raw 
 
 ## Art direction
 
-Photoreal cinematic per docs/ART_DIRECTION.md. Palette: deep black, cyan/teal glow, violet accents. All-ages, serene, never frightening. Concept art: `~/workspace/gridworld/concept-art/` (establishing, confluence, current-runner).
+Photoreal cinematic per docs/ART_DIRECTION.md. All-ages, serene, never frightening. Concept art: `~/workspace/gridworld/concept-art/` (establishing, confluence, current-runner, palette-study).
+
+**Palette (Paul: "more colors if you want" — Aurora's call, 2026-10-03):** cyan stays the soul (rivers, circuit traces, the Grid's signature). Supporting spectrum:
+- Violet/magenta — circuit-bloom flowers, flora accents, deep-zone glow.
+- Ember orange — lantern-lit gathering plazas, warmth in social hubs.
+- Soft gold — landmark highlights, bridge arches, wayfinding.
+Rule: cyan leads, colors support. Never rainbow noise — each color has a job.
 
 ## For ChatGPT (when Paul approves playable)
 
