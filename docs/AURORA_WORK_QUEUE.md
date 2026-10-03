@@ -677,3 +677,14 @@ _Last updated: 2026-10-02_
 - **Next actionable item:** continue the current-main stability audit for other dead-end/error-prone interaction seams before adding a new major system.
 
 _Last updated: 2026-10-03_
+
+
+## 2026-10-03 — Current-main stability audit: account, economy, and social controls
+- Found three additional blocking/error-prone interaction seams after the landmark pass: ACCOUNT dereferenced `cloudPersistence!`, Bazaar listing price used `window.prompt()`, and Social privacy/microphone failures used browser `alert()` dialogs.
+- PR #38 merged as `30639df38e9b2376f123e80199beccc7853aa093`: ACCOUNT now gives explicit unavailable-state feedback and catches auth-service failures while preserving local exploration.
+- PR #39 merged as `94bd2e5c34d8f0a4ca9dd00f52f868d7575bc90a`: Bazaar price entry now uses an inline Economy-panel editor; privacy-save and microphone errors now use inline Social-panel status feedback.
+- No new authority, modal, economy, or social architecture was introduced.
+- Verification: **L0 source review + successful merges**. GitHub Actions, browser/WebGL, and Render live verification remain outstanding.
+- **Next actionable item:** continue the stability audit for remaining browser-dialog, silent-failure, and dead-end interaction seams before adding another major system.
+
+_Last updated: 2026-10-03_
