@@ -46,6 +46,9 @@ export class GridOperatorPresence {
     this.input = this.root.querySelector<HTMLInputElement>('input[aria-label]')!;
     this.voiceSelect = this.root.querySelector<HTMLSelectElement>('select')!;
     this.pulseRoot = this.root.querySelector<HTMLDivElement>('.goiw-pulse-grid')!;
+    const pulsePanel = this.root.querySelector<HTMLElement>('.goiw-pulse');
+    if (pulsePanel) Object.assign(pulsePanel.style, { margin: '8px 0', padding: '8px', border: '1px solid rgba(120,220,255,.18)', background: 'rgba(5,12,21,.42)' });
+    Object.assign(this.pulseRoot.style, { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '5px' });
     this.populateVoices();
     this.voiceSelect.value = this.profile.voiceId;
     const auto = this.root.querySelector<HTMLInputElement>('[data-auto]')!;
@@ -89,6 +92,7 @@ export class GridOperatorPresence {
     ];
     this.pulseRoot.replaceChildren(...cells.map(([label,value]) => {
       const cell=document.createElement('div'); cell.className='goiw-pulse-cell';
+      Object.assign(cell.style, { display: 'grid', gap: '2px', padding: '5px', border: '1px solid rgba(120,220,255,.10)', background: 'rgba(8,16,28,.42)' });
       const a=document.createElement('span'); a.textContent=label;
       const b=document.createElement('b'); b.textContent=value;
       cell.append(a,b); return cell;
