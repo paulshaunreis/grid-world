@@ -730,3 +730,12 @@ _Last updated: 2026-10-03_
 - Next stability focus: inspect remaining silent-failure/dead-end controls before expanding another major system.
 
 _Last updated: 2026-10-03_
+
+
+## 2026-10-03 — Current-main stability audit: background feedback follow-up
+- Main after merge: `1b1d8fde134d6e3b105c6c54ab8d3b839d3c83e9`.
+- Found two remaining background-service feedback seams: persistent transit traffic swallowed query errors with an empty catch, and market-quote refresh only logged failures to the console.
+- PR #50 reused the existing `reportBackgroundServiceFailure/recovery` path so users now receive one-time service-status feedback while transit itself remains available and marketplace actions remain available when quotes are unavailable.
+- Added an explicit Supabase error check for the transit traffic query; no new UI, authority, or persistence architecture was introduced.
+- Verification: branch re-fetch confirmed the changes and PR #50 merged successfully. No CI/browser/WebGL/Render verification observed for this pass.
+- **Next focus:** continue the current-main stability audit for remaining silent prerequisite failures/dead-end controls before adding another major system.
