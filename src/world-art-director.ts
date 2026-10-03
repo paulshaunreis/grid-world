@@ -38,9 +38,9 @@ export function installGridWorldArtDirector(scene: THREE.Scene): GridWorldArtDir
   const conceptPanels = new THREE.Group();
   conceptPanels.name = 'grid-concept-art-panels';
   const conceptArt = [
-    { src:'/grid-concept-first-light.svg', position:[0,3.2,-9] as const, rotation:[0,0,0] as const, scale:3.6 },
-    { src:'/grid-concept-living-wilds.svg', position:[9,3.6,2] as const, rotation:[0,Math.PI/2.8,0] as const, scale:3.2 },
-    { src:'/grid-concept-civic.svg', position:[-9,3.1,5] as const, rotation:[0,-Math.PI/2.8,0] as const, scale:3.2 },
+    { src:'/grid-concept-first-light.webp', position:[0,3.2,-9] as const, rotation:[0,0,0] as const, scale:3.6 },
+    { src:'/grid-concept-living-wilds.webp', position:[9,3.6,2] as const, rotation:[0,Math.PI/2.8,0] as const, scale:3.2 },
+    { src:'/grid-concept-civic.webp', position:[-9,3.1,5] as const, rotation:[0,-Math.PI/2.8,0] as const, scale:3.2 },
   ];
   const conceptLoader = new THREE.TextureLoader();
   for (const panel of conceptArt) {

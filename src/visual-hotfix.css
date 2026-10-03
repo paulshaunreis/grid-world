@@ -19,7 +19,7 @@ canvas{position:fixed;inset:0;z-index:0}
   width:71px;height:48px;object-fit:cover;border:1px solid rgba(var(--hud-rgb),.2);
   border-radius:7px;opacity:.86;box-shadow:0 8px 24px rgba(0,0,0,.28);
 }
-.grid-dock button{background:linear-gradient(145deg,rgba(var(--hud-rgb),.07),rgba(3,9,16,.46)),url("/art/grid-ui-atlas.svg") center/cover no-repeat}
+.grid-dock button{background:linear-gradient(145deg,rgba(var(--hud-rgb),.07),rgba(3,9,16,.46)),url("/art/grid-ui-atlas.webp") center/cover no-repeat}
 @media(max-width:900px){
   .hud-concept-card{left:18px;top:78px;width:190px}
   .hud-concept-card img{height:92px}

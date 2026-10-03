@@ -182,13 +182,13 @@ hud.innerHTML = `
     <div class="hud-telemetry"><span>WORLD <b id="hud-world-state">ONLINE</b></span><span>TRANSIT <b>READY</b></span><span>OMNI <b>GUARDED</b></span><span>SIGNAL <b id="hud-world-signal">SYNC</b></span></div>
   </div>
   <aside class="hud-concept-card" aria-label="Grid World concept art">
-    <img src="/grid-concept-first-light.svg" alt="First Light Grid World concept art">
+    <img src="/grid-concept-first-light.webp" alt="First Light Grid World concept art">
     <div><b>FIRST LIGHT</b><span>LIVING WORLD · LIVE</span></div>
   </aside>
   <div class="hud-art-deck" aria-label="Grid World visual atlas">
-    <img src="/grid-concept-living-wilds.svg" alt="Living Wilds">
-    <img src="/grid-concept-civic.svg" alt="Civic">
-    <img src="/art/hero-worlds.svg" alt="Many Worlds">
+    <img src="/grid-concept-living-wilds.webp" alt="Living Wilds">
+    <img src="/grid-concept-civic.webp" alt="Civic">
+    <img src="/art/hero-worlds.webp" alt="Many Worlds">
   </div>
   <div class="camera-help" aria-live="polite">RMB · ORBIT &nbsp; WHEEL · ZOOM &nbsp; M · MOUSELOOK</div>
   <div class="crosshair"><span></span></div>

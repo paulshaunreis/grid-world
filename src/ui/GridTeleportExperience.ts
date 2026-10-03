@@ -3,16 +3,16 @@ import type { GridTeleportDestination } from '../engine/GridTeleport';
 
 /** Destination preview art: world-look concept pieces first, SVG fallback. */
 const WORLD_PREVIEW_ART: Record<string, string> = {
-  harbor: '/worlds/tideline.svg',
-  tideline: '/worlds/tideline.svg',
-  citadel: '/worlds/crown.svg',
-  crown: '/worlds/crown.svg',
-  gardens: '/worlds/verdant.svg',
-  verdant: '/worlds/verdant.svg',
-  wilds: '/worlds/frontier.svg',
-  frontier: '/worlds/frontier.svg',
-  arts: '/worlds/muse.svg',
-  muse: '/worlds/muse.svg',
+  harbor: '/worlds/tideline.webp',
+  tideline: '/worlds/tideline.webp',
+  citadel: '/worlds/crown.webp',
+  crown: '/worlds/crown.webp',
+  gardens: '/worlds/verdant.webp',
+  verdant: '/worlds/verdant.webp',
+  wilds: '/worlds/frontier.webp',
+  frontier: '/worlds/frontier.webp',
+  arts: '/worlds/muse.webp',
+  muse: '/worlds/muse.webp',
 };
 export function teleportPreviewUrl(destination:GridTeleportDestination){
   const world=(destination.id.match(/^world-gate:(.+)$/)?.[1]??destination.id).toLowerCase();
@@ -23,7 +23,7 @@ export function mountTeleportExperience(){
   document.body.appendChild(overlay);
   const style=document.createElement('style');style.textContent=`.grid-teleport-overlay{position:fixed;inset:0;z-index:120;display:none;place-items:center;background:radial-gradient(circle,rgba(72,231,255,.08),rgba(2,6,12,.76));backdrop-filter:blur(8px);pointer-events:none}.grid-teleport-overlay.open{display:grid}.grid-teleport-card{width:min(560px,calc(100vw - 36px));padding:18px;border:1px solid rgba(110,230,255,.32);background:rgba(3,9,16,.9);box-shadow:0 30px 120px rgba(0,0,0,.65);text-align:center}.grid-teleport-card img{display:block;width:100%;height:220px;object-fit:cover;margin:12px 0;border:1px solid rgba(255,255,255,.1);background:#07111d}.grid-teleport-kicker{font:9px 'IBM Plex Mono',monospace;letter-spacing:.2em;color:#64e7ff}.grid-teleport-name{font:700 25px 'Space Grotesk',sans-serif}.grid-teleport-status{margin-top:6px;color:#8ba0b2;font:10px 'IBM Plex Mono',monospace;letter-spacing:.08em}`;document.head.appendChild(style);
   const image=overlay.querySelector<HTMLImageElement>('[data-teleport-image]')!,name=overlay.querySelector<HTMLElement>('[data-teleport-name]')!,status=overlay.querySelector<HTMLElement>('[data-teleport-status]')!;
-  const show=(destination:GridTeleportDestination,phase:'departing'|'arriving')=>{name.textContent=destination.displayName;status.textContent=phase==='departing'?'TRANSIT INITIALIZING · DESTINATION CONFIRMED':'ARRIVAL COMPLETE · LOCAL SPACE RESTORED';image.src=teleportPreviewUrl(destination);image.onerror=()=>{image.src='/art/hero-worlds.svg'};overlay.classList.add('open');window.setTimeout(()=>overlay.classList.remove('open'),phase==='departing'?850:700);};
+  const show=(destination:GridTeleportDestination,phase:'departing'|'arriving')=>{name.textContent=destination.displayName;status.textContent=phase==='departing'?'TRANSIT INITIALIZING · DESTINATION CONFIRMED':'ARRIVAL COMPLETE · LOCAL SPACE RESTORED';image.src=teleportPreviewUrl(destination);image.onerror=()=>{image.src='/art/hero-worlds.webp'};overlay.classList.add('open');window.setTimeout(()=>overlay.classList.remove('open'),phase==='departing'?850:700);};
   return {show};
 }
 export function createTeleportAvatarEffect(root:THREE.Object3D,duration=900){
