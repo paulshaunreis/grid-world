@@ -354,3 +354,11 @@ _Last updated: 2026-10-02_
 - No runtime code or database schema changed.
 - Verification: L0 documentation review only; no CI/browser verification claimed.
 - **Next actionable item:** P3 #30 Canon vs experiment tracking.
+
+
+## 2026-10-02 — P3 #30 Canon vs experiment tracking
+- Added `docs/CANON_EXPERIMENT_TRACKING.md` after auditing the current documentation hierarchy.
+- The guide distinguishes canon, requirements, implementation, Aurora decisions, experiments, placeholders, concept-only material, future ideas, and verification status.
+- It explicitly states that code presence or successful verification does not by itself promote an idea to canon.
+- No runtime code or database schema changed.
+- Verification: L0 source/document review only; no CI/browser verification claimed.
