@@ -476,7 +476,7 @@ async function partyDestinationTick(){
       addChatMessage('PARTY','Party transit complete: '+target.displayName+'.','system');
       audio.play('world.portal',1);
     },850);
-  }catch(error){console.warn('Party transit sync unavailable.',error);}
+  }catch(error){reportBackgroundServiceFailure('party-transit','Party transit synchronization is temporarily unavailable.');console.warn('Party transit sync unavailable.',error);}
 }
 socialTeleport.addEventListener('click',async()=>{if(!socialTargetUserId||!cloudPersistence)return;const destinations=teleportSystem.all().filter(x=>x.status!=='offline').map(x=>({id:x.id,displayName:x.displayName,regionId:x.regionId,position:{...x.position},yaw:x.yaw,clearanceRadius:x.clearanceRadius}));const landmarks=landmarkAuthority?await landmarkAuthority.list().catch(()=>[]):[];openTeleportDestinationPicker(destinations,landmarks,async destination=>{try{const inviteId=await teleportInviteAuthority?.create(socialTargetUserId!,{id:destination.id,displayName:destination.displayName,previewImageUrl:teleportPreviewUrlForDestination(destination)});addChatMessage('SOCIAL','Teleport invitation sent for '+destination.displayName+'.','system');void invitePanel?.refresh();console.debug('teleport invite',inviteId);}catch(error){addChatMessage('SOCIAL','Teleport invitation could not be sent.','system');console.warn(error);}});});
 
@@ -691,7 +691,9 @@ async function hydratePersistentWorlds() {
       ecologicalWeb.registerWorld(definition.id);
     }
     if (rows.length) addChatMessage('WORLD REGISTRY', rows.length + ' persistent world' + (rows.length === 1 ? '' : 's') + ' synchronized for re-entry.', 'system');
+    reportBackgroundServiceRecovery('world-registry','Persistent world registry is back online.');
   } catch (error) {
+    reportBackgroundServiceFailure('world-registry','Persistent world registry is temporarily unavailable; local worlds remain available.');
     console.warn('Persistent world registry unavailable; continuing with local worlds.', error);
   }
 }
@@ -1422,6 +1424,7 @@ const cloudReady = cloudPersistence
           console.warn('Anonymous auth unavailable; presence will use the local visitor identity.');
         }
       } catch (error) {
+        reportBackgroundServiceFailure('cloud-persistence','Cloud persistence is temporarily unavailable; local exploration and realtime presence remain available.');
         console.warn('Cloud persistence unavailable; continuing with realtime presence.', error);
       }
 
@@ -1454,7 +1457,9 @@ const cloudReady = cloudPersistence
             easyBuildSystem.applyRemoteBuild({ ...build, ownerUserId: build.ownerUserId ?? '' }, type);
           });
           cloudBuildVersion = Number(easyBuildSystem.root.userData.buildStateVersion ?? 0);
+          reportBackgroundServiceRecovery('cloud-state','Cloud world state is back online.');
         } catch (error) {
+          reportBackgroundServiceFailure('cloud-state','Cloud world state is temporarily unavailable; local build state remains active.');
           console.warn('Cloud state unavailable; continuing with realtime presence.', error);
         }
       }
@@ -1593,7 +1598,9 @@ void cloudReady.then(async () => {
     if ((remoteTeleportNodes?.length ?? 0) > 0) {
       addChatMessage('GRID TRANSIT', 'Persistent teleport nodes synchronized from Grid Omni World.', 'system');
     }
+    reportBackgroundServiceRecovery('npc-archive','NPC memory and persistent transit archives are back online.');
   } catch (error) {
+    reportBackgroundServiceFailure('npc-archive','NPC memory or persistent transit archives are temporarily unavailable; local NPC behavior and local transit remain active.');
     console.warn('NPC memory or teleport archive unavailable; local systems remain active.', error);
   }
 });
