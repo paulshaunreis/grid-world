@@ -90,6 +90,7 @@ import { GridVoiceModifierSystem } from './audio/GridVoiceModifierSystem';
 import type { GridAgeBand } from './social/GridContentAccess';
 import { GridOperatorService } from './operator/GridOperatorService';
 import { GridOperatorPresence } from './world/GridOperatorPresence';
+import type { WorldPulseHealth, WorldPulseSnapshot } from './world/WorldPulseDiagnostics';
 import { GridGuardCommandSystem } from './world/GridGuardCommandSystem';
 import { GridGuildSystem } from './social/GridGuildSystem';
 import { GridSocialAuthority } from './social/GridSocialAuthority';
@@ -786,7 +787,51 @@ hubSystem.defaults(livingWorld.getSnapshot().world as string);
 arenaSystem.defaults(livingWorld.getSnapshot().world as string);
 world.scene.add(guardCommandSystem.root);
 const operatorService = cloudPersistence ? new GridOperatorService(cloudPersistence.getClient()) : null;
-const operatorPresence = new GridOperatorPresence(operatorService, voice, questSystem, () => { const snap = livingWorld.getSnapshot(); return { world: String(snap.world), event: String(snap.event) }; }, (sender, message) => addChatMessage(sender, message, 'system'));
+const worldPulseHealth = (failureKeys: string[], online: boolean): WorldPulseHealth => {
+  if (!online) return 'OFFLINE';
+  return failureKeys.some(key => backgroundServiceFailures.has(key)) ? 'DEGRADED' : 'ONLINE';
+};
+const getWorldPulse = (): WorldPulseSnapshot => {
+  const snap = livingWorld.getSnapshot();
+  const society = npcSociety.getSnapshot();
+  const consequences = worldConsequences.getSnapshot();
+  const traffic = teleportSystem.trafficSnapshot();
+  const activeMissions = questSystem.getQuests().filter(x => x.status === 'ACTIVE' || x.status === 'TURN_IN').length;
+  const worldTraffic = traffic.filter(node => teleportSystem.get(node.nodeId)?.worldId === snap.world);
+  const transitTraffic = worldTraffic.reduce((sum, node) => sum + node.activity, 0);
+  return {
+    world: String(snap.world),
+    event: String(snap.event),
+    phase: String(snap.phase),
+    season: String(snap.season),
+    weather: String(snap.weather),
+    temperatureC: Number(snap.temperatureC),
+    humidity: Number(snap.humidity),
+    activity: Number(snap.activity),
+    ecology: Number(snap.ecology),
+    npcPopulation: Number(society.population),
+    npcActive: Number(society.active),
+    npcWorking: Number(society.working),
+    npcTalking: Number(society.talking),
+    activeMissions,
+    transitNodes: worldTraffic.length,
+    transitTraffic,
+    consequenceStability: Number(consequences.stability),
+    consequencePressure: Number(consequences.pressure),
+    persistence: worldPulseHealth(['world-content-save','world-content-restore','world-registry'], Boolean(cloudPersistence)),
+    transit: worldPulseHealth(['party-transit','transit-invites'], true),
+    cloud: worldPulseHealth(['cloud-persistence','cloud-state'], Boolean(cloudPersistence)),
+    lastUpdatedAt: Date.now(),
+  };
+};
+const operatorPresence = new GridOperatorPresence(
+  operatorService,
+  voice,
+  questSystem,
+  () => { const snap = livingWorld.getSnapshot(); return { world: String(snap.world), event: String(snap.event) }; },
+  (sender, message) => addChatMessage(sender, message, 'system'),
+  getWorldPulse,
+);
 const operatorButton = document.querySelector<HTMLButtonElement>('[data-tool="operator"]');
 operatorButton?.addEventListener('click', () => operatorPresence.toggle());
 const enterWorldFromAtlas = (worldId:string) => {
