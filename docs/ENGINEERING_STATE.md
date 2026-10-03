@@ -363,3 +363,13 @@ _Last updated: 2026-10-02_
 - No runtime code or database schema changed.
 - Verification: L0 source/document review only; no CI/browser verification claimed.
 \n\n## 2026-10-02 — Current-main stability audit: party controls\n- Current main after the pass: `9c9fe45bda22750ca64dd4f6e4f9a8a62d5a08b5`.\n- Source audit found party leader/member actions still used blocking browser prompts.\n- PR #35 replaced those actions with a theme-aware HUD menu and preserved the existing party authority/teleport destination architecture.\n- The separate landmark-save naming prompt remains for a later UX pass.\n- Verification boundary: L0 source review + merge; no CI/browser verification claimed.\n
+
+## 2026-10-03 — Current main after landmark HUD controls
+- **main:** `c238af0b277790806280ec3fdf58603b6bf8aebe` (PR #36 merged).
+- The current-main stability audit found the last known landmark/waypoint browser-dialog seam: create, rename, and delete used `window.prompt()` / `window.confirm()`.
+- PR #36 moved those interactions into the existing Grid Landmark Inventory surface with a theme-aware inline editor. Delete requires exact-name confirmation; the landmark authority and persistence path are unchanged.
+- No parallel modal, landmark, or persistence architecture was introduced.
+- Verification boundary: **L0 source review + successful merge**. CI/browser/WebGL/Render verification remains outstanding.
+- **Next actionable item:** continue auditing current main for blocking/dead-end interaction seams and stale documentation/code mismatches before adding new major systems.
+
+_Last updated: 2026-10-03_
