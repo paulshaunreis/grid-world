@@ -362,3 +362,4 @@ _Last updated: 2026-10-02_
 - It explicitly states that code presence or successful verification does not by itself promote an idea to canon.
 - No runtime code or database schema changed.
 - Verification: L0 source/document review only; no CI/browser verification claimed.
+\n\n## 2026-10-02 — Current-main stability audit: party controls\n- Current main after the pass: `9c9fe45bda22750ca64dd4f6e4f9a8a62d5a08b5`.\n- Source audit found party leader/member actions still used blocking browser prompts.\n- PR #35 replaced those actions with a theme-aware HUD menu and preserved the existing party authority/teleport destination architecture.\n- The separate landmark-save naming prompt remains for a later UX pass.\n- Verification boundary: L0 source review + merge; no CI/browser verification claimed.\n
