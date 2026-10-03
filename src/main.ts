@@ -305,6 +305,19 @@ async function recordGridActivity(kind:string,title:string,body:string,worldId?:
   try { await profileAuthority.recordActivity({kind,title,body,worldId,regionId,metadata}); } catch (error) { console.warn('Grid profile activity unavailable.',error); }
 }
 
+const backgroundServiceFailures = new Set<string>();
+
+function reportBackgroundServiceFailure(key: string, message: string) {
+  if (backgroundServiceFailures.has(key)) return;
+  backgroundServiceFailures.add(key);
+  addChatMessage('GRID SERVICES', message, 'system');
+}
+
+function reportBackgroundServiceRecovery(key: string, message: string) {
+  if (!backgroundServiceFailures.delete(key)) return;
+  addChatMessage('GRID SERVICES', message, 'system');
+}
+
 function addChatMessage(sender: string, message: string, kind: 'player' | 'system' | 'team' = 'player') {
   if (kind !== 'player') audio.play('chat.receive');
   const row = document.createElement('div');
@@ -1053,8 +1066,8 @@ if(teleportInviteAuthorityReady){
     window.setTimeout(()=>{const arrival=new THREE.Vector3(destination.position.x,Math.max(0,destination.position.y),destination.position.z);const backward=new THREE.Vector3(0,0,1).applyAxisAngle(new THREE.Vector3(0,1,0),destination.yaw);arrival.addScaledVector(backward,Math.max(2.5,destination.clearanceRadius));player.restoreTransform({x:arrival.x,y:arrival.y,z:arrival.z,yaw:destination.yaw});teleportExperience.show(destination,'arriving');createTeleportAvatarEffect(player.avatar,700);audio.play('world.portal',1);addChatMessage('GRID TRANSIT','Accepted invitation. Arrived at '+destination.displayName+'.','system');},850);
   });
   transitInviteButton.onclick=()=>invitePanel?.open();
-  void teleportInviteAuthorityReady.pending().then(rows=>{if(rows.length)transitInviteButton.textContent='TRANSIT INVITES · '+rows.length;}).catch(()=>undefined);
-  window.setInterval(()=>void teleportInviteAuthorityReady.pending().then(rows=>{transitInviteButton.textContent=rows.length?'TRANSIT INVITES · '+rows.length:'TRANSIT INVITES';}).catch(()=>undefined),10000);
+  void teleportInviteAuthorityReady.pending().then(rows=>{if(rows.length)transitInviteButton.textContent='TRANSIT INVITES · '+rows.length;reportBackgroundServiceRecovery('transit-invites','Transit invitations are updating again.');}).catch(()=>{transitInviteButton.textContent='TRANSIT INVITES · UNAVAILABLE';reportBackgroundServiceFailure('transit-invites','Transit invitations are temporarily unavailable.');});
+  window.setInterval(()=>void teleportInviteAuthorityReady.pending().then(rows=>{transitInviteButton.textContent=rows.length?'TRANSIT INVITES · '+rows.length:'TRANSIT INVITES';reportBackgroundServiceRecovery('transit-invites','Transit invitations are updating again.');}).catch(()=>{transitInviteButton.textContent='TRANSIT INVITES · UNAVAILABLE';reportBackgroundServiceFailure('transit-invites','Transit invitations are temporarily unavailable.');}),10000);
 }
 
 const teleportVisuals = teleportDefinitions.map(definition => {
@@ -2388,7 +2401,7 @@ function animate(now: number) {
   worldEventPollTimer += dt;
 
   if (combatAuthority && Math.floor(now / 1000) % 20 === 0 && Math.floor((now - dt*1000) / 1000) % 20 !== 0) {
-    void combatAuthority.marketTick().then(() => refreshMerchantMarket()).catch(() => undefined);
+    void combatAuthority.marketTick().then(() => refreshMerchantMarket()).then(() => reportBackgroundServiceRecovery('market-sync','Merchant market synchronization is back online.')).catch(() => reportBackgroundServiceFailure('market-sync','Merchant market synchronization is temporarily unavailable.'));
   }
 
   if (worldEventStream && worldEventPollTimer >= 4) {
@@ -2560,7 +2573,7 @@ function animate(now: number) {
   combatSystem.syncScene(world.scene);
   combatSystem.update(dt, identity.id);
   const combatSnapshot = combatSystem.getSnapshot();
-  if (partySystem && performance.now()/1000-lastPartyPoll>3) { lastPartyPoll=performance.now()/1000; void partySystem.current().then(members=>{partyHud.update(members, Object.fromEntries(regionCollaborators.map(p=>[p.id,p.displayName]))); partyControlButton.style.display=members.some(m=>m.userId===cloudIdentity.id)?'block':'none'; if (members.length !== lastProfileActivityPartySize) { if (lastProfileActivityPartySize > 0 || members.length > 1) void recordGridActivity('PARTY','Party roster changed',members.length > 1 ? 'Party now has '+members.length+' members.' : 'Party roster returned to solo.',String(livingSnapshot.world),'first-light',{partySize:members.length}); lastProfileActivityPartySize=members.length; }}).catch(()=>undefined); }
+  if (partySystem && performance.now()/1000-lastPartyPoll>3) { lastPartyPoll=performance.now()/1000; void partySystem.current().then(members=>{partyHud.update(members, Object.fromEntries(regionCollaborators.map(p=>[p.id,p.displayName]))); partyControlButton.style.display=members.some(m=>m.userId===cloudIdentity.id)?'block':'none'; if (members.length !== lastProfileActivityPartySize) { if (lastProfileActivityPartySize > 0 || members.length > 1) void recordGridActivity('PARTY','Party roster changed',members.length > 1 ? 'Party now has '+members.length+' members.' : 'Party roster returned to solo.',String(livingSnapshot.world),'first-light',{partySize:members.length}); lastProfileActivityPartySize=members.length; }}).then(()=>reportBackgroundServiceRecovery('party-roster','Party roster synchronization is back online.')).catch(()=>reportBackgroundServiceFailure('party-roster','Party roster synchronization is temporarily unavailable.')); }
   if (partySystem && performance.now()/1000-lastPartyDestinationPoll>1) { lastPartyDestinationPoll=performance.now()/1000; void partyDestinationTick(); }
   if (presence && performance.now()/1000-lastVitalsPublish>1) { lastVitalsPublish=performance.now()/1000; void presence.update(player.getTransform(), { health:combatSnapshot.playerHealth, maxHealth:combatSnapshot.playerMaxHealth, regionRole:currentBuildRole }); }
   questSystem.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, societySnapshot, player.avatar.position.x, player.avatar.position.z);
