@@ -67,6 +67,8 @@ export class GridVoiceSystem {
   private readonly voices: SpeechSynthesisVoice[] = [];
   private recognition: GridSpeechRecognition | null = null;
   private listening = false;
+  // Avatar speech is intentionally muted for now; text/chat interactions remain active.
+  private outputEnabled = false;
 
   constructor() {
     const refresh = () => {
@@ -85,8 +87,13 @@ export class GridVoiceSystem {
     return recognitionConstructor() !== null;
   }
 
+  setOutputEnabled(enabled: boolean) {
+    this.outputEnabled = enabled;
+    if (!enabled && this.isSpeechOutputAvailable()) speechSynthesis.cancel();
+  }
+
   speak(profileId: string, text: string) {
-    if (!this.isSpeechOutputAvailable() || !text.trim()) return false;
+    if (!this.outputEnabled || !this.isSpeechOutputAvailable() || !text.trim()) return false;
     const profile = GRID_VOICE_PROFILES[profileId] ?? GRID_VOICE_PROFILES.grid;
     const utterance = new SpeechSynthesisUtterance(text.slice(0, 900));
     utterance.rate = profile.rate;
