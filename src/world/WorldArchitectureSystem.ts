@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { getWorlds } from './GridWorldRegistry';
 import { deriveWorldDNA } from './WorldDNA';
 import { createStarterPBRMaterial } from '../engine/GridPBRLibrary';
+import { cloneGridRuntimeModel, type GridRuntimeModelId } from '../engine/GridRuntimeModelLoader';
 
 function addBridge(cluster: THREE.Group, from: THREE.Vector3, to: THREE.Vector3, material: THREE.Material, thickness=.14) {
   const delta=to.clone().sub(from), length=delta.length();
@@ -138,6 +139,45 @@ export class WorldArchitectureSystem {
       cluster.userData.buildingStyle=style;
       cluster.userData.worldDescription=world.description;
       this.root.add(cluster);
+      void this.addRuntimeAssetLayer(world.id, cluster, presentation.geometry, living ?? false, wildlife ?? false);
+    }
+  }
+
+  private async addRuntimeAssetLayer(
+    worldId: string,
+    cluster: THREE.Group,
+    geometry: string,
+    living: boolean,
+    wildlife: boolean,
+  ) {
+    const buildingByGeometry: Record<string, GridRuntimeModelId> = {
+      volcanic: 'building-d',
+      crystalline: 'building-c',
+      storm: 'building-e',
+      'mineral-life': 'building-b',
+      primal: 'building-a',
+    };
+    const buildingId = buildingByGeometry[geometry] ?? 'building-a';
+    const treeId: GridRuntimeModelId = geometry === 'volcanic' ? 'tree-palm' : geometry === 'crystalline' ? 'tree-pine' : 'tree-oak';
+    const assetSpecs: Array<{ id: GridRuntimeModelId; position: THREE.Vector3; scale: number; kind: string }> = [
+      { id: buildingId, position: new THREE.Vector3(-5, 0, -4), scale: 1.25, kind: 'runtime-building' },
+      { id: treeId, position: new THREE.Vector3(5, 0, -3), scale: living ? 1.15 : .9, kind: 'runtime-tree' },
+      { id: treeId, position: new THREE.Vector3(-7, 0, 5), scale: living ? .9 : .72, kind: 'runtime-tree' },
+    ];
+    if (wildlife) assetSpecs.push({ id: geometry === 'primal' ? 'animal-fox' : 'animal-deer', position: new THREE.Vector3(4, 0, 5), scale: .9, kind: 'runtime-creature' });
+
+    for (const spec of assetSpecs) {
+      try {
+        const model = await cloneGridRuntimeModel(spec.id);
+        model.position.copy(spec.position);
+        model.scale.setScalar(spec.scale);
+        model.userData.gridObjectKind = spec.kind;
+        model.userData.worldId = worldId;
+        model.userData.gridAssetSource = 'Kenney CC0 via Hidencod/tge-assets';
+        cluster.add(model);
+      } catch (error) {
+        console.warn('Grid runtime model unavailable.', spec.id, error);
+      }
     }
   }
 
