@@ -654,3 +654,15 @@ _Last updated: 2026-10-02_
 - No runtime code or database schema changed.
 - Verification: L0 documentation review only. No CI/browser verification claimed.
 - **Next actionable item:** P3 #30 Canon vs experiment tracking.
+
+
+## 2026-10-02 — P3 #30 Canon vs experiment tracking
+- P3 #30 **Complete** for this documentation increment.
+- Added `docs/CANON_EXPERIMENT_TRACKING.md` as a classification guide; it does not replace the queue, handoff, architecture map, Aurora profile, or canonical art/district notes.
+- The guide distinguishes CANON, REQUIREMENT, IMPLEMENTATION, AURORA-DECISION, EXPERIMENT, PLACEHOLDER, CONCEPT-ONLY, FUTURE-IDEA, and verification levels L0–L6.
+- It explicitly prevents implementation or experiments from being silently promoted to canon and requires conflicts/uncertainty to be documented.
+- No runtime code or database schema changed.
+- Verification: L0 documentation/source review only; no CI/browser verification claimed.
+- **Next actionable item:** continue with the next highest-priority actionable queue item after re-auditing current main and notes.
+
+_Last updated: 2026-10-02_
