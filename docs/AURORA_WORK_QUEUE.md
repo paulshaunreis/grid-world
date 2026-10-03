@@ -739,3 +739,16 @@ _Last updated: 2026-10-03_
 - Added an explicit Supabase error check for the transit traffic query; no new UI, authority, or persistence architecture was introduced.
 - Verification: branch re-fetch confirmed the changes and PR #50 merged successfully. No CI/browser/WebGL/Render verification observed for this pass.
 - **Next focus:** continue the current-main stability audit for remaining silent prerequisite failures/dead-end controls before adding another major system.
+
+
+## 2026-10-03 — Current-main stability audit: background sync follow-up + Aurora proposals
+- **Main after merge:** `bb533852e142e0eae4acd485b971b6cacdb73541` (PR #52).
+- Continued the audit of silent prerequisite/background failures after PR #50.
+- Surfaced player-relevant failure/recovery feedback for party transit synchronization, persistent world registry, cloud persistence/auth fallback, cloud world-state fallback, and NPC memory/persistent teleport archives.
+- Reused the existing `reportBackgroundServiceFailure/recovery` path; no duplicate UI, authority, persistence, economy, combat, profile, terrain, or transit architecture was introduced.
+- Added `docs/AURORA_ENGINEERING_PROPOSALS_2026-10-03.md` as **AURORA-DECISION / FUTURE-IDEA** material only. Proposed directions include World Capability Contracts, read-only World Pulse diagnostics, machine-checkable district-role validation for implemented regions, a bounded event/consequence ledger, NPC memory provenance, a derived teleport route graph, lifecycle instrumentation, and a verification matrix.
+- These proposals explicitly preserve Aurora's canon/experiment boundary and do not promote concept-only districts into gameplay.
+- Verification: **L0 source review + successful merge**. Render deployment is currently building; no CI/browser/WebGL verification is claimed yet.
+- **Next focus:** verify the PR #52 Render build/live page, then perform the remaining human/browser interaction verification before starting another major feature.
+
+_Last updated: 2026-10-03_
