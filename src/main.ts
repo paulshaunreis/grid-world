@@ -797,7 +797,7 @@ const getWorldPulse = (): WorldPulseSnapshot => {
   const consequences = worldConsequences.getSnapshot();
   const traffic = teleportSystem.trafficSnapshot();
   const activeMissions = questSystem.getQuests().filter(x => x.status === 'ACTIVE' || x.status === 'TURN_IN').length;
-  const worldTraffic = traffic.filter(node => node.worldId === snap.world);
+  const worldTraffic = traffic.filter(node => teleportSystem.get(node.nodeId)?.worldId === snap.world);
   const transitTraffic = worldTraffic.reduce((sum, node) => sum + node.activity, 0);
   return {
     world: String(snap.world),
@@ -819,7 +819,7 @@ const getWorldPulse = (): WorldPulseSnapshot => {
     consequenceStability: Number(consequences.stability),
     consequencePressure: Number(consequences.pressure),
     persistence: worldPulseHealth(['world-content-save','world-content-restore','world-registry'], Boolean(cloudPersistence)),
-    transit: worldPulseHealth(['party-transit','transit-invites','market-quotes'], true),
+    transit: worldPulseHealth(['party-transit','transit-invites'], true),
     cloud: worldPulseHealth(['cloud-persistence','cloud-state'], Boolean(cloudPersistence)),
     lastUpdatedAt: Date.now(),
   };
