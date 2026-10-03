@@ -765,3 +765,15 @@ _Last updated: 2026-10-03_
 - Classification: **IMPLEMENTATION / DIAGNOSTICS**, not new world canon.
 - Verification: **L0 source review + successful merge**. Render deploy `dep-db0jq6tg1s2s73eda01g` is currently building; CI/browser/WebGL/live verification are not yet claimed.
 - **Next:** verify the Render build/live surface. If healthy, perform the outstanding human/browser interaction verification, then evaluate the World Capability Contract proposal before implementing it.
+
+## 2026-10-03 — World Capability Contract increment
+- **PR #54 merged:** `17d2edb3c04b92f2ae6230408a17a1f75c0b7686`.
+- Verified the existing `GridWorldRegistry` was the correct extension point; no second world registry or capability authority was introduced.
+- Added `src/world/WorldCapabilityContract.ts` with typed capabilities for transit, PvE, PvP, building, terrain sculpting, marketplace, social/event spaces, ecology intensity, and creator-facing capability.
+- Existing world registration/upsert now normalizes capability profiles, and `getWorldCapabilities()` exposes them through the existing registry.
+- Creator capability is explicitly descriptive and does not grant user authorization.
+- Unlimited-world behavior and existing world connections remain unchanged.
+- Verification: **L0 source re-fetch + successful merge**. Render/browser verification for PR #54 is pending.
+- **Next:** verify the Render deployment, then wire the capability contract into the highest-value existing world systems only where an actual world-specific rule is required.
+
+_Last updated: 2026-10-03_
