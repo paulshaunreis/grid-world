@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { Input } from './Input';
 import { createStarterPBRMaterial } from '../engine/GridPBRLibrary';
 import type { AvatarCustomization } from '../ui/GridAvatarCreator';
@@ -29,6 +30,10 @@ export class PlayerController {
   private readonly legL: THREE.Mesh;
   private readonly legR: THREE.Mesh;
   private animationTime = 0;
+  private meshAvatar: THREE.Group | null = null;
+  private meshGender: 'male' | 'female' = 'male';
+  private meshGroundOffset = 0;
+  private readonly primitiveParts: THREE.Object3D[] = [];
 
   constructor(private readonly input: Input) {
     this.body = new THREE.Mesh(
@@ -70,11 +75,49 @@ export class PlayerController {
     this.earL=new THREE.Mesh(new THREE.ConeGeometry(.11,.38,12),earMaterial); this.earR=this.earL.clone();
     this.earL.rotation.z=-Math.PI/2; this.earR.rotation.z=Math.PI/2;
     this.earL.position.set(-.33,1.88,.02); this.earR.position.set(.33,1.88,.02); this.avatar.add(this.earL,this.earR);
+    this.primitiveParts.push(this.body,this.head,this.hair,this.eyeL,this.eyeR,this.armL,this.armR,this.legL,this.legR,this.earL,this.earR);
+    // Try to upgrade to the real parametric mesh avatar; primitives stay as the
+    // honest fallback if the model can't load.
+    this.loadMeshAvatar(this.meshGender);
+  }
+
+  /** Load the real GLB base mesh. On success the primitive parts hide; on
+   *  failure the primitives stay visible — never a invisible avatar. */
+  async loadMeshAvatar(gender: 'male' | 'female'): Promise<void> {
+    this.meshGender = gender;
+    if (this.meshAvatar) { this.avatar.remove(this.meshAvatar); this.meshAvatar = null; }
+    try {
+      const loader = new GLTFLoader();
+      const gltf = await loader.loadAsync(`/models/avatars/avatar-${gender}-base.glb`);
+      const root = new THREE.Group();
+      root.add(gltf.scene);
+      // Normalize: base meshes are ~1.7m; our avatar rig expects ~1.9m to head-top.
+      const bbox = new THREE.Box3().setFromObject(gltf.scene);
+      const height = Math.max(0.001, bbox.max.y - bbox.min.y);
+      const scale = 1.9 / height;
+      root.scale.setScalar(scale);
+      // Re-ground after scaling.
+      const bbox2 = new THREE.Box3().setFromObject(root);
+      this.meshGroundOffset = -bbox2.min.y;
+      root.position.y = this.meshGroundOffset;
+      root.traverse(o => { if ((o as THREE.Mesh).isMesh) { (o as THREE.Mesh).castShadow = true; } });
+      this.meshAvatar = root;
+      this.avatar.add(root);
+      for (const part of this.primitiveParts) part.visible = false;
+    } catch {
+      // Primitives remain visible — the honest fallback.
+      for (const part of this.primitiveParts) part.visible = true;
+    }
   }
 
   setAvatarAppearance(style: AvatarStyle, customization?: AvatarCustomization) {
-    const palettes = {
-      navigator: { body: 0x5fd8ff, head: 0xe6f7ff },
+    // Swap the real mesh when the citizen picks a gendered presentation.
+    // 0 = Woman -> female base, 1 = Man -> male base, others keep current.
+    if (customization && (customization.gender === 0 || customization.gender === 1)) {
+      const want: 'male' | 'female' = customization.gender === 0 ? 'female' : 'male';
+      if (want !== this.meshGender) void this.loadMeshAvatar(want);
+    }
+    const palettes = {      navigator: { body: 0x5fd8ff, head: 0xe6f7ff },
       muse: { body: 0xd58cff, head: 0xffe8fa },
       explorer: { body: 0xffad62, head: 0xffe0c7 },
       builder: { body: 0xb18a62, head: 0xf1d7bc },
@@ -140,6 +183,11 @@ export class PlayerController {
     this.legL.rotation.x=-phase*walkAmount*.75; this.legR.rotation.x=phase*walkAmount*.75;
     const airborne=!this.grounded;
     this.body.position.y=1.0+(moving?Math.abs(Math.sin(this.animationTime*1.0))*.025:Math.sin(this.animationTime)*.008)+(airborne?.04:0);
+    // Gentle locomotion feel for the real mesh (no skeletal anim yet — ChatGPT lane).
+    if (this.meshAvatar) {
+      this.meshAvatar.position.y = this.meshGroundOffset + (moving ? Math.abs(Math.sin(this.animationTime))*.03 : Math.sin(this.animationTime)*.008) + (airborne ? .04 : 0);
+      this.meshAvatar.rotation.z = moving ? Math.sin(this.animationTime)*.02 : 0;
+    }
 
     if ((this.input.isDown('Space') || this.input.isActionDown('jump')) && this.grounded) { this.velocityY = 7; this.grounded = false; }
     this.velocityY -= 18 * dt;
