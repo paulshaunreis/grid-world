@@ -290,6 +290,8 @@ const chatInput = document.querySelector<HTMLInputElement>('#chat-input')!;
 const voiceTargetButton = document.querySelector<HTMLButtonElement>('#voice-target')!;
 const voice = new GridVoiceSystem();
 const audio = new GridAudioSystem();
+// Temporary UX mute: avatar movement should be silent while the avatar audio pass is tuned.
+const AVATAR_AUDIO_ENABLED = false;
 const voiceModifier = new GridVoiceModifierSystem();
 let lastProfileActivityWorld:string|null=null;
 let lastProfileActivityKills=0;
@@ -2410,7 +2412,7 @@ function animate(now: number) {
     if (Math.abs(moveInput.x) > .01 || Math.abs(moveInput.y) > .01) player.setHeading(cameraYaw);
   }
   player.update(dt);
-  if (player.avatar.position.distanceToSquared(lastFootstepPosition) > 0.22) {
+  if (AVATAR_AUDIO_ENABLED && player.avatar.position.distanceToSquared(lastFootstepPosition) > 0.22) {
     audio.play('world.footstep', firstPerson ? .7 : .45);
     lastFootstepPosition.copy(player.avatar.position);
   }
