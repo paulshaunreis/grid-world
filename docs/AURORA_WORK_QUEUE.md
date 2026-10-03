@@ -809,3 +809,15 @@ _Last updated: 2026-10-03_
 - **Next:** return to the current-main stability audit and target remaining silent-failure/dead-end interaction seams before adding another major system.
 
 _Last updated: 2026-10-03_
+
+
+## 2026-10-03 — Stability audit: remaining silent service failures
+- **PR #60 merged:** `d559b4286bf4333af3099613d74dbe9f4489fd22`.
+- Found four remaining silent catches in `src/main.ts`: world-mineral seeding, account profile refresh, persistent NPC memory, and creature combat retaliation.
+- Reused the existing `reportBackgroundServiceFailure/recovery` feedback path; no new service, UI, authority, persistence, profile, or combat architecture was introduced.
+- Initial CI caught an optional-response TypeScript error in the mineral-seeding change; corrected it before merge.
+- Final GitHub Actions run **#1274 passed TypeScript check and production build**.
+- Verification: **L0 source review + green CI + successful merge**. Render deployment of the merged commit is pending; the previous known-good live deployment remains the active deployed state until Render promotes the new main commit.
+- **Next:** after Render deployment, perform the live interaction check for these failure-feedback paths, then continue the stability audit only where concrete silent/dead-end seams remain.
+
+_Last updated: 2026-10-03_
