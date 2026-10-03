@@ -710,3 +710,13 @@ _Last updated: 2026-10-03_
 - **Next focus:** continue the current-main stability audit for remaining silent failures/dead-end controls, then move toward the outstanding browser/WebGL verification pass before another major feature expansion.
 
 _Last updated: 2026-10-03_
+
+## 2026-10-03 — World isolation build verification checkpoint
+- Render deployment for main 8154e14fe0b6430abb34d80d3896adc134542093 failed during TypeScript compilation with a duplicate activeWorldId declaration in src/main.ts introduced by the world-isolation integration.
+- Removed the redundant render-loop declaration; the render systems now reuse the existing activeWorldId established earlier in animate().
+- Fix commit: 3ae8f763a24699bcb6d87da25b3cbdf5d85fb989.
+- Source verification: re-fetched src/main.ts after the fix and confirmed only the earlier activeWorldId declaration remains in scope for the render isolation helper.
+- Render auto-deploy is configured for main; a post-fix deployment has not yet appeared, so CI/live verification is still pending.
+- Next: verify the post-fix Render build, then perform browser/world-to-world travel verification before adding another major feature.
+
+_Last updated: 2026-10-03_
