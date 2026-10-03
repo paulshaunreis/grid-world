@@ -788,3 +788,12 @@ _Last updated: 2026-10-03_
 - **Next:** verify the PR #55 Render build/live surface. If healthy, continue only with a concrete world-specific capability rule that is already represented by existing gameplay, rather than adding speculative gates.
 
 _Last updated: 2026-10-03_
+
+## 2026-10-03 — Capability gate follow-up
+- **PR #56 merged:** `d1f6498a2fbd4e08e706131f80d1a0d242a17023`.
+- Corrected Build Mode capability gating so the user's requested enabled state survives temporary restriction in a world without build capability.
+- No new architecture or authority layer introduced.
+- Verification: **L0 source review + successful merge**. Render/live verification pending.
+- **Next:** verify the Render deployment for the capability work before making another change.
+
+_Last updated: 2026-10-03_
