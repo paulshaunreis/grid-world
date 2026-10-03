@@ -383,9 +383,9 @@ async function openPartyControlMenu() {
         const eligible=members.filter(member=>member.userId!==self.userId);
         if(!eligible.length){addChatMessage('PARTY','No other party member is available for leadership transfer.','system');closePartyControlMenu();return;}
         partyMenuButton('← BACK',()=>openPartyControlMenu());
-        eligible.forEach(member=>partyMenuButton('TRANSFER TO · '+member.displayName,async()=>{
+        eligible.forEach(member=>partyMenuButton('TRANSFER TO · '+member.userId.slice(0,8),async()=>{
           await partySystem.transferLeadership(self.partyId,member.userId);
-          addChatMessage('PARTY','Leadership transferred to '+member.displayName+'.','system');
+          addChatMessage('PARTY','Leadership transferred to '+member.userId.slice(0,8)+'.','system');
         }));
       });
       partyMenuButton('KICK MEMBER',async()=>{
@@ -394,9 +394,9 @@ async function openPartyControlMenu() {
         const eligible=members.filter(member=>member.userId!==self.userId);
         if(!eligible.length){addChatMessage('PARTY','There are no other party members to remove.','system');closePartyControlMenu();return;}
         partyMenuButton('← BACK',()=>openPartyControlMenu());
-        eligible.forEach(member=>partyMenuButton('REMOVE · '+member.displayName,async()=>{
+        eligible.forEach(member=>partyMenuButton('REMOVE · '+member.userId.slice(0,8),async()=>{
           await partySystem.kick(self.partyId,member.userId);
-          addChatMessage('PARTY',member.displayName+' was removed from the party.','system');
+          addChatMessage('PARTY',member.userId.slice(0,8)+' was removed from the party.','system');
         }));
       });
       partyMenuButton('LEAVE PARTY',async()=>{
