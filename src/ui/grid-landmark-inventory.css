@@ -16,3 +16,14 @@
 .grid-landmark-actions button{width:28px;height:28px;font-size:14px}
 .grid-landmark-empty{display:grid;gap:6px;padding:24px 18px;opacity:.7;text-align:center}
 .grid-landmark-empty span{font-size:11px;opacity:.75}
+
+.grid-landmark-editor{display:grid;gap:7px;padding:10px;border-bottom:1px solid rgba(120,210,255,.2);background:rgba(120,210,255,.05)}
+.grid-landmark-editor[hidden]{display:none}
+.grid-landmark-editor strong{font:700 10px 'IBM Plex Mono',monospace;letter-spacing:.1em}
+.grid-landmark-editor input{width:100%;box-sizing:border-box;padding:8px 9px;border:1px solid rgba(120,210,255,.3);background:rgba(0,0,0,.25);color:inherit;outline:none;font:12px system-ui,sans-serif}
+.grid-landmark-editor input:focus{border-color:rgba(120,210,255,.65);box-shadow:0 0 0 2px rgba(120,210,255,.08)}
+.grid-landmark-editor-actions{display:flex;justify-content:flex-end;gap:6px}
+.grid-landmark-editor-actions button{padding:6px 9px;border:1px solid rgba(120,210,255,.28);background:rgba(255,255,255,.04);color:inherit;cursor:pointer;font:700 9px 'IBM Plex Mono',monospace;letter-spacing:.06em}
+.grid-landmark-editor-actions button:hover{background:rgba(120,210,255,.1)}
+.grid-landmark-editor-actions button:disabled{opacity:.45;cursor:wait}
+.grid-landmark-editor-status{min-height:13px;opacity:.65;font:10px 'IBM Plex Mono',monospace}

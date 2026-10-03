@@ -1832,10 +1832,11 @@ async function teleportToSavedLandmark(item:{label?:string;itemType?:string;meta
   window.setTimeout(()=>{player.restoreTransform({x,y,z,yaw});teleportExperience.show(preview,'arriving');createTeleportAvatarEffect(player.avatar,700);prompt.textContent='E · Arrived at '+label+' ✓';addChatMessage('GRID TRANSIT','Arrived at saved '+(item.itemType??'WAYPOINT').toLowerCase()+': '+label+'.','system');audio.play('world.portal',1);},850);
 }
 
-window.addEventListener('grid:landmark-create-current',()=>{
+window.addEventListener('grid:landmark-create-current',(event)=>{
   if(!landmarkAuthority)return;
-  const label=window.prompt('Save current location as','My Waypoint');
-  if(label===null||!label.trim())return;
+  const detail=(event as CustomEvent<{label?:string}>).detail;
+  const label=String(detail?.label??'').trim();
+  if(!label)return;
   const worldId=String(livingWorld.getSnapshot().world??'FIRST-LIGHT');
   const regionId=WORLD_TO_REGION[worldId]??'first-light';
   const position={x:player.avatar.position.x,y:player.avatar.position.y,z:player.avatar.position.z,yaw:player.heading};
