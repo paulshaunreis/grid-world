@@ -373,3 +373,14 @@ _Last updated: 2026-10-02_
 - **Next actionable item:** continue auditing current main for blocking/dead-end interaction seams and stale documentation/code mismatches before adding new major systems.
 
 _Last updated: 2026-10-03_
+
+
+## 2026-10-03 — Current main after account/economy/social stability fixes
+- **main:** `94bd2e5c34d8f0a4ca9dd00f52f868d7575bc90a`.
+- PR #38 hardened the ACCOUNT control against missing cloud persistence and auth-service failures.
+- PR #39 removed remaining checked browser dialogs from the Economy/Social surfaces: Bazaar pricing is inline; privacy and microphone failures are inline status feedback.
+- No parallel UI/service architecture was introduced.
+- Verification boundary: **L0 source review + successful merges**. CI/browser/WebGL/Render verification remains outstanding.
+- **Next actionable item:** continue current-main interaction stability audit before major feature expansion.
+
+_Last updated: 2026-10-03_
