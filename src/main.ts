@@ -305,19 +305,6 @@ async function recordGridActivity(kind:string,title:string,body:string,worldId?:
   try { await profileAuthority.recordActivity({kind,title,body,worldId,regionId,metadata}); } catch (error) { console.warn('Grid profile activity unavailable.',error); }
 }
 
-const backgroundServiceFailures = new Set<string>();
-
-function reportBackgroundServiceFailure(key: string, message: string) {
-  if (backgroundServiceFailures.has(key)) return;
-  backgroundServiceFailures.add(key);
-  addChatMessage('GRID SERVICES', message, 'system');
-}
-
-function reportBackgroundServiceRecovery(key: string, message: string) {
-  if (!backgroundServiceFailures.delete(key)) return;
-  addChatMessage('GRID SERVICES', message, 'system');
-}
-
 function addChatMessage(sender: string, message: string, kind: 'player' | 'system' | 'team' = 'player') {
   if (kind !== 'player') audio.play('chat.receive');
   const row = document.createElement('div');
@@ -396,9 +383,9 @@ async function openPartyControlMenu() {
         const eligible=members.filter(member=>member.userId!==self.userId);
         if(!eligible.length){addChatMessage('PARTY','No other party member is available for leadership transfer.','system');closePartyControlMenu();return;}
         partyMenuButton('← BACK',()=>openPartyControlMenu());
-        eligible.forEach(member=>partyMenuButton('TRANSFER TO · '+member.userId.slice(0,8),async()=>{
+        eligible.forEach(member=>partyMenuButton('TRANSFER TO · '+member.displayName,async()=>{
           await partySystem.transferLeadership(self.partyId,member.userId);
-          addChatMessage('PARTY','Leadership transferred to '+member.userId.slice(0,8)+'.','system');
+          addChatMessage('PARTY','Leadership transferred to '+member.displayName+'.','system');
         }));
       });
       partyMenuButton('KICK MEMBER',async()=>{
@@ -407,9 +394,9 @@ async function openPartyControlMenu() {
         const eligible=members.filter(member=>member.userId!==self.userId);
         if(!eligible.length){addChatMessage('PARTY','There are no other party members to remove.','system');closePartyControlMenu();return;}
         partyMenuButton('← BACK',()=>openPartyControlMenu());
-        eligible.forEach(member=>partyMenuButton('REMOVE · '+member.userId.slice(0,8),async()=>{
+        eligible.forEach(member=>partyMenuButton('REMOVE · '+member.displayName,async()=>{
           await partySystem.kick(self.partyId,member.userId);
-          addChatMessage('PARTY',member.userId.slice(0,8)+' was removed from the party.','system');
+          addChatMessage('PARTY',member.displayName+' was removed from the party.','system');
         }));
       });
       partyMenuButton('LEAVE PARTY',async()=>{
@@ -1066,8 +1053,8 @@ if(teleportInviteAuthorityReady){
     window.setTimeout(()=>{const arrival=new THREE.Vector3(destination.position.x,Math.max(0,destination.position.y),destination.position.z);const backward=new THREE.Vector3(0,0,1).applyAxisAngle(new THREE.Vector3(0,1,0),destination.yaw);arrival.addScaledVector(backward,Math.max(2.5,destination.clearanceRadius));player.restoreTransform({x:arrival.x,y:arrival.y,z:arrival.z,yaw:destination.yaw});teleportExperience.show(destination,'arriving');createTeleportAvatarEffect(player.avatar,700);audio.play('world.portal',1);addChatMessage('GRID TRANSIT','Accepted invitation. Arrived at '+destination.displayName+'.','system');},850);
   });
   transitInviteButton.onclick=()=>invitePanel?.open();
-  void teleportInviteAuthorityReady.pending().then(rows=>{if(rows.length)transitInviteButton.textContent='TRANSIT INVITES · '+rows.length;reportBackgroundServiceRecovery('transit-invites','Transit invitations are updating again.');}).catch(()=>{transitInviteButton.textContent='TRANSIT INVITES · UNAVAILABLE';reportBackgroundServiceFailure('transit-invites','Transit invitations are temporarily unavailable.');});
-  window.setInterval(()=>void teleportInviteAuthorityReady.pending().then(rows=>{transitInviteButton.textContent=rows.length?'TRANSIT INVITES · '+rows.length:'TRANSIT INVITES';reportBackgroundServiceRecovery('transit-invites','Transit invitations are updating again.');}).catch(()=>{transitInviteButton.textContent='TRANSIT INVITES · UNAVAILABLE';reportBackgroundServiceFailure('transit-invites','Transit invitations are temporarily unavailable.');}),10000);
+  void teleportInviteAuthorityReady.pending().then(rows=>{if(rows.length)transitInviteButton.textContent='TRANSIT INVITES · '+rows.length;}).catch(()=>undefined);
+  window.setInterval(()=>void teleportInviteAuthorityReady.pending().then(rows=>{transitInviteButton.textContent=rows.length?'TRANSIT INVITES · '+rows.length:'TRANSIT INVITES';}).catch(()=>undefined),10000);
 }
 
 const teleportVisuals = teleportDefinitions.map(definition => {
@@ -1362,18 +1349,14 @@ let lastVitalsPublish = 0;
 async function refreshPersistentTransit(){
   if(!cloudPersistence) return;
   try {
-    const { data, error } = await cloudPersistence.getClient().from('grid_transit_traffic').select('source_world,destination_world,departures,arrivals,queue_depth,updated_at');
-    if (error) throw error;
+    const { data } = await cloudPersistence.getClient().from('grid_transit_traffic').select('source_world,destination_world,departures,arrivals,queue_depth,updated_at');
     if(!data) return;
     const now=Date.now();
     persistentTransitByWorld={};
     persistentTransitFlow=data.reduce((sum:any,row:any)=>{ const age=(now-Date.parse(row.updated_at))/60000; const freshness=Math.max(0,1-age/15); const flow=(Number(row.departures||0)+Number(row.arrivals||0)+Number(row.queue_depth||0)*.5)*freshness; const world=String(row.destination_world||row.source_world||''); persistentTransitByWorld[world]=(persistentTransitByWorld[world]||0)+flow; return sum+flow; },0);
     for(const key of Object.keys(persistentTransitByWorld)) persistentTransitByWorld[key]=Math.min(10,persistentTransitByWorld[key]);
     persistentTransitFlow=Math.min(10,persistentTransitFlow);
-    reportBackgroundServiceRecovery('persistent-transit','Transit traffic data is back online.');
-  } catch {
-    reportBackgroundServiceFailure('persistent-transit','Transit traffic data is temporarily unavailable; world transit remains available.');
-  }
+  } catch {}
 }
 async function refreshMarketQuotes() {
   if (!combatAuthority) return;
@@ -1390,9 +1373,7 @@ async function refreshMarketQuotes() {
       scarcity:Number((r as any).scarcity ?? 1),
       demand:Number((r as any).demand ?? 1),
     }));
-    reportBackgroundServiceRecovery('market-quotes','Market quote service is back online.');
   } catch (error) {
-    reportBackgroundServiceFailure('market-quotes','Market quotes are temporarily unavailable; marketplace actions remain available.');
     console.warn('Market quote refresh unavailable.', error);
   }
 }
@@ -2407,7 +2388,7 @@ function animate(now: number) {
   worldEventPollTimer += dt;
 
   if (combatAuthority && Math.floor(now / 1000) % 20 === 0 && Math.floor((now - dt*1000) / 1000) % 20 !== 0) {
-    void combatAuthority.marketTick().then(() => refreshMerchantMarket()).then(() => reportBackgroundServiceRecovery('market-sync','Merchant market synchronization is back online.')).catch(() => reportBackgroundServiceFailure('market-sync','Merchant market synchronization is temporarily unavailable.'));
+    void combatAuthority.marketTick().then(() => refreshMerchantMarket()).catch(() => undefined);
   }
 
   if (worldEventStream && worldEventPollTimer >= 4) {
@@ -2579,7 +2560,7 @@ function animate(now: number) {
   combatSystem.syncScene(world.scene);
   combatSystem.update(dt, identity.id);
   const combatSnapshot = combatSystem.getSnapshot();
-  if (partySystem && performance.now()/1000-lastPartyPoll>3) { lastPartyPoll=performance.now()/1000; void partySystem.current().then(members=>{partyHud.update(members, Object.fromEntries(regionCollaborators.map(p=>[p.id,p.displayName]))); partyControlButton.style.display=members.some(m=>m.userId===cloudIdentity.id)?'block':'none'; if (members.length !== lastProfileActivityPartySize) { if (lastProfileActivityPartySize > 0 || members.length > 1) void recordGridActivity('PARTY','Party roster changed',members.length > 1 ? 'Party now has '+members.length+' members.' : 'Party roster returned to solo.',String(livingSnapshot.world),'first-light',{partySize:members.length}); lastProfileActivityPartySize=members.length; }}).then(()=>reportBackgroundServiceRecovery('party-roster','Party roster synchronization is back online.')).catch(()=>reportBackgroundServiceFailure('party-roster','Party roster synchronization is temporarily unavailable.')); }
+  if (partySystem && performance.now()/1000-lastPartyPoll>3) { lastPartyPoll=performance.now()/1000; void partySystem.current().then(members=>{partyHud.update(members, Object.fromEntries(regionCollaborators.map(p=>[p.id,p.displayName]))); partyControlButton.style.display=members.some(m=>m.userId===cloudIdentity.id)?'block':'none'; if (members.length !== lastProfileActivityPartySize) { if (lastProfileActivityPartySize > 0 || members.length > 1) void recordGridActivity('PARTY','Party roster changed',members.length > 1 ? 'Party now has '+members.length+' members.' : 'Party roster returned to solo.',String(livingSnapshot.world),'first-light',{partySize:members.length}); lastProfileActivityPartySize=members.length; }}).catch(()=>undefined); }
   if (partySystem && performance.now()/1000-lastPartyDestinationPoll>1) { lastPartyDestinationPoll=performance.now()/1000; void partyDestinationTick(); }
   if (presence && performance.now()/1000-lastVitalsPublish>1) { lastVitalsPublish=performance.now()/1000; void presence.update(player.getTransform(), { health:combatSnapshot.playerHealth, maxHealth:combatSnapshot.playerMaxHealth, regionRole:currentBuildRole }); }
   questSystem.update(dt, livingSnapshot.world as EcologyWorld, livingSnapshot.event, societySnapshot, player.avatar.position.x, player.avatar.position.z);
@@ -2712,32 +2693,13 @@ function animate(now: number) {
   if (hudWorldSignal) hudWorldSignal.textContent = livingSnapshot.eventFlavor + ' · ' + livingSnapshot.weather + ' · ' + Math.round(livingSnapshot.temperatureC) + '°C · HUM ' + Math.round(livingSnapshot.humidity*100) + '% · ' + ecologySnapshot.active + '/' + ecologySnapshot.population + ' CREATURES · ' + societySnapshot.working + ' WORKING · ' + societySnapshot.talking + ' TALKING · ' + storySnapshot.activeStories + ' STORIES · STABILITY ' + Math.round(consequenceSnapshotAfterUpdate.stability*100) + '% · ECO GEN ' + evolutionState.generation + ' · EVOLUTION ' + (evolutionaryPopulations.get(livingSnapshot.world as EcologyWorld)?.generation ?? 1) + ' · FOOD WEB ' + ecologicalWebSnapshot.map(population => population.role + ' ' + Math.round(population.health*100) + '%').join(' / ');
   artDirector.update(dt, player.avatar.position.x, player.avatar.position.z);
   worldSkins.update(dt, player.avatar.position.x, player.avatar.position.z);
-  // World-scoped render systems receive the same active-world context as simulation systems.
-  // This prevents generated architecture/environment layers from leaking across worlds.
-  worldArchitecture.update(dt, player.avatar.position.x, player.avatar.position.z);
-  worldEnvironment.update(dt, player.avatar.position.x, player.avatar.position.z);
+  worldArchitecture.update(dt);
+  worldEnvironment.update(dt);
   teamWork.update(dt, frame.elapsedSeconds);
   foundationLayer.update(dt, frame.elapsedSeconds);
-  // Keep scene actors world-scoped as well. Simulation already carries the active-world
-  // identity; this prevents remote/crowd visuals from bleeding into another world.
-  const nearestWorldIdAt = (x:number, z:number) => {
-    let nearest = Infinity;
-    let nearestId = activeWorldId;
-    for (const candidate of getWorlds()) {
-      const distance = Math.hypot(x - candidate.center.x, z - candidate.center.z);
-      if (distance < nearest) { nearest = distance; nearestId = candidate.id; }
-    }
-    return nearestId;
-  };
-  for (const remote of remotePlayers.values()) {
-    remote.update(dt);
-    remote.group.visible = nearestWorldIdAt(remote.group.position.x, remote.group.position.z) === activeWorldId;
-  }
+  for (const remote of remotePlayers.values()) remote.update(dt);
   for (const avatar of teamAvatars) avatar.update(dt);
-  for (const actor of crowdActors) {
-    actor.update(dt, { routinePhase: routinePhaseFor(resolveNpcRoutine(), hourOfDayFromDayFraction(npcDayFraction)) });
-    actor.group.visible = nearestWorldIdAt(actor.group.position.x, actor.group.position.z) === activeWorldId;
-  }
+  for (const actor of crowdActors) actor.update(dt, { routinePhase: routinePhaseFor(resolveNpcRoutine(), hourOfDayFromDayFraction(npcDayFraction)) });
   for (const pylon of omniLayer.pylons) pylon.update(dt);
   const transitTime = performance.now() / 1000;
   for (const visual of teleportVisuals) {
