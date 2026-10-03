@@ -40,6 +40,7 @@ export class GridEasyBuildSystem{
   private ownerUserId='';
   private accessRole:GridBuildAccessRole=null;
   private worldCapabilityEnabled=true;
+  private requestedEnabled=false;
   private readonly starterMaterials:Record<string,number>={'Grid Matter':100,Metal:20,Wood:20,Crystal:10,'Crystal Shard':10};
   private tools:Array<{instanceId:string;recipeId:string;name:string;usesRemaining:number;maxUses:number}> = JSON.parse(localStorage.getItem('grid-world:builder-tools') ?? '[]');
 
@@ -50,7 +51,7 @@ export class GridEasyBuildSystem{
   setEnabled(enabled:boolean){this.root.userData.enabled=enabled;}
   setOwnerUserId(userId:string){this.ownerUserId=userId;}
   setAccessRole(role:GridBuildAccessRole){this.accessRole=role;this.root.userData.accessRole=role??'none';this.root.userData.canBuild=this.canBuild();this.root.userData.canEditAll=this.canEditAll();this.updateAccessUI();}
-  setWorldCapabilityEnabled(enabled:boolean){this.worldCapabilityEnabled=enabled;this.root.userData.worldCapabilityEnabled=enabled;this.root.userData.canBuild=this.canBuild();this.setEnabled(this.root.userData.enabled===true && this.canBuild());this.updateAccessUI();}
+  setWorldCapabilityEnabled(enabled:boolean){this.worldCapabilityEnabled=enabled;this.root.userData.worldCapabilityEnabled=enabled;this.root.userData.canBuild=this.canBuild();this.setEnabled(this.requestedEnabled && this.canBuild());this.updateAccessUI();}
   getAccessRole(){return this.accessRole;}
   private canBuild(){return this.worldCapabilityEnabled&&(this.accessRole==='owner'||this.accessRole==='builder'||this.accessRole==='editor'||this.accessRole==='admin');}
   private canEditAll(){return this.accessRole==='owner'||this.accessRole==='editor'||this.accessRole==='admin';}
