@@ -2712,9 +2712,27 @@ function animate(now: number) {
   worldEnvironment.update(dt, player.avatar.position.x, player.avatar.position.z);
   teamWork.update(dt, frame.elapsedSeconds);
   foundationLayer.update(dt, frame.elapsedSeconds);
-  for (const remote of remotePlayers.values()) remote.update(dt);
+  // Keep scene actors world-scoped as well. Simulation already carries the active-world
+  // identity; this prevents remote/crowd visuals from bleeding into another world.
+  const activeWorldId = String(livingSnapshot.world);
+  const nearestWorldIdAt = (x:number, z:number) => {
+    let nearest = Infinity;
+    let nearestId = activeWorldId;
+    for (const candidate of getWorlds()) {
+      const distance = Math.hypot(x - candidate.center.x, z - candidate.center.z);
+      if (distance < nearest) { nearest = distance; nearestId = candidate.id; }
+    }
+    return nearestId;
+  };
+  for (const remote of remotePlayers.values()) {
+    remote.update(dt);
+    remote.group.visible = nearestWorldIdAt(remote.group.position.x, remote.group.position.z) === activeWorldId;
+  }
   for (const avatar of teamAvatars) avatar.update(dt);
-  for (const actor of crowdActors) actor.update(dt, { routinePhase: routinePhaseFor(resolveNpcRoutine(), hourOfDayFromDayFraction(npcDayFraction)) });
+  for (const actor of crowdActors) {
+    actor.update(dt, { routinePhase: routinePhaseFor(resolveNpcRoutine(), hourOfDayFromDayFraction(npcDayFraction)) });
+    actor.group.visible = nearestWorldIdAt(actor.group.position.x, actor.group.position.z) === activeWorldId;
+  }
   for (const pylon of omniLayer.pylons) pylon.update(dt);
   const transitTime = performance.now() / 1000;
   for (const visual of teleportVisuals) {
