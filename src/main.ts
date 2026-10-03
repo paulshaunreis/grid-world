@@ -709,7 +709,7 @@ const createFactoryWorld = (name: string, description: string) => {
   creatureEcology.registerWorld(result.world);
   worldResources.registerWorld(result.world);
   gridMinerals.registerWorld(result.world);
-  void Promise.resolve(cloudPersistence?.getClient().rpc('grid_seed_world_minerals', { p_world_id: result.world.id })).then(({ error }) => { if (error) throw error; syncGridMinerals(); reportBackgroundServiceRecovery('world-minerals', 'World mineral services are updating again.'); }).catch(error => { reportBackgroundServiceFailure('world-minerals', 'World mineral services are temporarily unavailable.'); console.warn('World mineral seed unavailable.', error); });
+  void Promise.resolve(cloudPersistence?.getClient().rpc('grid_seed_world_minerals', { p_world_id: result.world.id })).then(response => { if (response?.error) throw response.error; syncGridMinerals(); reportBackgroundServiceRecovery('world-minerals', 'World mineral services are updating again.'); }).catch(error => { reportBackgroundServiceFailure('world-minerals', 'World mineral services are temporarily unavailable.'); console.warn('World mineral seed unavailable.', error); });
   npcSociety.registerWorld(result.world);
   worldEvolution.registerWorld(result.world.id);
   evolutionaryPopulations.registerWorld(result.world.id);
