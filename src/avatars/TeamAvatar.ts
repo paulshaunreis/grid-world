@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { createStarterPBRMaterial } from '../engine/GridPBRLibrary';
 
 export type TeamAvatarStyle = 'aurora' | 'link' | 'rey' | 'elder' | 'veyr' | 'nyxen' | 'orin' | 'seraith' | 'vael' | 'kairox' | 'morrow' | 'cipher' | 'solenne' | 'rook' | 'echo' | 'umbra' | 'civitas' | 'axiom' | 'mosaic' | 'sentinel' | 'praxis' | 'atlas' | 'tessera' | 'waypoint';
@@ -50,6 +51,12 @@ export class TeamAvatar {
   private readonly labelTexture: THREE.CanvasTexture;
   private readonly labelContext: CanvasRenderingContext2D;
   private phase = Math.random() * Math.PI * 2;
+  private humanoid: THREE.Group;
+  private meshBody: THREE.Group | null = null;
+  // Roam state: wander around the station, face citizens when near.
+  private roamTarget = new THREE.Vector3();
+  private roamPause = 0;
+  private readonly home = new THREE.Vector3();
 
   constructor(readonly definition: TeamAvatarDefinition) {
     const palette = palettes[definition.style];
@@ -71,6 +78,7 @@ export class TeamAvatar {
     // The visor remains the character's signature Grid element.
     const humanoid = new THREE.Group();
     humanoid.name = 'character-mesh';
+    this.humanoid = humanoid;
     const head = new THREE.Mesh(
       new THREE.SphereGeometry(.34, 20, 14),
       createStarterPBRMaterial('skin', { color: '#d9b39d', roughness: .7 })
@@ -106,10 +114,34 @@ export class TeamAvatar {
 
     this.group.add(this.body, this.visor, this.glow, label);
     this.group.position.set(definition.spawn.x, definition.spawn.y ?? 0, definition.spawn.z);
+    this.home.copy(this.group.position);
+    this.roamTarget.copy(this.home);
     this.group.userData.interactable = true;
     this.group.userData.interactionName = definition.displayName;
     this.group.userData.teamAvatarId = definition.id;
     this.drawLabel();
+    // Aurora gets her real circuit-gown body; the primitive humanoid stays
+    // as the honest fallback if the model can't load.
+    if (definition.style === 'aurora') void this.loadAuroraBody();
+  }
+
+  /** Aurora's real 3D body. Gated like the player meshes: primitives stay on failure. */
+  private async loadAuroraBody(): Promise<void> {
+    try {
+      const gltf = await new GLTFLoader().loadAsync('/models/avatars/aurora-circuit-gown.glb');
+      const root = new THREE.Group();
+      root.add(gltf.scene);
+      root.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = true; });
+      // Aurora's build is ~1.7m; the team avatar rig expects ~1.9m to head-top.
+      root.scale.setScalar(1.12);
+      this.meshBody = root;
+      this.group.add(root);
+      this.humanoid.visible = false;
+      this.visor.visible = false;
+    } catch {
+      this.humanoid.visible = true;
+      this.visor.visible = true;
+    }
   }
 
   private drawLabel() {
@@ -132,10 +164,38 @@ export class TeamAvatar {
     this.labelTexture.needsUpdate = true;
   }
 
-  update(delta: number) {
+  update(delta: number, playerPos?: THREE.Vector3) {
     this.phase += delta;
     this.body.position.y = 1.05 + Math.sin(this.phase * 1.6) * 0.025;
     this.glow.intensity = 2.2 + Math.sin(this.phase * 2) * 0.45;
+
+    // Roam: drift around the station; face the citizen when they're close.
+    const pos = this.group.position;
+    if (playerPos) {
+      const distToPlayer = Math.hypot(playerPos.x - pos.x, playerPos.z - pos.z);
+      if (distToPlayer < 9 && distToPlayer > 0.001) {
+        // Social: turn to face the citizen.
+        this.group.rotation.y = Math.atan2(playerPos.x - pos.x, playerPos.z - pos.z);
+        this.roamPause = 1.2; // linger while someone's near
+      }
+    }
+    if (this.roamPause > 0) {
+      this.roamPause -= delta;
+    } else {
+      const toTarget = new THREE.Vector3().subVectors(this.roamTarget, pos); toTarget.y = 0;
+      if (toTarget.length() < 0.4) {
+        // Pick a new wander target within 6m of home.
+        const a = Math.random() * Math.PI * 2, r = 2 + Math.random() * 4;
+        this.roamTarget.set(this.home.x + Math.cos(a) * r, pos.y, this.home.z + Math.sin(a) * r);
+        this.roamPause = 1 + Math.random() * 3;
+      } else {
+        toTarget.normalize();
+        pos.addScaledVector(toTarget, delta * 0.7);
+        this.group.rotation.y = Math.atan2(toTarget.x, toTarget.z);
+        // Walk bob on the whole figure.
+        pos.y = this.home.y + Math.abs(Math.sin(this.phase * 6)) * 0.03;
+      }
+    }
   }
 
   interact(topic?: string) {
