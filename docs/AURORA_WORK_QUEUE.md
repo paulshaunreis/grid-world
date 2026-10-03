@@ -700,3 +700,13 @@ _Last updated: 2026-10-03_
 - **Next actionable item:** continue the current-main stability audit before adding another major system.
 
 _Last updated: 2026-10-03_
+
+## 2026-10-03 — Current-main stability audit: background service failures
+- **main:** `5788ddf91d123e7d4062e3f138042fe5b8973f7b` (PR #46 merged).
+- Continued the post-dialog stability audit after the temporary avatar-audio mute.
+- Found three player-facing background loops that swallowed failures: party roster synchronization, merchant-market synchronization, and transit-invitation refresh.
+- PR #46 adds one-time HUD/chat failure feedback and recovery feedback, and marks transit invitations unavailable while refresh is failing. Existing service authority, persistence, and UI architecture remain unchanged.
+- Verification: **L0 source review + successful merge**. No CI/browser/WebGL/Render verification observed.
+- **Next focus:** continue the current-main stability audit for remaining silent failures/dead-end controls, then move toward the outstanding browser/WebGL verification pass before another major feature expansion.
+
+_Last updated: 2026-10-03_
