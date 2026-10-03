@@ -12,8 +12,8 @@ const isLocalAsset=r=>r.startsWith('/')&&!r.startsWith('//')&&/\.(svg|png|jpe?g|
 for(const file of source){
  const t=fs.readFileSync(file,'utf8'),rel=path.relative(root,file);
  if(file.endsWith('.html')){const ids=[...t.matchAll(/\bid=["']([^"']+)["']/g)].map(m=>m[1]);const seen=new Set();for(const id of ids){if(seen.has(id))duplicateIds.push({file:rel,id});seen.add(id)}}
- for(const m of t.matchAll(/(?:href|src)=["']([^"'#?]+)(?:\?[^"']*)?["']/g)){const ref=m[1];if(ref.startsWith('/')&&ref.endsWith('.html')&&!routes.has(ref))missing.push({file:rel,ref});if(isLocalAsset(ref))assetRefs.push({file:rel,ref})}
- for(const m of t.matchAll(/(?:url\(|['"])(\/[^'")\s]+\.(?:svg|png|jpe?g|webp|avif|gif|glb|gltf|fbx|obj|woff2?|ttf|mp3|ogg|wav)(?:\?[^'")\s]*)?)/gi)){assetRefs.push({file:rel,ref:m[1]})}
+ for(const m of t.matchAll(/(?:href|src)=["']([^"'#?]+)(?:\?[^"']*)?["']/g)){const ref=m[1];if(ref.includes('${'))continue;if(ref.startsWith('/')&&ref.endsWith('.html')&&!routes.has(ref))missing.push({file:rel,ref});if(isLocalAsset(ref))assetRefs.push({file:rel,ref})}
+ for(const m of t.matchAll(/(?:url\(|['"])(\/[^'")\s]+\.(?:svg|png|jpe?g|webp|avif|gif|glb|gltf|fbx|obj|woff2?|ttf|mp3|ogg|wav)(?:\?[^'")\s]*)?)/gi)){if(m[1].includes('${'))continue;assetRefs.push({file:rel,ref:m[1]})}
 }
 for(const {file,ref} of assetRefs){const clean=ref.split('?')[0];const relative=clean.replace(/^\//,'');const candidate=path.join(root,'public',relative);if(!fs.existsSync(candidate))badAssetRefs.push({file,ref})}
 const assets=files.filter(p=>/\.(glb|gltf|fbx|obj|png|jpe?g|webp|avif|gif|svg|woff2?|ttf|mp3|ogg|wav)$/i.test(p));
