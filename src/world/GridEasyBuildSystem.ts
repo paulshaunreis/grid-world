@@ -48,7 +48,7 @@ export class GridEasyBuildSystem{
   attach(camera:THREE.Camera,scene:THREE.Scene,dom:HTMLElement){if(this.attached)return;this.attached=true;this.camera=camera;this.scene=scene;this.dom=dom;dom.addEventListener('pointerdown',this.onPointerDown);dom.addEventListener('pointermove',this.onPointerMove);dom.addEventListener('wheel',this.onWheel,{passive:false});window.addEventListener('keydown',this.onKeyDown);}
   open(){this.panel?.classList.add('open');this.setEnabled(this.canBuild());this.updateAccessUI();}
   close(){this.panel?.classList.remove('open');this.cancel();}
-  setEnabled(enabled:boolean){this.root.userData.enabled=enabled;}
+  setEnabled(enabled:boolean){this.requestedEnabled=enabled;this.root.userData.enabled=enabled;}
   setOwnerUserId(userId:string){this.ownerUserId=userId;}
   setAccessRole(role:GridBuildAccessRole){this.accessRole=role;this.root.userData.accessRole=role??'none';this.root.userData.canBuild=this.canBuild();this.root.userData.canEditAll=this.canEditAll();this.updateAccessUI();}
   setWorldCapabilityEnabled(enabled:boolean){this.worldCapabilityEnabled=enabled;this.root.userData.worldCapabilityEnabled=enabled;this.root.userData.canBuild=this.canBuild();this.setEnabled(this.requestedEnabled && this.canBuild());this.updateAccessUI();}
