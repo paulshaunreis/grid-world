@@ -1362,14 +1362,18 @@ let lastVitalsPublish = 0;
 async function refreshPersistentTransit(){
   if(!cloudPersistence) return;
   try {
-    const { data } = await cloudPersistence.getClient().from('grid_transit_traffic').select('source_world,destination_world,departures,arrivals,queue_depth,updated_at');
+    const { data, error } = await cloudPersistence.getClient().from('grid_transit_traffic').select('source_world,destination_world,departures,arrivals,queue_depth,updated_at');
+    if (error) throw error;
     if(!data) return;
     const now=Date.now();
     persistentTransitByWorld={};
     persistentTransitFlow=data.reduce((sum:any,row:any)=>{ const age=(now-Date.parse(row.updated_at))/60000; const freshness=Math.max(0,1-age/15); const flow=(Number(row.departures||0)+Number(row.arrivals||0)+Number(row.queue_depth||0)*.5)*freshness; const world=String(row.destination_world||row.source_world||''); persistentTransitByWorld[world]=(persistentTransitByWorld[world]||0)+flow; return sum+flow; },0);
     for(const key of Object.keys(persistentTransitByWorld)) persistentTransitByWorld[key]=Math.min(10,persistentTransitByWorld[key]);
     persistentTransitFlow=Math.min(10,persistentTransitFlow);
-  } catch {}
+    reportBackgroundServiceRecovery('persistent-transit','Transit traffic data is back online.');
+  } catch {
+    reportBackgroundServiceFailure('persistent-transit','Transit traffic data is temporarily unavailable; world transit remains available.');
+  }
 }
 async function refreshMarketQuotes() {
   if (!combatAuthority) return;
@@ -1386,7 +1390,9 @@ async function refreshMarketQuotes() {
       scarcity:Number((r as any).scarcity ?? 1),
       demand:Number((r as any).demand ?? 1),
     }));
+    reportBackgroundServiceRecovery('market-quotes','Market quote service is back online.');
   } catch (error) {
+    reportBackgroundServiceFailure('market-quotes','Market quotes are temporarily unavailable; marketplace actions remain available.');
     console.warn('Market quote refresh unavailable.', error);
   }
 }
