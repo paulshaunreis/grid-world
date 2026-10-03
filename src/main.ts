@@ -328,15 +328,44 @@ function setSocialTarget(userId:string|null){socialTargetUserId=userId;socialQui
 socialFriend.addEventListener('click',async()=>{if(!socialAuthority||!socialTargetUserId)return;try{await socialAuthority.requestFriend(socialTargetUserId);addChatMessage('SOCIAL','Friend request sent.','system');}catch(error){addChatMessage('SOCIAL','Friend request could not be sent.','system');console.warn(error);}});
 socialMessage.addEventListener('click',()=>{if(socialTargetUserId){chatInput.focus();chatInput.value='@'+socialTargetUserId+' ';}});
 socialParty.addEventListener('click',async()=>{if(!socialTargetUserId||!partyInviteAuthority)return;try{const partyId=(await partySystem?.current())?.[0]?.partyId??await partyInviteAuthority.ensureParty(identity.displayName+' Party');await partyInviteAuthority.create(partyId,socialTargetUserId);addChatMessage('PARTY','Party invitation sent.','system');}catch(error){addChatMessage('PARTY','Party invitation could not be sent.','system');console.warn(error);}});
-partyControlButton.onclick=async()=>{
+const partyControlMenu = document.createElement('div');
+partyControlMenu.id = 'grid-party-control-menu';
+partyControlMenu.className = 'grid-window';
+Object.assign(partyControlMenu.style, {
+  position:'fixed', right:'24px', top:'196px', zIndex:'81', minWidth:'220px',
+  padding:'10px', display:'none', color:'var(--hud-strong)', font:'700 10px IBM Plex Mono,monospace',
+});
+document.body.appendChild(partyControlMenu);
+
+function closePartyControlMenu() {
+  partyControlMenu.style.display = 'none';
+  partyControlMenu.replaceChildren();
+}
+
+function partyMenuButton(label:string, action:()=>void) {
+  const button=document.createElement('button');
+  button.type='button';
+  button.textContent=label;
+  Object.assign(button.style,{
+    display:'block',width:'100%',margin:'4px 0',padding:'8px 10px',
+    background:'rgba(5,12,21,.82)',border:'1px solid rgba(var(--hud-rgb),.22)',
+    color:'var(--hud-strong)',font:'700 10px IBM Plex Mono,monospace',cursor:'pointer',textAlign:'left',
+  });
+  button.addEventListener('click',()=>{ closePartyControlMenu(); void action(); });
+  partyControlMenu.appendChild(button);
+}
+
+async function openPartyControlMenu() {
   if(!partySystem)return;
-  try{
+  try {
     const members=await partySystem.current();
     const self=members.find(m=>m.userId===cloudIdentity.id);
     if(!self)return;
+    closePartyControlMenu();
+    partyControlMenu.style.display='block';
+
     if(self.role==='LEADER'){
-      const action=(window.prompt('PARTY CONTROL: choose TRANSIT, TRANSFER, KICK, or LEAVE','TRANSIT')||'').trim().toUpperCase();
-      if(action==='TRANSIT'){
+      partyMenuButton('TRANSIT · CHOOSE DESTINATION',async()=>{
         const destinations=teleportSystem.all().filter(x=>x.status!=='offline').map(x=>({id:x.id,displayName:x.displayName,regionId:x.regionId,position:{...x.position},yaw:x.yaw,clearanceRadius:x.clearanceRadius}));
         const landmarks=landmarkAuthority?await landmarkAuthority.list().catch(()=>[]):[];
         openTeleportDestinationPicker(destinations,landmarks,async destination=>{
@@ -345,21 +374,50 @@ partyControlButton.onclick=async()=>{
           addChatMessage('PARTY','Group route locked: '+destination.displayName+'.','system');
           void partyDestinationTick();
         });
-      }else if(action==='TRANSFER'){
-        const id=(window.prompt('Enter the party member user ID')||'').trim();
-        if(id){await partySystem.transferLeadership(self.partyId,id);addChatMessage('PARTY','Leadership transferred.','system');}
-      }else if(action==='KICK'){
-        const id=(window.prompt('Enter the member user ID to remove')||'').trim();
-        if(id){await partySystem.kick(self.partyId,id);addChatMessage('PARTY','Member removed from the party.','system');}
-      }else if(action==='LEAVE'){
-        await partySystem.leave(self.partyId); addChatMessage('PARTY','Party dissolved or leadership passed to the next member.','system');
-      }
+      });
+      partyMenuButton('TRANSFER LEADERSHIP',async()=>{
+        closePartyControlMenu();
+        partyControlMenu.style.display='block';
+        const eligible=members.filter(member=>member.userId!==self.userId);
+        if(!eligible.length){addChatMessage('PARTY','No other party member is available for leadership transfer.','system');closePartyControlMenu();return;}
+        partyMenuButton('← BACK',()=>openPartyControlMenu());
+        eligible.forEach(member=>partyMenuButton('TRANSFER TO · '+member.displayName,async()=>{
+          await partySystem.transferLeadership(self.partyId,member.userId);
+          addChatMessage('PARTY','Leadership transferred to '+member.displayName+'.','system');
+        }));
+      });
+      partyMenuButton('KICK MEMBER',async()=>{
+        closePartyControlMenu();
+        partyControlMenu.style.display='block';
+        const eligible=members.filter(member=>member.userId!==self.userId);
+        if(!eligible.length){addChatMessage('PARTY','There are no other party members to remove.','system');closePartyControlMenu();return;}
+        partyMenuButton('← BACK',()=>openPartyControlMenu());
+        eligible.forEach(member=>partyMenuButton('REMOVE · '+member.displayName,async()=>{
+          await partySystem.kick(self.partyId,member.userId);
+          addChatMessage('PARTY',member.displayName+' was removed from the party.','system');
+        }));
+      });
+      partyMenuButton('LEAVE PARTY',async()=>{
+        await partySystem.leave(self.partyId);
+        addChatMessage('PARTY','Party dissolved or leadership passed to the next member.','system');
+      });
     }else{
-      const action=(window.prompt('PARTY MEMBER: choose LEAVE','LEAVE')||'').trim().toUpperCase();
-      if(action==='LEAVE'){await partySystem.leave(self.partyId);addChatMessage('PARTY','You left the party.','system');}
+      partyMenuButton('LEAVE PARTY',async()=>{
+        await partySystem.leave(self.partyId);
+        addChatMessage('PARTY','You left the party.','system');
+      });
     }
-  }catch(error){addChatMessage('PARTY','Party action was rejected by Grid authority.','system');console.warn(error);}
-};
+  } catch(error) {
+    closePartyControlMenu();
+    addChatMessage('PARTY','Party action was rejected by Grid authority.','system');
+    console.warn(error);
+  }
+}
+partyControlButton.onclick=()=>void openPartyControlMenu();
+document.addEventListener('pointerdown',event=>{
+  const target=event.target as Node;
+  if(partyControlMenu.style.display!=='none' && !partyControlMenu.contains(target) && target!==partyControlButton) closePartyControlMenu();
+});
 const partyInvitePanel=partyInviteAuthority&&cloudPersistence
   ? mountGridPartyInvitePanel(partyInviteAuthority,cloudPersistence.getClient(),()=>{
       addChatMessage('PARTY','Invitation accepted. You are now linked to the party roster.','system');
