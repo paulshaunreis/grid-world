@@ -2522,8 +2522,8 @@ function animate(now: number) {
   const activeWorldId = String(livingSnapshot.world);
   const worldCapabilities = getWorldCapabilities(activeWorldId);
   gridMatterTerrain.setActiveWorld(activeWorldId);
-  gridMatterTerrain.setWorldCapabilityEnabled(worldCapabilities.terrainSculpting);
-  easyBuildSystem.setWorldCapabilityEnabled(worldCapabilities.building);
+  gridMatterTerrain.setWorldCapabilityEnabled(worldCapabilities.terrainSculpting ?? true);
+  easyBuildSystem.setWorldCapabilityEnabled(worldCapabilities.building ?? true);
   gridMatterTerrain.rebuild();
   if (activePersistentContentWorldId !== activeWorldId) void syncPersistentWorldContent(activeWorldId);
   if (persistentWorldIds.has(activeWorldId)) {
