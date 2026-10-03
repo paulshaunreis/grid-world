@@ -67,7 +67,7 @@ export class GridVoiceSystem {
   private readonly voices: SpeechSynthesisVoice[] = [];
   private recognition: GridSpeechRecognition | null = null;
   private listening = false;
-
+  // Avatar speech is intentionally muted for now; text/chat interactions remain active.\n  private outputEnabled = false;\n
   constructor() {
     const refresh = () => {
       this.voices.length = 0;
