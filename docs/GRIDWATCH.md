@@ -67,3 +67,13 @@ Mockups: `~/workspace/gridworld/gridwatch-mockups/` (face, weather, notification
 - watchOS first, Wear OS first, or both in parallel?
 - Which regions ship in the region-weather picker at launch?
 - Should quick commands be able to spend GRC from the wrist, or view-only until phone confirms?
+
+## 8. Security (Paul's hard requirement)
+
+No citizen can learn another citizen's IP address or real-world location through GridWatch — or any GridWorld surface. Ever.
+
+- **Relay-only networking.** No direct peer-to-peer connections between clients. Voice goes through TURN relay; game traffic goes through the authoritative server. WebRTC is forced to relay mode; host/srflx ICE candidates (the ones that leak IPs) are disabled.
+- **No IPs on any user-visible surface.** Not in profiles, chat metadata, logs, error messages, or debug screens.
+- **Location stays on the device.** Phone/watch GPS is never transmitted, never shared, never used for "nearby players" features. Proximity is in-world only. Region weather uses in-world regions; Grid timezones are fictional (Grid Meridian +0) — the device timezone is used for display only and never shared.
+- **Session hygiene.** Token-based auth; short-lived tokens on the watch; remote revoke from phone/site if a device is lost.
+- **Platform-wide.** This rule binds the watch app, phone app, Grid Browser (both modes), and the game client. ChatGPT: apply to the networking/voice architecture.
