@@ -519,3 +519,15 @@ _Last updated: 2026-10-02_
 - Existing service/authority boundaries remain unchanged.
 - Verification: **L0 source review + successful merges**. No CI workflow run, browser/WebGL verification, or Render live verification has been observed for these passes.
 - **Next focus:** continue auditing current main for remaining blocking dialogs, silent prerequisite failures, and dead-end controls.
+
+
+## 2026-10-03 — Temporary avatar-audio mute
+- Main after PR #43: `485c2d9692f686abe9bd05957b616127cfc8a9d0`.
+- Paul requested avatar audio be removed temporarily because it was distracting.
+- `src/main.ts` now gates avatar movement/footstep audio behind `AVATAR_AUDIO_ENABLED = false`.
+- Avatar speech output was already disabled in `GridVoiceSystem`; UI/teleport/world sound effects were intentionally preserved.
+- This is recorded as a reversible **EXPERIMENT / temporary UX direction**, not permanent canon.
+- Verification: **L0 source review + successful merge**. No CI/browser/WebGL/Render verification observed.
+- **Next focus:** continue the current-main stability audit.
+
+_Last updated: 2026-10-03_
