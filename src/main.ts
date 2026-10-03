@@ -709,7 +709,7 @@ const createFactoryWorld = (name: string, description: string) => {
   creatureEcology.registerWorld(result.world);
   worldResources.registerWorld(result.world);
   gridMinerals.registerWorld(result.world);
-  void Promise.resolve(cloudPersistence?.getClient().rpc('grid_seed_world_minerals', { p_world_id: result.world.id })).then(() => syncGridMinerals()).catch(() => undefined);
+  void Promise.resolve(cloudPersistence?.getClient().rpc('grid_seed_world_minerals', { p_world_id: result.world.id })).then(response => { if (response?.error) throw response.error; syncGridMinerals(); reportBackgroundServiceRecovery('world-minerals', 'World mineral services are updating again.'); }).catch(error => { reportBackgroundServiceFailure('world-minerals', 'World mineral services are temporarily unavailable.'); console.warn('World mineral seed unavailable.', error); });
   npcSociety.registerWorld(result.world);
   worldEvolution.registerWorld(result.world.id);
   evolutionaryPopulations.registerWorld(result.world.id);
@@ -1993,7 +1993,7 @@ if (gridSessionAuth) {
     const button = document.querySelector<HTMLButtonElement>('#auth-button');
     if (button) button.textContent = 'ACCOUNT';
     void presence?.setIdentity(cloudIdentity, player.getTransform());
-  }).catch(() => {});
+  }).catch(error => { reportBackgroundServiceFailure('account-refresh', 'Account synchronization is temporarily unavailable.'); console.warn('Account profile refresh unavailable.', error); });
 }
 
 const avatarOptions = document.querySelector<HTMLDivElement>('#avatar-options')!;
@@ -2354,7 +2354,7 @@ addEventListener('keydown', event => {
                 : 'You are new to my stall. Let us see what the world has brought you.';
             if (last && tradeCount > 0) line += ' ' + last;
             addChatMessage(String(result.name), line, 'team');
-          }).catch(() => undefined);
+          }).catch(error => { reportBackgroundServiceFailure('npc-memory', 'NPC memory services are temporarily unavailable.'); console.warn('Persistent NPC memory unavailable.', error); });
         }
       }
       if (npcBrain?.remember) {
@@ -2617,7 +2617,7 @@ function animate(now: number) {
             const species=String(target?.userData.species ?? 'creature').replaceAll('-', ' ');
             addChatMessage('COMBAT', species + ' struck back. The wilds are reacting.', 'system');
           }
-        }).catch(() => undefined);
+        }).catch(error => { reportBackgroundServiceFailure('creature-combat', 'Creature combat services are temporarily unavailable.'); console.warn('Creature combat retaliation unavailable.', error); });
       }
       creatureAttackTimer=0;
     }
