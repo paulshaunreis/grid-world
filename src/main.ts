@@ -913,9 +913,14 @@ async function syncGridMinerals() {
   if (!cloudPersistence) return;
   try {
     const client = cloudPersistence.getClient();
-    const { data } = await client.from('grid_mineral_deposits').select('id,world_id,mineral_kind,remaining,capacity,position_x,position_y,position_z');
+    const { data, error } = await client.from('grid_mineral_deposits').select('id,world_id,mineral_kind,remaining,capacity,position_x,position_y,position_z');
+    if (error) throw error;
     if (data) gridMinerals.syncServerDeposits(data as any);
-  } catch (error) { console.warn('Grid mineral sync unavailable.', error); }
+    reportBackgroundServiceRecovery('mineral-sync','Resource deposits are back in sync.');
+  } catch (error) {
+    reportBackgroundServiceFailure('mineral-sync','Resource deposit data is temporarily unavailable; local exploration remains available.');
+    console.warn('Grid mineral sync unavailable.', error);
+  }
 }
 void syncGridMinerals();
 async function refreshMerchantMarket(){
@@ -927,7 +932,11 @@ async function refreshMerchantMarket(){
       const existing = marketQuotes.find((q:any)=>q.item_id===m.resource_kind);
       if(existing) { existing.unit_price = Number(m.buy_price); existing.demand = Number(m.demand ?? 1); }
     }
-  } catch {}
+    reportBackgroundServiceRecovery('merchant-market','Merchant market data is back online.');
+  } catch (error) {
+    reportBackgroundServiceFailure('merchant-market','Merchant market data is temporarily unavailable; existing market data remains available.');
+    console.warn('Merchant market refresh unavailable.', error);
+  }
 }
 let lastStoryId = '';
 let lastCombatKills = 0;
@@ -1763,7 +1772,9 @@ async function savePersistentWorldContent(worldId: string) {
       Array.isArray(questState.interacted) ? questState.interacted as string[] : [],
       { savedAt: new Date().toISOString(), version: 2 },
     );
+    reportBackgroundServiceRecovery('world-content-save','World changes are saving to the Grid again.');
   } catch (error) {
+    reportBackgroundServiceFailure('world-content-save','World changes could not be saved to the Grid; local changes remain active until persistence recovers.');
     console.warn('Persistent world content save unavailable.', error);
   }
 }
@@ -1800,7 +1811,9 @@ async function loadPersistentWorldContent(worldId: string) {
     activePersistentContentWorldId = worldId;
     await syncBuildAccessRole(worldId);
     addChatMessage('WORLD STATE', 'Restored persistent content for ' + (getWorld(worldId)?.label ?? worldId) + '.', 'system');
+    reportBackgroundServiceRecovery('world-content-restore','Persistent world content is back online.');
   } catch (error) {
+    reportBackgroundServiceFailure('world-content-restore','Persistent world content could not be restored; this world is running with local state.');
     console.warn('Persistent world content restore unavailable.', error);
   }
 }
