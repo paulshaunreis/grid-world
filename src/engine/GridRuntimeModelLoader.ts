@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { createGLTFLoader } from './dracoLoader.js';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 
 export type GridRuntimeModelId =
@@ -33,7 +34,7 @@ export const GRID_RUNTIME_MODEL_URLS: Record<GridRuntimeModelId, string> = {
   'character-a': `${ASSET_ROOT}/blocky-characters/character-a.glb`,
 };
 
-const loader = new GLTFLoader();
+const loader = createGLTFLoader();
 const cache = new Map<string, Promise<THREE.Group>>();
 
 function prepareModel(root: THREE.Object3D) {
