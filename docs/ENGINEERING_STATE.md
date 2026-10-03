@@ -384,3 +384,14 @@ _Last updated: 2026-10-03_
 - **Next actionable item:** continue current-main interaction stability audit before major feature expansion.
 
 _Last updated: 2026-10-03_
+
+
+## 2026-10-03 — Current main after temporary avatar-audio mute
+- **main:** `485c2d9692f686abe9bd05957b616127cfc8a9d0`.
+- PR #43 temporarily muted avatar movement/footstep audio at Paul's request because it was distracting.
+- Avatar speech output was already disabled; other UI, teleport, and world audio remain enabled.
+- Classification: **EXPERIMENT / temporary UX direction**; do not treat the mute as permanent canon.
+- Verification boundary: **L0 source review + successful merge**. CI/browser/WebGL/Render verification remains outstanding.
+- **Next actionable item:** continue current-main stability audit before major feature expansion.
+
+_Last updated: 2026-10-03_
