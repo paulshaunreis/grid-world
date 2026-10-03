@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { normalizeWorldCapabilities, type GridWorldCapabilities } from './WorldCapabilityContract';
 
 /** Grid World is an open-ended network: there is no hard-coded maximum number of worlds. */
 export type GridWorldId = string;
@@ -18,6 +19,7 @@ export interface GridWorldDefinition {
   gateId?: string;
   enabled?: boolean;
   event?: GridWorldEvent;
+  capabilities?: Partial<GridWorldCapabilities>;
 }
 
 export interface GridWorldConnection {
@@ -32,7 +34,7 @@ const connections = new Map<GridWorldId, GridWorldConnection[]>();
 
 export function registerWorld(definition: GridWorldDefinition) {
   if (worlds.has(definition.id)) throw new Error('Grid world already registered: ' + definition.id);
-  worlds.set(definition.id, { ...definition, center: definition.center.clone(), enabled: definition.enabled ?? true, tags: [...(definition.tags ?? [])] });
+  worlds.set(definition.id, { ...definition, center: definition.center.clone(), enabled: definition.enabled ?? true, tags: [...(definition.tags ?? [])], capabilities: normalizeWorldCapabilities(definition.capabilities) });
   connections.set(definition.id, []);
   return worlds.get(definition.id)!;
 }
@@ -40,7 +42,7 @@ export function registerWorld(definition: GridWorldDefinition) {
 export function upsertWorld(definition: GridWorldDefinition) {
   const existing = worlds.get(definition.id);
   if (!existing) return registerWorld(definition);
-  Object.assign(existing, { ...definition, center: definition.center.clone(), tags: [...(definition.tags ?? existing.tags ?? [])] });
+  Object.assign(existing, { ...definition, center: definition.center.clone(), tags: [...(definition.tags ?? existing.tags ?? [])], capabilities: normalizeWorldCapabilities(definition.capabilities ?? existing.capabilities) });
   return existing;
 }
 
@@ -54,6 +56,7 @@ export function connectWorld(source: GridWorldId, destination: GridWorldId, opti
 export function getWorld(id: GridWorldId) { return worlds.get(id); }
 export function getWorlds() { return [...worlds.values()].filter(w => w.enabled !== false); }
 export function getWorldConnections(id: GridWorldId) { return [...(connections.get(id) ?? [])]; }
+export function getWorldCapabilities(id: GridWorldId) { return getWorld(id)?.capabilities ?? normalizeWorldCapabilities(); }
 
 export function getWorldCenter(id: GridWorldId) {
   return worlds.get(id)?.center.clone() ?? new THREE.Vector3();
