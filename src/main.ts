@@ -866,10 +866,24 @@ const gridAuthPanel = cloudPersistence ? mountGridAuthPanel(new GridAuthService(
 }) : null;
 const authButton = document.querySelector<HTMLButtonElement>('#auth-button');
 authButton?.addEventListener('click', async () => {
-  if (!gridAuthPanel) return;
-  const auth = new GridAuthService(cloudPersistence!.getClient());
-  const user = await auth.currentUser();
-  gridAuthPanel.open(user ? 'profile' : 'login');
+  if (!gridAuthPanel) {
+    addChatMessage('ACCOUNT', 'Account services are not available in this build.', 'system');
+    return;
+  }
+  if (!cloudPersistence) {
+    addChatMessage('ACCOUNT', 'Account services are temporarily unavailable. You can keep exploring locally.', 'system');
+    audio.play('ui.error');
+    return;
+  }
+  try {
+    const auth = new GridAuthService(cloudPersistence.getClient());
+    const user = await auth.currentUser();
+    gridAuthPanel.open(user ? 'profile' : 'login');
+  } catch (error) {
+    console.warn('Account service unavailable.', error);
+    addChatMessage('ACCOUNT', 'Account services could not be reached. Local exploration remains available.', 'system');
+    audio.play('ui.error');
+  }
 });
 
 const authRoute = new URLSearchParams(window.location.search).get('auth');
