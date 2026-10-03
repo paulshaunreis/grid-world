@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { createGLTFLoader } from '../engine/dracoLoader.js';
 import { Input } from './Input';
 import { createStarterPBRMaterial } from '../engine/GridPBRLibrary';
 import type { AvatarCustomization } from '../ui/GridAvatarCreator';
@@ -89,7 +90,7 @@ export class PlayerController {
     this.meshGender = gender;
     if (this.meshAvatar) { this.avatar.remove(this.meshAvatar); this.meshAvatar = null; }
     try {
-      const loader = new GLTFLoader();
+      const loader = createGLTFLoader();
       const gltf = await loader.loadAsync(`/models/avatars/avatar-${gender}-clothed.glb`);
       const root = new THREE.Group();
       root.add(gltf.scene);
