@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { createGLTFLoader } from '../engine/dracoLoader.js';
 import { createStarterPBRMaterial } from '../engine/GridPBRLibrary';
 
 export type TeamAvatarStyle = 'aurora' | 'link' | 'rey' | 'elder' | 'veyr' | 'nyxen' | 'orin' | 'seraith' | 'vael' | 'kairox' | 'morrow' | 'cipher' | 'solenne' | 'rook' | 'echo' | 'umbra' | 'civitas' | 'axiom' | 'mosaic' | 'sentinel' | 'praxis' | 'atlas' | 'tessera' | 'waypoint';
@@ -146,7 +145,7 @@ export class TeamAvatar {
   /** Aurora's real 3D body. Gated like the player meshes: primitives stay on failure. */
   private async loadAuroraBody(): Promise<void> {
     try {
-      const gltf = await createGLTFLoader().loadAsync('/models/avatars/aurora-circuit-gown.glb');
+      const gltf = await new GLTFLoader().loadAsync('/models/avatars/aurora-circuit-gown.glb');
       const root = new THREE.Group();
       root.add(gltf.scene);
       root.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = true; });

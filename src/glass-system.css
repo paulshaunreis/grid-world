@@ -22,27 +22,38 @@
   box-shadow: var(--glass-glow), 0 24px 70px rgba(0, 0, 0, .42);
 }
 
+/* Image-based glass: real glass photography layered over the frosted base.
+   Paul 2026-10-03: "The U.I. needs to be made of images." — no more rounded-box CSS alone. */
+
 .glass-deep {
-  background: var(--glass-deep);
+  background:
+    url('/ui/glass-panel.webp') center / cover no-repeat,
+    var(--glass-deep);
   backdrop-filter: blur(22px) saturate(1.2);
   -webkit-backdrop-filter: blur(22px) saturate(1.2);
 }
 
 .glass-panel {
-  background: var(--glass-panel);
+  background:
+    url('/ui/glass-panel.webp') center / cover no-repeat,
+    var(--glass-panel);
   backdrop-filter: blur(24px) saturate(1.25);
   -webkit-backdrop-filter: blur(24px) saturate(1.25);
 }
 
 .glass-light {
-  background: var(--glass-light);
+  background:
+    url('/ui/glass-card.webp') center / cover no-repeat,
+    var(--glass-light);
   backdrop-filter: blur(18px) saturate(1.2);
   -webkit-backdrop-filter: blur(18px) saturate(1.2);
 }
 
-/* Cards: glass floating over art, hover lift + accent glow */
+/* Cards: image-based glass floating over art, hover lift + accent glow */
 .glass-card {
-  background: var(--glass-panel);
+  background:
+    url('/ui/glass-card.webp') center / cover no-repeat,
+    var(--glass-panel);
   backdrop-filter: blur(24px) saturate(1.25);
   -webkit-backdrop-filter: blur(24px) saturate(1.25);
   overflow: hidden;
@@ -78,11 +89,22 @@
   color: var(--glass-accent);
 }
 
+.glass-nav {
+  background:
+    url('/ui/glass-nav.webp') center / cover no-repeat,
+    rgba(4, 9, 16, .85);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  border-bottom: 1px solid var(--glass-border);
+}
+
 .glass-btn {
   font: 700 10px 'IBM Plex Mono', monospace;
   letter-spacing: .14em;
   color: #eaffff;
-  background: rgba(55, 190, 230, .12);
+  background:
+    url('/ui/glass-button.webp') center / cover no-repeat,
+    rgba(55, 190, 230, .12);
   border: 1px solid rgba(100, 230, 255, .45);
   border-radius: 10px;
   padding: 10px 16px;

@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { createGLTFLoader } from '../engine/dracoLoader.js';
 
 export interface StarterZoneDefinition {
   id: string;
@@ -235,7 +234,7 @@ export class StarterZone {
   }
 
   private loadGate(x: number, y: number, z: number) {
-    createGLTFLoader().loadAsync('/models/landmarks/world-gate.glb').then(gltf => {
+    new GLTFLoader().loadAsync('/models/landmarks/world-gate.glb').then(gltf => {
       const gate = gltf.scene;
       gate.position.set(x, y, z);
       gate.rotation.y = -Math.PI / 2; // rings face west toward the plaza
