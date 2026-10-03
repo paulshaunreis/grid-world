@@ -153,6 +153,7 @@ export class WorldEnvironmentSystem {
   update(dt: number) {
     const time = performance.now() * .001;
     for (const world of getWorlds()) {
+      const presentation = deriveWorldDNA(world.tags ?? []).presentation;
       const particles = this.particles.get(world.id);
       if (particles) {
         particles.rotation.y += dt * .006;
