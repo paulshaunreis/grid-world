@@ -499,3 +499,13 @@ _Last updated: 2026-10-02_
 - Verification: **L0 source/document review**. No CI/browser verification.
 - **P3 #30 is complete.** Future direction changes should update the appropriate canonical source and record the change in the handoff/queue.
 \n\n## Checkpoint — 2026-10-02 — current-main stability audit\n- **Main after fix:** `9c9fe45bda22750ca64dd4f6e4f9a8a62d5a08b5`.\n- Audit found stale documentation versus code around party controls: `window.prompt()` was still used for leader/member actions.\n- PR #35 replaced those blocking prompts with a theme-aware HUD menu, preserving the existing party authority and teleport destination picker.\n- One separate landmark naming prompt remains intentionally untouched for a later focused UX pass.\n- Verification: **L0 source review + successful merge**. GitHub workflow lookup/browser verification remain outstanding; do not call this CI-verified.\n- **Next:** continue stability audit of remaining interaction seams.\n
+
+## 2026-10-03 — Current-main stability audit: landmark controls
+- Main after merge: `c238af0b277790806280ec3fdf58603b6bf8aebe`.
+- Re-audited the remaining blocking interaction seam identified after PR #35: landmark/waypoint create, rename, and delete used browser `prompt()` / `confirm()` dialogs.
+- Replaced those dialogs with an inline editor inside the existing `GridLandmarkInventory` UI. Create/rename use a text field; delete requires an exact destination-name confirmation. The existing `GridLandmarkAuthority` remains the data/authority boundary.
+- `src/main.ts` consumes the editor-selected label through the existing custom event; no duplicate modal/window architecture was added.
+- PR #36 merged successfully.
+- Verification: **L0 source review + merge**. No GitHub Actions run, browser/WebGL check, or Render live verification has been observed for this pass.
+- Remaining known follow-ups: browser/WebGL verification, Render post-merge verification, and the pre-existing `grid_operator_policy_rules` RLS finding.
+- **Next focus:** continue the current-main stability audit for other blocking/dead-end controls before adding another major system.
