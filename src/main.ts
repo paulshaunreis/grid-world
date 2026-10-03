@@ -2714,7 +2714,6 @@ function animate(now: number) {
   foundationLayer.update(dt, frame.elapsedSeconds);
   // Keep scene actors world-scoped as well. Simulation already carries the active-world
   // identity; this prevents remote/crowd visuals from bleeding into another world.
-  const activeWorldId = String(livingSnapshot.world);
   const nearestWorldIdAt = (x:number, z:number) => {
     let nearest = Infinity;
     let nearestId = activeWorldId;
