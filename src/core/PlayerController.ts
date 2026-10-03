@@ -81,14 +81,16 @@ export class PlayerController {
     this.loadMeshAvatar(this.meshGender);
   }
 
-  /** Load the real GLB base mesh. On success the primitive parts hide; on
-   *  failure the primitives stay visible — never a invisible avatar. */
+  /** Load the real clothed GLB mesh. On success the primitive parts hide; on
+   *  failure the primitives stay visible — never an invisible avatar.
+   *  Safety: only the CLOTHED builds load. The unclothed base meshes
+   *  (avatar-*-base.glb) are never referenced — G-rated, always. */
   async loadMeshAvatar(gender: 'male' | 'female'): Promise<void> {
     this.meshGender = gender;
     if (this.meshAvatar) { this.avatar.remove(this.meshAvatar); this.meshAvatar = null; }
     try {
       const loader = new GLTFLoader();
-      const gltf = await loader.loadAsync(`/models/avatars/avatar-${gender}-base.glb`);
+      const gltf = await loader.loadAsync(`/models/avatars/avatar-${gender}-clothed.glb`);
       const root = new THREE.Group();
       root.add(gltf.scene);
       // Normalize: base meshes are ~1.7m; our avatar rig expects ~1.9m to head-top.
