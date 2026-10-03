@@ -1,4 +1,5 @@
 import './marketplace.css';
+import './glass-system.css';
 import { mountStaffMarketActivity } from './marketplace-activity';
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, supabaseConfigured } from './persistence/config';
@@ -96,7 +97,7 @@ function render(){
   document.querySelectorAll<HTMLButtonElement>('[data-buy]').forEach(b=>b.addEventListener('click',()=>alert('Purchase flow is protected until authenticated wallet + server settlement are enabled.')));
 }
 function card(l:Listing,s?:Staff){
-  return '<article class="listing"><div class="art">'+art(l.art_key)+'</div><div class="listing-body"><div class="seller"><span>'+((s?.display_name??'Staff Merchant'))+'</span><em>'+l.category+'</em></div><h2>'+l.title+'</h2><p>'+l.description+'</p><div class="listing-foot"><strong>'+l.price.toLocaleString()+' GRD</strong><button data-buy="'+l.id+'">VIEW / BUY</button></div></div></article>';
+  return '<article class="listing glass-card"><div class="art">'+art(l.art_key)+'</div><div class="listing-body"><div class="seller"><span>'+((s?.display_name??'Staff Merchant'))+'</span><em>'+l.category+'</em></div><h2>'+l.title+'</h2><p>'+l.description+'</p><div class="listing-foot"><strong>'+l.price.toLocaleString()+' GRD</strong><button class="glass-btn" data-buy="'+l.id+'">VIEW / BUY</button></div></div></article>';
 }
 function filter(){const q=(document.querySelector<HTMLInputElement>('#search')?.value??'').toLowerCase();const c=document.querySelector<HTMLSelectElement>('#category')?.value??'';const cards=document.querySelector<HTMLDivElement>('#cards');if(!cards)return;const people=new Map(staff.map(s=>[s.id,s]));cards.innerHTML=listings.filter(l=>(!q||[l.title,l.description,l.category,people.get(l.seller_staff_id)?.display_name].join(' ').toLowerCase().includes(q))&&(!c||l.category===c)).map(l=>card(l,people.get(l.seller_staff_id))).join('');document.querySelectorAll<HTMLButtonElement>('[data-buy]').forEach(b=>b.addEventListener('click',()=>alert('Purchase flow is protected until authenticated wallet + server settlement are enabled.')));}
 async function load(){

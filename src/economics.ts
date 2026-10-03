@@ -1,4 +1,5 @@
 import './economics.css';
+import './glass-system.css';
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, supabaseConfigured } from './persistence/config';
 
@@ -12,11 +13,11 @@ const history:Record<string,number[]>={};
 for(const r of rates) history[r.quote_currency]=Array.from({length:24},(_,i)=>r.rate*(1+Math.sin(i*.55)*.018));
 
 app.innerHTML=`
-<header><a href="/" class="brand">◇ GRID WORLD</a><nav><a href="/docs.html">Docs</a><a href="/directory.html">Staff</a><a href="/play.html">Enter World</a></nav></header>
-<main class="econ"><div class="eyebrow">GRID WORLD · ECONOMICS</div><div class="hero-row"><div><h1>A living<br><span>Grid economy.</span></h1><p>Internal simulated market data, exchange surfaces, creator value flows and a future-ready external payments boundary.</p></div><div class="market-status"><i></i><b>SIMULATION LIVE</b><small id="updated">Updating…</small></div></div>
+
+<main class="econ"><div class="eyebrow">GRID WORLD · ECONOMICS</div><div class="hero-row"><div class="card-art econ-hero"><img src="/art/economics-hero.webp" alt="Luminous Grid trading hall" loading="lazy" onerror="this.style.display='none'"></div><div><h1>A living<br><span>Grid economy.</span></h1><p>Internal simulated market data, exchange surfaces, creator value flows and a future-ready external payments boundary.</p></div><div class="market-status"><i></i><b>SIMULATION LIVE</b><small id="updated">Updating…</small></div></div>
 <section class="market"><div class="section-head"><div><span>MARKET BOARD</span><h2>Currency worth</h2></div><small>Base: GRD · updates every 15 seconds</small></div><div class="currency-grid" id="currency-grid"></div></section>
 <section class="chart-panel"><div class="section-head"><div><span>SELECTED MARKET</span><h2 id="chart-title">Grid / Lumen</h2></div><select id="currency-select"></select></div><div class="chart-wrap"><svg id="chart" viewBox="0 0 900 300" preserveAspectRatio="none"></svg></div><div class="chart-foot"><span>1 GRD = <b id="selected-rate">0.82 LUM</b></span><span>Simulation only · not a real-world exchange rate</span></div></section>
-<section class="economy-grid"><article><span>WALLET</span><h2>Balances</h2><p>Wallet balances belong to authenticated Grid identities and are designed to live on the server ledger, not browser storage.</p><button id="wallet-demo">OPEN WALLET</button></article><article><span>TRADE</span><h2>Exchange + barter</h2><p>Exchange pairs, direct barter, creator sales, escrow-like holds and atomic settlement are planned as distinct transaction types.</p><button id="trade-demo">OPEN EXCHANGE</button></article><article><span>EXTERNAL RAIL</span><h2>Cash App-ready boundary</h2><p>Cash App Pay can become an external payment rail through a server-side adapter. Grid Currency remains separate until a real-money program is legally and operationally ready.</p><button id="cash-demo">VIEW RAIL</button></article></section>
+<section class="economy-grid"><article class="glass-card"><span>WALLET</span><h2>Balances</h2><p>Wallet balances belong to authenticated Grid identities and are designed to live on the server ledger, not browser storage.</p><button id="wallet-demo" class="glass-btn">OPEN WALLET</button></article><article class="glass-card"><span>TRADE</span><h2>Exchange + barter</h2><p>Exchange pairs, direct barter, creator sales, escrow-like holds and atomic settlement are planned as distinct transaction types.</p><button id="trade-demo" class="glass-btn">OPEN EXCHANGE</button></article><article class="glass-card"><span>EXTERNAL RAIL</span><h2>Cash App-ready boundary</h2><p>Cash App Pay can become an external payment rail through a server-side adapter. Grid Currency remains separate until a real-money program is legally and operationally ready.</p><button id="cash-demo" class="glass-btn">VIEW RAIL</button></article></section>
 <section class="principles"><span>MONETARY DESIGN NOTES</span><h2>What we borrow from money's history.</h2><div class="principle-grid"><div><b>Medium of exchange</b><p>Useful for buying, selling, paying creators and rewarding activity.</p></div><div><b>Unit of account</b><p>One stable reference unit makes prices and comparisons understandable.</p></div><div><b>Store of value</b><p>Some Grid currencies can be designed for retention, but their simulated value can move.</p></div><div><b>Trust + settlement</b><p>Ledger integrity, permissions, reconciliation and transparent transaction history matter more than visual tokens.</p></div></div></section>
 <footer><a href="/">← Grid World</a><a href="/docs.html">Documentation</a></footer></main>`;
 
@@ -25,7 +26,7 @@ function render(){
   grid.innerHTML=rates.map(rate=>{
     const c=currencies.find(x=>x.id===rate.quote_currency)!;
     const change=((history[c.id]?.at(-1)!/(history[c.id]?.at(-2)??history[c.id]?.at(-1)!))-1)*100;
-    return '<button class="currency-card" data-currency="'+c.id+'"><b>'+c.code+'</b><strong>'+rate.rate.toFixed(3)+'</strong><small>1 GRD</small><em class="'+(change>=0?'up':'down')+'">'+(change>=0?'+':'')+change.toFixed(2)+'%</em></button>';
+    return '<button class="currency-card glass-card glass-light" data-currency="'+c.id+'"><b>'+c.code+'</b><strong>'+rate.rate.toFixed(3)+'</strong><small>1 GRD</small><em class="'+(change>=0?'up':'down')+'">'+(change>=0?'+':'')+change.toFixed(2)+'%</em></button>';
   }).join('');
   document.querySelectorAll<HTMLButtonElement>('[data-currency]').forEach(b=>b.addEventListener('click',()=>select(b.dataset.currency!)));
 }

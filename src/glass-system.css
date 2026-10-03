@@ -1,0 +1,107 @@
+/* GridWorld Glass Design System — one continuous language for site + in-world UI.
+   Tokens from src/ui/grid-effects.css "transparency pass: glassmorphism".
+   Frosted glass panels float over the world's art; light type over strong blur. */
+
+:root {
+  --glass-deep: rgba(4, 9, 16, .78);
+  --glass-panel: rgba(8, 13, 21, .82);
+  --glass-light: rgba(3, 9, 16, .55);
+  --glass-dim: rgba(2, 5, 10, .55);
+  --glass-border: rgba(100, 220, 255, .22);
+  --glass-border-soft: rgba(100, 220, 255, .14);
+  --glass-glow: inset 0 1px 0 rgba(180, 240, 255, .07), inset 0 0 32px rgba(80, 210, 255, .05);
+  --glass-text: #eaf8ff;
+  --glass-text-dim: #9db4c8;
+  --glass-accent: #66eaff;
+}
+
+.glass-deep, .glass-panel, .glass-card, .glass-light {
+  color: var(--glass-text);
+  border: 1px solid var(--glass-border);
+  border-radius: 18px;
+  box-shadow: var(--glass-glow), 0 24px 70px rgba(0, 0, 0, .42);
+}
+
+.glass-deep {
+  background: var(--glass-deep);
+  backdrop-filter: blur(22px) saturate(1.2);
+  -webkit-backdrop-filter: blur(22px) saturate(1.2);
+}
+
+.glass-panel {
+  background: var(--glass-panel);
+  backdrop-filter: blur(24px) saturate(1.25);
+  -webkit-backdrop-filter: blur(24px) saturate(1.25);
+}
+
+.glass-light {
+  background: var(--glass-light);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+}
+
+/* Cards: glass floating over art, hover lift + accent glow */
+.glass-card {
+  background: var(--glass-panel);
+  backdrop-filter: blur(24px) saturate(1.25);
+  -webkit-backdrop-filter: blur(24px) saturate(1.25);
+  overflow: hidden;
+  transition: transform .16s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.glass-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(100, 220, 255, .45);
+  box-shadow: var(--glass-glow), 0 30px 80px rgba(0, 0, 0, .5), 0 0 34px rgba(90, 220, 255, .12);
+}
+
+.glass-card .card-art {
+  position: relative;
+  overflow: hidden;
+}
+.glass-card .card-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.glass-card .card-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 55%, rgba(4, 9, 16, .72));
+  pointer-events: none;
+}
+
+.glass-eyebrow {
+  font: 700 9px 'IBM Plex Mono', monospace;
+  letter-spacing: .22em;
+  color: var(--glass-accent);
+}
+
+.glass-btn {
+  font: 700 10px 'IBM Plex Mono', monospace;
+  letter-spacing: .14em;
+  color: #eaffff;
+  background: rgba(55, 190, 230, .12);
+  border: 1px solid rgba(100, 230, 255, .45);
+  border-radius: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: box-shadow .18s ease, border-color .18s ease, background-color .18s ease, transform .12s ease;
+}
+.glass-btn:hover {
+  border-color: #66eaff;
+  box-shadow: 0 0 22px rgba(90, 220, 255, .25);
+  transform: translateY(-1px);
+}
+
+.glass-input {
+  background: rgba(3, 9, 16, .6);
+  border: 1px solid var(--glass-border-soft);
+  border-radius: 10px;
+  color: var(--glass-text);
+  padding: 11px 14px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.glass-input::placeholder { color: var(--glass-text-dim); }
