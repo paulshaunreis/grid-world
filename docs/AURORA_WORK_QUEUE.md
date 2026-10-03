@@ -777,3 +777,14 @@ _Last updated: 2026-10-03_
 - **Next:** verify the Render deployment, then wire the capability contract into the highest-value existing world systems only where an actual world-specific rule is required.
 
 _Last updated: 2026-10-03_
+
+## 2026-10-03 — World Capability Contract integration increment
+- **PR #55 merged:** `fbdaf016a72aca68d204f6ac347f0bfca618f4d7`.
+- Wired the existing capability contract into Build Mode and Grid Matter terrain through the existing `GridWorldRegistry`.
+- Build Mode respects the active world's `building` capability while preserving the user's enabled/disabled preference across world transitions.
+- Grid Matter respects `terrainSculpting` while preserving the existing Creator Studio enable state.
+- Default capability values preserve current behavior; no concept-only district/world was promoted to gameplay.
+- Verification: **L0 source re-fetch + successful merge**. Render deployment/live verification pending.
+- **Next:** verify the PR #55 Render build/live surface. If healthy, continue only with a concrete world-specific capability rule that is already represented by existing gameplay, rather than adding speculative gates.
+
+_Last updated: 2026-10-03_
