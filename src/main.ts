@@ -1993,7 +1993,7 @@ if (gridSessionAuth) {
     const button = document.querySelector<HTMLButtonElement>('#auth-button');
     if (button) button.textContent = 'ACCOUNT';
     void presence?.setIdentity(cloudIdentity, player.getTransform());
-  }).catch(() => {});
+  }).catch(error => { reportBackgroundServiceFailure('account-refresh', 'Account synchronization is temporarily unavailable.'); console.warn('Account profile refresh unavailable.', error); });
 }
 
 const avatarOptions = document.querySelector<HTMLDivElement>('#avatar-options')!;
