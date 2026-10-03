@@ -395,3 +395,10 @@ _Last updated: 2026-10-03_
 - **Next actionable item:** continue current-main stability audit before major feature expansion.
 
 _Last updated: 2026-10-03_
+
+## 2026-10-03 — Background service failure feedback (PR #46)
+- Main: `5788ddf91d123e7d4062e3f138042fe5b8973f7b`.
+- PR #46 addressed three silent background failures: party roster sync, merchant market sync, and transit invite refresh.
+- Existing authority/UI architecture was preserved; failures now produce bounded user-facing feedback and recovery notices.
+- Verification: **L0 source review + merge**. CI/browser/WebGL/Render verification remains outstanding.
+- Next actionable item: continue current-main stability audit.

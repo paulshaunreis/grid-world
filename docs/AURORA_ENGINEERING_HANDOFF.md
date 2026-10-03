@@ -531,3 +531,11 @@ _Last updated: 2026-10-02_
 - **Next focus:** continue the current-main stability audit.
 
 _Last updated: 2026-10-03_
+
+## 2026-10-03 — Background service failure feedback
+- Main after PR #46: `5788ddf91d123e7d4062e3f138042fe5b8973f7b`.
+- The stability audit identified silent failures in party roster polling, merchant market refresh, and transit invitation refresh.
+- PR #46 surfaces one-time user-facing failure/recovery messages and marks the transit-invite control unavailable during a failed refresh. The patch reuses the existing chat/HUD feedback path and introduces no duplicate modal/window architecture.
+- Verification: **L0 source review + successful merge**; no CI/browser/WebGL/Render verification observed.
+- Next: continue stability audit for other silent failures and dead-end controls.
+
