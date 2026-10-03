@@ -797,3 +797,15 @@ _Last updated: 2026-10-03_
 - **Next:** verify the Render deployment for the capability work before making another change.
 
 _Last updated: 2026-10-03_
+
+
+## 2026-10-03 — Capability deployment + live interaction verification
+- Render deploy `dep-db0k0ck9v7es73bpd2d0` for main commit `e59fa5d99f0e82fe6dab0018d61582ecdb962ba8` is **LIVE**.
+- The deployment fix normalized optional world capability flags at the existing Build Mode / Grid Matter integration call sites; no new architecture was introduced.
+- Live `/play.html` returned HTTP 200 with the Grid Engine 0.1 runtime surface populated: active world, transit, living-world telemetry, missions, World Atlas, Builder, NPC/team systems, and World Pulse were present.
+- Safe live interaction verification confirmed HUD **MAP** opens the Many Worlds panel and HUD **TEAM** opens the Grid World Team Area; no visible errors or broken states occurred.
+- The Many Worlds panel exposed the current world-selection surface while preserving the existing concept-only distinction for in-development worlds.
+- Verification level: **L5 live deployment + safe browser interaction** for these surfaces. A full human/WebGL click-through and deeper gameplay traversal remain separate verification work.
+- **Next:** return to the current-main stability audit and target remaining silent-failure/dead-end interaction seams before adding another major system.
+
+_Last updated: 2026-10-03_
