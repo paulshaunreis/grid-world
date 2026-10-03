@@ -98,3 +98,13 @@ Direction (Paul) → concept → **QA pre-check** (Aurora inspects against the b
 ---
 
 *This is a living document. Amendments come from Paul, or from either engineer via the notebook with Paul's sign-off. The standard is simple: would this pass review at a studio that ships worlds?*
+
+
+## 11. Canon / experiment boundary
+
+Use `docs/CANON_EXPERIMENT_TRACKING.md` when a decision's status is unclear. It is a classification guide, not a replacement for Paul's direction, canonical project documents, the work queue, or the engineering handoff.
+
+- Do not infer CANON from implementation, merge state, or verification alone.
+- Keep experiments bounded and record their results before promotion.
+- Keep concept-only and placeholder material visibly non-final.
+- When sources conflict, document the conflict rather than silently inventing a resolution.

@@ -488,3 +488,13 @@ _Last updated: 2026-10-02_
 - **Current documentation status:** P3 #28 is complete. P3 #29 is the handoff maintenance item; this checkpoint keeps the handoff aligned with current main and the architecture map.
 - **Next actionable queue item:** P3 #30 Canon vs experiment tracking. Before implementing it, inspect existing canon/notes conventions and avoid creating a competing source of truth.
 - **Blocked/known follow-ups:** browser/WebGL verification, Render post-merge verification, and the existing `grid_operator_policy_rules` RLS finding remain separate follow-ups. Do not silently fold them into unrelated feature work.
+
+
+## Checkpoint — 2026-10-02 — P3 #30 canon/experiment tracking
+- **Baseline:** current main `c9dfde4b5d0d976883576e16ac8b2b60bd964bb3`.
+- Added `docs/CANON_EXPERIMENT_TRACKING.md` after auditing the existing documentation set for a competing canon/experiment source of truth.
+- The new guide establishes a source-of-truth hierarchy and separates user-established canon from technical requirements, implementation decisions, experiments, placeholders, concept-only material, and future ideas.
+- It also keeps verification level separate from canon status so “implemented” or “verified” cannot silently mean “canonical.”
+- No runtime code or database schema changed.
+- Verification: **L0 source/document review**. No CI/browser verification.
+- **P3 #30 is complete.** Future direction changes should update the appropriate canonical source and record the change in the handoff/queue.
