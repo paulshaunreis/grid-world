@@ -13,6 +13,32 @@ export function mountGridLandmarkInventory(authority:GridLandmarkAuthority){
   document.body.appendChild(root);
 
   const list=root.querySelector('.grid-landmark-list') as HTMLElement;
+  const editor=document.createElement('div');
+  editor.className='grid-landmark-editor';
+  editor.hidden=true;
+  root.insertBefore(editor,list);
+  const closeEditor=()=>{editor.hidden=true;editor.replaceChildren();};
+  const openEditor=(title:string, initial:string, onSave:(label:string)=>Promise<void>)=>{
+    editor.hidden=false;
+    editor.replaceChildren();
+    const heading=document.createElement('strong'); heading.textContent=title;
+    const input=document.createElement('input'); input.type='text'; input.value=initial; input.maxLength=80; input.setAttribute('aria-label','Destination name');
+    const actions=document.createElement('div'); actions.className='grid-landmark-editor-actions';
+    const cancel=document.createElement('button'); cancel.type='button'; cancel.textContent='CANCEL';
+    const save=document.createElement('button'); save.type='button'; save.textContent='SAVE';
+    const status=document.createElement('small'); status.className='grid-landmark-editor-status';
+    cancel.addEventListener('click',closeEditor);
+    save.addEventListener('click',async()=>{
+      const label=input.value.trim();
+      if(!label){status.textContent='Enter a name first.';input.focus();return;}
+      save.disabled=true; cancel.disabled=true; status.textContent='Saving…';
+      try{await onSave(label);closeEditor();}catch(error){console.warn('Landmark editor action failed.',error);status.textContent='Could not save that change.';save.disabled=false;cancel.disabled=false;}
+    });
+    input.addEventListener('keydown',event=>{if(event.key==='Enter')void save.click();if(event.key==='Escape')closeEditor();});
+    actions.append(cancel,save);
+    editor.append(heading,input,actions,status);
+    input.focus(); input.select();
+  };
   const render=(items:GridLandmarkItem[])=>{
     list.innerHTML='';
     if(!items.length){
@@ -38,16 +64,14 @@ export function mountGridLandmarkInventory(authority:GridLandmarkAuthority){
         try{await authority.setPinned(item.id,!item.pinned);await refresh();}
         catch(error){console.warn('Landmark pin update failed.',error);}
       });
-      row.querySelector('[data-rename]')?.addEventListener('click',async()=>{
-        const label=window.prompt('Rename destination',item.label);
-        if(label===null)return;
-        try{await authority.rename(item.id,label);await refresh();}
-        catch(error){console.warn('Landmark rename failed.',error);}
+      row.querySelector('[data-rename]')?.addEventListener('click',()=>{
+        openEditor('RENAME DESTINATION',item.label,async label=>{await authority.rename(item.id,label);await refresh();});
       });
-      row.querySelector('[data-delete]')?.addEventListener('click',async()=>{
-        if(!window.confirm('Delete '+item.label+' from your saved destinations?'))return;
-        try{await authority.remove(item.id);await refresh();}
-        catch(error){console.warn('Landmark delete failed.',error);}
+      row.querySelector('[data-delete]')?.addEventListener('click',()=>{
+        openEditor('DELETE DESTINATION',item.label,async label=>{
+          if(label!==item.label){throw new Error('Type the destination name exactly to confirm deletion.');}
+          await authority.remove(item.id);await refresh();
+        });
       });
       list.appendChild(row);
     }
@@ -59,7 +83,9 @@ export function mountGridLandmarkInventory(authority:GridLandmarkAuthority){
   };
 
   root.querySelector('[data-create]')?.addEventListener('click',()=>{
-    window.dispatchEvent(new CustomEvent('grid:landmark-create-current'));
+    openEditor('SAVE CURRENT LOCATION','My Waypoint',async label=>{
+      window.dispatchEvent(new CustomEvent('grid:landmark-create-current',{detail:{label}}));
+    });
   });
   root.querySelector('[data-close]')?.addEventListener('click',()=>root?.remove());
   void refresh();
