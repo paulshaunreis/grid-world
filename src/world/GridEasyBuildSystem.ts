@@ -39,6 +39,8 @@ export class GridEasyBuildSystem{
   private lastPointerEvent?:PointerEvent;
   private ownerUserId='';
   private accessRole:GridBuildAccessRole=null;
+  private worldCapabilityEnabled=true;
+  private requestedEnabled=false;
   private readonly starterMaterials:Record<string,number>={'Grid Matter':100,Metal:20,Wood:20,Crystal:10,'Crystal Shard':10};
   private tools:Array<{instanceId:string;recipeId:string;name:string;usesRemaining:number;maxUses:number}> = JSON.parse(localStorage.getItem('grid-world:builder-tools') ?? '[]');
 
@@ -49,8 +51,9 @@ export class GridEasyBuildSystem{
   setEnabled(enabled:boolean){this.root.userData.enabled=enabled;}
   setOwnerUserId(userId:string){this.ownerUserId=userId;}
   setAccessRole(role:GridBuildAccessRole){this.accessRole=role;this.root.userData.accessRole=role??'none';this.root.userData.canBuild=this.canBuild();this.root.userData.canEditAll=this.canEditAll();this.updateAccessUI();}
+  setWorldCapabilityEnabled(enabled:boolean){this.worldCapabilityEnabled=enabled;this.root.userData.worldCapabilityEnabled=enabled;this.root.userData.canBuild=this.canBuild();this.setEnabled(this.requestedEnabled && this.canBuild());this.updateAccessUI();}
   getAccessRole(){return this.accessRole;}
-  private canBuild(){return this.accessRole==='owner'||this.accessRole==='builder'||this.accessRole==='editor'||this.accessRole==='admin';}
+  private canBuild(){return this.worldCapabilityEnabled&&(this.accessRole==='owner'||this.accessRole==='builder'||this.accessRole==='editor'||this.accessRole==='admin');}
   private canEditAll(){return this.accessRole==='owner'||this.accessRole==='editor'||this.accessRole==='admin';}
   private canEditObject(object?:THREE.Object3D){if(!object)return false;if(this.canEditAll())return true;return this.accessRole==='builder'&&String(object.userData.ownerUserId??'')===this.ownerUserId;}
   private updateAccessUI(){if(!this.panel)return;const editable=this.canBuild();this.panel.dataset.role=this.accessRole??'none';this.panel.querySelectorAll<HTMLButtonElement>('button[data-build-action]').forEach(button=>{button.disabled=!editable;});const badge=this.panel.querySelector<HTMLElement>('[data-role-badge]');if(badge)badge.textContent='ROLE · '+(this.accessRole??'NONE').toUpperCase();this.panel.querySelector<HTMLElement>('[data-role-note]')?.replaceChildren(document.createTextNode(editable?'Build permissions active.':'Viewer access · build editing is disabled.'));}
