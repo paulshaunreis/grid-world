@@ -69,7 +69,7 @@ import { WorldEvolutionSystem } from './world/WorldEvolutionSystem';
 import { EvolutionaryPopulationSystem } from './world/EvolutionaryPopulationSystem';
 import { EcologicalWebSystem } from './world/EcologicalWebSystem';
 import { EcologicalInteractionSystem } from './world/EcologicalInteractionSystem';
-import { getWorld, getWorlds, getWorldConnections, connectWorld, registerNetworkWorld, getWorldCenter } from './world/GridWorldRegistry';
+import { getWorld, getWorlds, getWorldConnections, connectWorld, registerNetworkWorld, getWorldCenter, getWorldCapabilities } from './world/GridWorldRegistry';
 import { districtAt, WORLD_TO_REGION } from './theme/districtZones';
 import { GridChakraSystem } from './world/GridChakraSystem';
 import { GridAlchemySystem } from './world/GridAlchemySystem';
@@ -2520,7 +2520,10 @@ function animate(now: number) {
   }
   gridChakras.update(dt, []);
   const activeWorldId = String(livingSnapshot.world);
+  const worldCapabilities = getWorldCapabilities(activeWorldId);
   gridMatterTerrain.setActiveWorld(activeWorldId);
+  gridMatterTerrain.setWorldCapabilityEnabled(worldCapabilities.terrainSculpting);
+  easyBuildSystem.setWorldCapabilityEnabled(worldCapabilities.building);
   gridMatterTerrain.rebuild();
   if (activePersistentContentWorldId !== activeWorldId) void syncPersistentWorldContent(activeWorldId);
   if (persistentWorldIds.has(activeWorldId)) {
