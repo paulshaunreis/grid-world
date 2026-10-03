@@ -81,11 +81,12 @@ export class StarterZone {
     for (const [tx, tz] of [[-10, 72], [10, 72], [0, 86], [-14, 84], [14, 84]] as const)
       this.makeTree(tx, 0, tz);
 
-    // Lanterns: a few per district, widely spaced.
-    this.makeLantern(-16, 24, -12); this.makeLantern(16, 24, -12);
-    this.makeLantern(-16, 24, 12); this.makeLantern(16, 24, 12);
-    this.makeLantern(56, 24, -16); this.makeLantern(72, 24, 16);
-    this.makeLantern(-58, 8, -12); this.makeLantern(-58, 8, 12);
+    // Lanterns: a few per district, widely spaced. Only half carry real
+    // lights — the rest are emissive-only. (Mobile GPU budget.)
+    this.makeLantern(-16, 24, -12, true); this.makeLantern(16, 24, -12, false);
+    this.makeLantern(-16, 24, 12, false); this.makeLantern(16, 24, 12, true);
+    this.makeLantern(56, 24, -16, true); this.makeLantern(72, 24, 16, false);
+    this.makeLantern(-58, 8, -12, true); this.makeLantern(-58, 8, 12, false);
   }
 
   // --- Builders ---
@@ -193,9 +194,8 @@ export class StarterZone {
     const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8),
       new THREE.MeshStandardMaterial({ color: 0xffe0b0, emissive: 0xffc878, emissiveIntensity: 2.4 }));
     lamp.position.y = 2.1;
-    const light = new THREE.PointLight(0xffc878, 8, 10);
-    light.position.y = 2.1;
-    g.add(counter, canopy, lamp, light);
+    // Emissive-only: no real light per stall (mobile GPU budget).
+    g.add(counter, canopy, lamp);
     g.position.set(x, y, z);
     this.group.add(g);
   }
@@ -218,16 +218,19 @@ export class StarterZone {
     this.group.add(g);
   }
 
-  private makeLantern(x: number, y: number, z: number) {
+  private makeLantern(x: number, y: number, z: number, withLight: boolean) {
     const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.12, 3.4, 8), this.stoneLight);
     pole.position.set(x, y + 1.7, z);
     pole.castShadow = true;
     const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 10),
       new THREE.MeshStandardMaterial({ color: 0xbfefff, emissive: 0x66d8ff, emissiveIntensity: 2.2 }));
     lamp.position.set(x, y + 3.6, z);
-    const light = new THREE.PointLight(0x66d8ff, 12, 14);
-    light.position.set(x, y + 3.6, z);
-    this.group.add(pole, lamp, light);
+    this.group.add(pole, lamp);
+    if (withLight) {
+      const light = new THREE.PointLight(0x66d8ff, 12, 14);
+      light.position.set(x, y + 3.6, z);
+      this.group.add(light);
+    }
   }
 
   private loadGate(x: number, y: number, z: number) {
