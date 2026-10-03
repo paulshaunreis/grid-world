@@ -47,7 +47,7 @@ export class TeamAvatar {
   readonly group = new THREE.Group();
   private readonly body: THREE.Mesh;
   private readonly visor: THREE.Mesh;
-  private readonly glow: THREE.PointLight;
+  private readonly glowSprite: THREE.Sprite;
   private readonly labelTexture: THREE.CanvasTexture;
   private readonly labelContext: CanvasRenderingContext2D;
   private phase = Math.random() * Math.PI * 2;
@@ -100,8 +100,25 @@ export class TeamAvatar {
     humanoid.position.y = 0;
     this.group.add(humanoid);
 
-    this.glow = new THREE.PointLight(palette.glow, 2.2, 5);
-    this.glow.position.set(0, 1.7, 0);
+    // Glow halo: an emissive sprite, not a real light. 24 real point lights
+    // (one per advisor) would crush mobile GPUs — the visor and label
+    // already sell the glow visually.
+    const glowCanvas = document.createElement('canvas');
+    glowCanvas.width = glowCanvas.height = 128;
+    const glowCtx = glowCanvas.getContext('2d')!;
+    const gradient = glowCtx.createRadialGradient(64, 64, 4, 64, 64, 64);
+    const glowHex = '#' + palette.glow.toString(16).padStart(6, '0');
+    gradient.addColorStop(0, glowHex + 'cc');
+    gradient.addColorStop(0.4, glowHex + '55');
+    gradient.addColorStop(1, glowHex + '00');
+    glowCtx.fillStyle = gradient;
+    glowCtx.fillRect(0, 0, 128, 128);
+    this.glowSprite = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: new THREE.CanvasTexture(glowCanvas),
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    }));
+    this.glowSprite.scale.set(2.4, 2.4, 1);
+    this.glowSprite.position.set(0, 1.7, 0);
 
     const labelCanvas = document.createElement('canvas');
     labelCanvas.width = 768;
@@ -112,7 +129,7 @@ export class TeamAvatar {
     label.scale.set(4.6, 0.96, 1);
     label.position.set(0, 2.55, 0);
 
-    this.group.add(this.body, this.visor, this.glow, label);
+    this.group.add(this.body, this.visor, this.glowSprite, label);
     this.group.position.set(definition.spawn.x, definition.spawn.y ?? 0, definition.spawn.z);
     this.home.copy(this.group.position);
     this.roamTarget.copy(this.home);
@@ -167,7 +184,9 @@ export class TeamAvatar {
   update(delta: number, playerPos?: THREE.Vector3) {
     this.phase += delta;
     this.body.position.y = 1.05 + Math.sin(this.phase * 1.6) * 0.025;
-    this.glow.intensity = 2.2 + Math.sin(this.phase * 2) * 0.45;
+    // Sprite glow pulses by scaling, not light intensity.
+    const glowScale = 2.4 + Math.sin(this.phase * 2) * 0.25;
+    this.glowSprite.scale.set(glowScale, glowScale, 1);
 
     // Roam: drift around the station; face the citizen when they're close.
     const pos = this.group.position;
