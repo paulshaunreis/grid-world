@@ -139,7 +139,7 @@ export class WorldArchitectureSystem {
       cluster.userData.buildingStyle=style;
       cluster.userData.worldDescription=world.description;
       this.root.add(cluster);
-      void this.addRuntimeAssetLayer(world.id, cluster, presentation.geometry, living, wildlife);
+      void this.addRuntimeAssetLayer(world.id, cluster, presentation.geometry, living ?? false, wildlife ?? false);
     }
   }
 
