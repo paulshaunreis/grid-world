@@ -2801,7 +2801,7 @@ function animate(now: number) {
     remote.update(dt);
     remote.group.visible = nearestWorldIdAt(remote.group.position.x, remote.group.position.z) === activeWorldId;
   }
-  for (const avatar of teamAvatars) avatar.update(dt);
+  for (const avatar of teamAvatars) avatar.update(dt, player.avatar.position);
   for (const actor of crowdActors) {
     actor.update(dt, { routinePhase: routinePhaseFor(resolveNpcRoutine(), hourOfDayFromDayFraction(npcDayFraction)) });
     actor.group.visible = nearestWorldIdAt(actor.group.position.x, actor.group.position.z) === activeWorldId;
