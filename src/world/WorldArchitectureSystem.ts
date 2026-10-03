@@ -141,15 +141,8 @@ export class WorldArchitectureSystem {
     }
   }
 
-  update(dt:number, playerX=0, playerZ=0) {
-    let activeWorld: string | null = null;
-    let nearest = Infinity;
-    for (const world of getWorlds()) {
-      const distance = Math.hypot(playerX - world.center.x, playerZ - world.center.z);
-      if (distance < nearest) { nearest = distance; activeWorld = world.id; }
-    }
-    for (const cluster of this.root.children) {
-      cluster.visible = !activeWorld || cluster.userData.worldId === activeWorld;
+  update(dt:number) {
+    for(const cluster of this.root.children){
       cluster.children.forEach((object,index)=>{
         if(object.userData.gridObjectKind==='world-landmark') object.rotation.z+=dt*(.04+index*.002);
       });
