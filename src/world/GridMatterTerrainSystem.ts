@@ -27,6 +27,7 @@ export class GridMatterTerrainSystem {
   private activeWorldId: string | null = null;
   private mode: GridMatterEditMode = 'CARVE';
   private enabled = false;
+  private worldCapabilityEnabled = true;
   private brushRadius = 0;
   private brushStrength = 1;
   private pointerPainting = false;
@@ -70,7 +71,8 @@ export class GridMatterTerrainSystem {
   }
 
   setActiveWorld(worldId:string|null) { this.activeWorldId = worldId; }
-  setEnabled(enabled:boolean) { this.enabled = enabled; this.root.visible = enabled; }
+  setEnabled(enabled:boolean) { this.enabled = enabled; this.root.visible = enabled && this.worldCapabilityEnabled; }
+  setWorldCapabilityEnabled(enabled:boolean) { this.worldCapabilityEnabled = enabled; this.root.visible = this.enabled && enabled; }
   setMode(mode:GridMatterEditMode) { this.mode = mode; }
   getMode() { return this.mode; }
   setBrushRadius(radius:number) { this.brushRadius = Math.max(0, Math.min(4, Math.floor(radius))); }
