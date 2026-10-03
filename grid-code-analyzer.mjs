@@ -10,7 +10,11 @@ const routeFor=p=>{const rel=path.relative(root,p).replaceAll(path.sep,'/');if(r
 const routes=new Set(html.map(routeFor)),missing=[],duplicateIds=[],badAssetRefs=[],assetRefs=[],visualShellViolations=[];
 const isLocalAsset=r=>r.startsWith('/')&&!r.startsWith('//')&&/\.(svg|png|jpe?g|webp|avif|gif|glb|gltf|fbx|obj|woff2?|ttf|mp3|ogg|wav)(\?|$)/i.test(r);
 for(const file of source){
- const t=fs.readFileSync(file,'utf8'),rel=path.relative(root,file);\n if(file.endsWith('.html')){\n  const isPublicPage=routeFor(file)!=='/' || file.endsWith(path.join('index.html'));\n  if(isPublicPage && !t.includes('grid-page-visual.css'))visualShellViolations.push({file:rel,reason:'missing shared grid-page-visual.css'});\n }
+ const t=fs.readFileSync(file,'utf8'),rel=path.relative(root,file);
+ if(file.endsWith('.html')){
+  const isPublicPage=routeFor(file)!=='/' || file.endsWith(path.join('index.html'));
+  if(isPublicPage && !t.includes('grid-page-visual.css'))visualShellViolations.push({file:rel,reason:'missing shared grid-page-visual.css'});
+ }
  if(file.endsWith('.html')){const ids=[...t.matchAll(/\bid=["']([^"']+)["']/g)].map(m=>m[1]);const seen=new Set();for(const id of ids){if(seen.has(id))duplicateIds.push({file:rel,id});seen.add(id)}}
  for(const m of t.matchAll(/(?:href|src)=["']([^"'#?]+)(?:\?[^"']*)?["']/g)){const ref=m[1];if(ref.includes('${'))continue;if(ref.startsWith('/')&&ref.endsWith('.html')&&!routes.has(ref))missing.push({file:rel,ref});if(isLocalAsset(ref))assetRefs.push({file:rel,ref})}
  for(const m of t.matchAll(/(?:url\(|['"])(\/[^'")\s]+\.(?:svg|png|jpe?g|webp|avif|gif|glb|gltf|fbx|obj|woff2?|ttf|mp3|ogg|wav)(?:\?[^'")\s]*)?)/gi)){if(m[1].includes('${'))continue;assetRefs.push({file:rel,ref:m[1]})}
