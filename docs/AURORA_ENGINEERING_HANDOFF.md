@@ -519,3 +519,15 @@ _Last updated: 2026-10-02_
 - Existing service/authority boundaries remain unchanged.
 - Verification: **L0 source review + successful merges**. No CI workflow run, browser/WebGL verification, or Render live verification has been observed for these passes.
 - **Next focus:** continue auditing current main for remaining blocking dialogs, silent prerequisite failures, and dead-end controls.
+
+
+## 2026-10-03 — avatar voice output muted
+- User requested avatar audio be removed for now because spoken avatar audio was too distracting.
+- Disabled `GridVoiceSystem` speech output by default while preserving voice profiles and speech recognition for later re-enablement.
+- Avatar/NPC/team responses continue to appear through existing text/chat UI; no parallel dialogue system was introduced.
+- Corrective PR #42 merged as `45ef131d6bb7792d7b096658df0aae74d195a4cd` after an earlier merge/API inconsistency was detected and corrected.
+- Source verification at the merge commit confirms `outputEnabled = false` and the `speak()` guard.
+- GitHub workflow lookup for the merge commit returned no runs; this change is **not CI-verified**. Browser/WebGL verification is also pending.
+- Speech input remains available; this request mutes spoken output, not microphone recognition.
+
+_Last updated: 2026-10-03_
