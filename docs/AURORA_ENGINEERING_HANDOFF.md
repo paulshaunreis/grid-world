@@ -509,3 +509,13 @@ _Last updated: 2026-10-02_
 - Verification: **L0 source review + merge**. No GitHub Actions run, browser/WebGL check, or Render live verification has been observed for this pass.
 - Remaining known follow-ups: browser/WebGL verification, Render post-merge verification, and the pre-existing `grid_operator_policy_rules` RLS finding.
 - **Next focus:** continue the current-main stability audit for other blocking/dead-end controls before adding another major system.
+
+
+## 2026-10-03 — Current-main stability audit: account, economy, and social controls
+- Main after merges: `94bd2e5c34d8f0a4ca9dd00f52f868d7575bc90a`.
+- Found and fixed three seams: ACCOUNT could throw when cloud persistence was unavailable; Bazaar listing price used a browser prompt; Social privacy-save and microphone failures used browser alerts.
+- PR #38 added explicit Account unavailable handling and auth-service error handling.
+- PR #39 moved Bazaar pricing into the existing Economy panel and Social errors into inline panel status feedback.
+- Existing service/authority boundaries remain unchanged.
+- Verification: **L0 source review + successful merges**. No CI workflow run, browser/WebGL verification, or Render live verification has been observed for these passes.
+- **Next focus:** continue auditing current main for remaining blocking dialogs, silent prerequisite failures, and dead-end controls.
