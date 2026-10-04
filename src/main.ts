@@ -665,6 +665,7 @@ async function persistFactoryWorld(result: ReturnType<typeof createWorldFromDesc
     addChatMessage('WORLD REGISTRY', result.world.label + ' is now persistent and available for re-entry.', 'system');
     return true;
   } catch (error) {
+    reportBackgroundServiceFailure('world-registry-save','World registry persistence is temporarily unavailable; the new world remains active locally.');
     console.warn('Persistent world save unavailable; runtime world remains active.', error);
     addChatMessage('WORLD REGISTRY', result.world.label + ' is active locally, but cloud persistence is unavailable.', 'system');
     return false;
@@ -1405,7 +1406,10 @@ if (cloudPersistence) {
   });
 
   presence.onChat(chat => addChatMessage(chat.displayName, chat.message, 'player'));
-  presence.connect(player.getTransform()).catch(error => {
+  presence.connect(player.getTransform()).then(() => {
+    reportBackgroundServiceRecovery('presence-connect','Realtime presence is back online.');
+  }).catch(error => {
+    reportBackgroundServiceFailure('presence-connect','Realtime presence is temporarily unavailable; continuing in local mode.');
     console.warn('Realtime presence unavailable; continuing in local mode.', error);
     status.textContent = 'FIRST LIGHT · MULTIPLAYER · Unavailable';
     presence = null;
