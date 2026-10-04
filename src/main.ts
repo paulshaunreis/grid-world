@@ -2383,7 +2383,8 @@ addEventListener('keydown', event => {
         }).then(() => combatAuthority?.npcMemoryRead(npcId, 6)).then(memoryResult => {
           const latest = memoryResult?.memories?.[0];
           if (latest?.summary) addChatMessage(String(result.name), String(latest.summary), 'team');
-        }).catch(error => console.warn('Persistent NPC memory unavailable.', error));
+          reportBackgroundServiceRecovery('npc-memory', 'NPC memory services are back online.');
+        }).catch(error => { reportBackgroundServiceFailure('npc-memory', 'NPC memory services are temporarily unavailable.'); console.warn('Persistent NPC memory unavailable.', error); });
       }
       const teamAvatarId = result.object.userData.teamAvatarId as string | undefined;
       if (teamAvatarId) {
@@ -2563,7 +2564,7 @@ function animate(now: number) {
         for (const state of result?.creatures ?? []) {
           combatSystem.applyAuthoritativeCreatureState(state.creature_id, Number(state.health), Number(state.max_health), Number(state.health)>0 && !(state.respawn_at && new Date(state.respawn_at).getTime()>Date.now()));
         }
-      }).catch(error => console.warn('Creature combat sync failed.', error));
+      }).then(() => reportBackgroundServiceRecovery('creature-combat', 'Creature combat services are back online.')).catch(error => { reportBackgroundServiceFailure('creature-combat', 'Creature combat services are temporarily unavailable.'); console.warn('Creature combat sync failed.', error); });
       creatureCombatSyncTimer=0;
     }
 
@@ -2588,7 +2589,7 @@ function animate(now: number) {
             lastCreatureThreatAt = performance.now();
           }
         }
-      }).catch(error => console.warn('Server creature AI tick failed.', error));
+      }).then(() => reportBackgroundServiceRecovery('creature-ai', 'Creature AI services are back online.')).catch(error => { reportBackgroundServiceFailure('creature-ai', 'Creature AI services are temporarily unavailable.'); console.warn('Server creature AI tick failed.', error); });
       creatureCombatAiTimer=0;
     }
 
@@ -2603,7 +2604,7 @@ function animate(now: number) {
           const respawning=Boolean(state.respawn_at && new Date(state.respawn_at).getTime()>Date.now());
           combatSystem.applyAuthoritativeCreatureState(state.creature_id, Number(state.health), Number(state.max_health), Number(state.health)>0 && !respawning);
         }
-      }).catch(error => console.warn('Creature combat state failed.', error));
+      }).then(() => reportBackgroundServiceRecovery('creature-combat-state', 'Creature combat state is back online.')).catch(error => { reportBackgroundServiceFailure('creature-combat-state', 'Creature combat state is temporarily unavailable.'); console.warn('Creature combat state failed.', error); });
       creatureCombatStateTimer=0;
     }
 
@@ -2836,7 +2837,7 @@ function animate(now: number) {
   }
   minimap.update();
   if (presenceTimer >= 0.25) {
-    if (socialAuthority) friendSystem.refresh(socialAuthority).catch(error => console.warn('Friend relationship sync failed.', error));
+    if (socialAuthority) void friendSystem.refresh(socialAuthority).then(() => reportBackgroundServiceRecovery('friend-sync', 'Friend relationship synchronization is back online.')).catch(error => { reportBackgroundServiceFailure('friend-sync', 'Friend relationship synchronization is temporarily unavailable.'); console.warn('Friend relationship sync failed.', error); });
     const transform = player.getTransform();
     presence?.update(transform).catch(console.error);
     combatAuthority?.sync(transform, 'first-light').then(result => {
@@ -2853,7 +2854,7 @@ function animate(now: number) {
           });
         }
       }
-    }).catch(error => console.warn('Combat authority sync failed.', error));
+    }).then(() => reportBackgroundServiceRecovery('combat-authority', 'Combat services are back online.')).catch(error => { reportBackgroundServiceFailure('combat-authority', 'Combat services are temporarily unavailable.'); console.warn('Combat authority sync failed.', error); });
     presenceTimer = 0;
   }
   if (saveTimer >= 2) {
