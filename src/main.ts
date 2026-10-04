@@ -303,7 +303,13 @@ let lastProfileActivityBuildVersion=-1;
 let lastProfileActivityPartySize=0;
 async function recordGridActivity(kind:string,title:string,body:string,worldId?:string,regionId?:string,metadata:Record<string,unknown>={}) {
   if (!profileAuthority) return;
-  try { await profileAuthority.recordActivity({kind,title,body,worldId,regionId,metadata}); } catch (error) { console.warn('Grid profile activity unavailable.',error); }
+  try {
+    await profileAuthority.recordActivity({kind,title,body,worldId,regionId,metadata});
+    reportBackgroundServiceRecovery('profile-activity', 'Profile activity synchronization is back online.');
+  } catch (error) {
+    reportBackgroundServiceFailure('profile-activity', 'Profile activity synchronization is temporarily unavailable.');
+    console.warn('Grid profile activity unavailable.',error);
+  }
 }
 
 const backgroundServiceFailures = new Set<string>();
@@ -2852,7 +2858,10 @@ function animate(now: number) {
   if (presenceTimer >= 0.25) {
     if (socialAuthority) void friendSystem.refresh(socialAuthority).then(() => reportBackgroundServiceRecovery('friend-sync', 'Friend relationship synchronization is back online.')).catch(error => { reportBackgroundServiceFailure('friend-sync', 'Friend relationship synchronization is temporarily unavailable.'); console.warn('Friend relationship sync failed.', error); });
     const transform = player.getTransform();
-    presence?.update(transform).catch(console.error);
+    presence?.update(transform).then(() => reportBackgroundServiceRecovery('presence-sync', 'Presence synchronization is back online.')).catch(error => {
+      reportBackgroundServiceFailure('presence-sync', 'Presence synchronization is temporarily unavailable.');
+      console.warn('Presence update failed.', error);
+    });
     combatAuthority?.sync(transform, 'first-light').then(result => {
       if (!result) return;
       if (result.state) {
