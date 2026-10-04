@@ -2486,7 +2486,7 @@ function animate(now: number) {
       }
       for (const event of fresh.reverse()) addChatMessage('WORLD EVENT', event.title + ' · ' + event.summary, 'system');
       lastRemoteWorldEventId = events[0].id;
-    }).catch(error => console.warn('World event stream unavailable.', error));
+    }).then(() => reportBackgroundServiceRecovery('world-events','World event updates are back online.')).catch(error => { reportBackgroundServiceFailure('world-events','World event updates are temporarily unavailable.'); console.warn('World event stream unavailable.', error); });
     worldEventPollTimer = 0;
   }
 
