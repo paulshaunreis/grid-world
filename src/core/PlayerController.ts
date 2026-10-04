@@ -175,7 +175,7 @@ export class PlayerController {
     const move=this.input.moveVector();
     const forward = move.y;
     const strafe = move.x;
-    const direction = new THREE.Vector3(strafe, 0, -forward);
+    const direction = new THREE.Vector3(strafe, 0, forward);
 
     const moving=direction.lengthSq()>0;
     if (moving) direction.normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), this.yaw), this.avatar.position.addScaledVector(direction, speed * dt);
