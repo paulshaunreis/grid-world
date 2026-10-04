@@ -1169,8 +1169,6 @@ const registerWorldTransitNode = (worldDefinition: ReturnType<typeof getWorlds>[
   }
   teleportSystem.syncWorldConnections();
 };
-  teleportSystem.syncWorldConnections();
-};
 
 for (const worldDefinition of getWorlds()) registerWorldTransitNode(worldDefinition);
 
