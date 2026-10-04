@@ -1484,6 +1484,7 @@ const cloudReady = cloudPersistence
           buildRegionStatus.set('LOCAL · CLOUD UNAVAILABLE', 'owner');
         }
       } catch (error) {
+        buildRegionStatus.set('LOCAL · CLOUD UNAVAILABLE', 'owner');
         reportBackgroundServiceFailure('cloud-persistence','Cloud persistence is temporarily unavailable; local exploration and realtime presence remain available.');
         console.warn('Cloud persistence unavailable; continuing with realtime presence.', error);
       }
