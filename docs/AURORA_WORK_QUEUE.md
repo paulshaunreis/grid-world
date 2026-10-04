@@ -832,3 +832,22 @@ _Last updated: 2026-10-03_
 - **Next:** continue the P0 stability audit for remaining silent background persistence/activity paths, then address the separately tracked browser/WebGL and Render deployment verification gaps.
 
 _Last updated: 2026-10-04_
+
+
+## 2026-10-04 — Stability audit: profile activity and presence feedback
+- **PR #71 merged:** `ee3101a4c9a15e496ba1640f3c3073b959721bef`.
+- Surfaced profile activity persistence failure/recovery through the existing background-service feedback path.
+- Replaced the remaining periodic presence `catch(console.error)` seam with the same existing presence feedback path.
+- Preserved existing local/runtime behavior and authority boundaries.
+- Verification: source-level branch re-fetch completed; GitHub reported no workflow run for the feature commit, so this increment was **not CI-verified**.
+- **Next:** continue the P0 stability audit for remaining concrete silent background persistence/activity seams.
+
+## 2026-10-04 — Stability audit: factory-world persistence and initial presence feedback
+- **PR #72 merged:** `d710814ab722d80e36036bb1b0f06515986a2671`.
+- Surfaced factory-world cloud persistence failure/recovery through the existing `reportBackgroundServiceFailure/recovery` path while preserving the locally active generated world.
+- Surfaced initial realtime presence connection failure/recovery through the same existing path while preserving local-mode fallback.
+- Intentionally left shutdown cleanup catches unchanged because they are expected teardown paths.
+- Verification: source-level branch review + **GitHub Actions #1318 passed**; PR merged successfully.
+- **Next:** remaining P0 work is primarily verification: inspect the merged main deployment/live surface, then address only any concrete silent/dead-end seam still found.
+
+_Last updated: 2026-10-04_
