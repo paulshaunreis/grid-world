@@ -821,3 +821,14 @@ _Last updated: 2026-10-03_
 - **Next:** after Render deployment, perform the live interaction check for these failure-feedback paths, then continue the stability audit only where concrete silent/dead-end seams remain.
 
 _Last updated: 2026-10-03_
+
+## 2026-10-04 — Stability audit: cloud build, social presence, and build access feedback
+- Main before this increment: `2fed0155b140075bf5cb40528d1415a1e42fb94a`.
+- PR #69 merged as `108619d357b9690f7f2e61a589fe99f092845097`.
+- Surfaced failure/recovery feedback for cloud build persistence, recurring social presence refresh, and build-access role lookup.
+- Preserved local build/world recovery; failed build-access lookup safely holds Build Mode in view-only state.
+- Reused the existing `reportBackgroundServiceFailure` / `reportBackgroundServiceRecovery` path; no duplicate service or UI architecture introduced.
+- Verification: branch source re-fetch confirmed the seams. GitHub reported no workflow run/status for the feature commit, so this increment is **not CI-verified**. Live `/play.html` was re-scraped after merge and returned HTTP 200 with the full Grid World HUD/world surfaces; this does not by itself prove the new branch-specific code is deployed.
+- **Next:** continue the P0 stability audit for remaining silent background persistence/activity paths, then address the separately tracked browser/WebGL and Render deployment verification gaps.
+
+_Last updated: 2026-10-04_
