@@ -1842,6 +1842,7 @@ async function syncBuildAccessRole(worldId: string) {
     if (!role) addChatMessage('GRID BUILDER', 'You have no build permissions in this world.', 'system');
   } catch (error) {
     easyBuildSystem.setAccessRole('viewer');
+    reportBackgroundServiceFailure('build-access', 'Build permissions are temporarily unavailable; build mode is held in view-only mode.');
     console.warn('Build role lookup unavailable.', error);
   }
 }
@@ -2152,7 +2153,11 @@ function savePlayer() {
       const builds = easyBuildSystem.serialize().map(build => ({ objectId: build.objectId, definitionId: build.id, position: build.position as [number,number,number], rotation: build.rotation as [number,number,number], scale: build.scale as [number,number,number], ownerUserId: typeof (build as any).ownerUserId === 'string' ? (build as any).ownerUserId : cloudIdentity.id }));
       cloudPersistence.saveBuilds(cloudIdentity, 'first-light', 'first-light', builds).then(() => {
         cloudBuildVersion = buildVersion;
-      }).catch(error => console.warn('Cloud build persistence unavailable; local recovery remains active.', error));
+        reportBackgroundServiceRecovery('cloud-build-save', 'Cloud build persistence is back online.');
+      }).catch(error => {
+        reportBackgroundServiceFailure('cloud-build-save', 'Cloud build persistence is temporarily unavailable. Local build changes remain active.');
+        console.warn('Cloud build persistence unavailable; local recovery remains active.', error);
+      });
     }
   }
   presence?.update(transform, { regionRole: currentBuildRole, activeObjectId: easyBuildSystem.getSelectedObjectId() }).then(() => reportBackgroundServiceRecovery('presence-sync', 'Presence synchronization is back online.')).catch(error => { reportBackgroundServiceFailure('presence-sync', 'Presence synchronization is temporarily unavailable.'); console.warn('Presence update failed.', error); });
@@ -2468,7 +2473,15 @@ function animate(now: number) {
   last = now;
   presenceTimer += dt;
   socialPresenceTimer += dt;
-  if (socialPresenceTimer >= 30) { socialPresenceTimer = 0; void gridSocialService?.setPresence(true).catch(()=>undefined); }
+  if (socialPresenceTimer >= 30) {
+    socialPresenceTimer = 0;
+    void gridSocialService?.setPresence(true)
+      .then(() => reportBackgroundServiceRecovery('social-presence', 'Social presence synchronization is back online.'))
+      .catch(error => {
+        reportBackgroundServiceFailure('social-presence', 'Social presence synchronization is temporarily unavailable.');
+        console.warn('Social presence refresh unavailable.', error);
+      });
+  }
   saveTimer += dt;
   worldEventPollTimer += dt;
 
