@@ -539,3 +539,13 @@ _Last updated: 2026-10-03_
 - Verification: **L0 source review + successful merge**; no CI/browser/WebGL/Render verification observed.
 - Next: continue stability audit for other silent failures and dead-end controls.
 
+
+## 2026-10-04 — Atlas world-gate registration fix
+- Live browser verification exposed a mismatch between Atlas world selection and the existing teleport node graph: built-in worlds had custom gate/pylon visuals but Atlas entry requires logical `world-gate:<id>` nodes.
+- PR #75 corrected `src/main.ts` to register those logical world-gate nodes independently while reusing existing built-in visuals, preventing duplicate transit geometry.
+- PR #75 merged as `24be7093609c10b40b21143476e9f3289b56be4b` and Render deploy `dep-db194cdg1s2s7394nqr0` is LIVE.
+- Live replay of the failure path now succeeds: MAP → TIDELINE → ENTER WORLD produces route-lock and arrival feedback, with HUD world `HARBOR · DAY · SUMMER` and minimap district `HARBORLIGHT DOCKS`.
+- Verification level: **L5 live deployment + browser interaction** for the Atlas/TIDELINE transit path. GitHub Actions returned no workflow run for the feature commit, so it is not CI-verified.
+- Separate observation: Build Mode's region status remains `Connecting…` during unauthenticated/local verification and is tracked separately from this transit fix.
+
+_Last updated: 2026-10-04_
