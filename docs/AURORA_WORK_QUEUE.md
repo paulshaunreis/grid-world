@@ -864,3 +864,12 @@ _Last updated: 2026-10-04_
 - **Next focus:** continue P0 stability/integration verification and patch only a concrete user-facing silent/dead-end seam; otherwise proceed to the highest-value unverified browser/WebGL interaction pass before expanding another major system.
 
 _Last updated: 2026-10-04_
+
+
+## 2026-10-04 — Diagnostics false-warning cleanup
+- Main commit `d1316b3ca54984d36142bdc2b6ae9d30c61bcd19` corrected the existing `3d.viewport` health job so the dedicated `diagnostics.html` surface reports **not applicable** when it intentionally has no 3D canvas, instead of presenting a false warning.
+- No runtime world/camera/build/economy architecture changed; the actual `/play.html` 3D watchdog behavior remains unchanged.
+- Verification: source re-fetch + commit inspection. GitHub returned no workflow run for this direct main commit, so this increment is **not CI-verified**.
+- **Next focus:** verify the live diagnostics surface after deployment, then continue P0 stability only for concrete user-facing defects.
+
+_Last updated: 2026-10-04_
