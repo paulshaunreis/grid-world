@@ -190,7 +190,7 @@ hud.innerHTML = `
     <img src="/grid-concept-civic.webp" alt="Civic">
     <img src="/art/hero-worlds.webp" alt="Many Worlds">
   </div>
-  <div class="camera-help" aria-live="polite">RMB · ORBIT &nbsp; WHEEL · ZOOM &nbsp; M · MOUSELOOK</div>
+  <div class="camera-help" aria-live="polite">ALT+LMB · ORBIT &nbsp; ALT+MMB · PAN &nbsp; ALT+RMB · ZOOM &nbsp; WHEEL · ZOOM &nbsp; M · MOUSELOOK</div>
   <div class="crosshair"><span></span></div>
   <button class="identity-button" id="identity-button" type="button">✦ ${identity.displayName}</button><button class="auth-button" id="auth-button" type="button">JOIN / LOGIN</button>
   <button class="creator-button" id="creator-button" type="button">◇ CREATOR</button>
@@ -2173,28 +2173,36 @@ function savePlayer() {
   presence?.update(transform, { regionRole: currentBuildRole, activeObjectId: easyBuildSystem.getSelectedObjectId() }).then(() => reportBackgroundServiceRecovery('presence-sync', 'Presence synchronization is back online.')).catch(error => { reportBackgroundServiceFailure('presence-sync', 'Presence synchronization is temporarily unavailable.'); console.warn('Presence update failed.', error); });
 }
 
-// Second Life-style camera: RMB orbit, wheel zoom, M mouselook.
+// Second Life-style camera: Alt+LMB orbit, Alt+MMB pan, Alt+RMB zoom, wheel zoom, M mouselook.
+let cameraGestureButton: number | null = null;
 renderer.domElement.addEventListener('pointerdown', event => {
-  if (event.button === 2 || (event.button === 0 && event.altKey)) {
-    cameraPanning = true;
-    renderer.domElement.setPointerCapture(event.pointerId);
-    event.preventDefault();
-  }
+  if (!event.altKey || (event.button !== 0 && event.button !== 1 && event.button !== 2)) return;
+  cameraGestureButton = event.button;
+  renderer.domElement.setPointerCapture(event.pointerId);
+  event.preventDefault();
 });
 renderer.domElement.addEventListener('pointermove', event => {
-  if (!cameraPanning) return;
-  const sensitivity = event.shiftKey ? 0.004 : 0.008;
-  cameraYaw -= event.movementX * sensitivity;
-  cameraPitch -= event.movementY * sensitivity;
-  cameraPitch = THREE.MathUtils.clamp(cameraPitch, -0.85, 1.15);
-});
-renderer.domElement.addEventListener('pointerup', event => {
-  if (event.button === 2 || event.button === 0) {
-    cameraPanning = false;
-    try { renderer.domElement.releasePointerCapture(event.pointerId); } catch {}
+  if (cameraGestureButton === null) return;
+  const rotateSensitivity = event.shiftKey ? 0.004 : 0.008;
+  if (cameraGestureButton === 0) {
+    cameraYaw -= event.movementX * rotateSensitivity;
+    cameraPitch -= event.movementY * rotateSensitivity;
+    cameraPitch = THREE.MathUtils.clamp(cameraPitch, -0.85, 1.15);
+  } else if (cameraGestureButton === 1) {
+    const panSensitivity = event.shiftKey ? 0.004 : 0.008;
+    cameraPanX -= event.movementX * panSensitivity * Math.max(1, cameraDistance * 0.35);
+    cameraPanY += event.movementY * panSensitivity * Math.max(1, cameraDistance * 0.35);
+    cameraPanX = THREE.MathUtils.clamp(cameraPanX, -12, 12);
+    cameraPanY = THREE.MathUtils.clamp(cameraPanY, -8, 8);
+  } else if (cameraGestureButton === 2) {
+    cameraDistance = THREE.MathUtils.clamp(cameraDistance + event.movementY * 0.04, 2.2, 16);
   }
 });
-renderer.domElement.addEventListener('pointercancel', () => { cameraPanning = false; });
+renderer.domElement.addEventListener('pointerup', event => {
+  if (cameraGestureButton === event.button) cameraGestureButton = null;
+  try { renderer.domElement.releasePointerCapture(event.pointerId); } catch {}
+});
+renderer.domElement.addEventListener('pointercancel', () => { cameraGestureButton = null; });
 renderer.domElement.addEventListener('contextmenu', event => event.preventDefault());
 renderer.domElement.addEventListener('wheel', event => {
   cameraDistance = THREE.MathUtils.clamp(cameraDistance + event.deltaY * 0.012, 2.2, 16);
@@ -2227,7 +2235,7 @@ addEventListener('keydown', event => {
     } else {
       document.exitPointerLock?.();
       cameraDistance = 7;
-      status.textContent = 'THIRD PERSON · RMB ORBIT · WHEEL ZOOM · WASD WALK';
+      status.textContent = 'THIRD PERSON · ALT+LMB ORBIT · ALT+MMB PAN · ALT+RMB ZOOM · WHEEL ZOOM · WASD / ARROWS WALK';
     }
   }
   if (event.key === 'Escape') {
@@ -2239,7 +2247,7 @@ addEventListener('keydown', event => {
     cameraPitch = 0.32;
     cameraYaw = player.heading;
     cameraPanning = false;
-    status.textContent = 'THIRD PERSON · ALT+LMB / RMB ORBIT · WHEEL ZOOM · WASD WALK';
+    status.textContent = 'THIRD PERSON · ALT+LMB ORBIT · ALT+MMB PAN · ALT+RMB ZOOM · WHEEL ZOOM · WASD / ARROWS WALK';
   }
 });
 
