@@ -1144,25 +1144,29 @@ const teleportVisuals = teleportDefinitions.map(definition => {
 
 // Every world gets a native transit gate. The same path is reused when a world is created at runtime.
 const registerWorldTransitNode = (worldDefinition: ReturnType<typeof getWorlds>[number]) => {
-  if (teleportVisuals.some(v => v.userData.worldId === worldDefinition.id)) return;
   const nodeId = 'world-gate:' + worldDefinition.id.toLowerCase();
   const destinations = getWorldConnections(worldDefinition.id).map(connection => 'world-gate:' + connection.destination.toLowerCase());
-  const definition = {
-    id: nodeId,
-    kind: 'gate' as const,
-    displayName: worldDefinition.label + ' · World Gate',
-    regionId: 'grid-world',
-    position: { x: worldDefinition.center.x, y: worldDefinition.center.y, z: worldDefinition.center.z },
-    yaw: 0,
-    clearanceRadius: 3,
-    destinationIds: destinations,
-    access: 'public' as const,
-    worldId: worldDefinition.id,
-  };
-  teleportSystem.register(definition);
-  const visual = createTeleportGate(definition);
-  world.scene.add(visual);
-  teleportVisuals.push(visual);
+  if (!teleportSystem.get(nodeId)) {
+    const definition = {
+      id: nodeId,
+      kind: 'gate' as const,
+      displayName: worldDefinition.label + ' · World Gate',
+      regionId: 'grid-world',
+      position: { x: worldDefinition.center.x, y: worldDefinition.center.y, z: worldDefinition.center.z },
+      yaw: 0,
+      clearanceRadius: 3,
+      destinationIds: destinations,
+      access: 'public' as const,
+      worldId: worldDefinition.id,
+    };
+    teleportSystem.register(definition);
+    // Built-in worlds already have custom gate/pylon visuals; reuse those instead of duplicating them.
+    if (!teleportVisuals.some(v => v.userData.worldId === worldDefinition.id)) {
+      const visual = createTeleportGate(definition);
+      world.scene.add(visual);
+      teleportVisuals.push(visual);
+    }
+  }
   teleportSystem.syncWorldConnections();
 };
 
