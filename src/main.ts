@@ -1481,6 +1481,7 @@ const cloudReady = cloudPersistence
           authenticated = true;
         } else {
           console.warn('Anonymous auth unavailable; presence will use the local visitor identity.');
+          buildRegionStatus.set('LOCAL · CLOUD UNAVAILABLE', 'owner');
         }
       } catch (error) {
         reportBackgroundServiceFailure('cloud-persistence','Cloud persistence is temporarily unavailable; local exploration and realtime presence remain available.');
@@ -1518,6 +1519,7 @@ const cloudReady = cloudPersistence
           cloudBuildVersion = Number(easyBuildSystem.root.userData.buildStateVersion ?? 0);
           reportBackgroundServiceRecovery('cloud-state','Cloud world state is back online.');
         } catch (error) {
+          buildRegionStatus.set('LOCAL · CLOUD STATE UNAVAILABLE', 'owner');
           reportBackgroundServiceFailure('cloud-state','Cloud world state is temporarily unavailable; local build state remains active.');
           console.warn('Cloud state unavailable; continuing with realtime presence.', error);
         }
@@ -1525,6 +1527,8 @@ const cloudReady = cloudPersistence
       return authenticated;
     })()
   : Promise.resolve(false);
+
+if (!cloudPersistence) buildRegionStatus.set('LOCAL · CLOUD UNAVAILABLE', 'owner');
 
 void hydratePersistentWorlds();
 
