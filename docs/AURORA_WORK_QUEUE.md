@@ -851,3 +851,16 @@ _Last updated: 2026-10-04_
 - **Next:** remaining P0 work is primarily verification: inspect the merged main deployment/live surface, then address only any concrete silent/dead-end seam still found.
 
 _Last updated: 2026-10-04_
+
+## 2026-10-04 — Second Life-style camera/control alignment + live verification
+- **PR #74 merged:** `1ed0f06d7483e639f120af9d7c4da14610dd26a1`.
+- Corrected the existing camera interaction model to use classic Second Life-style gestures: **Alt+LMB orbit, Alt+MMB pan, Alt+RMB zoom**, plus wheel zoom and existing M mouselook.
+- Added arrow-key movement aliases alongside WASD without replacing the existing input system.
+- Reused the existing camera yaw/pitch/distance/pan state; no second camera architecture was introduced.
+- Render deploy `dep-db18mg2d0e5s73ekkna0` is **LIVE** from the merged commit.
+- Fresh live scrape of `/play.html` returned HTTP 200 and exposes the new camera help text, populated Grid Engine HUD, active World Pulse, Atlas, Build, Social, Economy, Party, teleport, profile, and Creator surfaces.
+- Live scrape is **L5 deployment/page verification**, not a substitute for a human pointer/keyboard/WebGL click-through. The scrape also reports the known guarded-imagery diagnostic mismatch and a teleport preview image element in its hidden/idle failed state; neither was treated as a new runtime defect without interactive evidence.
+- No additional P0 patch was warranted from this verification pass. Remaining console-only catches inspected are either already surfaced through existing feedback paths or are expected startup/teardown paths.
+- **Next focus:** continue P0 stability/integration verification and patch only a concrete user-facing silent/dead-end seam; otherwise proceed to the highest-value unverified browser/WebGL interaction pass before expanding another major system.
+
+_Last updated: 2026-10-04_
