@@ -873,3 +873,15 @@ _Last updated: 2026-10-04_
 - **Next focus:** verify the live diagnostics surface after deployment, then continue P0 stability only for concrete user-facing defects.
 
 _Last updated: 2026-10-04_
+
+## 2026-10-04 — Live Atlas-to-world transit seam fixed
+- **PR #75 merged:** `24be7093609c10b40b21143476e9f3289b56be4b`.
+- Live interaction reproduced a concrete defect: Atlas displayed **ENTER WORLD →** for TIDELINE, but the callback could not find the expected `world-gate:harbor` node because built-in worlds already had custom gate/pylon visuals and the registration guard treated those visuals as the logical world gate.
+- Fixed `src/main.ts` so every registered world gets its logical `world-gate:<id>` transit node independently of existing custom visuals; existing built-in gate/pylon visuals are reused rather than duplicated.
+- Render deploy `dep-db194cdg1s2s7394nqr0` is **LIVE** from merged main.
+- Live browser interaction after deployment: MAP → TIDELINE → ENTER WORLD succeeded. Final HUD world was **HARBOR · DAY · SUMMER**; chat reported **“Route locked: TIDELINE · World Gate. Destination preview loaded; transit engaged.”** followed by **“Arrived at TIDELINE · World Gate. Persistent world re-entry complete.”** Minimap/district state updated to **HARBORLIGHT DOCKS** / TIDELINE.
+- GitHub Actions returned no workflow run for the feature commit, so this pass is **not CI-verified**. Render/live/browser verification is confirmed separately.
+- The live Build Mode region indicator still reads **Connecting…** in the unauthenticated/local verification session; this was not folded into the transit patch because its authority/connection behavior is a separate seam.
+- **Next focus:** continue P0 verification for another concrete user-facing mismatch; otherwise proceed through the highest-value live interaction surfaces before expanding another major system.
+
+_Last updated: 2026-10-04_
