@@ -2081,7 +2081,7 @@ avatarOptions.addEventListener('click', event => {
   avatarOptions.querySelectorAll<HTMLButtonElement>('[data-avatar]').forEach(option => {
     option.classList.toggle('selected', option === button);
   });
-  presence?.update(player.getTransform()).catch(console.error);
+  presence?.update(player.getTransform()).then(() => reportBackgroundServiceRecovery('presence-sync', 'Presence synchronization is back online.')).catch(error => { reportBackgroundServiceFailure('presence-sync', 'Presence synchronization is temporarily unavailable.'); console.warn('Presence update failed.', error); });
 });
 
 function saveIdentityName() {
@@ -2099,7 +2099,7 @@ function saveIdentityName() {
   presence?.setIdentity(cloudIdentity);
   identityButton.textContent = '✦ ' + displayName;
   setControlStatus();
-  presence?.update(player.getTransform()).catch(console.error);
+  presence?.update(player.getTransform()).then(() => reportBackgroundServiceRecovery('presence-sync', 'Presence synchronization is back online.')).catch(error => { reportBackgroundServiceFailure('presence-sync', 'Presence synchronization is temporarily unavailable.'); console.warn('Presence update failed.', error); });
   closeIdentityPanel();
 }
 
@@ -2141,7 +2141,7 @@ function savePlayer() {
   };
   state.regionId = world.regions.findAt(transform.x, transform.z)?.definition.id ?? 'unmapped';
   persistence.savePlayerState(state);
-  if (cloudPersistence) cloudPersistence.save(cloudIdentity, state).catch(console.error);
+  if (cloudPersistence) cloudPersistence.save(cloudIdentity, state).then(() => reportBackgroundServiceRecovery('cloud-player-save', 'Cloud player persistence is back online.')).catch(error => { reportBackgroundServiceFailure('cloud-player-save', 'Cloud player persistence is temporarily unavailable. Local recovery remains active.'); console.warn('Cloud player persistence unavailable; local recovery remains active.', error); });
   if (cloudPersistence && cloudAuthenticated) {
     const buildVersion = Number(easyBuildSystem.root.userData.buildStateVersion ?? 0);
     if (buildVersion !== cloudBuildVersion) {
@@ -2155,7 +2155,7 @@ function savePlayer() {
       }).catch(error => console.warn('Cloud build persistence unavailable; local recovery remains active.', error));
     }
   }
-  presence?.update(transform, { regionRole: currentBuildRole, activeObjectId: easyBuildSystem.getSelectedObjectId() }).catch(console.error);
+  presence?.update(transform, { regionRole: currentBuildRole, activeObjectId: easyBuildSystem.getSelectedObjectId() }).then(() => reportBackgroundServiceRecovery('presence-sync', 'Presence synchronization is back online.')).catch(error => { reportBackgroundServiceFailure('presence-sync', 'Presence synchronization is temporarily unavailable.'); console.warn('Presence update failed.', error); });
 }
 
 // Second Life-style camera: RMB orbit, wheel zoom, M mouselook.
