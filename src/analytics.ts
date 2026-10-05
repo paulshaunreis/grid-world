@@ -9,16 +9,17 @@ const allowedEvents = new Set([
 ]);
 
 let initialized = false;
+let enabled = false;
 
 /**
  * Analytics is inert until a project token is configured. Only the two static
  * gameplay events below are accepted, with no player, age, world, URL, or text
  * properties. PostHog keeps the anonymous identifier in memory only.
  */
-export function initializeGridAnalytics(): void {
-  if (initialized || !projectToken) return;
+export function enableGridAnalytics(): boolean {
+  if (!projectToken) return false;
 
-  posthog.init(projectToken, {
+  if (!initialized) posthog.init(projectToken, {
     api_host: apiHost,
     autocapture: false,
     capture_pageview: false,
@@ -39,9 +40,25 @@ export function initializeGridAnalytics(): void {
   });
 
   initialized = true;
+  posthog.opt_in_capturing();
+  enabled = true;
+  return true;
+}
+
+export function disableGridAnalytics(): void {
+  enabled = false;
+  if (initialized) posthog.opt_out_capturing();
+}
+
+export function isGridAnalyticsConfigured(): boolean {
+  return Boolean(projectToken);
+}
+
+export function isGridAnalyticsEnabled(): boolean {
+  return enabled;
 }
 
 export function captureGridAnalytics(event: string): void {
-  if (!initialized || !allowedEvents.has(event)) return;
+  if (!enabled || !allowedEvents.has(event)) return;
   posthog.capture(event, { $process_person_profile: false });
 }
