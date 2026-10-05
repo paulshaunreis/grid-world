@@ -78,6 +78,17 @@ Floating Grid World panels should behave like windows, with Grid World controls 
 
 The current `WindowManager` already exposes minimize and hide actions and stores basic size/position in a shared browser key; that key must become account-scoped before layout state is treated as a per-user preference. This design completes the interaction model with per-window image icons, explicit close behavior, maximize/restore, a window dock, and GridSnap.
 
+## Universal UI motion system
+
+UI animation is part of Grid World's interface language and should be used consistently across the website and in-world UI—not added ad hoc by individual panels.
+
+- Define shared motion tokens for duration, easing, distance, opacity, and stagger. Reuse them for navigation, focus/selection, drawer and window open/close, minimize/maximize, GridSnap previews, Inventory folder changes, Messages updates, notifications, and system-menu transitions.
+- Give motion a clear purpose: show where a panel came from, confirm a state change, express hierarchy, or guide attention. Keep it brief and avoid competing simultaneous motion that distracts from the world view or message content.
+- Make animation timing and interruption behavior consistent across controls and responsive layouts. A panel should not use a different motion convention on the site than in the game.
+- Use performant properties where possible and avoid blocking input while an animation runs. State and controls must remain understandable if animation is interrupted or skipped.
+- Respect the operating system's `prefers-reduced-motion` setting and provide a per-user motion preference. Reduced motion should use simple fades or immediate state changes; it must preserve all information and functionality.
+- Avoid flashing, repeated attention loops, motion required to understand a control, and decorative movement that competes with gameplay.
+
 ## Inventory folders and organization
 
 Inventory should feel like a personal collection that is easy to browse, not an undifferentiated list.
@@ -180,4 +191,5 @@ The repository currently has a Social Manager and friend relationship RPCs but n
 - Every floating panel provides minimize, maximize/restore, close, and GridSnap behavior, with a visible way to restore minimized or closed panels.
 - UI orientation, layout, and Inventory organization preferences are isolated per authenticated user, survive that user's sign-ins, and reflow appropriately across their devices; one user's settings never appear in another account's session.
 - Inventory presents distinct, illustrated folders for the main item types, supports personal custom folders and basic organization actions, and does not change item permissions.
+- Website and in-world components share the Grid World motion tokens; system reduced-motion preferences preserve access to every control and state.
 - Across site pages, essential content and actions remain available at 320 CSS pixels and at tall, wide, landscape, and ultrawide viewport shapes without layout clipping or unintended two-dimensional scrolling.
