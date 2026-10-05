@@ -1,18 +1,19 @@
 # Gridline Messages — Product and Security Design
 
 **Status:** Design baseline for implementation  
-**Product surface:** The existing Grid World Social Manager in `src/ui/GridSocialPanel.ts`  
+**Product surfaces:** The existing Grid World Social Manager in `src/ui/GridSocialPanel.ts` and a signed-in Messages area on the Grid World website  
 **Goal:** Private, dependable conversations that fit Grid World's visual language and protect users from unwanted contact.
 
 Gridline Messages takes functional cues from Second Life's grid-wide instant messages, offline delivery, separate conversations, and mute controls. Its UI, names, privacy defaults, and safety behavior are original to Grid World. See [Second Life Instant Message](https://wiki.secondlife.com/wiki/Instant_Message), [Communication](https://wiki.secondlife.com/wiki/Communication), and [Mute](https://wiki.secondlife.com/wiki/Mute).
 
 ## Product decisions
 
-- **One integrated surface.** Add a `MESSAGES` tab to the current Social Manager beside Friends, Groups, Guilds, Teams, Stores, and NPCs. Reuse its header, tabs, cards, search, action buttons, spacing, typography, colors, responsive panel, and close behavior. Opening a message from a profile, friend row, or avatar should open this same panel to the correct thread.
+- **One shared inbox, two access surfaces.** Add a `MESSAGES` tab to the current Social Manager beside Friends, Groups, Guilds, Teams, Stores, and NPCs. Also add a signed-in Messages area to the Grid World website, reachable without entering/loading the 3D world. Both surfaces use the same account, conversations, requests, recipient settings, blocks, and delivery state through the same authorized service. A message opened from a profile, friend row, or avatar routes to the correct conversation in the in-world tab; the website routes to that same thread.
 - **Pseudonymous by default.** A Grid handle and chosen display name are sufficient to find and message another player. The message system never asks for or displays a legal name, email address, face image, phone number, or real-world location.
 - **Private threads.** Support direct messages first, then small group conversations with explicit membership. A direct message is delivered grid-wide; region presence is not required.
 - **Recipient control.** Users choose who can start a conversation: anyone, friends, or nobody. Messages from allowed non-friends enter a separate request state until accepted. Do not expose message body previews or read receipts for pending requests.
-- **Offline delivery.** Queue encrypted messages for a limited, configurable retention window. Show delivery state clearly; do not forward messages to email. Expired messages are deleted and the sender is told they expired.
+- **Available outside the game.** The website inbox is a first-class fallback when a player cannot load or access the 3D client. Sign-in, inbox, requests, sending, block, and report do not depend on the renderer, WebGL, or a live game session.
+- **Offline delivery.** Queue encrypted messages for a limited, configurable retention window and retrieve them from either surface. Show delivery state clearly; do not forward messages to email. Expired messages are deleted and the sender is told they expired.
 - **Block means stop contact.** Blocking rejects new messages server-side and suppresses friend requests, presence, voice invitations, party invites, and other direct-contact requests between the two accounts. Do not tell the blocked account who blocked them. Keep the block reversible; preserve the blocker's own history unless they delete it.
 - **Report without routine surveillance.** There is no message-body scanning or routine staff access. A user can report a conversation and explicitly select messages to include. Explain that selected content and minimal routing context will be visible to the safety team for review. Apply retention limits and access audit to report evidence.
 - **No ambient tracking.** Typing indicators, read receipts, online/away status, and presence-based delivery are off by default or controlled separately. A private conversation never reveals a user's world, region, coordinates, or real-world location.
@@ -95,4 +96,4 @@ The repository currently has a Social Manager and friend relationship RPCs but n
 - Non-members, removed members, and unauthenticated clients cannot read conversation content through direct API calls.
 - Message bodies are not present in normal logs or analytics.
 - A report includes only the messages the reporter selected and creates an auditable, access-controlled case.
-- UI styling and navigation match the current Social Manager, including narrow screens and keyboard use.
+- UI styling and navigation match the current Social Manager and Grid World website, including narrow screens and keyboard use.\n- The website inbox can authenticate, load, send, receive, block, and report without initializing the 3D renderer or requiring an active game session.
