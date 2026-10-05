@@ -82,6 +82,7 @@ function setMessage(title: string, detail: string, action?: { label: string; hre
 function folders() {
   return [
     { id: 'all', name: 'All Items', icon: '◉' },
+    { id: 'favorites', name: 'Favorites', icon: '★' },
     ...types.map(type => ({ id: type.id, name: type.label, icon: type.icon })),
     { id: 'unsorted', name: 'Unsorted', icon: '◇' },
     ...organization.folders.map(folder => ({ id: folder.id, name: folder.name, icon: '✧' })),
@@ -172,6 +173,7 @@ function render() {
 
 function countFor(folderId: string) {
   if (folderId === 'all') return inventory.length;
+  if (folderId === 'favorites') return inventory.filter(item => organization.favorites.includes(item.item_id)).length;
   if (folderId === 'unsorted') return inventory.filter(item => !organization.itemFolders[item.item_id]).length;
   return inventory.filter(item => organization.itemFolders[item.item_id] === folderId).length;
 }
@@ -183,6 +185,7 @@ function renderItems() {
   const visible = inventory.filter(item => {
     const assigned = organization.itemFolders[item.item_id];
     const inFolder = activeFolder === 'all' ||
+      (activeFolder === 'favorites' && organization.favorites.includes(item.item_id)) ||
       (activeFolder === 'unsorted' && !assigned) ||
       assigned === activeFolder;
     return inFolder && item.item_id.toLowerCase().includes(query.trim().toLowerCase());
