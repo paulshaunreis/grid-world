@@ -64,6 +64,7 @@ This is a visual hierarchy and layout target, not a request to copy a particular
 Floating Grid World panels should behave like windows, with Grid World controls that are easy to recognize and use.
 
 - Provide **Minimize**, **Maximize / Restore**, and **Close** controls in every window header. Use accessible labels and keyboard focus states; do not rely on ambiguous symbols alone.
+- Give each window a distinct custom Grid World image icon. Show the same icon for that window in the bottom dock/tray, with a readable title and accessible name; minimized/closed state and unread counts must not be conveyed by color alone. Use bundled or otherwise vetted image assets and a safe fallback for extensions; do not accept arbitrary remote or user-uploaded executable SVG content as window chrome.
 - Minimize sends the panel to a small window dock in the bottom bar. Selecting its dock item restores it and returns focus to the panel.
 - Maximize fills the usable interface area while respecting the top/bottom bars, side rails, and safe areas. Restore returns the panel to its previous size and position.
 - Close dismisses the panel and leaves a restorable entry in the dock or the owning tool rail. If unsaved work could be lost, save a draft or ask before discarding; closing must not silently delete content.
@@ -75,7 +76,7 @@ Floating Grid World panels should behave like windows, with Grid World controls 
 - Support pointer/touch dragging, keyboard move/resize actions, reduced motion, and accessible controls. On narrow phones, present panels as full-screen pages or sheets instead of trying to tile them side by side.
 - Opening a window should bring it forward without unexpectedly changing its saved size or another window's state.
 
-The current `WindowManager` already exposes minimize and hide actions and stores basic size/position in a shared browser key; that key must become account-scoped before layout state is treated as a per-user preference. This design completes the interaction model with explicit close behavior, maximize/restore, a window dock, and GridSnap.
+The current `WindowManager` already exposes minimize and hide actions and stores basic size/position in a shared browser key; that key must become account-scoped before layout state is treated as a per-user preference. This design completes the interaction model with per-window image icons, explicit close behavior, maximize/restore, a window dock, and GridSnap.
 
 ## In-world system menu and Settings
 
