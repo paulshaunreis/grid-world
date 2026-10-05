@@ -43,6 +43,22 @@ If a dependable protocol and recovery flow are not ready, do not label the featu
 - Do not show message content in desktop/browser notifications by default. Let the user choose generic alerts versus previews.
 - Keep local history and server retention controls distinct and understandable. Deleting a local copy does not imply remote deletion; disclose that behavior and provide delete-for-everyone only when protocol and delivery semantics support it.
 
+## Simplified in-world HUD and viewport layout
+
+The 3D world is the primary content. The HUD should provide access and orientation while leaving most of the screen available for looking around and playing.
+
+- Default to a compact **top status bar**, **bottom action bar**, and slim **left and right side rails**. The top bar carries only essential world/session status; the bottom bar carries the few primary actions; side rails organize tools and contextual panels.
+- Keep the default world view visually open. A practical desktop target is to preserve at least roughly three quarters of the viewport for the world during normal play. Treat this as a layout target, not a promise on small screens.
+- Use narrow icon rails as the persistent sidebars. Expand a rail into a labeled drawer or contextual panel on demand; expanded panels overlay the world instead of permanently reducing the 3D canvas width.
+- Group actions instead of showing a separate permanent window for every subsystem. For example, the left rail can group World, Build, Inventory, and Map; the right rail can group Social/Messages, Party, and Quests. Keep names aligned with the features that actually work.
+- Show at most one large contextual panel at a time. Opening another panel replaces or explicitly docks the previous one. A clear close/back action and predictable Escape behavior return focus to the world.
+- Reduce always-visible telemetry, decorative cards, repeated labels, and simultaneous popups. Move secondary diagnostics, art galleries, help, and detailed world information into their relevant panel.
+- Let players hide or collapse bars and rails, and remember their choices. Provide a simple default/reset layout action in Settings.
+- On phones, replace the side rails with an accessible navigation drawer or compact bottom navigation. Keep the world visible behind lightweight overlays; ensure controls do not cover the main view or the on-screen keyboard.
+- Respect safe areas, portrait/landscape changes, short viewports, browser zoom, touch targets, and reduced motion. Fit the actual available viewport rather than assuming a specific 2026 phone or PC aspect ratio.
+
+This is a visual hierarchy and layout target, not a request to copy a particular game's HUD. Keep Grid World's existing type, colors, translucent surfaces, and icon language while removing competing visual noise.
+
 ## In-world system menu and Settings
 
 The in-world interface needs a familiar, predictable system menu that fits Grid World's own visual design.
@@ -127,4 +143,5 @@ The repository currently has a Social Manager and friend relationship RPCs but n
 - UI styling and navigation match the current Social Manager and Grid World website, including narrow screens and keyboard use.
 - The website inbox can authenticate, load, send, receive, block, and report without initializing the 3D renderer or requiring an active game session.
 - Escape opens and closes the in-world system menu predictably; modal stacking, focus, gameplay input, touch access, and the shared Settings route behave as specified.
+- During normal play, a top bar, bottom bar, and slim left/right rails remain available while at least roughly three quarters of a desktop viewport stays visually devoted to the world; expanded panels do not permanently shrink the world view.
 - Across site pages, essential content and actions remain available at 320 CSS pixels and at tall, wide, landscape, and ultrawide viewport shapes without layout clipping or unintended two-dimensional scrolling.
