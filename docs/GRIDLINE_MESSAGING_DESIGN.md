@@ -59,6 +59,22 @@ The 3D world is the primary content. The HUD should provide access and orientati
 
 This is a visual hierarchy and layout target, not a request to copy a particular game's HUD. Keep Grid World's existing type, colors, translucent surfaces, and icon language while removing competing visual noise.
 
+## Custom window controls and GridSnap
+
+Floating Grid World panels should behave like windows, with Grid World controls that are easy to recognize and use.
+
+- Provide **Minimize**, **Maximize / Restore**, and **Close** controls in every window header. Use accessible labels and keyboard focus states; do not rely on ambiguous symbols alone.
+- Minimize sends the panel to a small window dock in the bottom bar. Selecting its dock item restores it and returns focus to the panel.
+- Maximize fills the usable interface area while respecting the top/bottom bars, side rails, and safe areas. Restore returns the panel to its previous size and position.
+- Close dismisses the panel and leaves a restorable entry in the dock or the owning tool rail. If unsaved work could be lost, save a draft or ask before discarding; closing must not silently delete content.
+- Add **GridSnap**: while moving a window, show a clear placement preview when it nears an edge or supported tile zone; releasing snaps it into that zone. Support left/right halves, top/bottom zones, center, and a user-configurable alignment grid for free placement.
+- GridSnap must use the available work area after bars, rails, safe areas, and other snapped windows are accounted for. Snapped windows must remain reachable and should not cover all of the world view.
+- Let users disable snapping and adjust its sensitivity. Persist position, size, snap zone, maximize state, and minimized/closed state in the existing layout preferences; include a reset-layout option.
+- Support pointer/touch dragging, keyboard move/resize actions, reduced motion, and accessible controls. On narrow phones, present panels as full-screen pages or sheets instead of trying to tile them side by side.
+- Opening a window should bring it forward without unexpectedly changing its saved size or another window's state.
+
+The current `WindowManager` already exposes minimize and hide actions and stores basic size/position state; this design completes the interaction model with explicit close behavior, maximize/restore, a window dock, and GridSnap.
+
 ## In-world system menu and Settings
 
 The in-world interface needs a familiar, predictable system menu that fits Grid World's own visual design.
@@ -144,4 +160,5 @@ The repository currently has a Social Manager and friend relationship RPCs but n
 - The website inbox can authenticate, load, send, receive, block, and report without initializing the 3D renderer or requiring an active game session.
 - Escape opens and closes the in-world system menu predictably; modal stacking, focus, gameplay input, touch access, and the shared Settings route behave as specified.
 - During normal play, a top bar, bottom bar, and slim left/right rails remain available while at least roughly three quarters of a desktop viewport stays visually devoted to the world; expanded panels do not permanently shrink the world view.
+- Every floating panel provides minimize, maximize/restore, close, and GridSnap behavior, with a visible way to restore minimized or closed panels.
 - Across site pages, essential content and actions remain available at 320 CSS pixels and at tall, wide, landscape, and ultrawide viewport shapes without layout clipping or unintended two-dimensional scrolling.
