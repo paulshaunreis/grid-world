@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { captureGridAnalytics, initializeGridAnalytics } from './analytics';
+import { captureGridAnalytics, disableGridAnalytics, isGridAnalyticsEnabled } from './analytics';
+import { mountGridAnalyticsConsent } from './ui/GridAnalyticsConsent';
 import { Input } from './core/Input';
 import { InteractionSystem } from './core/InteractionSystem';
 import { Persistence } from './core/Persistence';
@@ -1783,6 +1784,29 @@ function setMultiplayerStatus(label: string) {
   status.textContent = `FIRST LIGHT · ${label}`;
 }
 
+let analyticsSessionStarted = false;
+let analyticsInteractionCaptured = false;
+let analyticsInteractionHookInstalled = false;
+const openGridAnalyticsSettings = mountGridAnalyticsConsent((allowed) => {
+  if (!allowed) {
+    disableGridAnalytics();
+    return;
+  }
+  if (!isGridAnalyticsEnabled()) return;
+  if (!analyticsSessionStarted) {
+    captureGridAnalytics('grid_world_session_started');
+    analyticsSessionStarted = true;
+  }
+  if (!analyticsInteractionHookInstalled) {
+    analyticsInteractionHookInstalled = true;
+    renderer.domElement.addEventListener('pointerdown', () => {
+      if (analyticsInteractionCaptured || !isGridAnalyticsEnabled()) return;
+      analyticsInteractionCaptured = true;
+      captureGridAnalytics('grid_world_first_interaction');
+    });
+  }
+});
+
 cloudReady.finally(() => {
   if (multiplayerLabel === 'MULTIPLAYER · Connecting…') setControlStatus();
 
@@ -1796,7 +1820,7 @@ document.querySelectorAll<HTMLButtonElement>('.grid-dock [data-tool]').forEach(b
     else if (tool === 'qr') qrScanner.open();
     else if (tool === 'team') teamArea.open();
     else if (tool === 'social') gridCommunityPanel?.open();
-    else if (tool === 'settings') openIdentityPanel();
+    else if (tool === 'settings') openGridAnalyticsSettings();
     else if (tool === 'inventory') openLandmarkInventory();
     else if (tool === 'wallet') gridEconomyPanel.open();
     else addChatMessage('GRID', tool + ' surface opened.', 'system');
@@ -2957,14 +2981,6 @@ function animate(now: number) {
   requestAnimationFrame(animate);
 }
 
-initializeGridAnalytics();
-captureGridAnalytics('grid_world_session_started');
-let gridWorldInteractionCaptured = false;
-renderer.domElement.addEventListener('pointerdown', () => {
-  if (gridWorldInteractionCaptured) return;
-  gridWorldInteractionCaptured = true;
-  captureGridAnalytics('grid_world_first_interaction');
-}, { once: true });
 requestAnimationFrame(animate);
 
 addEventListener('beforeunload', () => { void gridSocialService?.setPresence(false).catch(()=>undefined); buildRealtimeChannel?.unsubscribe(); });
