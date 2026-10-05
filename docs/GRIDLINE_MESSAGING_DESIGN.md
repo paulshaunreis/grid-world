@@ -69,11 +69,13 @@ Floating Grid World panels should behave like windows, with Grid World controls 
 - Close dismisses the panel and leaves a restorable entry in the dock or the owning tool rail. If unsaved work could be lost, save a draft or ask before discarding; closing must not silently delete content.
 - Add **GridSnap**: while moving a window, show a clear placement preview when it nears an edge or supported tile zone; releasing snaps it into that zone. Support left/right halves, top/bottom zones, center, and a user-configurable alignment grid for free placement.
 - GridSnap must use the available work area after bars, rails, safe areas, and other snapped windows are accounted for. Snapped windows must remain reachable and should not cover all of the world view.
-- Let users disable snapping and adjust its sensitivity. Persist position, size, snap zone, maximize state, and minimized/closed state in the existing layout preferences; include a reset-layout option.
+- Let users disable snapping and adjust its sensitivity. Persist position, size, snap zone, maximize state, and minimized/closed state in layout preferences; include a reset-layout option.
+- Save each authenticated user's HUD orientation and layout independently: bar/rail arrangement, collapsed sections, window positions and sizes, dock state, and GridSnap preferences. Sync the account-level layout across that user's devices, then reflow geometry for each viewport. Never reuse a shared layout across different accounts on the same device.
+- Until sign-in, keep guest layout choices local to that browser. On sign-in, load the authenticated account's settings; on sign-out, clear them from the active UI. Store no credentials or message content in layout preferences.
 - Support pointer/touch dragging, keyboard move/resize actions, reduced motion, and accessible controls. On narrow phones, present panels as full-screen pages or sheets instead of trying to tile them side by side.
 - Opening a window should bring it forward without unexpectedly changing its saved size or another window's state.
 
-The current `WindowManager` already exposes minimize and hide actions and stores basic size/position state; this design completes the interaction model with explicit close behavior, maximize/restore, a window dock, and GridSnap.
+The current `WindowManager` already exposes minimize and hide actions and stores basic size/position in a shared browser key; that key must become account-scoped before layout state is treated as a per-user preference. This design completes the interaction model with explicit close behavior, maximize/restore, a window dock, and GridSnap.
 
 ## In-world system menu and Settings
 
@@ -161,4 +163,5 @@ The repository currently has a Social Manager and friend relationship RPCs but n
 - Escape opens and closes the in-world system menu predictably; modal stacking, focus, gameplay input, touch access, and the shared Settings route behave as specified.
 - During normal play, a top bar, bottom bar, and slim left/right rails remain available while at least roughly three quarters of a desktop viewport stays visually devoted to the world; expanded panels do not permanently shrink the world view.
 - Every floating panel provides minimize, maximize/restore, close, and GridSnap behavior, with a visible way to restore minimized or closed panels.
+- UI orientation and layout preferences are isolated per authenticated user, survive that user's sign-ins, and reflow appropriately across their devices; one user's layout never appears in another account's session.
 - Across site pages, essential content and actions remain available at 320 CSS pixels and at tall, wide, landscape, and ultrawide viewport shapes without layout clipping or unintended two-dimensional scrolling.
