@@ -110,6 +110,9 @@ Inventory should feel like a personal collection that is easy to browse, not an 
 - Give each primary folder its own original Grid World image icon/cover art and visual accent. Make the folders feel collectible and atmospheric, while preserving clear labels, readable counts, and uncluttered spacing. Use built-in/vetted artwork by default; an optional icon picker should use an approved library.
 - Make category counts and empty states useful. Use small previews and concise metadata; reserve large artwork for a selected folder or item detail view.
 - Keep the item grid/cards consistent with Grid World's custom window and responsive behavior. On desktop, allow the inventory panel to use GridSnap and window controls; on phones, use a full-screen folder browser with a clear back path.
+- Provide a signed-in Inventory area on the website so users can browse their items when they cannot access the 3D client. Show the same account inventory, canonical categories, custom folders, favorites, counts, and safe item details as in-world; do not create a separate copy of inventory data.
+- Let the website support safe account-level organization and management actions through the same authenticated inventory service. Keep world-only actions such as equipping or placing objects unavailable when they require an active world, and label that clearly.
+- Website item previews must treat player and marketplace assets as untrusted data. Use isolated/validated previews and never execute item scripts in the account page.
 - Save folder ordering, custom folders, icon choices, favorites, and per-user organization preferences to the signed-in account. Keep guest organization local until sign-in, and do not expose one user's inventory arrangement to another account on a shared device.
 - Folder organization must not grant access to items or make private items public. Every inventory read, move, delete, equip, trade, or share operation remains server-authorized; category hiding is not a security control.
 
@@ -215,6 +218,7 @@ The repository currently has a Social Manager and friend relationship RPCs but n
 - Every floating panel provides minimize, maximize/restore, close, and GridSnap behavior, with a visible way to restore minimized or closed panels.
 - UI orientation, layout, and Inventory organization preferences are isolated per authenticated user, survive that user's sign-ins, and reflow appropriately across their devices; one user's settings never appear in another account's session.
 - Inventory presents distinct, illustrated folders for the main item types, supports personal custom folders and basic organization actions, and does not change item permissions.
+- The signed-in website exposes the same Inventory and folders when the game is inaccessible, through the same authoritative account data and permissions.
 - Website and in-world components share the Grid World motion tokens and UI sound language; reduced-motion and muted-audio preferences preserve access to every control and state.
 - Across site pages, essential content and actions remain available at 320 CSS pixels and at tall, wide, landscape, and ultrawide viewport shapes without layout clipping or unintended two-dimensional scrolling.
 - Website top navigation is condensed into accessible dropdown groups, while signed-in Messages and account actions remain easy to find.
