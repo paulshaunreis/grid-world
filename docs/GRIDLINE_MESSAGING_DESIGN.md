@@ -78,6 +78,20 @@ Floating Grid World panels should behave like windows, with Grid World controls 
 
 The current `WindowManager` already exposes minimize and hide actions and stores basic size/position in a shared browser key; that key must become account-scoped before layout state is treated as a per-user preference. This design completes the interaction model with per-window image icons, explicit close behavior, maximize/restore, a window dock, and GridSnap.
 
+## Inventory folders and organization
+
+Inventory should feel like a personal collection that is easy to browse, not an undifferentiated list.
+
+- Provide clear first-party folders for the main item types: **Avatars & Companions**, **Wearables & Looks**, **Builds & Objects**, **Tools & Materials**, **Landmarks & Routes**, **Media & Creations**, **Scripts & Blueprints**, and **Consumables**. The service owns each item's canonical type; users can organize within that type without changing ownership or permissions.
+- Allow users to create and rename additional personal folders, move items between permitted folders, and mark favorite folders/items. Support multi-select, search, sorting, filters, and an easy way back to **All Items**.
+- Give each primary folder its own original Grid World image icon/cover art and visual accent. Make the folders feel collectible and atmospheric, while preserving clear labels, readable counts, and uncluttered spacing. Use built-in/vetted artwork by default; an optional icon picker should use an approved library.
+- Make category counts and empty states useful. Use small previews and concise metadata; reserve large artwork for a selected folder or item detail view.
+- Keep the item grid/cards consistent with Grid World's custom window and responsive behavior. On desktop, allow the inventory panel to use GridSnap and window controls; on phones, use a full-screen folder browser with a clear back path.
+- Save folder ordering, custom folders, icon choices, favorites, and per-user organization preferences to the signed-in account. Keep guest organization local until sign-in, and do not expose one user's inventory arrangement to another account on a shared device.
+- Folder organization must not grant access to items or make private items public. Every inventory read, move, delete, equip, trade, or share operation remains server-authorized; category hiding is not a security control.
+
+The current repository has a profile-authority inventory read but no dedicated player Inventory browser or custom folder organizer. Build the folders around the authoritative inventory model when that backend contract is available.
+
 ## In-world system menu and Settings
 
 The in-world interface needs a familiar, predictable system menu that fits Grid World's own visual design.
@@ -164,5 +178,6 @@ The repository currently has a Social Manager and friend relationship RPCs but n
 - Escape opens and closes the in-world system menu predictably; modal stacking, focus, gameplay input, touch access, and the shared Settings route behave as specified.
 - During normal play, a top bar, bottom bar, and slim left/right rails remain available while at least roughly three quarters of a desktop viewport stays visually devoted to the world; expanded panels do not permanently shrink the world view.
 - Every floating panel provides minimize, maximize/restore, close, and GridSnap behavior, with a visible way to restore minimized or closed panels.
-- UI orientation and layout preferences are isolated per authenticated user, survive that user's sign-ins, and reflow appropriately across their devices; one user's layout never appears in another account's session.
+- UI orientation, layout, and Inventory organization preferences are isolated per authenticated user, survive that user's sign-ins, and reflow appropriately across their devices; one user's settings never appear in another account's session.
+- Inventory presents distinct, illustrated folders for the main item types, supports personal custom folders and basic organization actions, and does not change item permissions.
 - Across site pages, essential content and actions remain available at 320 CSS pixels and at tall, wide, landscape, and ultrawide viewport shapes without layout clipping or unintended two-dimensional scrolling.
