@@ -43,6 +43,20 @@ If a dependable protocol and recovery flow are not ready, do not label the featu
 - Do not show message content in desktop/browser notifications by default. Let the user choose generic alerts versus previews.
 - Keep local history and server retention controls distinct and understandable. Deleting a local copy does not imply remote deletion; disclose that behavior and provide delete-for-everyone only when protocol and delivery semantics support it.
 
+## Responsive website design across Grid World
+
+This requirement applies to the whole Grid World website, including the Messages area, social/profile pages, navigation, forms, cards, and account/settings surfaces.
+
+- Adapt to the available viewport and input capabilities rather than detecting named phone or PC models. Support tall and narrow portrait phones, wide/short landscape phones, tablets, browser split-screen, standard PC windows, and ultrawide displays. Do not assume one fixed aspect ratio such as 16:9.
+- Use fluid sizing and content-driven breakpoints. Keep long-form content readable on wide displays with a sensible maximum line length; let card grids gain columns when space allows and stack naturally when it does not.
+- Reflow ordinary content without losing functionality or requiring two-dimensional scrolling at 320 CSS pixels. This is the WCAG 2.1 AA Reflow criterion for vertically scrolling content, with specified exceptions for content that inherently requires two dimensions. See [W3C guidance on Reflow](https://www.w3.org/WAI/WCAG21/Understanding/reflow).
+- Account for mobile browser chrome, notches, and rounded corners with dynamic viewport sizing and safe-area insets. Avoid fixed-height panels that hide the composer or primary actions when the on-screen keyboard opens.
+- Make global navigation usable on small viewports, keep focus visible, and preserve access to every route when desktop navigation collapses.
+- Ensure dialogs, drawers, message lists, composer controls, tables, and profile cards reflow or scroll within their own region. Do not clip controls at short viewport heights.
+- Support touch, keyboard, mouse, browser zoom, text enlargement, and reduced motion. Interactive controls must remain usable when text wraps or system font sizes increase.
+- Keep ultrawide pages composed: cap reading widths, use deliberate multi-column layouts, and avoid stretching text and forms across the full display.
+- Verify representative viewport widths including 320 CSS pixels, common compact and large phone widths, tablet widths, standard desktop, and ultrawide; test portrait and landscape and short viewport heights. These are test points, not device-specific layout branches.
+
 ## Server authority and data boundaries
 
 The browser is untrusted. Membership, send permission, recipient preferences, block state, rate limits, offline expiry, and report authorization must be enforced server-side in one atomic send operation. A client-side check is only a usability aid.
@@ -97,3 +111,4 @@ The repository currently has a Social Manager and friend relationship RPCs but n
 - Message bodies are not present in normal logs or analytics.
 - A report includes only the messages the reporter selected and creates an auditable, access-controlled case.
 - UI styling and navigation match the current Social Manager and Grid World website, including narrow screens and keyboard use.\n- The website inbox can authenticate, load, send, receive, block, and report without initializing the 3D renderer or requiring an active game session.
+- Across site pages, essential content and actions remain available at 320 CSS pixels and at tall, wide, landscape, and ultrawide viewport shapes without layout clipping or unintended two-dimensional scrolling.
