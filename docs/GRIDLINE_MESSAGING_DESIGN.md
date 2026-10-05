@@ -129,6 +129,18 @@ The in-world interface needs a familiar, predictable system menu that fits Grid 
 
 The current main branch routes the HUD Settings action to the identity panel, and `Escape` only closes that panel. Treat the system menu as a dedicated UI flow and keep identity editing as one settings section.
  
+## Condensed website navigation
+
+The website's top bar should stay compact while keeping every destination easy to find.
+
+- Group related pages into a small number of clearly named, one-level dropdowns such as **Explore**, **Community**, **Create**, **Economy**, and **Help**. Keep the Home, World, signed-in Messages, and Join/Account actions easy to reach.
+- Preserve direct destinations for high-frequency actions and show the current page/section clearly. Do not bury messages, account access, or safety controls in deep nested menus.
+- Open dropdowns by click/tap and keyboard activation. Hover may be an enhancement on pointer devices but must never be the only way to open a menu.
+- Support Tab/Shift+Tab, Enter/Space, Escape to close, visible focus, correct expanded/collapsed state, and returning focus to the menu trigger.
+- On narrow screens, switch to a compact menu button and a readable drawer/accordion instead of squeezing links into a horizontal row. Preserve the same page groups and keep navigation available at zoom and in landscape.
+- Keep dropdown panels within the viewport, avoid covering the trigger or critical content, and close them after navigation or an outside click.
+- Use the same Grid World type, icon language, motion tokens, and UI sound cues as the rest of the site; avoid using sound or animation as the only interaction feedback.
+
 ## Responsive website design across Grid World
 
 This requirement applies to the whole Grid World website, including the Messages area, social/profile pages, navigation, forms, cards, and account/settings surfaces.
@@ -205,3 +217,4 @@ The repository currently has a Social Manager and friend relationship RPCs but n
 - Inventory presents distinct, illustrated folders for the main item types, supports personal custom folders and basic organization actions, and does not change item permissions.
 - Website and in-world components share the Grid World motion tokens and UI sound language; reduced-motion and muted-audio preferences preserve access to every control and state.
 - Across site pages, essential content and actions remain available at 320 CSS pixels and at tall, wide, landscape, and ultrawide viewport shapes without layout clipping or unintended two-dimensional scrolling.
+- Website top navigation is condensed into accessible dropdown groups, while signed-in Messages and account actions remain easy to find.
