@@ -89,6 +89,18 @@ UI animation is part of Grid World's interface language and should be used consi
 - Respect the operating system's `prefers-reduced-motion` setting and provide a per-user motion preference. Reduced motion should use simple fades or immediate state changes; it must preserve all information and functionality.
 - Avoid flashing, repeated attention loops, motion required to understand a control, and decorative movement that competes with gameplay.
 
+## Universal UI sound system
+
+Click feedback and window/folder cues should be part of the same coherent Grid World sound language across the website and in-world UI.
+
+- Create a small, polished library of distinct sounds for primary/secondary clicks, window open/close, minimize/restore, folder open/close, and important success/error feedback. Keep cues short, soft, and recognizable; avoid a sound on every low-value hover or repetitive animation.
+- Use consistent loudness and timbre across the UI. UI cues must be non-spatial and must not imply another player's location, identity, or online state.
+- Add an independent UI sound volume and mute control, separate from world ambience, music, voice, and other gameplay sound. Save it as a per-user preference and apply it consistently on the site and in-world.
+- Never make sound the only signal for an action, alert, unread message, error, or state change. Pair it with clear visual state and accessible labels.
+- Respect `prefers-reduced-motion` independently from sound settings; provide sensible sound-off and reduced-stimulation options without removing functionality.
+- Web audio may start only after an explicit user gesture where required by the browser. If audio is unavailable, controls and feedback continue silently without errors.
+- Prevent repetitive alerts from becoming harassment: rate-limit repeated notification cues, honor muted conversations, and do not expose private message content in spoken or audible notifications.
+
 ## Inventory folders and organization
 
 Inventory should feel like a personal collection that is easy to browse, not an undifferentiated list.
@@ -191,5 +203,5 @@ The repository currently has a Social Manager and friend relationship RPCs but n
 - Every floating panel provides minimize, maximize/restore, close, and GridSnap behavior, with a visible way to restore minimized or closed panels.
 - UI orientation, layout, and Inventory organization preferences are isolated per authenticated user, survive that user's sign-ins, and reflow appropriately across their devices; one user's settings never appear in another account's session.
 - Inventory presents distinct, illustrated folders for the main item types, supports personal custom folders and basic organization actions, and does not change item permissions.
-- Website and in-world components share the Grid World motion tokens; system reduced-motion preferences preserve access to every control and state.
+- Website and in-world components share the Grid World motion tokens and UI sound language; reduced-motion and muted-audio preferences preserve access to every control and state.
 - Across site pages, essential content and actions remain available at 320 CSS pixels and at tall, wide, landscape, and ultrawide viewport shapes without layout clipping or unintended two-dimensional scrolling.
