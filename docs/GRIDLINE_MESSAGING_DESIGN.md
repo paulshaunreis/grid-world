@@ -43,6 +43,20 @@ If a dependable protocol and recovery flow are not ready, do not label the featu
 - Do not show message content in desktop/browser notifications by default. Let the user choose generic alerts versus previews.
 - Keep local history and server retention controls distinct and understandable. Deleting a local copy does not imply remote deletion; disclose that behavior and provide delete-for-everyone only when protocol and delivery semantics support it.
 
+## In-world system menu and Settings
+
+The in-world interface needs a familiar, predictable system menu that fits Grid World's own visual design.
+
+- Pressing `Escape` opens a pause-style system menu when no modal is active. Pressing `Escape` while the menu is open resumes the world. If another modal is open, the first press closes only the topmost modal; it must not accidentally activate a control behind it.
+- Put **Resume** and **Settings** first and make them available by keyboard. Include **Controls**, **Accessibility**, **Privacy & Safety**, **Messages & Notifications**, **Help / Report a problem**, and **Leave World**. Confirm before signing out or leaving an unsaved activity.
+- Organize Settings into clear categories. Keep account identity/profile editing inside Account or Identity settings; do not use the Settings entry as a shortcut that directly opens the identity editor.
+- Opening this menu captures keyboard focus, pauses local gameplay input, and prevents world interactions through the overlay. It must not imply that server-side presence or communication has stopped; those are governed by explicit privacy and presence controls.
+- Keep an always-visible equivalent menu/settings action for touch devices where Escape is unavailable. Respect safe areas, short heights, browser back behavior, keyboard focus, and screen readers.
+- Use Grid World's existing type, color, translucent surfaces, spacing, responsive behavior, and icon language. Follow familiar menu conventions without copying another game's art or branded layout.
+- Share one Settings destination between the system menu and the existing HUD Settings action so users do not encounter two competing settings flows.
+
+The current main branch routes the HUD Settings action to the identity panel, and `Escape` only closes that panel. Treat the system menu as a dedicated UI flow and keep identity editing as one settings section.
+ 
 ## Responsive website design across Grid World
 
 This requirement applies to the whole Grid World website, including the Messages area, social/profile pages, navigation, forms, cards, and account/settings surfaces.
@@ -110,5 +124,7 @@ The repository currently has a Social Manager and friend relationship RPCs but n
 - Non-members, removed members, and unauthenticated clients cannot read conversation content through direct API calls.
 - Message bodies are not present in normal logs or analytics.
 - A report includes only the messages the reporter selected and creates an auditable, access-controlled case.
-- UI styling and navigation match the current Social Manager and Grid World website, including narrow screens and keyboard use.\n- The website inbox can authenticate, load, send, receive, block, and report without initializing the 3D renderer or requiring an active game session.
+- UI styling and navigation match the current Social Manager and Grid World website, including narrow screens and keyboard use.
+- The website inbox can authenticate, load, send, receive, block, and report without initializing the 3D renderer or requiring an active game session.
+- Escape opens and closes the in-world system menu predictably; modal stacking, focus, gameplay input, touch access, and the shared Settings route behave as specified.
 - Across site pages, essential content and actions remain available at 320 CSS pixels and at tall, wide, landscape, and ultrawide viewport shapes without layout clipping or unintended two-dimensional scrolling.
