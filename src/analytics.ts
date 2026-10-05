@@ -26,7 +26,6 @@ export function initializeGridAnalytics(): void {
     disable_session_recording: true,
     persistence: 'memory',
     ip: false,
-    person_profiles: 'never',
     before_send: (event) => {
       if (!event || !allowedEvents.has(event.event)) return null;
 
