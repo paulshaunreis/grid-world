@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { captureGridAnalytics, initializeGridAnalytics } from './analytics';
 import { Input } from './core/Input';
 import { InteractionSystem } from './core/InteractionSystem';
 import { Persistence } from './core/Persistence';
@@ -2956,6 +2957,14 @@ function animate(now: number) {
   requestAnimationFrame(animate);
 }
 
+initializeGridAnalytics();
+captureGridAnalytics('grid_world_session_started');
+let gridWorldInteractionCaptured = false;
+renderer.domElement.addEventListener('pointerdown', () => {
+  if (gridWorldInteractionCaptured) return;
+  gridWorldInteractionCaptured = true;
+  captureGridAnalytics('grid_world_first_interaction');
+}, { once: true });
 requestAnimationFrame(animate);
 
 addEventListener('beforeunload', () => { void gridSocialService?.setPresence(false).catch(()=>undefined); buildRealtimeChannel?.unsubscribe(); });
