@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Grid World — Inventory</title>
+    <meta name="description" content="Browse and organize your Grid World inventory." />
+    <link rel="stylesheet" href="/src/grid-page-visual.css" />
+  </head>
+  <body class="grid-world-page">
+    <header class="grid-global-nav">
+      <a class="grid-nav-brand" href="/">◇ GRID WORLD</a>
+      <nav aria-label="Main navigation">
+        <a href="/">HOME</a><a href="/play.html">WORLD</a><a href="/profile.html">PROFILE</a>
+        <a href="/inventory.html" aria-current="page">INVENTORY</a><a href="/social.html">SOCIAL</a>
+        <a href="/marketplace.html">MARKET</a><a href="/docs.html">DOCS</a>
+      </nav>
+      <a class="grid-nav-join" href="/join.html">ACCOUNT</a>
+    </header>
+    <main id="grid-inventory-app" class="gw-inventory-app">
+      <section class="gw-inventory-loading" aria-live="polite">CONNECTING TO YOUR INVENTORY…</section>
+    </main>
+    <script type="module" src="/src/inventory.ts"></script>
+    <script type="module" src="/src/site-theme.ts"></script>
+  </body>
+</html>
