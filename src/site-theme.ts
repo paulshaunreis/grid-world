@@ -1,3 +1,4 @@
+import { mountGridLanguageSettings } from './ui/GridLanguageSettings';
 /* GridWorld site theme picker — Aurora, 2026-10-02.
  * Reads the SAME localStorage key the game uses (`grid-world:hud-theme`),
  * so a theme chosen in-world applies on-site and vice versa — same origin,
@@ -62,6 +63,7 @@ function mountPicker() {
 
   const join = nav.querySelector('.grid-nav-join');
   nav.insertBefore(wrap, join ?? null);
+  mountGridLanguageSettings(nav, 'site');
 }
 
 applyTheme(currentTheme());
