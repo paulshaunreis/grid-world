@@ -885,3 +885,15 @@ _Last updated: 2026-10-04_
 - **Next focus:** continue P0 verification for another concrete user-facing mismatch; otherwise proceed through the highest-value live interaction surfaces before expanding another major system.
 
 _Last updated: 2026-10-04_
+
+## 2026-10-05 — Current-main stability audit: fixed overlay stacking
+
+- **Baseline:** main `fde47c3c3f3a24f596de0e6576165489008426c4`; Render deploy `dep-db19d17avr4c73asl6n0` is LIVE.
+- Live diagnostics page reported 11/11 monitor jobs healthy. The current-main play page confirmed the recent Atlas flow and the explicit local/cloud-unavailable build-region status.
+- A live visual check exposed a shared CSS regression: `body.grid-world-page > * { position: relative; z-index: 1 }` overrode fixed positioning on runtime panels appended directly to `body`. At a 1058×726 viewport, the open Atlas panel was laid out at y=341 with a 667px height, pushing much of it below the viewport; the target profile, field guide, social overlays, transit panel, and other fixed surfaces were also computed as `position: relative`.
+- Updated `src/grid-page-visual.css` on branch `aurora/fix-grid-page-overlay-stacking-2026-10-05`: the body now isolates its background layer, the decorative backdrop uses z-index -1, the game root retains its explicit stacking position, and the blanket direct-child positioning rule is removed.
+- Commit: `212ffd0e4a800d5a1cfaa68c3748d02fdbe6114d`. Source was re-fetched from the branch and inspected. This is not yet merged or deployed; Render PR previews are disabled. No build or CI result is claimed.
+- Existing open PRs were reviewed and left untouched. PRs #57 and #58 contain concept/canon proposals explicitly awaiting Paul’s approval; PR #63, #59, and #29 remain separate open work.
+- **Next:** review the overlay fix, then verify the merged Render deployment and repeat Atlas/HUD visual checks. Continue P0 stability audit before starting another major feature.
+
+_Last updated: 2026-10-05_

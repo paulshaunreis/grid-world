@@ -2,9 +2,9 @@
 @import "./ui/grid-themes.css";
 /* Grid World shared visual-art surface for every public page */
 html,body{min-height:100%;background:#050b14;color:#eaf8ff}
-body.grid-world-page{position:relative;overflow-x:hidden}
+body.grid-world-page{position:relative;overflow-x:hidden;isolation:isolate}
 body.grid-world-page::before{
- content:"";position:fixed;z-index:0;pointer-events:none;inset:0;
+ content:"";position:fixed;z-index:-1;pointer-events:none;inset:0;
  background:
  radial-gradient(circle at 18% 18%,rgba(65,220,255,.12),transparent 30%),
  linear-gradient(90deg,rgba(5,11,20,.96) 0%,rgba(5,11,20,.78) 44%,rgba(5,11,20,.32) 72%,rgba(5,11,20,.78) 100%),
@@ -12,7 +12,8 @@ body.grid-world-page::before{
  opacity:.98;
 }
 body.grid-world-page::after{content:"";position:fixed;z-index:0;pointer-events:none;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,transparent,#4ee8ff,#a979ff,#ff74c8,transparent);box-shadow:0 0 22px #4ee8ff}
-body.grid-world-page>*{position:relative;z-index:1}
+/* Keep the game root above the page backdrop without changing fixed HUD overlay positioning. */
+body.grid-world-page>#app{position:relative;z-index:1}
 .grid-page-artbar{position:relative;overflow:hidden;margin:0 0 28px;border:1px solid rgba(90,225,255,.28);border-radius:18px;min-height:190px;background:#07121f url("/art/grid-page-atlas.webp") center/cover no-repeat;box-shadow:0 24px 80px rgba(0,0,0,.35),inset 0 0 60px rgba(80,210,255,.08)}
 .grid-page-artbar::after{content:"GRID WORLD · LIVING VISUAL SYSTEM";position:absolute;left:22px;bottom:18px;font:700 10px/1 monospace;letter-spacing:.18em;color:#7feaff;text-shadow:0 0 12px rgba(70,220,255,.55)}
 .grid-page-artbar .art-title{position:absolute;right:22px;top:20px;font:700 9px monospace;letter-spacing:.16em;color:#d9c9ff}

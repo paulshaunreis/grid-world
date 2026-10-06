@@ -549,3 +549,12 @@ _Last updated: 2026-10-03_
 - Separate observation: Build Mode's region status remains `Connecting…` during unauthenticated/local verification and is tracked separately from this transit fix.
 
 _Last updated: 2026-10-04_
+
+## Checkpoint — 2026-10-05 — Runtime overlay stacking
+
+- Current main is `fde47c3c3f3a24f596de0e6576165489008426c4`; Render deploy `dep-db19d17avr4c73asl6n0` is LIVE. The static Render service has no Render Postgres; Grid World code also contains Supabase integration, so runtime persistence remains a separate service boundary.
+- Current live diagnostics report 11 monitored jobs healthy. Live inspection reproduced a high-impact layout defect: the shared `body.grid-world-page > *` rule changes all direct body children to relative positioning, overriding fixed HUD panels and overlays.
+- Fix is on `aurora/fix-grid-page-overlay-stacking-2026-10-05`, commit `212ffd0e4a800d5a1cfaa68c3748d02fdbe6114d`. It moves the site backdrop into an isolated negative layer and keeps explicit positioning only on the game root.
+- Verification: live browser/DOM reproduction on current main, plus branch source re-fetch. The fix is not yet merged/deployed; Render PR previews are disabled, and no build/CI result is claimed.
+- Do not merge concept/canon PRs #57 or #58 without the user's approval; their own descriptions say they are awaiting creative approval. Other open PRs #63, #59, and #29 were preserved for separate review.
+- **Next actionable item:** review the overlay stacking PR, then verify its Render deployment and repeat the live Atlas/HUD visual check before resuming the P0 audit.
