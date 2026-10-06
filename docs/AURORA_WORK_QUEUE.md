@@ -897,3 +897,29 @@ _Last updated: 2026-10-04_
 - **Next:** review the overlay fix, then verify the merged Render deployment and repeat Atlas/HUD visual checks. Continue P0 stability audit before starting another major feature.
 
 _Last updated: 2026-10-05_
+
+
+## P1 — Reality / Knowledge / Omni Core
+
+### New: Reality & Tangibility Framework
+- Implement machine-readable Reality Profiles for lore, knowledge, events, artifacts, and external signals.
+- Keep R0/R1/R2/R3/R4/R5/R6 status explicit in UI and localization.
+- Add Reality Bridge records for consequential cross-boundary events.
+- Preserve the distinction between factual claims, simulation, fiction, hypothesis, rumor, and controlled anomaly.
+
+Status: Design complete on codex/global-language-settings-2026-10-06; runtime not implemented.
+
+### New: Omni Core Signal Matrix
+- Build the controlled Web evidence boundary defined in docs/OMNI_CORE_WEB_INTELLIGENCE_MATRIX.md.
+- Start read-only with evidence ingestion, source identity, content hashing, claim extraction, corroboration, relevance/risk classification, and human review.
+- Never allow external pages to directly write canonical lore, policy, economy, permissions, or constitutional state.
+- Keep Web-facing workers isolated from privileged Grid credentials.
+
+Status: Architecture defined; runtime not implemented.
+
+### New: AAA+ Lore / Knowledge surfaces
+- Build a lore/knowledge renderer that can present real-world sources, Grid canon, speculation, and unresolved anomalies together without mislabeling their truth status.
+- Preserve source/retrieval metadata and localized presentation.
+- Add contradiction and stale-source indicators before promoting external research into canon.
+
+Status: Design requirement; implementation pending.
