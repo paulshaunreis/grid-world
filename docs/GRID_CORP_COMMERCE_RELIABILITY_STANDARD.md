@@ -229,3 +229,59 @@ The user should be able to think: I bought it. I can see what I bought. I know w
 Reviewed 2026-10-06: Amazon public return/refund policy, seller refund policy, seller performance/order-performance requirements, valid tracking guidance, and current fulfillment expansion; plus SpaceX public material on iterative testing, recursive learning, reusable systems, and retest triggers.
 
 These sources are benchmarks and evidence, not Grid Corp policy.
+## 26. Grid Corp Errorless Operations Doctrine
+
+Grid Corp's goal is not to pretend that software, people, vendors, or physical systems can never experience an error.
+
+The operational promise is stronger and more honest:
+
+> **Grid Corp never knowingly leaves a verified mistake uncontained, unexplained, unrecorded, or uncorrected.**
+
+Therefore "Grid Corp never made a mistake" becomes an internal quality doctrine with five meanings:
+
+1. **No silent failure** — consequential failures become observable incidents or exceptions.
+2. **No hidden evidence** — records are never altered simply to make a failure disappear.
+3. **No compounding error** — transaction boundaries, idempotency, circuit breakers, and reconciliation prevent one defect from cascading into systemic corruption.
+4. **No false certainty** — Grid Corp never tells a customer that a transaction is correct when authoritative evidence says it is uncertain.
+5. **No abandoned recovery** — once a verified defect is known, an owner, recovery path, and status exist.
+
+### The Error-to-Truth protocol
+
+ANOMALY -> CONTAIN -> PRESERVE -> RECONSTRUCT -> CLASSIFY -> CORRECT -> RECONCILE -> VERIFY -> EXPLAIN -> LEARN
+
+The customer-facing goal is not "nothing ever went wrong."
+
+The customer-facing goal is:
+
+> "When something unexpected happened, Grid Corp already knew how to contain it, determine what actually happened, repair the result, and preserve the record."
+
+### Error classes
+
+**E0 — No error:** expected behavior.
+**E1 — Recoverable transient:** retry succeeds without customer impact.
+**E2 — Corrected product defect:** a system fault occurred, but authoritative state remained intact or was automatically restored.
+**E3 — Customer-impacting incident:** the customer experienced a measurable error; Grid Corp provides correction, protection, and appropriate notice.
+**E4 — Systemic incident:** multiple users/systems were affected; incident command, containment, reconciliation, and post-incident review are mandatory.
+**E5 — Third-party failure:** a payment processor, carrier, cloud service, creator, or external dependency failed. Grid Corp still owns the customer-facing recovery experience to the extent required by its terms and applicable law.
+
+### Grid Corp Quality Claim
+
+For official public language, avoid the literal claim that Grid Corp can never make an error.
+
+Use:
+
+> **"Grid Corp is engineered so that failures are detected early, contained quickly, recoverable by design, and never silently rewritten."**
+
+Or, for in-world lore:
+
+> **"The Grid does not promise that nothing will ever break. It promises that nothing broken is allowed to remain unexplained."**
+
+This gives Grid Corp a very high reliability standard without making a factual guarantee the company cannot honestly satisfy.
+
+### Executive exception rule
+
+No executive, founder, engineer, AI, seller, or vendor may waive evidence, audit, reconciliation, or incident recording merely to preserve a reputation of perfection.
+
+**Reputation is never allowed to outrank truth.**
+
+This rule is part of the Grid Corp trust architecture.
