@@ -924,3 +924,11 @@ _Last updated: 2026-10-05_
 ### Next: first complete world dossier
 - Use research + creative tools to create one description-first, life-first world dossier: WorldDNA, geography, architecture, ecology, creatures, NPC society, economy, weather, landmarks, transit, quests, visual package, and provenance.
 - Keep implementation separate until the user promotes the world/system direction.
+
+## 2026-10-06 — P1 .hack / VR-AR / Infinite Interest track
+- Added .hack franchise translation research and Infinite Interest Engine architecture.
+- Added plugin capability/gap ledger with ten-check scrutiny protocol.
+- Created weekly Grid World Trend Pulse automation for IRL × Grid analysis.
+- Current research priority: build OCSM evidence contracts, then the AAA+ Lore/Knowledge surface, then a bounded Tangible Strange experiment and one complete world dossier.
+- VR/AR is a shared client surface over the authoritative Grid Engine, not a separate world authority. Preserve renderer/platform abstraction and safety boundaries.
+- Treat the website as the public gateway into the living civilization, not an admin dashboard.
