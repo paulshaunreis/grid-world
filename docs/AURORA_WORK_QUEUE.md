@@ -897,3 +897,30 @@ _Last updated: 2026-10-04_
 - **Next:** review the overlay fix, then verify the merged Render deployment and repeat Atlas/HUD visual checks. Continue P0 stability audit before starting another major feature.
 
 _Last updated: 2026-10-05_
+
+
+## 2026-10-06 — P1 plugin ecosystem / Omni Core studio track
+
+### Complete: plugin capability audit + studio matrix
+- Added `docs/GRID_PLUGIN_OMNI_CORE_STUDIO_MATRIX.md`.
+- Classified connected tools by research/evidence, engineering/infrastructure, commerce, design/media, collaboration/knowledge, privacy/safety, analytics, and automation.
+- Preserved the existing canon/experiment hierarchy and OCSM evidence boundary.
+- Recorded **The Tangible Strange** as a FUTURE-IDEA / bounded creative principle, not canon.
+- Verification: L0 documentation/tool audit only.
+
+### Next: OCSM evidence contracts
+- Define the evidence record, claim record, provenance fields, reality class, confidence, contradiction, review state, and affected-system references.
+- Start read-only; do not give Web-facing workers privileged Grid credentials.
+
+### Next: AAA+ Lore / Knowledge surface
+- Reuse the existing WindowManager/Grid visual system.
+- Present reality status, evidence, origin, confidence, impact, source/retrieval metadata, contradictions, and stale-source warnings.
+- Do not create a second lore/window architecture.
+
+### Next: Tangible Strange bounded experiment
+- Produce one source-backed lore experiment where an R3/R4/R5/R6 concept has a clearly documented R1 or R0 consequence without misrepresenting fiction as fact.
+- Record the experiment result before any promotion to canon.
+
+### Next: first complete world dossier
+- Use research + creative tools to create one description-first, life-first world dossier: WorldDNA, geography, architecture, ecology, creatures, NPC society, economy, weather, landmarks, transit, quests, visual package, and provenance.
+- Keep implementation separate until the user promotes the world/system direction.
