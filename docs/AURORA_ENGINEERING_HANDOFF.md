@@ -558,3 +558,16 @@ _Last updated: 2026-10-04_
 - Verification: live browser/DOM reproduction on current main, plus branch source re-fetch. The fix is not yet merged/deployed; Render PR previews are disabled, and no build/CI result is claimed.
 - Do not merge concept/canon PRs #57 or #58 without the user's approval; their own descriptions say they are awaiting creative approval. Other open PRs #63, #59, and #29 were preserved for separate review.
 - **Next actionable item:** review the overlay stacking PR, then verify its Render deployment and repeat the live Atlas/HUD visual check before resuming the P0 audit.
+
+
+## Checkpoint — 2026-10-06 — Reality, tangibility, and Omni Core Web intelligence
+
+- The language/AI governance branch now adds docs/GRID_REALITY_AND_TANGIBILITY_FRAMEWORK.md and docs/OMNI_CORE_WEB_INTELLIGENCE_MATRIX.md.
+- Core principle: digital is a medium, not the opposite of real. A Grid event can create real-world consequences, so lore and system risk are classified by reality class and impact rather than by whether something is digital.
+- Reality classes: R0 External Reality, R1 Grid Reality, R2 Simulated Reality, R3 Fictional/Narrative Reality, R4 Hypothesis/Speculation, R5 Myth/Rumor/Unverified Signal, R6 controlled Reality-Bending Anomaly.
+- Lore/knowledge standard: CLAIM -> SOURCE -> CONTEXT -> CONFIDENCE -> INTERPRETATION -> CONSEQUENCE. Generated text is never allowed to silently become primary evidence.
+- Omni Core Signal Matrix (OCSM) is defined as the controlled Web boundary: external sources become evidence records and claims before they can influence lore, rules, security, or other Grid systems.
+- Web-facing workers must be isolated from privileged Grid credentials and cannot self-modify policy, delete evidence, mint currency, transfer land, change constitutional rules, deploy production code, or conceal incidents.
+- Constitution and AI Worker Operating Model were extended to make reality/evidence integrity explicit. Localization now includes reality-status labels and preserves underlying claim/provenance semantics.
+- These are design/documentation changes only. No OCSM runtime, crawler, evidence store, claim graph, or lore UI has been claimed as implemented.
+- Branch state must still be rebased against current main before any merge because the branch was observed 1 commit behind and 10 commits ahead at this checkpoint.
