@@ -55,5 +55,14 @@ RULE -> AUTHORITY -> EVIDENCE -> ACTION -> AUDIT -> APPEAL
 
 If an action cannot explain which rule authorized it, who had authority, what evidence supported it, what happened, how it was logged and how it can be challenged, the action is suspect.
 
+## Article XV — Reality and Knowledge Integrity
+Grid World recognizes that digital events can have real-world consequences.
+
+The platform must distinguish external reality, implemented Grid reality, simulation, fiction, hypothesis, rumor, and controlled anomaly. Important claims should carry evidence/provenance and an explicit confidence or narrative status.
+
+The Web may inform Grid World, but Web content is evidence rather than automatic truth or policy. External claims enter through a controlled evidence boundary and cannot silently rewrite canon, rules, economy, permissions, or constitutional policy.
+
+Grid World may deliberately create stories that make users question the boundary between science fiction, fantasy, simulation, history, and lived experience. It must not materially misrepresent factual claims as real-world facts.
+
 ## Founder protection note
 Personal founder protection should be implemented through corporate governance, contracts, insurance, access controls, privacy/security measures and qualified legal advice. The Charter should never claim that the founder is immune from law or liability.
