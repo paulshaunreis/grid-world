@@ -558,3 +558,15 @@ _Last updated: 2026-10-04_
 - Verification: live browser/DOM reproduction on current main, plus branch source re-fetch. The fix is not yet merged/deployed; Render PR previews are disabled, and no build/CI result is claimed.
 - Do not merge concept/canon PRs #57 or #58 without the user's approval; their own descriptions say they are awaiting creative approval. Other open PRs #63, #59, and #29 were preserved for separate review.
 - **Next actionable item:** review the overlay stacking PR, then verify its Render deployment and repeat the live Atlas/HUD visual check before resuming the P0 audit.
+
+
+## Protected Omni Matrix architecture — 2026-10-06
+
+- New proposed architecture document: `docs/OMNI_MATRIX_PROTECTED_CORE.md`
+- Branch: `codex/omni-protected-core-2026-10-06`
+- Commit: `15fdf4052457439aed4d52e1ee05679c5932d4f6`
+- Parent: `codex/grid-law-measure-2026-10-06` / PR #92 head.
+- Scope: Omni Core protection, The Measure causal analysis, safety/peace, Grid continuity, dependency health, financial stability, political/jurisdiction stability, constitutional integrity, human/staff protection, provenance, crisis containment, safe degradation, and anti-cascade controls.
+- This is architecture/documentation only. No production behavior was changed by this pass.
+- Verification: L0 — source/file verification completed. No L1-L6 claim made.
+- Adoption remains subject to engineering/security review and qualified legal counsel where legal or corporate obligations are implicated.
