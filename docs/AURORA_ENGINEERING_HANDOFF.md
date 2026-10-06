@@ -558,3 +558,17 @@ _Last updated: 2026-10-04_
 - Verification: live browser/DOM reproduction on current main, plus branch source re-fetch. The fix is not yet merged/deployed; Render PR previews are disabled, and no build/CI result is claimed.
 - Do not merge concept/canon PRs #57 or #58 without the user's approval; their own descriptions say they are awaiting creative approval. Other open PRs #63, #59, and #29 were preserved for separate review.
 - **Next actionable item:** review the overlay stacking PR, then verify its Render deployment and repeat the live Atlas/HUD visual check before resuming the P0 audit.
+
+
+## 2026-10-06 — Plugin ecosystem / Omni Core studio pass
+- Main was re-audited before extending the project. Current main at the start of this pass: `687ec309c4ae1ee812dc4f82ba9bebf6b7329d17`.
+- The connected tool ecosystem was inventoried across research, engineering, infrastructure, commerce, design, media, collaboration, privacy, analytics, and automation.
+- Added `docs/GRID_PLUGIN_OMNI_CORE_STUDIO_MATRIX.md` on branch `codex/plugin-omni-core-studio-matrix-2026-10-06`. This is documentation/architecture only; no runtime or database changes.
+- The matrix defines the plugin studio operating model: research/evidence → reality classification → lore transformation → creative production → implementation → verification → audit/handoff.
+- The matrix explicitly extends the existing OCSM, Reality & Tangibility, AI governance, and canon/experiment boundaries. External tool output does not become canon automatically.
+- New creative doctrine **The Tangible Strange** is recorded as a FUTURE-IDEA/creative experiment principle, not canon. Its purpose is to make fictional ideas consequential and thought-provoking without misrepresenting fiction as fact.
+- Research pass used Exa and Consensus to validate the conceptual direction. Research supports treating digital/virtual systems as capable of real social, economic, cyber-physical, and informational consequences; it does not establish the simulation hypothesis as fact. Scientific claims remain source-backed and reality-classified.
+- Connected service observations: Stripe sandbox account **Grid Corporation sandbox** is available; Supabase project `grid-world` is ACTIVE_HEALTHY; Figma, Notion, Slack, Runway, HeyGen and other creative/collaboration tools are authenticated/available as observed. These observations do not mean Grid World has implemented integrations with every service.
+- Stripe planner was run in sandbox context. The current architectural direction is to use Stripe for real-world payments/Connect/Billing/Invoicing/Tax while keeping Grid World's fictional GRC and internal ownership/settlement ledger server-authoritative and separate.
+- Verification: **L0 documentation/tool audit**. No runtime code, database schema, deployment, or browser behavior changed in this pass.
+- Next: create the OCSM evidence/data contracts and an AAA+ lore/knowledge surface using existing UI/window architecture; then run a bounded Tangible Strange lore experiment and produce one complete world dossier + visual package before promoting anything to runtime.
