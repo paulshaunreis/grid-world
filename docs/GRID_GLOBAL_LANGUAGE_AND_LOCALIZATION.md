@@ -4,7 +4,7 @@ Date: 2026-10-06
 Status: Design + implementation requirements
 
 ## Core rule
-Grid World is multilingual by default. Website, pre-auth onboarding, account creation, in-world UI, Message Board, direct messages, proximity chat, NPC dialogue, marketplace, card game, cards, coins, item art, quests, system notices, and help content must have a localization path.
+Grid World is multilingual by default. Website, pre-auth onboarding, account creation, in-world UI, Message Board, direct messages, proximity chat, NPC dialogue, marketplace, card game, cards, coins, item art, quests, system notices, help content, lore, knowledge panels, evidence labels, and reality-status indicators must have a localization path.
 
 The canonical record remains language-neutral where possible. Human-authored text is stored in its source language; translated presentation is generated per viewer.
 
@@ -49,6 +49,20 @@ For high-value assets, combine visible marking, C2PA credentials, internal asset
 
 A detector should return verified, likely, unknown, or tampered, never a false absolute claim.
 
+## Reality-aware localization
+Reality status is metadata, not translated improvisation.
+
+Translate labels such as:
+- R0 External Reality
+- R1 Grid Reality
+- R2 Simulated Reality
+- R3 Fictional / Narrative Reality
+- R4 Hypothesis / Speculation
+- R5 Myth / Rumor / Unverified Signal
+- R6 Reality-Bending Anomaly
+
+Preserve the underlying claim, source, confidence, jurisdiction, and provenance across language variants.
+
 ## Translation provider boundary
 Translation credentials remain server-side.
 
@@ -68,4 +82,5 @@ The provider must be replaceable. Google Cloud Translation is the first planned 
 - Grid provenance mark is present on Grid World-owned/generated visual exports.
 - C2PA provenance is attached where supported.
 - RTL and CJK layouts pass visual QA.
+- Reality-status labels are localized without changing their semantic meaning.
 - Translation failures degrade safely.
