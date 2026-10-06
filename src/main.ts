@@ -129,6 +129,7 @@ import { GridEasyBuildSystem } from './world/GridEasyBuildSystem';
 import { GridMaterialDropSystem } from './world/GridMaterialDropSystem';
 import { GridTouchController, GridInputModeUI } from './ui/GridTouchController';
 import './ui/GridDeviceResponsive.css';
+import { mountGridLanguageSettings } from './ui/GridLanguageSettings';
 import './ui/grid-effects.css';
 import './ui/grid-themes.css';
 
@@ -273,6 +274,7 @@ hud.innerHTML = `
   <div class="social-quick" id="social-quick" aria-label="Social quick actions"><button id="social-open" type="button">SOCIAL</button><button id="social-friend" type="button">ADD FRIEND</button><button id="social-message" type="button">MESSAGE</button><button id="social-teleport" type="button">INVITE / TELEPORT</button></div>
 `;
 app.appendChild(hud);
+mountGridLanguageSettings(document.querySelector('.identity-card')!, 'world');
 installGridAssetHealth(document);
 installGridHealthMonitor(document.body);
 const status = document.querySelector<HTMLDivElement>('#status')!;
