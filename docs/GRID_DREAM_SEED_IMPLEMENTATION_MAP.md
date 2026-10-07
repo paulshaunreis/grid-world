@@ -1,6 +1,6 @@
 # Grid Dream Seed — Existing Implementation Map
 
-**Status:** L0 architecture/source mapping only. No production behavior changed.
+**Status:** L0 source mapping plus first runtime adapter implemented. CI has verified the Dream Seed adapter/factory integration commit; persistent publication remains gated.
 
 ## Purpose
 
@@ -8,7 +8,7 @@ Dream Seed must extend the existing Grid World runtime rather than create a seco
 
 The canonical path is:
 
-`Dream Seed -> Blueprint -> existing GridWorldRegistry -> existing world capabilities -> existing world systems -> existing persistence/recovery -> verification -> world link`
+`Dream Seed -> Blueprint -> validation/Measure gate -> existing WorldFactory -> existing GridWorldRegistry -> existing world capabilities -> existing world systems -> existing persistence/recovery -> verification -> publication/world link`
 
 ## Confirmed reuse points
 
@@ -53,9 +53,45 @@ Existing capability dimensions include:
 
 Capabilities are normalized when worlds are registered/upserted and exposed through `getWorldCapabilities()`.
 
-**Decision:** A Dream Seed blueprint may request capabilities, but requested capabilities are not authorization. The existing world capability contract remains authoritative.
+**Decision:** A Dream Seed blueprint may request capabilities, but requested capabilities are not user authorization. The existing world capability contract remains authoritative, and Dream Seed cannot grant `FULL` creator permissions.
 
-### 3. Creator/build integration
+### 3. Dream Seed runtime adapter
+
+**Implementation:** `src/world/DreamSeedWorldAdapter.ts`
+
+The first runtime slice now provides:
+
+- typed `DreamSeedWorldBlueprint`
+- required-field validation
+- known-capability validation
+- ecology-intensity validation
+- rejection of `FULL` creator permissions
+- normalized effective capabilities
+- translation into the existing `GridWorldCreationRequest`
+
+The adapter deliberately does **not**:
+
+- create worlds directly
+- grant user permissions
+- persist seeds
+- publish world links
+- bypass existing world authority
+
+**Decision:** Dream Seed remains an input/translation layer. Authoritative world creation stays with the existing factory/registry path.
+
+### 4. Existing WorldFactory integration
+
+**Implementation:** `src/world/WorldFactory.ts`
+
+`GridWorldCreationRequest` now accepts optional world capabilities and passes them through the existing `registerNetworkWorld()` path.
+
+This preserves the existing factory lifecycle and avoids a parallel Dream Seed generator.
+
+**Observed implementation path:**
+
+`DreamSeedWorldBlueprint -> validateDreamSeedBlueprint() -> toDreamSeedFactoryRequest() -> createWorldFromDescription() -> registerNetworkWorld()`
+
+### 5. Creator/build integration
 
 **Existing systems:**
 
@@ -66,19 +102,31 @@ World capability gates are already wired into the runtime.
 
 **Decision:** Dream-generated worlds should describe intended building/terrain behavior in the blueprint, then resolve those requests through existing capability gates. Dream Seed must not directly grant creator privileges.
 
-### 4. Existing world population and living systems
+### 6. Existing world population and living systems
 
 The engineering state identifies existing living-world systems for NPC society, routines, ecology, missions, transit, economy, and world events.
 
 **Decision:** Dream Seed should produce a structured world blueprint that feeds existing systems where compatible. It should not create a separate NPC, ecology, quest, economy, or transit stack.
 
-### 5. Persistence and recovery
+### 7. Persistence and recovery
 
 Existing engineering work already has persistence/cloud-world-state paths and background-service failure/recovery reporting.
 
 Relevant prior work includes PR #51 and PR #52, which explicitly preserve the existing persistence architecture and surface failures rather than hiding them.
 
-**Decision:** Persistent Dream Worlds must use existing persistence/recovery boundaries. A provider or persistence failure must never be represented as successful world creation.
+The verified factory seam also shows that `src/main.ts` creates the authoritative in-memory factory world through `WorldFactory`/the registry and then uses the existing `GridWorldAuthority.create()` path for persistent cloud registration. Persistence failure is surfaced while the local world remains active; it is not silently represented as durable success.
+
+**Decision:** Dream Seed must use those existing persistence/recovery boundaries. A persistence/provider failure must never be represented as successful durable publication.
+
+### 8. Publication boundary
+
+Dream Seed does not currently publish a persistent world link automatically.
+
+The required future sequence remains:
+
+`APPROVED BLUEPRINT -> FACTORY CREATION -> PERSISTENCE VERIFICATION -> WORLD HEALTH CHECK -> PUBLICATION AUTHORIZATION -> WORLD LINK`
+
+A generated preview must remain distinguishable from a persistent world.
 
 ## Dream Seed -> runtime boundary
 
@@ -155,30 +203,45 @@ A preview is also not a persistent world.
 
 ## First implementation slice
 
-The safest next implementation is:
+Completed:
 
-1. Keep the current Dream Seed and Dream Seed Contract documents as the product/architecture specification.
+1. Keep the Dream Seed and Dream Seed Contract documents as the product/architecture specification.
 2. Add a typed, inspectable blueprint representation.
 3. Validate blueprint capability requests against `WorldCapabilityContract`.
-4. Resolve an approved blueprint into a `GridWorldDefinition` without creating a parallel registry.
-5. Generate a non-authoritative preview using existing world presentation systems.
-6. Record provenance and transformation history.
-7. Exercise failure/recovery states before persistent generation.
-8. Only after that, connect approved blueprints to persistent world creation.
+4. Translate an approved blueprint into the existing `GridWorldCreationRequest`.
+5. Pass the validated capability configuration through the existing WorldFactory into the existing registry.
+6. Preserve separation between world capability configuration and user authorization.
+
+Still gated:
+
+7. Generate a non-authoritative preview using existing world presentation systems.
+8. Record provenance and transformation history in the runtime persistence boundary.
+9. Exercise failure/recovery states for the Dream Seed lifecycle.
+10. Connect approved blueprints to persistent publication only after verification and approval.
 
 ## Verification requirement
 
-The implementation must eventually satisfy the existing Studio Workflow:
+The implementation must satisfy the existing Studio Workflow:
 
 `branch -> implement -> analyzer/tsc/build -> CI -> cross-review -> Paul approval -> merge -> Render/deploy check`
 
-Until those checks are actually observed, Dream Seed work must remain labeled at its observed verification level.
+Observed for the current implementation commit:
+
+- GitHub Actions: **Grid World CI #1370**
+- Commit: `dc6fb8e1f8e7863f9fa9663d274dd7110adf9cd2`
+- dependency installation: passed
+- TypeScript check: passed
+- production build: passed
+
+This is CI/source verification for the implementation commit. It is **not** browser, Render, deployment, production, or cross-review verification.
+
+The Dream Seed PR remains draft and unmerged.
 
 ## Known boundary
 
-The current source mapping confirms the world registry and capability contracts. A dedicated production Dream Seed persistence schema and world-generation service have **not** been verified as existing implementation surfaces in this pass.
+The exact existing world-generation seam is now verified: `WorldFactory.createWorldFromDescription()` produces the authoritative world through `registerNetworkWorld()`, while `main.ts` performs the existing persistence registration through `GridWorldAuthority.create()`.
 
-Therefore the next engineering step is to inspect the actual persistence/generation seams before writing production schema or generation code.
+A dedicated Dream Seed persistence schema and automatic Dream Seed publication service have **not** been introduced or verified. Those should not be invented while existing authority boundaries are sufficient.
 
 ## Measure-before-cut
 
