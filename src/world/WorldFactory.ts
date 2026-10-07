@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { connectWorld, getWorlds, registerNetworkWorld, type GridWorldDefinition, type GridWorldEvent } from './GridWorldRegistry';
+import type { GridWorldCapabilities } from './WorldCapabilityContract';
 import { deriveWorldDNA, type WorldDNA } from './WorldDNA';
 
 export interface GridWorldCreationRequest {
@@ -10,6 +11,7 @@ export interface GridWorldCreationRequest {
   event?: GridWorldEvent;
   resourceKind?: string;
   connectTo?: string[];
+  capabilities?: Partial<GridWorldCapabilities>;
 }
 
 export interface GridWorldFactoryResult {
@@ -89,10 +91,10 @@ export function createWorldFromDescription(request:GridWorldCreationRequest):Gri
   const primary=colorFromName(name), event=chooseEvent(inferredTags,request.event);
   const resourceKind=request.resourceKind?.trim().toUpperCase() || id+'_RESOURCE';
   const dna=deriveWorldDNA(inferredTags);
-  const gateId='gate-'+id.toLowerCase();
   const world=registerNetworkWorld({
     id,label:name.toUpperCase(),description,center,color:primary,secondary:secondaryColor(primary),
-    resourceKind,tags:inferredTags,event,gateId,enabled:true,
+    resourceKind,tags:inferredTags,event,gateId:'gate-'+id.toLowerCase(),enabled:true,
+    capabilities: request.capabilities,
   },request.connectTo??[]);
   const connectedWorlds=(request.connectTo??[]).filter(destination=>getWorlds().some(candidate=>candidate.id===destination));
   return {world,dna,inferredTags,connectedWorlds};
