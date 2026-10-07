@@ -34,6 +34,34 @@ export interface DreamSeedFactoryRequest {
   validation: DreamSeedValidationResult;
 }
 
+export interface DreamSeedPreview {
+  previewId: string;
+  seedId: string;
+  blueprintVersion: string;
+  status: 'PREVIEW_ONLY';
+  worldRequest: GridWorldCreationRequest;
+  summary: {
+    name: string;
+    creativeIntent: string;
+    realityClass: string;
+    visualDirection?: string;
+    geography?: string;
+    climate?: string;
+    architecture?: string;
+    materials: string[];
+    flora: string[];
+    fauna: string[];
+    npcPopulationIntent?: string;
+    pointsOfInterest: string[];
+    generationConstraints: string[];
+  };
+  provenance: {
+    source: 'DREAM_SEED_BLUEPRINT';
+    seedId: string;
+    blueprintVersion: string;
+  };
+}
+
 const KNOWN_CAPABILITIES = new Set<keyof GridWorldCapabilities>([
   'transit',
   'pve',
@@ -112,4 +140,42 @@ export function toDreamSeedFactoryRequest(
   };
 
   return { seedId: blueprint.seedId, request, validation };
+}
+
+/**
+ * Builds a deterministic, inspectable preview without registering a world,
+ * writing persistence state, granting permissions, or publishing a link.
+ */
+export function buildDreamSeedPreview(
+  blueprint: DreamSeedWorldBlueprint,
+): DreamSeedPreview {
+  const { request } = toDreamSeedFactoryRequest(blueprint);
+
+  return {
+    previewId: `dream-preview-${blueprint.seedId}-${blueprint.blueprintVersion}`,
+    seedId: blueprint.seedId,
+    blueprintVersion: blueprint.blueprintVersion,
+    status: 'PREVIEW_ONLY',
+    worldRequest: request,
+    summary: {
+      name: blueprint.name,
+      creativeIntent: blueprint.creativeIntent,
+      realityClass: blueprint.realityClass,
+      visualDirection: blueprint.visualDirection,
+      geography: blueprint.geography,
+      climate: blueprint.climate,
+      architecture: blueprint.architecture,
+      materials: [...(blueprint.materials ?? [])],
+      flora: [...(blueprint.flora ?? [])],
+      fauna: [...(blueprint.fauna ?? [])],
+      npcPopulationIntent: blueprint.npcPopulationIntent,
+      pointsOfInterest: [...(blueprint.pointsOfInterest ?? [])],
+      generationConstraints: [...(blueprint.generationConstraints ?? [])],
+    },
+    provenance: {
+      source: 'DREAM_SEED_BLUEPRINT',
+      seedId: blueprint.seedId,
+      blueprintVersion: blueprint.blueprintVersion,
+    },
+  };
 }
