@@ -149,7 +149,7 @@ export function createDreamSeedVisualPreview(host: HTMLElement): DreamSeedVisual
 
     const groundFamily = warm ? 'ground' : organic ? 'foliage' : 'ground';
     const groundMaterial = createStarterPBRMaterial(groundFamily, {
-      color: warm ? '#8a6b48' : previewState.color.clone().lerp(new THREE.Color('#26342d'), .68),
+      color: warm ? '#8a6b48' : previewState.color.clone().lerp(new THREE.Color('#26342d'), .68).getHex(),
       roughness: .94,
     });
     const ground = new THREE.Mesh(new THREE.CircleGeometry(14 + life * 3, 64), groundMaterial);
@@ -216,10 +216,10 @@ export function createDreamSeedVisualPreview(host: HTMLElement): DreamSeedVisual
 
     // Keep a small amount of procedural geometry for seed-specific landmarks.
     const monumentMaterial = createStarterPBRMaterial(crystalline ? 'glass' : 'technical', {
-      color: previewState.color,
+      color: previewState.color.getHex(),
       roughness: crystalline ? .22 : .38,
       metalness: crystalline ? .55 : .62,
-      emissive: previewState.color,
+      emissive: previewState.color.getHex(),
       emissiveIntensity: .16,
     });
     const monumentGeometry = crystalline
