@@ -77,6 +77,7 @@ import { GridAlchemySystem } from './world/GridAlchemySystem';
 import { GridKarmaSystem } from './world/GridKarmaSystem';
 import { createWorldFromDescription, connectFactoryWorldToAll } from './world/WorldFactory';
 import { mountWorldFactoryPanel } from './ui/WorldFactoryPanel';
+import { mountDreamSeedPreviewPanel } from './ui/DreamSeedPreviewPanel';
 import { mountCreatorStudio } from './ui/CreatorStudio';
 import { mountGridEconomyPanel } from './ui/GridEconomyPanel';
 import { GridAuthService } from './auth/GridAuthService';
@@ -729,6 +730,7 @@ const createFactoryWorld = (name: string, description: string) => {
 const worldFactoryPanel = mountWorldFactoryPanel({
   onCreate: createFactoryWorld,
 });
+const dreamSeedPreviewPanel = mountDreamSeedPreviewPanel();
 
 
 let marketPanel: ReturnType<typeof mountMarketPanel> | null = null;
