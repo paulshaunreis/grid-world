@@ -135,7 +135,7 @@ app.innerHTML = `
     <section class="hero" id="home">
       <div class="visual-build-badge">GRID WORLD · VISUAL BUILD 01 OCT 2026 · LIVE</div>
       <div class="hero-art" aria-hidden="true"></div>
-      <img class="hero-image-proof" src="/art/hero-worlds.webp?v=20261001" alt="Grid World concept art showing multiple connected living worlds">
+      <img class="hero-image-proof" src="/art/grid-page-atlas.svg" alt="Illustrated Grid World atlas placeholder showing a ringed planet, crystalline city spires, and connected environments">
       <div class="hero-grid"></div>
       <div class="hero-copy">
         <div class="eyebrow">A PERSISTENT FRAMEWORK FOR WORLDS</div>
