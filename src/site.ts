@@ -121,7 +121,7 @@ app.innerHTML = `
       <button class="ghost style-trigger" id="style-trigger" type="button">STYLE</button><button class="operator-trigger" id="operator-trigger" type="button">GRID OPERATOR</button>
       <button class="ghost" id="site-qr" type="button">QR</button>
       <a class="ghost" href="/economics.html">ECONOMICS</a><a class="ghost" href="/marketplace.html">MARKET</a><a class="ghost" href="/sound.html">SOUND</a><a class="ghost" href="/grid-world-studio.html">GRID WORLD STUDIO</a><a class="ghost" href="/omni.html">OMNI</a><a class="ghost" href="/directory.html">STAFF</a><a class="ghost" href="/avatars.html">AVATARS</a><a class="ghost" href="/textures.html">TEXTURES</a><a class="ghost" href="/docs.html">DOCS</a><a class="ghost" href="/profile.html">PROFILE</a>
-      <a class="secondary" href="/join.html" id="header-auth-btn">JOIN GRID</a><a class="primary" href="/play.html">ENTER WORLD</a>
+      <a class="ghost" href="/signin.html" id="header-signin-btn">SIGN IN</a><a class="secondary" href="/join.html" id="header-auth-btn">JOIN GRID</a><a class="primary" href="/play.html">ENTER WORLD</a>
     </div>
   </header>
   <div class="site-live-clock" id="site-live-clock" aria-live="polite">GRID SIGNAL · <span>SYNCING</span></div>
@@ -551,6 +551,8 @@ async function initHeaderUserMenu() {
       `<button type="button" id="header-signout">Sign Out</button>` +
     `</div>`;
   authBtn.replaceWith(wrapper);
+  // Hide the SIGN IN button too — the user menu replaces both auth buttons
+  document.querySelector('#header-signin-btn')?.remove();
 
   const gear = wrapper.querySelector<HTMLButtonElement>('#header-gear')!;
   const dropdown = wrapper.querySelector<HTMLDivElement>('#header-user-dropdown')!;

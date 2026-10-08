@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sign In — Grid World</title>
+<meta name="description" content="Sign in to your Grid World account.">
+<link rel="stylesheet" href="/src/grid-page-visual.css">
+<style>
+  .signin-page{min-height:calc(100vh - 54px);display:grid;place-items:center;padding:48px 20px;
+    background:radial-gradient(900px 500px at 50% 0%,rgba(0,229,255,.1),transparent 60%),#04090f;}
+  .signin-card{width:min(420px,100%);padding:48px 44px;border:1px solid rgba(100,220,255,.2);border-radius:10px;
+    background:linear-gradient(165deg,rgba(10,24,42,.97),rgba(5,13,23,.95));
+    box-shadow:0 40px 100px rgba(0,0,0,.6),0 0 60px rgba(0,229,255,.06);}
+  .signin-card h1{font:700 28px system-ui;color:#f2fbff;margin:0 0 8px;text-align:center;letter-spacing:-.02em}
+  .signin-card .sub{font:13px system-ui;color:rgba(230,245,255,.55);text-align:center;margin:0 0 32px}
+  .signin-field{margin-bottom:18px}
+  .signin-field label{display:block;font:700 11px system-ui;letter-spacing:.14em;color:rgba(230,245,255,.6);margin-bottom:8px}
+  .signin-field input{width:100%;padding:14px 16px;font:15px system-ui;color:#fff;
+    background:rgba(255,255,255,.04);border:1px solid rgba(100,220,255,.25);border-radius:6px;outline:none;box-sizing:border-box}
+  .signin-field input:focus{border-color:#00e5ff;box-shadow:0 0 0 3px rgba(0,229,255,.15)}
+  .signin-btn{width:100%;padding:16px;font:700 13px system-ui;letter-spacing:.16em;color:#04121a;
+    background:linear-gradient(135deg,#00e5ff,#7b2ff7);border:none;border-radius:6px;cursor:pointer;margin-top:8px}
+  .signin-btn:hover{filter:brightness(1.1)}
+  .signin-btn:disabled{opacity:.5;cursor:wait}
+  .signin-links{display:flex;justify-content:space-between;margin-top:20px;font:12px system-ui}
+  .signin-links a{color:#00e5ff;text-decoration:none}
+  .signin-links a:hover{text-decoration:underline}
+  .signin-error{display:none;padding:12px 16px;margin-bottom:18px;font:13px system-ui;color:#ff8a8a;
+    background:rgba(255,80,80,.08);border:1px solid rgba(255,80,80,.3);border-radius:6px}
+  .signin-error.show{display:block}
+  .signin-join{margin-top:28px;padding-top:24px;border-top:1px solid rgba(100,220,255,.1);
+    text-align:center;font:13px system-ui;color:rgba(230,245,255,.55)}
+  .signin-join a{color:#00e5ff;text-decoration:none;font-weight:700}
+</style>
+</head>
+<body class="grid-world-page">
+<div id="signin-app"></div>
+<script type="module" src="/src/signin.ts"></script>
+<script type="module" src="/src/site-theme.ts"></script>
+<script type="module" src="/src/nav.ts"></script>
+</body>
+</html>
