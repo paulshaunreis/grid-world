@@ -134,7 +134,7 @@ app.innerHTML = `
     <section class="hero" id="home">
       <div class="visual-build-badge">GRID WORLD · VISUAL BUILD 01 OCT 2026 · LIVE</div>
       <div class="hero-art" aria-hidden="true"></div>
-      <img class="hero-image-proof" src="/art/hero-worlds.svg?v=20261001" alt="Grid World concept art showing multiple connected living worlds">
+      <img class="hero-image-proof" src="/art/hero-worlds.webp?v=20261001" alt="Grid World concept art showing multiple connected living worlds">
       <div class="hero-grid"></div>
       <div class="hero-copy">
         <div class="eyebrow">A PERSISTENT FRAMEWORK FOR WORLDS</div>
@@ -154,9 +154,9 @@ app.innerHTML = `
       <div class="section-label">GRID WORLD · CONCEPT ATLAS</div>
       <div class="concept-gallery-head"><h2>Real places.<br><span>Real visual language.</span></h2><p>Grid World now carries its concept art directly through the public surface and into the 3D world. These local assets are part of the product—not decorative placeholders.</p></div>
       <div class="concept-gallery-grid">
-        <figure><img src="/grid-concept-first-light.svg" alt="First Light concept art"><figcaption><b>FIRST LIGHT</b><span>Entry world · living systems</span></figcaption></figure>
-        <figure><img src="/grid-concept-living-wilds.svg" alt="Living Wilds concept art"><figcaption><b>LIVING WILDS</b><span>Ecology · creatures · terrain</span></figcaption></figure>
-        <figure><img src="/grid-concept-civic.svg" alt="Civic concept art"><figcaption><b>CIVIC</b><span>Architecture · community · transit</span></figcaption></figure>
+        <figure><img src="/grid-concept-first-light.webp" alt="First Light concept art"><figcaption><b>FIRST LIGHT</b><span>Entry world · living systems</span></figcaption></figure>
+        <figure><img src="/grid-concept-living-wilds.webp" alt="Living Wilds concept art"><figcaption><b>LIVING WILDS</b><span>Ecology · creatures · terrain</span></figcaption></figure>
+        <figure><img src="/grid-concept-civic.webp" alt="Civic concept art"><figcaption><b>CIVIC</b><span>Architecture · community · transit</span></figcaption></figure>
       </div>
     </section>
 
@@ -192,7 +192,7 @@ app.innerHTML = `
 
     <section class="studio-live" id="studio-live">
       <div class="studio-live-head"><div><div class="section-label">PUBLIC STUDIO SIGNAL</div><h2>The world is being<br><span>built in front of you.</span></h2><p>Team members can publish the parts of the build they are comfortable sharing. These are the current public workstreams.</p></div><div class="studio-live-badge"><span></span> LIVE BUILD</div></div>
-      <div class="studio-live-art"><img src="/art/team-studio.svg" alt="" aria-hidden="true"></div><div class="studio-live-grid" id="studio-live-grid"></div>
+      <div class="studio-live-art"><img src="/art/team-studio.webp" alt="" aria-hidden="true"></div><div class="studio-live-grid" id="studio-live-grid"></div>
     </section>
 
     <section class="living-atlas" id="living-world">
@@ -250,7 +250,7 @@ app.innerHTML = `
     </section>
 
     <section class="combat-feature" id="combat">
-      <div class="combat-art"><img src="/art/combat-system.svg" alt="Grid Combat system concept art"></div>
+      <div class="combat-art"><img src="/art/combat-system.webp" alt="Grid Combat system concept art"></div>
       <div class="combat-copy">
         <div class="section-label">GRID COMBAT · NEW</div>
         <h2>Conflict has<br><span>rules.</span></h2>
@@ -366,7 +366,7 @@ app.innerHTML = `
       <div class="section-label">ASSET CONSTELLATION</div>
       <h2>Nothing stands still.<br><span>Everything has a body.</span></h2>
       <p class="model-intro">Grid World is building around five reusable model families: architecture, avatars, animals, plants, and trees. Free CC0 sources supply production candidates while Grid-native procedural forms keep the world alive between asset drops.</p>
-      <div class="model-atlas-art"><img src="/art/asset-constellation.svg" alt="Grid World asset constellation"></div><div class="model-atlas-grid">
+      <div class="model-atlas-art"><img src="/art/asset-constellation.webp" alt="Grid World asset constellation"></div><div class="model-atlas-grid">
         <a href="https://kenney.nl/assets/modular-buildings" target="_blank" rel="noreferrer"><b>ARCHITECTURE</b><strong>MODULAR CITY</strong><small>Kenney · CC0 · buildings</small><i>▱</i></a>
         <a href="https://kenney.nl/assets/blocky-characters" target="_blank" rel="noreferrer"><b>AVATARS</b><strong>ANIMATED PEOPLE</strong><small>Kenney · CC0 · characters</small><i>◈</i></a>
         <a href="https://kenney.nl/assets/cube-pets" target="_blank" rel="noreferrer"><b>ANIMALS</b><strong>LIVING COMPANIONS</strong><small>Kenney · CC0 · animated pets</small><i>◇</i></a>
@@ -375,7 +375,7 @@ app.innerHTML = `
       </div>
     </section>
 
-        <section class="foundation-art-section"><div class="section-label">THE LAYER BENEATH THE WORLDS</div><h2>One foundation.<br><span>Many realities.</span></h2><img src="/art/foundation.svg" alt="Grid Foundation concept art"><p>The Grid Foundation remains hidden unless authorized. It carries shared weather, system nodes, world links and access-controlled infrastructure beneath every world.</p></section>
+        <section class="foundation-art-section"><div class="section-label">THE LAYER BENEATH THE WORLDS</div><h2>One foundation.<br><span>Many realities.</span></h2><img src="/art/foundation.webp" alt="Grid Foundation concept art"><p>The Grid Foundation remains hidden unless authorized. It carries shared weather, system nodes, world links and access-controlled infrastructure beneath every world.</p></section>
 
     <section class="irllayer" id="events"><div><div class="section-label">GRID CONNECT</div><h2>Virtual or IRL.<br><span>Experience it together.</span></h2><p>Events can exist in the physical world, inside Grid World, or across both. Users choose what they share and where they participate.</p><a class="secondary large" href="#events">BROWSE EVENTS</a></div><div class="event-map"><span>GRID</span><i></i><b>IRL</b></div></section>
     <section class="npc-economy-atlas" id="marketplace">
@@ -413,7 +413,7 @@ app.innerHTML = `
     <section class="grid-community-section" id="community-safety"><div class="grid-site-kicker">GRID WORLD · COMMUNITY + SAFETY</div><h2>A social world with clear boundaries.</h2><p>Every account has a persistent profile, avatar identity, account age, presence status and privacy controls. Friends, follows, likes and forum participation share the same Grid identity.</p><div class="grid-community-grid"><article><b>E · EVERYONE</b><h3>Open community</h3><p>General spaces, starter worlds and family-friendly discussion.</p></article><article><b>CHILD · TEEN · ADULT</b><h3>Age-aware access</h3><p>Age-restricted destinations are gated before entry. Adult, Graphic and Restricted areas require an adult account.</p></article><article><b>LGBTQ+ INCLUSIVE</b><h3>Identity is yours</h3><p>Gender identity, pronouns and orientation are optional profile data with privacy controls and no gameplay penalties.</p></article><article><b>VOICE</b><h3>Optional voice shaping</h3><p>A separate Grid Voice layer provides optional microphone processing without making voice participation mandatory.</p></article></div></section>
   <section class="world-charter" id="world-charter">
     <div class="section-label">GRID WORLD · CURRENT BUILD CHARTER</div>
-    <div class="world-charter-head"><h2>Everything we are building.<br><span>Visible in one system.</span></h2><img src="/art/grid-page-atlas.svg" alt="Grid World visual atlas"></div>
+    <div class="world-charter-head"><h2>Everything we are building.<br><span>Visible in one system.</span></h2><img src="/art/grid-page-atlas.webp" alt="Grid World visual atlas"></div>
     <div class="charter-grid">
       <article><b>WORLDS</b><span>05 built regions · 04 in development · unlimited expandable worlds · custom generation · teleport gates and pylons</span></article>
       <article><b>LIVING LIFE</b><span>Weather · seasons · plants · trees · creatures · habitats · NPC memory and relationships</span></article>
