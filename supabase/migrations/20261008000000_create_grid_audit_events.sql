@@ -2,6 +2,7 @@
 -- This is accountability history, not a financial ledger or analytics stream.
 
 create extension if not exists pgcrypto with schema extensions;
+create schema if not exists private;
 
 create table if not exists public.grid_audit_events (
   id uuid primary key default gen_random_uuid(),
@@ -62,25 +63,14 @@ as $function$
     extensions.digest(
       convert_to(
         jsonb_build_object(
-          'occurred_at', p_occurred_at,
-          'actor_user_id', p_actor_user_id,
-          'actor_type', p_actor_type,
-          'authority', p_authority,
-          'action', p_action,
-          'target_type', p_target_type,
-          'target_id', p_target_id,
-          'outcome', p_outcome,
-          'severity', p_severity,
-          'reason', p_reason,
-          'policy_ref', p_policy_ref,
-          'source', p_source,
-          'request_id', p_request_id,
-          'metadata', p_metadata,
-          'before_state', p_before_state,
-          'after_state', p_after_state,
+          'occurred_at', p_occurred_at, 'actor_user_id', p_actor_user_id,
+          'actor_type', p_actor_type, 'authority', p_authority, 'action', p_action,
+          'target_type', p_target_type, 'target_id', p_target_id, 'outcome', p_outcome,
+          'severity', p_severity, 'reason', p_reason, 'policy_ref', p_policy_ref,
+          'source', p_source, 'request_id', p_request_id, 'metadata', p_metadata,
+          'before_state', p_before_state, 'after_state', p_after_state,
           'provenance', p_provenance
-        )::text,
-        'utf8'
+        )::text, 'utf8'
       ),
       'sha256'
     ),
@@ -88,7 +78,8 @@ as $function$
   );
 $function$;
 
-create or replace function public.grid_record_audit_event(
+create or replace function private.grid_record_audit_event(
+  p_actor_user_id uuid,
   p_actor_type text,
   p_authority text,
   p_action text,
@@ -111,19 +102,17 @@ security definer
 set search_path = ''
 as $function$
 declare
-  v_actor_user_id uuid := auth.uid();
   v_id uuid;
   v_occurred_at timestamptz := now();
   v_hash text;
 begin
-  if auth.role() not in ('authenticated','service_role') then raise exception 'unauthorized'; end if;
-  if p_actor_type not in ('user','ai_worker','service','system','anonymous') then raise exception 'invalid_actor_type'; end if;
-  if p_actor_type = 'user' and v_actor_user_id is null then raise exception 'user_actor_requires_authenticated_user'; end if;
-  if p_actor_type <> 'user' and auth.role() <> 'service_role' then raise exception 'trusted_actor_requires_service_role'; end if;
+  if p_actor_type not in ('user','ai_worker','service','system','anonymous') then
+    raise exception 'invalid_actor_type';
+  end if;
   if p_source = '' then raise exception 'source_required'; end if;
 
   v_hash := public.grid_audit_event_hash(
-    v_occurred_at, v_actor_user_id, p_actor_type, p_authority, p_action,
+    v_occurred_at, p_actor_user_id, p_actor_type, p_authority, p_action,
     p_target_type, p_target_id, p_outcome, p_severity, p_reason, p_policy_ref,
     p_source, p_request_id, p_metadata, p_before_state, p_after_state, p_provenance
   );
@@ -134,9 +123,10 @@ begin
     before_state, after_state, provenance, event_hash
   )
   values (
-    v_occurred_at, v_actor_user_id, p_actor_type, p_authority, p_action, p_target_type, p_target_id,
-    p_outcome, p_severity, p_reason, p_policy_ref, p_source, p_request_id, p_metadata,
-    p_before_state, p_after_state, p_provenance, v_hash
+    v_occurred_at, p_actor_user_id, p_actor_type, p_authority, p_action,
+    p_target_type, p_target_id, p_outcome, p_severity, p_reason, p_policy_ref,
+    p_source, p_request_id, p_metadata, p_before_state, p_after_state,
+    p_provenance, v_hash
   )
   returning id into v_id;
 
@@ -144,12 +134,14 @@ begin
 end;
 $function$;
 
-revoke all on function public.grid_record_audit_event(
-  text,text,text,text,text,text,text,text,text,text,uuid,jsonb,jsonb,jsonb
+revoke all on schema private from public, anon, authenticated;
+grant usage on schema private to service_role;
+revoke all on function private.grid_record_audit_event(
+  uuid,text,text,text,text,text,text,text,text,text,text,uuid,jsonb,jsonb,jsonb
 ) from public, anon, authenticated;
-grant execute on function public.grid_record_audit_event(
-  text,text,text,text,text,text,text,text,text,text,uuid,jsonb,jsonb,jsonb
-) to authenticated, service_role;
+grant execute on function private.grid_record_audit_event(
+  uuid,text,text,text,text,text,text,text,text,text,text,uuid,jsonb,jsonb,jsonb
+) to service_role;
 
 create or replace function public.grid_audit_events_are_immutable()
 returns trigger
