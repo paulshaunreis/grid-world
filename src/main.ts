@@ -166,6 +166,15 @@ type HudTheme = 'cyan' | 'violet' | 'magenta' | 'emerald' | 'amber' | 'white' | 
 const HUD_THEME_KEY = 'grid-world:hud-theme';
 const hudTheme = (localStorage.getItem(HUD_THEME_KEY) as HudTheme | null) ?? 'cyan';
 document.documentElement.dataset.hudTheme = hudTheme;
+/* Live-sync: if the player changes the website style in another tab,
+ * the 3D HUD follows without a reload. (Website accent picker writes
+ * this same key via src/theme/accent.ts syncHudTheme.) */
+window.addEventListener('storage', (e) => {
+  if (e.key !== HUD_THEME_KEY || !e.newValue) return;
+  const next = e.newValue as HudTheme;
+  const valid: HudTheme[] = ['cyan','violet','magenta','emerald','amber','white','crimson','azure','lime','indigo'];
+  if (valid.includes(next)) document.documentElement.dataset.hudTheme = next;
+});
 type UIStyle = 'luminous' | 'slate' | 'signal' | 'ember';
 const UI_STYLE_KEY = 'grid-world:ui-style';
 const uiStyle = (localStorage.getItem(UI_STYLE_KEY) as UIStyle | null) ?? 'luminous';

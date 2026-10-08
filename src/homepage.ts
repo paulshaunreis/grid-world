@@ -3,9 +3,86 @@
 import './homepage-redesign.css';
 import './theme/accent.css';
 import { applyAccent, currentAccent, createAccentPicker } from './theme/accent';
+import { activeSeasonalPreset, SEASONAL_PRESETS } from './theme/GridTheme';
 
 // Apply saved style early (accent.ts auto-applies on import, this is belt-and-braces)
 applyAccent(currentAccent());
+
+/* ---------- seasonal spotlight (Paul 2026-10-08) ----------
+ * Designated holiday image slots. Each season defines labeled placeholder
+ * frames (pumpkins/ghosts for Halloween, lights/trees for Christmas).
+ * Swap: drop real art into the slot <div>s or set data-season manually.
+ * Auto-shows the active season by date; URL ?season=<id> forces a preview. */
+interface SeasonSlot { key: string; emoji: string; label: string; hint: string; }
+interface SeasonConfig { id: string; name: string; emoji: string; window: string; slots: SeasonSlot[]; }
+const SEASON_CONFIGS: SeasonConfig[] = [
+  { id: 'halloween', name: 'Halloween', emoji: '🎃', window: 'OCT 15 – NOV 2', slots: [
+    { key: 'pumpkins', emoji: '🎃', label: 'Pumpkins', hint: 'Jack-o-lanterns, pumpkin patches' },
+    { key: 'ghosts', emoji: '👻', label: 'Ghosts', hint: 'Spooky spirits, haunted vibes' },
+    { key: 'decor', emoji: '🕸️', label: 'Spooky decor', hint: 'Cobwebs, bats, haunted builds' },
+  ]},
+  { id: 'christmas', name: 'Christmas', emoji: '🎄', window: 'DEC 15 – JAN 2', slots: [
+    { key: 'lights', emoji: '✨', label: 'Lights', hint: 'String lights, glowing displays' },
+    { key: 'trees', emoji: '🎄', label: 'Trees', hint: 'Decorated pines, winter builds' },
+    { key: 'winter', emoji: '❄️', label: 'Winter decor', hint: 'Snow, ice, cozy scenes' },
+  ]},
+  { id: 'new-year', name: 'New Year', emoji: '🎆', window: 'DEC 28 – JAN 5', slots: [
+    { key: 'fireworks', emoji: '🎆', label: 'Fireworks', hint: 'Sky shows, celebrations' },
+    { key: 'countdown', emoji: '🕛', label: 'Countdown', hint: 'Midnight moments' },
+    { key: 'fresh', emoji: '🥂', label: 'Fresh starts', hint: 'New beginnings, resolutions' },
+  ]},
+];
+
+function resolveSeason(): SeasonConfig | null {
+  const params = new URLSearchParams(location.search);
+  const forced = params.get('season');
+  if (forced) {
+    const hit = SEASON_CONFIGS.find(s => s.id === forced);
+    if (hit) return hit;
+  }
+  const active = activeSeasonalPreset();
+  if (active) {
+    const hit = SEASON_CONFIGS.find(s => s.id === active.id);
+    if (hit) return hit;
+  }
+  /* No active season: tease the next upcoming one by start date. */
+  const now = new Date();
+  const m = now.getMonth() + 1, d = now.getDate();
+  const upcoming = [...SEASONAL_PRESETS].sort((a, b) => {
+    const aStart = a.startMonth * 100 + a.startDay;
+    const bStart = b.startMonth * 100 + b.startDay;
+    const today = m * 100 + d;
+    /* distance to next occurrence, wrapping the year */
+    const distA = aStart >= today ? aStart - today : (aStart + 1300) - today;
+    const distB = bStart >= today ? bStart - today : (bStart + 1300) - today;
+    return distA - distB;
+  })[0];
+  const cfg = SEASON_CONFIGS.find(s => s.id === upcoming.id);
+  return cfg ?? SEASON_CONFIGS[0];
+}
+
+function seasonalHTML(): string {
+  const s = resolveSeason();
+  if (!s) return '';
+  const isActive = activeSeasonalPreset()?.id === s.id;
+  return `
+  <section class="hw-panel hw-seasonal" data-season="${s.id}" aria-label="Seasonal spotlight: ${s.name}">
+    <div class="hw-panel-head">${s.emoji} SEASONAL SPOTLIGHT
+      <span class="hw-season-tag">${s.name.toUpperCase()} · ${s.window}${isActive ? '' : ' · COMING SOON'}</span>
+    </div>
+    <div class="hw-season-slots">
+      ${s.slots.map(slot => `
+      <div class="hw-season-slot" data-slot="${slot.key}" data-season="${s.id}">
+        <div class="hw-season-ph">
+          <span class="hw-season-emoji">${slot.emoji}</span>
+          <b>${slot.label}</b>
+          <small>${slot.hint}</small>
+          <small class="hw-season-swap">Seasonal image slot — drop art here</small>
+        </div>
+      </div>`).join('')}
+    </div>
+  </section>`;
+}
 
 const WORLDS = [
   { name: 'AZURE SKIES', img: '/home/world-azure-skies.jpg' },
@@ -93,6 +170,9 @@ app.innerHTML = `
       ${WORLDS.map(w => `<div class="hw-world" data-world="${w.name}" title="${w.name} — concept art"><img src="${w.img}" alt="${w.name} concept art" loading="lazy"><span>${w.name}</span></div>`).join('')}
     </div>
   </aside>
+
+  <!-- SEASONAL SPOTLIGHT -->
+  ${seasonalHTML()}
 
   <!-- IN-WORLD EXPERIENCE -->
   <section class="hw-panel hw-inworld" aria-label="In-world experience">

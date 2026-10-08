@@ -40,10 +40,43 @@ export function currentAccent(): string {
   return 'grayscale';
 }
 
+/* ---------- 3D engine bridge (Paul 2026-10-08) ----------
+ * The website's style picker also drives the 3D world's HUD accents.
+ * The engine reads localStorage key "grid-world:hud-theme" and sets
+ * `data-hud-theme` on <html> (see src/main.ts, src/ui/grid-themes.css).
+ * This maps each website accent to the closest engine HUD theme so the
+ * 3D world's UI follows the website choice. One direction only
+ * (website -> 3D) to avoid loops; the in-world HUD picker still works
+ * independently when the player is inside the 3D world. */
+export const HUD_THEME_KEY = 'grid-world:hud-theme';
+
+export const ACCENT_TO_HUD: Record<string, string> = {
+  grayscale: 'white',   /* Ghost White — neutral */
+  red:       'crimson',  /* Crimson Core */
+  orange:    'amber',    /* Amber Signal */
+  yellow:    'amber',    /* Amber Signal (closest warm) */
+  green:     'emerald',  /* Emerald Circuit */
+  blue:      'cyan',     /* Cyan Pulse — engine default */
+  indigo:    'indigo',   /* Indigo Night */
+  violet:    'violet',   /* Violet Rift */
+  pink:      'magenta',  /* Magenta Bloom */
+  black:     'white',    /* subtle on dark */
+  white:     'white',    /* Ghost White */
+};
+
+/** Sync the 3D engine's HUD theme to match the website accent choice. */
+export function syncHudTheme(accentId: string): void {
+  const hud = ACCENT_TO_HUD[accentId] ?? 'white';
+  /* dataset.hudTheme -> data-hud-theme attribute (matches grid-themes.css selectors) */
+  document.documentElement.dataset.hudTheme = hud;
+  try { localStorage.setItem(HUD_THEME_KEY, hud); } catch { /* ignore */ }
+}
+
 export function applyAccent(id: string): void {
   if (!ACCENT_THEMES.some(t => t.id === id)) id = 'grayscale';
   document.documentElement.dataset.accent = id;
   try { localStorage.setItem(ACCENT_KEY, id); } catch { /* ignore */ }
+  syncHudTheme(id);
   document.dispatchEvent(new CustomEvent('gridworld:accent-change', { detail: id }));
 }
 

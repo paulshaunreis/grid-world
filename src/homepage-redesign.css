@@ -189,6 +189,37 @@ body.hw{
 .hw-feat .val{font-size:13px;font-weight:800;color:#ffd76a}
 .hw-feat .val::before{content:"◉ ";color:#ffd76a}
 
+/* ---------- seasonal spotlight (Paul 2026-10-08) ---------- */
+.hw-seasonal{grid-column:span 12}
+.hw-season-tag{
+  font-size:10px;letter-spacing:.14em;color:var(--hw-accent-dim);
+  border:1px solid var(--hw-border);border-radius:20px;padding:4px 12px;margin-left:10px;
+  white-space:nowrap;
+}
+.hw-season-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:4px 18px 18px}
+.hw-season-slot{
+  position:relative;border-radius:10px;overflow:hidden;min-height:190px;
+  border:1px dashed rgba(var(--accent-rgb),.35);
+  background:rgba(6,12,26,.55);
+}
+.hw-season-slot img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.hw-season-ph{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:6px;padding:18px;text-align:center;
+}
+.hw-season-emoji{font-size:44px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.5))}
+.hw-season-ph b{font-size:14px;letter-spacing:.08em}
+.hw-season-ph small{font-size:11px;color:var(--hw-muted);line-height:1.5}
+.hw-season-swap{
+  margin-top:8px;font-size:10px !important;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--hw-accent-dim) !important;border:1px dashed var(--hw-border);
+  border-radius:6px;padding:5px 10px;
+}
+/* season tints */
+.hw-seasonal[data-season="halloween"] .hw-season-slot{border-color:rgba(255,122,26,.4)}
+.hw-seasonal[data-season="christmas"] .hw-season-slot{border-color:rgba(255,59,59,.35)}
+.hw-seasonal[data-season="new-year"] .hw-season-slot{border-color:rgba(255,206,74,.35)}
+
 /* ---------- row 3 panels ---------- */
 .hw-build{grid-column:span 3}
 .hw-play{grid-column:span 3}
@@ -245,6 +276,14 @@ body.hw{
   .hw-build,.hw-play,.hw-stay,.hw-safe{grid-column:span 6}
   .hw-links{display:none}
 }
+@media(max-width:1180px){
+  .hw-hero{grid-column:span 12;min-height:480px}
+  .hw-explore{grid-column:span 12}
+  .hw-worlds{grid-template-columns:repeat(6,1fr)}
+  .hw-inworld,.hw-profile,.hw-inv{grid-column:span 12}
+  .hw-build,.hw-play,.hw-stay,.hw-safe{grid-column:span 6}
+  .hw-links{display:none}
+}
 @media(max-width:760px){
   .hw-build,.hw-play,.hw-stay,.hw-safe{grid-column:span 12}
   .hw-worlds{grid-template-columns:repeat(3,1fr)}
@@ -252,4 +291,63 @@ body.hw{
   .hw-feat{width:100%}
   .hw-story{display:none}
   .hw-foot{flex-wrap:wrap;justify-content:center;text-align:center}
+  .hw-season-slots{grid-template-columns:1fr}
+}
+
+/* ---------- phone (375px) — condensed, no horizontal scroll ---------- */
+@media(max-width:480px){
+  .hw-main{padding:8px;gap:10px}
+  .hw-nav{gap:12px;padding:8px 12px}
+  .hw-logo{font-size:12px}
+  .hw-join{padding:7px 14px;font-size:11px}
+
+  /* hero: tighter, readable */
+  .hw-hero{min-height:420px}
+  .hw-hero-inner{padding:0 16px}
+  .hw-hero-inner h1{font-size:clamp(28px,8vw,40px);line-height:1.05}
+  .hw-hero-inner p{font-size:13px}
+  .hw-features{display:grid;grid-template-columns:repeat(2,1fr);gap:0;padding:0}
+  .hw-feature{font-size:10px;gap:6px;padding:10px 12px}
+  .hw-feature .fi{font-size:18px}
+  .hw-feature:nth-child(3){border-left:none}
+
+  /* worlds: 2-col, compact */
+  .hw-worlds{grid-template-columns:repeat(2,1fr);gap:8px;padding:0 10px 10px}
+  .hw-world span{font-size:9px}
+
+  /* inventory: 3-col grid fits thumbs */
+  .hw-inv-grid{grid-template-columns:repeat(3,1fr)}
+  .hw-inv-body{padding:0 10px 10px}
+  .hw-inv-nav{flex-direction:row;flex-wrap:wrap;gap:6px}
+  .hw-inv-nav button{font-size:11px;padding:7px 10px}
+
+  /* profile: stack, smaller */
+  .hw-prof-body{padding:12px}
+  .hw-prof-ava img{width:84px;height:84px}
+  .hw-stats{grid-template-columns:repeat(4,1fr);gap:4px;padding:10px}
+  .hw-stat b{font-size:13px}
+  .hw-stat small{font-size:9px}
+  .hw-tabs button{font-size:10px;padding:8px 4px}
+
+  /* cards: shorter images */
+  .hw-cardimg{height:150px}
+  .hw-cardbody{padding:10px 12px 12px}
+
+  /* seasonal: single column */
+  .hw-season-slot{min-height:150px}
+  .hw-season-emoji{font-size:34px}
+
+  /* chat + HUD: compact */
+  .hw-chat{font-size:11px;padding:8px 10px}
+  .hw-chat input{font-size:12px}
+
+  /* footer: stack */
+  .hw-foot{gap:12px;padding:12px}
+  .hw-foot nav{font-size:10px;gap:10px;flex-wrap:wrap}
+  .hw-tagline{font-size:9px}
+  .hw-devnote{font-size:10px;padding:8px 12px}
+
+  /* panel heads: smaller */
+  .hw-panel-head{font-size:11px;padding:10px 12px 8px}
+  .hw-season-tag{font-size:9px;margin-left:6px}
 }
