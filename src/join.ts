@@ -402,22 +402,26 @@ if (!supabaseConfigured || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   async function submitAll(): Promise<void> {
     collectStep();
     if (!state.terms) { setStatus('Please agree to the Terms to continue.', 'error'); return; }
-    if (!captchaToken) { setStatus('Please complete the CAPTCHA to prove you\'re human.', 'error'); return; }
+    // TEMPORARY (2026-10-08, Paul's request): CAPTCHA check disabled until the
+    // Turnstile edge-function secret is fixed in Supabase. Re-enable by
+    // uncommenting the line below.
+    // if (!captchaToken) { setStatus('Please complete the CAPTCHA to prove you\'re human.', 'error'); return; }
     const btn = app.querySelector<HTMLButtonElement>('#submit-btn')!;
     btn.disabled = true; btn.textContent = 'CREATING…';
     setStatus('Verifying you\'re human…', '');
 
     try {
-      // Verify CAPTCHA server-side first
-      const verifyRes = await client.functions.invoke('verify-captcha', {
-        body: { token: captchaToken },
-      });
-      if (verifyRes.error || !verifyRes.data?.success) {
-        setStatus('CAPTCHA verification failed. Please try again.', 'error');
-        captchaToken = null;
-        btn.disabled = false; btn.textContent = 'CREATE ACCOUNT ✦';
-        return;
-      }
+      // TEMPORARY: CAPTCHA verification bypassed (2026-10-08) — edge function secret
+      // mismatch in Supabase. Re-enable after Paul fixes TURNSTILE_SECRET_KEY.
+      // const verifyRes = await client.functions.invoke('verify-captcha', {
+      //   body: { token: captchaToken },
+      // });
+      // if (verifyRes.error || !verifyRes.data?.success) {
+      //   setStatus('CAPTCHA verification failed. Please try again.', 'error');
+      //   captchaToken = null;
+      //   btn.disabled = false; btn.textContent = 'CREATE ACCOUNT ✦';
+      //   return;
+      // }
 
       setStatus('Creating your account…', '');
       const confirmUrl = window.location.origin + '/confirmed.html';
