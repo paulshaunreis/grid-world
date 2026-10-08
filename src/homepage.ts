@@ -1,6 +1,11 @@
 /* Grid World concept homepage — separate page, does not touch index/site.ts.
    All imagery is generated concept art; page is labeled accordingly. */
 import './homepage-redesign.css';
+import './theme/accent.css';
+import { applyAccent, currentAccent, createAccentPicker } from './theme/accent';
+
+// Apply saved style early (accent.ts auto-applies on import, this is belt-and-braces)
+applyAccent(currentAccent());
 
 const WORLDS = [
   { name: 'AZURE SKIES', img: '/home/world-azure-skies.jpg' },
@@ -55,6 +60,7 @@ app.innerHTML = `
   <div class="hw-links">${NAV.map(([l, h], i) => `<a href="${h}" class="${i === 0 ? 'active' : ''}">${l}</a>`).join('')}</div>
   <a class="hw-search" href="/directory.html" aria-label="Search" title="Search">⌕</a>
   <a class="hw-join" href="/join.html">JOIN</a>
+  <span id="hw-accent-mount"></span>
 </nav>
 
 <main class="hw-main">
@@ -219,6 +225,9 @@ app.innerHTML = `
 
 document.getElementById('hw-trailer')?.addEventListener('click', () =>
   toast('Trailer is in production — coming soon.'));
+
+// Mount the style picker in the nav
+document.getElementById('hw-accent-mount')?.appendChild(createAccentPicker());
 document.querySelectorAll('[data-soon]').forEach(el =>
   el.addEventListener('click', (e) => { e.preventDefault(); toast('In active development — coming soon.'); }));
 document.querySelectorAll('.hw-world').forEach(el =>

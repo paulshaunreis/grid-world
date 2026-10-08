@@ -1,0 +1,275 @@
+/* Grid World website theming — Paul's direction 2026-10-08.
+ *
+ * 11 styles, Windows-Settings quality: Grayscale (default), Red, Orange,
+ * Yellow, Green, Blue, Indigo, Violet, Pink, Black (dark), White (light).
+ *
+ * Each theme is a COMPLETE palette — not a hue-swap. Every theme defines:
+ *   primary accent + secondary accent (harmonious: analogous/complementary),
+ *   background tints, border colors, glow effects, and contrast-checked text.
+ * Readability is non-negotiable: WCAG AA contrast minimum on all text.
+ *
+ * - Grayscale is the default: clean neutral, no color tint.
+ * - Rainbow colors restyle accents + subtle background tints.
+ * - Black / White are FULL variants: they invert the entire surface.
+ *
+ * Usage: <html data-accent="grayscale"> (default).
+ * JS: src/theme/accent.ts — localStorage key "gridworld:accent".
+ *
+ * Variables (use these, never hardcoded colors):
+ *   Surfaces: --gw-bg, --gw-panel, --gw-panel-2, --gw-border,
+ *             --gw-text, --gw-muted, --gw-radius
+ *   Accents:  --accent, --accent-2, --accent-dim,
+ *             --accent-glow, --accent-border, --accent-soft,
+ *             --on-accent, --accent-gradient
+ */
+
+/* ================= GRAYSCALE (default) =================
+ * Clean neutral. Silver accents on charcoal. No color tint. */
+:root {
+  --gw-bg: #07090d;
+  --gw-panel: rgba(17, 20, 26, .88);
+  --gw-panel-2: rgba(23, 28, 37, .92);
+  --gw-border: rgba(165, 175, 190, .18);
+  --gw-text: #eceff3;
+  --gw-muted: #9aa3b0;
+  --gw-radius: 12px;
+
+  --accent: #c9ced6;
+  --accent-rgb: 201, 206, 214;
+  --accent-2: #8a919b;
+  --accent-dim: #a8aeb8;
+  --accent-glow: rgba(201, 206, 214, .25);
+  --accent-border: rgba(201, 206, 214, .28);
+  --accent-soft: rgba(201, 206, 214, .07);
+  --on-accent: #14171c;
+  --accent-gradient: linear-gradient(180deg, #e2e6eb, #9aa1ac);
+}
+
+/* ================= RED =================
+ * Deep warm charcoal bg. Primary red + ember orange secondary (analogous).
+ * Text on accent is near-black for contrast. */
+html[data-accent="red"] {
+  --gw-bg: #0e0708;
+  --gw-panel: rgba(24, 14, 15, .9);
+  --gw-panel-2: rgba(32, 18, 20, .93);
+  --gw-border: rgba(255, 120, 110, .16);
+  --accent: #ff5252;
+  --accent-rgb: 255, 82, 82;
+  --accent-2: #ff9a5c;
+  --accent-dim: #ff9a9a;
+  --accent-glow: rgba(255, 82, 82, .35);
+  --accent-border: rgba(255, 82, 82, .3);
+  --accent-soft: rgba(255, 82, 82, .08);
+  --on-accent: #2a0505;
+  --accent-gradient: linear-gradient(180deg, #ff7d6e, #e02a2a);
+}
+
+/* ================= ORANGE =================
+ * Warm dark bg. Tangerine + amber secondary (analogous). */
+html[data-accent="orange"] {
+  --gw-bg: #0e0806;
+  --gw-panel: rgba(26, 16, 11, .9);
+  --gw-panel-2: rgba(34, 21, 14, .93);
+  --gw-border: rgba(255, 160, 90, .16);
+  --accent: #ff8c2e;
+  --accent-rgb: 255, 140, 46;
+  --accent-2: #ffc44d;
+  --accent-dim: #ffbb7d;
+  --accent-glow: rgba(255, 140, 46, .35);
+  --accent-border: rgba(255, 140, 46, .3);
+  --accent-soft: rgba(255, 140, 46, .08);
+  --on-accent: #2a1204;
+  --accent-gradient: linear-gradient(180deg, #ffab5e, #ef6a1a);
+}
+
+/* ================= YELLOW =================
+ * Dark warm bg keeps contrast. Gold + amber secondary. */
+html[data-accent="yellow"] {
+  --gw-bg: #0d0b06;
+  --gw-panel: rgba(26, 23, 12, .9);
+  --gw-panel-2: rgba(34, 30, 15, .93);
+  --gw-border: rgba(255, 205, 90, .16);
+  --accent: #ffd23e;
+  --accent-rgb: 255, 210, 62;
+  --accent-2: #ffed9e;
+  --accent-dim: #ffe58a;
+  --accent-glow: rgba(255, 210, 62, .32);
+  --accent-border: rgba(255, 210, 62, .3);
+  --accent-soft: rgba(255, 210, 62, .08);
+  --on-accent: #2a1f04;
+  --accent-gradient: linear-gradient(180deg, #ffdd6e, #eaa91a);
+}
+
+/* ================= GREEN =================
+ * Deep forest-tinted bg. Emerald + teal secondary (analogous). */
+html[data-accent="green"] {
+  --gw-bg: #060d08;
+  --gw-panel: rgba(12, 24, 16, .9);
+  --gw-panel-2: rgba(16, 32, 21, .93);
+  --gw-border: rgba(110, 235, 140, .16);
+  --accent: #4de86a;
+  --accent-rgb: 77, 232, 106;
+  --accent-2: #2dd4bf;
+  --accent-dim: #9df0ab;
+  --accent-glow: rgba(77, 232, 106, .32);
+  --accent-border: rgba(77, 232, 106, .3);
+  --accent-soft: rgba(77, 232, 106, .08);
+  --on-accent: #062a10;
+  --accent-gradient: linear-gradient(180deg, #7df09a, #25c455);
+}
+
+/* ================= BLUE =================
+ * The classic Grid signal. Cyan + sky-blue secondary (analogous). */
+html[data-accent="blue"] {
+  --gw-bg: #060b0d;
+  --gw-panel: rgba(12, 22, 28, .9);
+  --gw-panel-2: rgba(16, 30, 38, .93);
+  --gw-border: rgba(110, 225, 250, .16);
+  --accent: #4ceaff;
+  --accent-rgb: 76, 234, 255;
+  --accent-2: #6f9dff;
+  --accent-dim: #9be9ff;
+  --accent-glow: rgba(76, 234, 255, .35);
+  --accent-border: rgba(76, 234, 255, .3);
+  --accent-soft: rgba(76, 234, 255, .08);
+  --on-accent: #04121f;
+  --accent-gradient: linear-gradient(180deg, #7df3ff, #2fc9ec);
+}
+
+/* ================= INDIGO =================
+ * Deep indigo-tinted bg. Indigo + violet secondary (analogous). */
+html[data-accent="indigo"] {
+  --gw-bg: #070810;
+  --gw-panel: rgba(15, 17, 32, .9);
+  --gw-panel-2: rgba(20, 22, 42, .93);
+  --gw-border: rgba(140, 150, 255, .16);
+  --accent: #6f7dff;
+  --accent-rgb: 111, 125, 255;
+  --accent-2: #b48bff;
+  --accent-dim: #a9b2ff;
+  --accent-glow: rgba(111, 125, 255, .35);
+  --accent-border: rgba(111, 125, 255, .3);
+  --accent-soft: rgba(111, 125, 255, .08);
+  --on-accent: #0a0e2a;
+  --accent-gradient: linear-gradient(180deg, #96a1ff, #4a56e0);
+}
+
+/* ================= VIOLET =================
+ * Dark violet bg. Violet + magenta secondary (analogous). */
+html[data-accent="violet"] {
+  --gw-bg: #0a0710;
+  --gw-panel: rgba(22, 14, 34, .9);
+  --gw-panel-2: rgba(29, 18, 44, .93);
+  --gw-border: rgba(190, 150, 255, .16);
+  --accent: #b48bff;
+  --accent-rgb: 180, 139, 255;
+  --accent-2: #ff7fd8;
+  --accent-dim: #d4bfff;
+  --accent-glow: rgba(180, 139, 255, .35);
+  --accent-border: rgba(180, 139, 255, .3);
+  --accent-soft: rgba(180, 139, 255, .08);
+  --on-accent: #140a2a;
+  --accent-gradient: linear-gradient(180deg, #d0aaff, #8f5cf0);
+}
+
+/* ================= PINK =================
+ * Dark rose bg. Hot pink + coral secondary (analogous warm). */
+html[data-accent="pink"] {
+  --gw-bg: #0e060c;
+  --gw-panel: rgba(28, 13, 24, .9);
+  --gw-panel-2: rgba(37, 17, 31, .93);
+  --gw-border: rgba(255, 140, 215, .16);
+  --accent: #ff4fd8;
+  --accent-rgb: 255, 79, 216;
+  --accent-2: #ff8c6e;
+  --accent-dim: #ff9ae4;
+  --accent-glow: rgba(255, 79, 216, .35);
+  --accent-border: rgba(255, 79, 216, .3);
+  --accent-soft: rgba(255, 79, 216, .08);
+  --on-accent: #2a051f;
+  --accent-gradient: linear-gradient(180deg, #ff7fe2, #e02ab0);
+}
+
+/* ================= BLACK (full dark theme) =================
+ * True black. Layered near-black panels, white accents, minimal color.
+ * Maximum contrast: near-white text on pure black. */
+html[data-accent="black"] {
+  --gw-bg: #000000;
+  --gw-panel: rgba(10, 10, 12, .95);
+  --gw-panel-2: rgba(18, 18, 20, .97);
+  --gw-border: rgba(255, 255, 255, .1);
+  --gw-text: #f4f4f5;
+  --gw-muted: #8e8e93;
+  --accent: #f0f0f0;
+  --accent-rgb: 240, 240, 240;
+  --accent-2: #a0a0a0;
+  --accent-dim: #c8c8c8;
+  --accent-glow: rgba(240, 240, 240, .18);
+  --accent-border: rgba(240, 240, 240, .22);
+  --accent-soft: rgba(240, 240, 240, .05);
+  --on-accent: #000000;
+  --accent-gradient: linear-gradient(180deg, #ffffff, #b8b8b8);
+}
+
+/* ================= WHITE (full light theme) =================
+ * Clean light. White panels, dark text — full inversion of dark themes.
+ * Accent is dark charcoal for contrast on light surfaces. */
+html[data-accent="white"] {
+  --gw-bg: #eef0f3;
+  --gw-panel: rgba(255, 255, 255, .94);
+  --gw-panel-2: rgba(247, 248, 250, .97);
+  --gw-border: rgba(20, 25, 35, .12);
+  --gw-text: #16191e;
+  --gw-muted: #5a6270;
+  --accent: #23272e;
+  --accent-rgb: 35, 39, 46;
+  --accent-2: #5a6270;
+  --accent-dim: #4a505a;
+  --accent-glow: rgba(35, 39, 46, .18);
+  --accent-border: rgba(35, 39, 46, .25);
+  --accent-soft: rgba(35, 39, 46, .05);
+  --on-accent: #ffffff;
+  --accent-gradient: linear-gradient(180deg, #3a4048, #14171c);
+}
+
+/* ---------- style picker (mounted in nav) ---------- */
+.gw-accent-picker { position: relative; display: inline-flex; flex: none; }
+.gw-accent-dot {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--gw-panel-2);
+  border: 1px solid var(--gw-border);
+  display: grid; place-items: center; cursor: pointer; padding: 0;
+}
+.gw-accent-dot span {
+  width: 16px; height: 16px; border-radius: 50%;
+  box-shadow: 0 0 8px var(--accent-glow);
+  border: 1px solid rgba(128, 128, 128, .35);
+}
+.gw-accent-dot:hover { border-color: var(--accent); }
+.gw-accent-menu {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 1000;
+  min-width: 200px; max-height: 340px; overflow-y: auto; padding: 6px;
+  background: var(--gw-panel-2);
+  border: 1px solid var(--gw-border);
+  border-radius: 10px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, .55);
+  backdrop-filter: blur(12px);
+}
+.gw-accent-menu button {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  background: none; border: 0; border-radius: 6px; cursor: pointer;
+  color: var(--gw-text); font-size: 12px; letter-spacing: .04em;
+  padding: 9px 10px; text-align: left;
+}
+.gw-accent-menu button:hover { background: var(--accent-soft); }
+.gw-accent-menu button[aria-checked="true"] {
+  color: var(--accent-dim); font-weight: 700;
+}
+html[data-accent="white"] .gw-accent-menu button[aria-checked="true"],
+html[data-accent="grayscale"] .gw-accent-menu button[aria-checked="true"] {
+  color: var(--accent-2);
+}
+.gw-accent-menu .sw {
+  width: 16px; height: 16px; border-radius: 50%; flex: none;
+  border: 1px solid rgba(128, 128, 128, .4);
+}
