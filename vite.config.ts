@@ -28,6 +28,7 @@ export default defineConfig({
         enter: 'enter.html',
         confirmed: 'confirmed.html',
         recover: 'recover.html',
+        home: 'home.html',
       },
     },
   },
