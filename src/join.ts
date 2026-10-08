@@ -230,8 +230,7 @@ if (!supabaseConfigured || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
             <label class="join-check"><input type="checkbox" id="f-news"${state.news ? ' checked' : ''}>
               <span>Send me Grid World news and offers.</span></label>
             <div class="captcha-wrap">
-              <!-- Cloudflare Turnstile test key (always passes). Replace with real site key from dash.cloudflare.com -->
-              <div class="cf-turnstile" data-sitekey="1x00000000000000000000AA" data-theme="dark"
+              <div class="cf-turnstile" data-sitekey="0x4AAAAAAFRqBTI4HVx4dvQa" data-theme="dark"
                 data-callback="__gridCaptchaCallback" data-expired-callback="__gridCaptchaExpired" id="cf-captcha"></div>
               <small class="field-hint">Prove you're human to create your account.</small>
             </div>
