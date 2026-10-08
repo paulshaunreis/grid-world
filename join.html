@@ -1,50 +1,141 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Join Grid World</title><meta name="description" content="Create your Grid World identity and enter the living worlds."><link rel="stylesheet" href="/src/grid-page-visual.css">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Join Grid World — Start Your Grid Life</title>
+<meta name="description" content="Create your Grid World account. Define your identity, choose your avatar, and enter First Light.">
+<link rel="stylesheet" href="/src/grid-page-visual.css">
 <style>
-  /* Image-based glass UI: real glass photography, not CSS boxes. */
-  .join-glass {
-    background: url("/ui/glass-panel.webp") center/cover no-repeat;
-    border: 1px solid rgba(100, 220, 255, .25);
-    border-radius: 18px;
-    box-shadow: 0 30px 90px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(180, 240, 255, .18);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-  }
-  .join-page-bg {
-    min-height: calc(100vh - 54px);
-    display: grid;
-    place-items: center;
-    padding: 40px 20px;
-    background: url("/art/grid-page-atlas.webp") center/cover no-repeat fixed;
-  }
-  .join-inner {
-    width: min(920px, 100%);
-    padding: 42px;
-  }
-  #join-status .join-notice { text-align: center; padding: 30px; }
-  #join-status .join-notice h3 { color: #8feeff; margin-bottom: 12px; }
-  #join-status .join-notice p { color: rgba(230,245,255,.72); margin-bottom: 20px; }
+  /* === Page: vibrant, centered, animated === */
+  .join-page{min-height:calc(100vh - 54px);display:grid;place-items:center;padding:32px 20px;position:relative;overflow:hidden;
+    background:
+      radial-gradient(900px 500px at 20% 10%,rgba(255,0,128,.08),transparent 60%),
+      radial-gradient(1000px 600px at 80% 20%,rgba(0,229,255,.1),transparent 60%),
+      radial-gradient(800px 500px at 50% 100%,rgba(128,0,255,.08),transparent 60%),
+      #04090f;}
+  .join-page::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.5;
+    background-image:linear-gradient(rgba(0,229,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.03) 1px,transparent 1px);
+    background-size:48px 48px;mask-image:radial-gradient(70% 70% at 50% 40%,black,transparent);}
+  #join-app{position:relative;z-index:1;width:min(600px,100%);}
+
+  /* === Card === */
+  .join-card{padding:44px 44px 36px;border:1px solid rgba(100,220,255,.2);border-radius:8px;
+    background:linear-gradient(160deg,rgba(10,22,38,.96),rgba(5,13,23,.94));
+    box-shadow:0 30px 90px rgba(0,0,0,.55),0 0 60px rgba(0,229,255,.06),inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter:blur(20px);animation:cardIn .5s cubic-bezier(.2,.9,.3,1.2)}
+  @keyframes cardIn{from{opacity:0;transform:translateY(24px) scale(.98)}to{opacity:1;transform:none}}
+  .join-step{animation:stepIn .35s ease-out}
+  @keyframes stepIn{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+  .join-step.step-out{animation:stepOut .25s ease-in forwards}
+  @keyframes stepOut{to{opacity:0;transform:translateX(-24px)}}
+
+  .join-kicker{font:700 10px/1 'IBM Plex Mono',monospace;letter-spacing:.24em;margin-bottom:16px;
+    background:linear-gradient(90deg,#00e5ff,#ff00aa);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .join-card h1{font:700 clamp(30px,5vw,44px)/1.05 system-ui;margin:0 0 10px;color:#f2fbff;letter-spacing:-.02em}
+  .join-card h1 .accent{background:linear-gradient(90deg,#00e5ff,#a0f);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .join-sub{color:rgba(230,245,255,.6);font:14px/1.65 system-ui;margin:0 0 28px}
+  .step-progress{display:flex;gap:6px;margin-bottom:28px}
+  .step-progress i{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.08);transition:background .3s}
+  .step-progress i.done{background:linear-gradient(90deg,#00e5ff,#ff00aa)}
+  .step-progress i.now{background:rgba(0,229,255,.5);box-shadow:0 0 8px rgba(0,229,255,.5)}
+
+  /* === Avatar creator === */
+  .gender-toggle{display:flex;gap:10px;margin-bottom:20px}
+  .gender-btn{flex:1;padding:14px;font:700 13px system-ui;color:rgba(230,245,255,.6);cursor:pointer;
+    background:rgba(255,255,255,.03);border:1px solid rgba(100,220,255,.15);border-radius:6px;transition:all .15s}
+  .gender-btn:hover{border-color:rgba(0,229,255,.4)}
+  .gender-btn.selected{color:#fff;border-color:#00e5ff;background:rgba(0,229,255,.1);box-shadow:0 0 20px rgba(0,229,255,.2)}
+  .gender-card{display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px}
+  .gender-card img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:4px;opacity:.75;transition:opacity .15s}
+  .gender-card.selected img{opacity:1}
+  .gender-card span{font-size:12px}
+  .avatar-stage{position:relative;height:280px;margin-bottom:20px;border-radius:8px;overflow:hidden;cursor:grab;
+    background:radial-gradient(300px 200px at 50% 70%,rgba(0,229,255,.12),transparent 70%),rgba(0,0,0,.3);
+    border:1px solid rgba(100,220,255,.12)}
+  .avatar-stage:active{cursor:grabbing}
+  .avatar-figure{position:absolute;left:50%;top:50%;width:120px;height:220px;transform-style:preserve-3d;
+    transform:translate(-50%,-50%) rotateY(0deg);transition:transform .1s linear}
+  .avatar-part{position:absolute;left:50%;transform:translateX(-50%);border-radius:12px}
+  .avatar-head{width:44px;height:52px;top:0;background:linear-gradient(160deg,var(--ac),var(--bd));border-radius:50% 50% 45% 45%;
+    box-shadow:0 0 24px var(--ac-glow)}
+  .avatar-torso{width:64px;height:80px;top:58px;background:linear-gradient(180deg,var(--bd),var(--bd-dark));
+    border-radius:14px;box-shadow:inset 0 2px 8px rgba(255,255,255,.15)}
+  .avatar-arm{width:18px;height:70px;top:62px;background:linear-gradient(180deg,var(--bd),var(--bd-dark));border-radius:9px}
+  .avatar-arm.left{margin-left:-44px}.avatar-arm.right{margin-left:26px}
+  .avatar-leg{width:22px;height:80px;top:142px;background:linear-gradient(180deg,var(--bd-dark),#0a0f18);border-radius:10px}
+  .avatar-leg.left{margin-left:-26px}.avatar-leg.right{margin-left:4px}
+  .avatar-glow{position:absolute;left:50%;bottom:18px;width:140px;height:20px;transform:translateX(-50%);
+    background:radial-gradient(ellipse,var(--ac-glow),transparent 70%);filter:blur(6px)}
+  .stage-hint{position:absolute;bottom:10px;left:0;right:0;text-align:center;
+    font:11px system-ui;color:rgba(230,245,255,.4);pointer-events:none}
+  .avatar-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+  .avatar-card{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px;cursor:pointer;
+    background:rgba(255,255,255,.03);border:1px solid rgba(100,220,255,.12);border-radius:6px;
+    color:#eaf8ff;font:600 11px system-ui;transition:all .15s}
+  .avatar-card:hover{border-color:rgba(0,229,255,.4);transform:translateY(-2px)}
+  .avatar-card.selected{border-color:#ff00aa;box-shadow:0 0 16px rgba(255,0,170,.25);background:rgba(255,0,170,.06)}
+  .avatar-swatch{width:36px;height:36px;border-radius:50%;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+
+  /* === Form === */
+  .join-form{display:grid;gap:18px}
+  .join-field{display:grid;gap:7px}
+  .join-field>span{font:600 12px/1.4 system-ui;color:rgba(230,245,255,.85)}
+  .join-field>span em{font-style:normal;font-weight:400;color:rgba(230,245,255,.4)}
+  .join-field input,.join-field select{padding:13px 15px;font:15px system-ui;color:#ffffff;
+    background:rgba(8,18,32,.9);border:1px solid rgba(100,220,255,.28);border-radius:6px;
+    outline:none;transition:all .15s;width:100%}
+  .join-field input:focus,.join-field select:focus{border-color:#00e5ff;box-shadow:0 0 0 3px rgba(0,229,255,.15);background:rgba(10,24,42,.95)}
+  .join-field select{cursor:pointer}.join-field select option{background:#0a1622;color:#ffffff}
+  .join-field input::placeholder{color:rgba(160,200,230,.45)}
+  /* Kill browser autofill whiteout — keep dark theme */
+  .join-field input:-webkit-autofill,.join-field input:-webkit-autofill:hover,.join-field input:-webkit-autofill:focus{
+    -webkit-text-fill-color:#ffffff;-webkit-box-shadow:0 0 0 60px #0a1828 inset;
+    border:1px solid rgba(100,220,255,.28);caret-color:#ffffff}
+  /* Date inputs: force readable text and icon */
+  .join-field input[type="date"]{color-scheme:dark}
+  .join-field input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.8);cursor:pointer}
+  .field-hint{font:12px system-ui;min-height:16px;color:rgba(230,245,255,.4)}
+  .field-hint.error{color:#ff7a8a}.field-hint.ok{color:#7dffb0}
+  .join-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:560px){.join-row{grid-template-columns:1fr}.avatar-grid{grid-template-columns:repeat(3,1fr)}}
+  .join-check{display:flex;gap:12px;align-items:flex-start;font:13px/1.55 system-ui;color:rgba(230,245,255,.7);cursor:pointer}
+  .join-check input{margin-top:3px;accent-color:#00e5ff;width:16px;height:16px;flex-shrink:0}
+  .join-check a{color:#79e9ff}
+  .private-badge{font:400 11px system-ui;color:rgba(125,255,176,.7)}
+  .section-label{font:700 13px system-ui;color:#eaf8ff;margin:4px 0 2px;display:flex;align-items:center;gap:8px}
+
+  /* === Buttons === */
+  .join-nav{display:flex;gap:12px;margin-top:8px}
+  .join-back{padding:15px 24px;font:700 12px 'IBM Plex Mono',monospace;letter-spacing:.1em;color:#eaf8ff;
+    background:transparent;border:1px solid rgba(100,220,255,.25);border-radius:6px;cursor:pointer;transition:all .15s}
+  .join-back:hover{border-color:rgba(0,229,255,.5)}
+  .join-submit{flex:1;padding:16px;font:700 13px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;color:#04121a;
+    background:linear-gradient(135deg,#00e5ff,#7b2ff7,#ff00aa);background-size:200% 200%;border:none;border-radius:6px;
+    cursor:pointer;transition:all .15s;animation:gradShift 4s ease infinite}
+  @keyframes gradShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+  .join-submit:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 32px rgba(0,229,255,.35)}
+  .join-submit:disabled{opacity:.6;cursor:wait;transform:none;animation:none}
+  .join-status{font:13px/1.5 system-ui;min-height:20px;text-align:center}
+  .join-status.error{color:#ff8a8a}.join-status.ok{color:#7dffb0}
+  .captcha-wrap{margin:8px 0 4px;display:grid;gap:8px;justify-items:center}
+  .captcha-wrap .field-hint{text-align:center}
+  .join-alt{margin-top:24px;padding-top:20px;border-top:1px solid rgba(100,220,255,.1);
+    text-align:center;font:13px system-ui;color:rgba(230,245,255,.5)}
+  .join-alt a{color:#79e9ff;font-weight:600;margin-left:6px}
+  @media(max-width:600px){.join-card{padding:32px 24px}}
 </style>
 </head>
 <body class="grid-world-page">
-<header class="grid-global-nav"><a class="grid-nav-brand" href="/">◇ GRID WORLD</a><nav><a href="/">HOME</a><a href="/play.html">WORLD</a><a href="/profile.html">PROFILE</a><a href="/marketplace.html">MARKET</a><a href="/economics.html">ECONOMY</a><a href="/grid-world-studio.html">STUDIO</a><a href="/avatars.html">AVATARS</a><a href="/textures.html">TEXTURES</a><a href="/sound.html">SOUND</a><a href="/docs.html">DOCS</a><a href="/directory.html">STAFF</a><a href="/omni.html">OMNI</a></nav><a class="grid-nav-join" href="/join.html">JOIN GRID</a></header>
-<main class="join-page-bg">
-<section class="join-glass join-inner">
-<div style="font:700 10px/1 'IBM Plex Mono',monospace;letter-spacing:.2em;color:#79e9ff">GRID WORLD // ARRIVAL</div>
-<h1 style="font:700 clamp(42px,8vw,92px)/.95 system-ui;margin:16px 0;color:#eaf8ff">Create your<br><span style="color:#8feeff">place in the Grid.</span></h1>
-<p style="max-width:680px;color:rgba(230,245,255,.85);font:16px/1.7 system-ui">Create your Grid identity, choose an avatar, and enter First Light. Your account is the bridge between the website, social layer, economy, creator tools, and persistent worlds.</p>
-<div id="join-status"></div>
-<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:28px">
-<a href="#" id="join-login-link" style="padding:12px 16px;border:1px solid rgba(220,240,255,.18);color:#eaf8ff;text-decoration:none;font:700 11px/1 'IBM Plex Mono',monospace;background:rgba(5,13,23,.5)">ALREADY HAVE AN ACCOUNT</a>
-<a style="padding:12px 16px;color:rgba(230,245,255,.65);text-decoration:none;font:700 11px/1 'IBM Plex Mono',monospace" href="/play.html">ENTER AS GUEST</a>
-</div>
-<div style="margin-top:38px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
-<div class="join-glass" style="padding:16px;border-radius:12px"><b style="color:#eaf8ff">IDENTITY</b><br><small style="color:rgba(230,245,255,.6)">Profile · avatar · style</small></div>
-<div class="join-glass" style="padding:16px;border-radius:12px"><b style="color:#eaf8ff">WORLDS</b><br><small style="color:rgba(230,245,255,.6)">First Light · many worlds</small></div>
-<div class="join-glass" style="padding:16px;border-radius:12px"><b style="color:#eaf8ff">CREATION</b><br><small style="color:rgba(230,245,255,.6)">Build · publish · collaborate</small></div>
-<div class="join-glass" style="padding:16px;border-radius:12px"><b style="color:#eaf8ff">COMMUNITY</b><br><small style="color:rgba(230,245,255,.6)">People · events · media</small></div>
-</div>
-</section></main>
+<header class="grid-global-nav">
+  <a class="grid-nav-brand" href="/">◇ GRID WORLD</a>
+  <nav><a href="/">HOME</a><a href="/play.html">WORLD</a><a href="/marketplace.html">MARKET</a><a href="/docs.html">DOCS</a></nav>
+  <a class="grid-nav-join" href="/join.html">JOIN GRID</a>
+</header>
+<main class="join-page">
+  <div id="join-app"></div>
+</main>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <script type="module" src="/src/join.ts"></script>
-<script type="module" src="/src/site-theme.ts"></script></body></html>
+<script type="module" src="/src/nav.ts"></script></body>
+</html>

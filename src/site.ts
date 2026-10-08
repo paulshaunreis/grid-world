@@ -1,4 +1,5 @@
 import './site.css';
+import './theme/grid-theme.css';
 import './site-asset-health';
 import { QRScanner } from './ui/QRScanner';
 import { mountGridLiveFeed } from './site-live-feed';
@@ -7,6 +8,45 @@ import { TEAM_AVATARS } from './avatars/teamRoster';
 import { GridOperatorService } from './operator/GridOperatorService';
 import { mountGridOperatorPanel } from './ui/GridOperatorPanel';
 import { createClient } from '@supabase/supabase-js';
+import {
+  initTheme, startThemeSync, applyCustomAccent,
+  GRID_SWATCHES, isSwatchUnlocked, getAllSkins, currentSeason,
+} from './theme/GridTheme';
+import { DISTRICT_IDENTITIES } from './theme/districts';
+import { readLocalLocale, writeLocalLocale } from './i18n/GridLanguageService';
+import { GRID_SUPPORTED_LOCALES } from './core/GridLanguagePreferences';
+
+/* Region cards render from the canonical district table (src/theme/districts.ts)
+   so the site and the in-world districts can never drift apart. */
+function renderWorldCards(): string {
+  return DISTRICT_IDENTITIES.map((d, i) => {
+    const n = String(i + 1).padStart(2, '0');
+    if (d.status === 'live') {
+      return `<div class="world-card district-${d.id}"><span class="concept-badge">CONCEPT ART</span>` +
+        `<img src="${d.art}" alt="${d.label} concept art">` +
+        `<div><small>${n} · ${d.label}</small><h3>${d.title}</h3><p>${d.detail}</p></div>` +
+        `<a href="${d.entryHref}">${d.id === 'tideline' ? 'ENTER →' : 'DISCOVER →'}</a></div>`;
+    }
+    return `<div class="world-card dev district-${d.id}"><span class="concept-badge dev-badge">IN DEVELOPMENT</span>` +
+      `<div class="dev-sigil" aria-hidden="true">◈</div>` +
+      `<div><small>${n} · ${d.label}</small><h3>${d.title}</h3><p>${d.detail}</p></div>` +
+      `<a href="#discover">FOLLOW PROGRESS →</a></div>`;
+  }).join('');
+}
+
+function renderDistrictStrip(): string {
+  return `<div class="district-strip" aria-label="Region identities">` +
+    DISTRICT_IDENTITIES.map(d =>
+      `<a href="#worlds" class="district-dot${d.status === 'development' ? ' dev' : ''}" ` +
+      `style="--dot:var(--gw-district-${d.id})" title="${d.label}${d.status === 'development' ? ' · in development' : ''}"></a>`
+    ).join('') +
+    `<span>ONE GRID · NINE REGIONS</span></div>`;
+}
+
+/* Shared GridWorld accent theme: match the in-world starter UI, and stay
+   synced live with the game + marketplace via cross-tab storage events. */
+initTheme();
+startThemeSync(()=>renderSiteThemePicker());
 
 const app = document.querySelector<HTMLDivElement>('#site')!;
 const qrScanner = new QRScanner();
@@ -23,17 +63,60 @@ const SITE_STYLE_KEY = 'grid-world:site-style';
 let siteStyle = (localStorage.getItem(SITE_STYLE_KEY) as SiteStyle | null) ?? 'aurora';
 document.documentElement.dataset.siteStyle = siteStyle;
 
-const posts = [
-  { avatar: 'A', name: 'Aurora', meta: 'First Light · 12m', text: 'First Light is online. The world is beginning to change with time, weather, and living systems.', tag: 'WORLD UPDATE', likes: 42, comments: 8 },
-  { avatar: 'L', name: 'Link', meta: 'Creator Hub · 31m', text: 'Grid Script is designed to make creation powerful without handing creators unrestricted code execution.', tag: 'CREATION', likes: 27, comments: 5 },
-  { avatar: 'R', name: 'Rey', meta: 'Community · 1h', text: 'What should we build next? A floating city, a giant forest, or something nobody has imagined yet?', tag: 'DISCUSSION', likes: 64, comments: 19 },
+// Team feed posts load live from grid_team_posts (Supabase).
+// Falls back to a labeled sample set if the backend is unreachable —
+// never fake timestamps or engagement counts.
+interface TeamPost {
+  author_id: string;
+  author_name: string;
+  author_role: string;
+  region: string | null;
+  tag: string;
+  body: string;
+  created_at: string;
+}
+
+const SAMPLE_POSTS: TeamPost[] = [
+  { author_id: 'aurora', author_name: 'Aurora', author_role: 'World Coordinator', region: 'First Light', tag: 'WORLD UPDATE', body: 'First Light is online. The world is beginning to change with time, weather, and living systems.', created_at: new Date().toISOString() },
 ];
+
+function formatPostAge(iso: string): string {
+  const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+  if (s < 60) return s + 's';
+  const m = Math.floor(s / 60);
+  if (m < 60) return m + 'm';
+  const h = Math.floor(m / 60);
+  if (h < 24) return h + 'h';
+  return Math.floor(h / 24) + 'd';
+}
+
+async function loadTeamPosts(): Promise<{ posts: TeamPost[]; live: boolean }> {
+  if (!supabaseConfigured || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+    return { posts: SAMPLE_POSTS, live: false };
+  }
+  try {
+    const client = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+    const { data, error } = await client
+      .from('grid_team_posts')
+      .select('author_id,author_name,author_role,region,tag,body,created_at')
+      .order('created_at', { ascending: false })
+      .limit(10);
+    if (error || !data?.length) return { posts: SAMPLE_POSTS, live: false };
+    return { posts: data as TeamPost[], live: true };
+  } catch {
+    return { posts: SAMPLE_POSTS, live: false };
+  }
+}
 
 app.innerHTML = `
   <header class="site-header">
     <a class="brand" href="#home"><img class="brand-logo" src="/grid-world-logo.svg" alt="Grid World"><span>GRID WORLD</span></a>
     <nav>${navItems.map(([label, href], i) => `<a href="${href}" class="${i === 0 ? 'active' : ''}">${label}</a>`).join('')}</nav>
     <div class="header-actions">
+      <select class="site-language-picker" id="site-language-picker" title="Language — applies across the website and in-world" aria-label="Language">
+        ${GRID_SUPPORTED_LOCALES.map(l => `<option value="${l}"${l === readLocalLocale() ? ' selected' : ''}>${l}</option>`).join('')}
+      </select>
+      <div class="site-theme-picker" id="site-theme-picker" title="Interface accent — synced live with the game"></div>
       <button class="ghost style-trigger" id="style-trigger" type="button">STYLE</button><button class="operator-trigger" id="operator-trigger" type="button">GRID OPERATOR</button>
       <button class="ghost" id="site-qr" type="button">QR</button>
       <a class="ghost" href="/economics.html">ECONOMICS</a><a class="ghost" href="/marketplace.html">MARKET</a><a class="ghost" href="/sound.html">SOUND</a><a class="ghost" href="/grid-world-studio.html">GRID WORLD STUDIO</a><a class="ghost" href="/omni.html">OMNI</a><a class="ghost" href="/directory.html">STAFF</a><a class="ghost" href="/avatars.html">AVATARS</a><a class="ghost" href="/textures.html">TEXTURES</a><a class="ghost" href="/docs.html">DOCS</a><a class="ghost" href="/profile.html">PROFILE</a>
@@ -51,31 +134,29 @@ app.innerHTML = `
     <section class="hero" id="home">
       <div class="visual-build-badge">GRID WORLD · VISUAL BUILD 01 OCT 2026 · LIVE</div>
       <div class="hero-art" aria-hidden="true"></div>
-      <img class="hero-image-proof" src="/art/hero-worlds.webp?v=20261001" alt="Grid World concept art showing multiple connected living worlds">
+      <img class="hero-image-proof" src="/art/hero-worlds.svg?v=20261001" alt="Grid World concept art showing multiple connected living worlds">
       <div class="hero-grid"></div>
       <div class="hero-copy">
         <div class="eyebrow">A PERSISTENT FRAMEWORK FOR WORLDS</div>
         <h1>One grid.<br><span>Infinite worlds.</span></h1>
         <p>Explore connected worlds, meet people, create experiences, and build places that keep evolving even when you're offline.</p>
         <div class="hero-actions">
-          <a class="primary large" href="/join.html">JOIN GRID WORLD</a><a class="secondary large" href="/play.html">ENTER AS GUEST</a>
+          <a class="primary large" href="/join.html">JOIN GRID WORLD</a>
           <a class="secondary large" href="#discover">EXPLORE WORLDS</a>
         </div>
-        <div class="hero-stats"><span><b>09</b> starter regions</span><span><b>∞</b> expandable worlds</span><span><b>24/7</b> persistent simulation</span></div>
+        <div class="hero-stats"><span><b>05</b> built regions</span><span><b>04</b> in development</span><span><b>∞</b> expandable worlds</span><span><b>24/7</b> persistent simulation</span></div>
+        ${renderDistrictStrip()}
       </div>
-      <div class="hero-orb"><div class="orb-ring r1"></div><div class="orb-ring r2"></div><div class="orb-core">GRID<br><small>FIRST LIGHT</small></div></div>
+      <div class="hero-orb"><div class="orb-ring r1"></div><div class="orb-ring r2"></div><div class="orb-core">GRID<br><small>FIRST LIGHT</small></div><div class="orb-caption">LIVE PROTOTYPE · IN-WORLD TRANSIT LENS</div></div>
     </section>
 
     <section class="concept-gallery" id="concept-art">
       <div class="section-label">GRID WORLD · CONCEPT ATLAS</div>
       <div class="concept-gallery-head"><h2>Real places.<br><span>Real visual language.</span></h2><p>Grid World now carries its concept art directly through the public surface and into the 3D world. These local assets are part of the product—not decorative placeholders.</p></div>
       <div class="concept-gallery-grid">
-        <figure><img src="/grid-concept-first-light.webp" alt="First Light concept art"><figcaption><b>FIRST LIGHT</b><span>Entry world · living systems</span></figcaption></figure>
-        <figure><img src="/grid-concept-living-wilds.webp" alt="Living Wilds concept art"><figcaption><b>LIVING WILDS</b><span>Ecology · creatures · terrain</span></figcaption></figure>
-        <figure><img src="/grid-concept-civic.webp" alt="Civic concept art"><figcaption><b>CIVIC</b><span>Architecture · community · transit</span></figcaption></figure>
-        <figure><img src="/concept/worldlook-firstlight-street.webp" alt="First Light night street concept art" loading="lazy"><figcaption><b>FIRST LIGHT · NIGHT</b><span>Concept preview · in active development</span></figcaption></figure>
-        <figure><img src="/concept/worldlook-wilderness.webp" alt="Wilderness vista concept art" loading="lazy"><figcaption><b>LIVING WILDS</b><span>Concept preview · in active development</span></figcaption></figure>
-        <figure><img src="/concept/worldlook-interior.webp" alt="Cozy interior concept art" loading="lazy"><figcaption><b>CITIZEN HOME</b><span>Concept preview · in active development</span></figcaption></figure>
+        <figure><img src="/grid-concept-first-light.svg" alt="First Light concept art"><figcaption><b>FIRST LIGHT</b><span>Entry world · living systems</span></figcaption></figure>
+        <figure><img src="/grid-concept-living-wilds.svg" alt="Living Wilds concept art"><figcaption><b>LIVING WILDS</b><span>Ecology · creatures · terrain</span></figcaption></figure>
+        <figure><img src="/grid-concept-civic.svg" alt="Civic concept art"><figcaption><b>CIVIC</b><span>Architecture · community · transit</span></figcaption></figure>
       </div>
     </section>
 
@@ -100,7 +181,7 @@ app.innerHTML = `
         <i class="pulse-node n1"></i><i class="pulse-node n2"></i><i class="pulse-node n3"></i><i class="pulse-node n4"></i>
       </div>
       <div class="pulse-copy">
-        <div class="section-label">GRID PULSE · WORLD SIGNAL</div>
+        <div class="section-label">GRID PULSE · LIVE WORLD</div>
         <h2>The site can<br><span>feel the world move.</span></h2>
         <p>Public world events flow from Grid World into this surface in real time. Teleports, marketplace activity, sound releases, living memories, and system signals can appear as they happen.</p>
         <div class="pulse-status"><span class="pulse-dot"></span><span data-grid-pulse-status>CONNECTING</span><b><span data-grid-pulse-count>00</span> RECENT</b></div>
@@ -111,7 +192,7 @@ app.innerHTML = `
 
     <section class="studio-live" id="studio-live">
       <div class="studio-live-head"><div><div class="section-label">PUBLIC STUDIO SIGNAL</div><h2>The world is being<br><span>built in front of you.</span></h2><p>Team members can publish the parts of the build they are comfortable sharing. These are the current public workstreams.</p></div><div class="studio-live-badge"><span></span> LIVE BUILD</div></div>
-      <div class="studio-live-art"><img src="/art/team-studio.webp" alt="" aria-hidden="true"></div><div class="studio-live-grid" id="studio-live-grid"></div>
+      <div class="studio-live-art"><img src="/art/team-studio.svg" alt="" aria-hidden="true"></div><div class="studio-live-grid" id="studio-live-grid"></div>
     </section>
 
     <section class="living-atlas" id="living-world">
@@ -169,7 +250,7 @@ app.innerHTML = `
     </section>
 
     <section class="combat-feature" id="combat">
-      <div class="combat-art"><img src="/art/combat-system.webp" alt="Grid Combat system concept art"></div>
+      <div class="combat-art"><img src="/art/combat-system.svg" alt="Grid Combat system concept art"></div>
       <div class="combat-copy">
         <div class="section-label">GRID COMBAT · NEW</div>
         <h2>Conflict has<br><span>rules.</span></h2>
@@ -205,18 +286,12 @@ app.innerHTML = `
           <div class="mini-avatar">G</div><input placeholder="What's happening in your Grid?" /><button>POST</button>
           <div class="composer-tools"><span>✦ Experience</span><span>▧ Image</span><span>◉ Event</span><span>⌁ Location</span></div>
         </div>
-        ${posts.map(post => `
-          <article class="post">
-            <div class="post-head"><div class="mini-avatar avatar-${post.avatar}">${post.avatar}</div><div><strong>${post.name}</strong><small>${post.meta}</small></div><button class="more">•••</button></div>
-            <div class="post-tag">${post.tag}</div><p>${post.text}</p>
-            <div class="post-actions"><button>♡ ${post.likes}</button><button>◇ ${post.comments} comments</button><button>↗ Share</button></div>
-          </article>
-        `).join('')}
+        <div id="team-feed-posts"><div class="feed-loading">Loading team updates…</div></div>
       </section>
 
       <aside class="right-rail">
-        <div class="side-card"><div class="card-title">WORLDS IN DEVELOPMENT</div><div class="live-row"><span class="dot"></span> First Light <b>prototype</b></div><div class="live-row"><span class="dot"></span> Neon District <b>concept</b></div><div class="live-row"><span class="dot"></span> Verdant Arc <b>concept</b></div><a class="card-link" href="#worlds">View all worlds →</a></div>
-        <div class="side-card"><div class="card-title">UPCOMING EVENTS</div><div class="event"><b>NEON NIGHTS</b><small>Tonight · Neon District</small></div><div class="event"><b>CREATOR CAMP</b><small>Saturday · Virtual + IRL</small></div><a class="card-link" href="#events">Explore events →</a></div>
+        <div class="side-card"><div class="card-title">GRID PULSE · CONCEPT PREVIEW</div><div class="live-row"><span class="dot"></span> First Light <b>128</b></div><div class="live-row"><span class="dot"></span> Tideline <b>74</b></div><div class="live-row"><span class="dot"></span> Verdant <b>51</b></div><small class="honesty-note">Illustrative preview — live counts ship with the persistent world.</small><a class="card-link" href="#worlds">View all worlds →</a></div>
+        <div class="side-card"><div class="card-title">UPCOMING EVENTS</div><div class="event"><b>FIRST LIGHT FESTIVAL</b><small>Saturday · First Light</small></div><div class="event"><b>CREATOR CAMP</b><small>Saturday · Virtual + IRL</small></div><a class="card-link" href="#events">Explore events →</a></div>
       </aside>
     </section>
 
@@ -243,7 +318,6 @@ app.innerHTML = `
         <article><b>MUSE</b><span>Art · gatherings · arenas</span><small>Social space stays protected while events can become competitive.</small></article>
         <article><b>FRONTIER</b><span>Migration · territory · survival</span><small>Wild systems create movement and danger.</small></article>
       </div>
-      <figure class="world-map-figure"><img src="/concept/map-overworld.webp" alt="Grid World overworld map showing all nine regions" loading="lazy"><figcaption><b>GRID ATLAS · CONCEPT PREVIEW</b><span>05 built regions · 04 in development — the world is in active development.</span></figcaption></figure>
     </section>
 
     <section class="platform" id="communities">
@@ -284,9 +358,7 @@ app.innerHTML = `
         <p class="world-network-copy">New worlds are data-driven additions to the Grid. Each can develop its own environment, architecture, ecology, creatures, culture, economy, weather, events and visual identity without requiring a new engine branch.</p>
       </div>
       <div class="world-cards">
-        <div class="world-card first"><img src="/worlds/tideline.webp" alt="Tideline concept art"><div><small>01 · TIDELINE</small><h3>OCEAN WORLD</h3><p>Harbors, moons, sky cities and tidal exploration.</p></div><a href="/play.html">ENTER →</a></div>
-        <div class="world-card neon"><img src="/worlds/crown.webp" alt="Crown concept art"><div><small>02 · CROWN</small><h3>CELESTIAL CITADEL</h3><p>Monuments beneath a ringed world and strange skies.</p></div><a href="#discover">DISCOVER →</a></div>
-        <div class="world-card verdant"><img src="/worlds/verdant.webp" alt="Verdant concept art"><div><small>03 · VERDANT</small><h3>FLOATING GARDENS</h3><p>Alien ecology, multiple moons and living architecture.</p></div><a href="#discover">DISCOVER →</a></div><div class="world-card muse"><img src="/worlds/muse.webp" alt="Muse concept art"><div><small>04 · MUSE</small><h3>ART REALM</h3><p>Impossible geometry, color, movement and expression.</p></div><a href="#discover">DISCOVER →</a></div><div class="world-card frontier"><img src="/worlds/frontier.webp" alt="Frontier concept art"><div><small>05 · FRONTIER</small><h3>ANCIENT WILDS</h3><p>Wild habitats, colossal trees and living discovery.</p></div><a href="#discover">DISCOVER →</a></div>
+        ${renderWorldCards()}
       </div>
     </section>
 
@@ -294,7 +366,7 @@ app.innerHTML = `
       <div class="section-label">ASSET CONSTELLATION</div>
       <h2>Nothing stands still.<br><span>Everything has a body.</span></h2>
       <p class="model-intro">Grid World is building around five reusable model families: architecture, avatars, animals, plants, and trees. Free CC0 sources supply production candidates while Grid-native procedural forms keep the world alive between asset drops.</p>
-      <div class="model-atlas-art"><img src="/art/asset-constellation.webp" alt="Grid World asset constellation"></div><div class="model-atlas-grid">
+      <div class="model-atlas-art"><img src="/art/asset-constellation.svg" alt="Grid World asset constellation"></div><div class="model-atlas-grid">
         <a href="https://kenney.nl/assets/modular-buildings" target="_blank" rel="noreferrer"><b>ARCHITECTURE</b><strong>MODULAR CITY</strong><small>Kenney · CC0 · buildings</small><i>▱</i></a>
         <a href="https://kenney.nl/assets/blocky-characters" target="_blank" rel="noreferrer"><b>AVATARS</b><strong>ANIMATED PEOPLE</strong><small>Kenney · CC0 · characters</small><i>◈</i></a>
         <a href="https://kenney.nl/assets/cube-pets" target="_blank" rel="noreferrer"><b>ANIMALS</b><strong>LIVING COMPANIONS</strong><small>Kenney · CC0 · animated pets</small><i>◇</i></a>
@@ -303,7 +375,7 @@ app.innerHTML = `
       </div>
     </section>
 
-        <section class="foundation-art-section"><div class="section-label">THE LAYER BENEATH THE WORLDS</div><h2>One foundation.<br><span>Many realities.</span></h2><img src="/art/foundation.webp" alt="Grid Foundation concept art"><p>The Grid Foundation remains hidden unless authorized. It carries shared weather, system nodes, world links and access-controlled infrastructure beneath every world.</p></section>
+        <section class="foundation-art-section"><div class="section-label">THE LAYER BENEATH THE WORLDS</div><h2>One foundation.<br><span>Many realities.</span></h2><img src="/art/foundation.svg" alt="Grid Foundation concept art"><p>The Grid Foundation remains hidden unless authorized. It carries shared weather, system nodes, world links and access-controlled infrastructure beneath every world.</p></section>
 
     <section class="irllayer" id="events"><div><div class="section-label">GRID CONNECT</div><h2>Virtual or IRL.<br><span>Experience it together.</span></h2><p>Events can exist in the physical world, inside Grid World, or across both. Users choose what they share and where they participate.</p><a class="secondary large" href="#events">BROWSE EVENTS</a></div><div class="event-map"><span>GRID</span><i></i><b>IRL</b></div></section>
     <section class="npc-economy-atlas" id="marketplace">
@@ -341,9 +413,9 @@ app.innerHTML = `
     <section class="grid-community-section" id="community-safety"><div class="grid-site-kicker">GRID WORLD · COMMUNITY + SAFETY</div><h2>A social world with clear boundaries.</h2><p>Every account has a persistent profile, avatar identity, account age, presence status and privacy controls. Friends, follows, likes and forum participation share the same Grid identity.</p><div class="grid-community-grid"><article><b>E · EVERYONE</b><h3>Open community</h3><p>General spaces, starter worlds and family-friendly discussion.</p></article><article><b>CHILD · TEEN · ADULT</b><h3>Age-aware access</h3><p>Age-restricted destinations are gated before entry. Adult, Graphic and Restricted areas require an adult account.</p></article><article><b>LGBTQ+ INCLUSIVE</b><h3>Identity is yours</h3><p>Gender identity, pronouns and orientation are optional profile data with privacy controls and no gameplay penalties.</p></article><article><b>VOICE</b><h3>Optional voice shaping</h3><p>A separate Grid Voice layer provides optional microphone processing without making voice participation mandatory.</p></article></div></section>
   <section class="world-charter" id="world-charter">
     <div class="section-label">GRID WORLD · CURRENT BUILD CHARTER</div>
-    <div class="world-charter-head"><h2>Everything we are building.<br><span>Visible in one system.</span></h2><img src="/art/grid-page-atlas.webp" alt="Grid World visual atlas"></div>
+    <div class="world-charter-head"><h2>Everything we are building.<br><span>Visible in one system.</span></h2><img src="/art/grid-page-atlas.svg" alt="Grid World visual atlas"></div>
     <div class="charter-grid">
-      <article><b>WORLDS</b><span>09 starter regions · unlimited expandable worlds · custom generation · teleport gates and pylons</span></article>
+      <article><b>WORLDS</b><span>05 built regions · 04 in development · unlimited expandable worlds · custom generation · teleport gates and pylons</span></article>
       <article><b>LIVING LIFE</b><span>Weather · seasons · plants · trees · creatures · habitats · NPC memory and relationships</span></article>
       <article><b>CREATION</b><span>Primitives · advanced building · terrain sculpting · material harvesting · craftable creator tools</span></article>
       <article><b>PEOPLE</b><span>Custom avatars · staff personas · social profiles · chat · voice · communities · media · events</span></article>
@@ -447,10 +519,70 @@ document.querySelectorAll<HTMLAnchorElement>('nav a').forEach(link => link.addEv
 
 document.querySelector('#site-qr')?.addEventListener('click', () => qrScanner.open());
 
+// Live team feed (Paul's request 2026-10-08): team members post daily updates.
+// Replaces the old hardcoded mock posts. Honest timestamps, no fake engagement.
+async function renderTeamFeed() {
+  const container = document.querySelector<HTMLDivElement>('#team-feed-posts');
+  if (!container) return;
+  const { posts, live } = await loadTeamPosts();
+  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  container.innerHTML =
+    (live ? '' : '<div class="feed-notice">Showing sample posts — live team feed connects when the backend is ready.</div>') +
+    posts.map(post => {
+      const initial = esc(post.author_name.charAt(0).toUpperCase());
+      const meta = esc((post.region ? post.region + ' · ' : '') + formatPostAge(post.created_at));
+      return `<article class="post">` +
+        `<div class="post-head"><div class="mini-avatar avatar-${initial}">${initial}</div>` +
+        `<div><strong>${esc(post.author_name)}</strong><small>${meta}</small></div>` +
+        `<button class="more">•••</button></div>` +
+        `<div class="post-tag">${esc(post.tag)}</div><p>${esc(post.body)}</p>` +
+        `</article>`;
+    }).join('');
+}
+void renderTeamFeed();
+
+// Pre-auth language selection (governance Surface 1). Persists via VersionedStorage;
+// GridLanguageService is the shared authority once the user signs in.
+document.querySelector<HTMLSelectElement>('#site-language-picker')?.addEventListener('change', (e) => {
+  const code = (e.target as HTMLSelectElement).value;
+  writeLocalLocale(code);
+});
+
 const siteClock = document.querySelector<HTMLSpanElement>('#site-live-clock span');
 const updateSiteClock = () => { if (siteClock) siteClock.textContent = 'LIVE · ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }); };
 updateSiteClock();
 window.setInterval(updateSiteClock, 1000);
+
+/* Website accent picker — same palette as the in-world starter UI.
+   Locked accents need their marketplace skin; changing here updates the
+   game + marketplace live in any other open tab (same origin). */
+function skinNameOf(id:string):string{ return getAllSkins().find(k=>k.id===id)?.name??id; }
+function renderSiteThemePicker(){
+  const picker=document.querySelector<HTMLDivElement>('#site-theme-picker');
+  if(!picker) return;
+  picker.innerHTML=GRID_SWATCHES.map(s=>{
+    const unlocked=isSwatchUnlocked(s);
+    const title=unlocked?s.name:s.name+' — locked · own the "'+skinNameOf(s.requiresSkin!)+'" marketplace skin';
+    return '<button type="button" class="swatch'+(unlocked?'':' locked')+'" data-hex="'+s.hex+'" title="'+title+'" aria-label="'+title+'" style="background:'+s.hex+'">'+(unlocked?'':'🔒')+'</button>';
+  }).join('');
+  let badge=document.querySelector<HTMLSpanElement>('#site-season-badge');
+  if(!badge){
+    badge=document.createElement('span');
+    badge.className='site-season-badge';
+    badge.id='site-season-badge';
+    picker.after(badge);
+  }
+  const season=currentSeason();
+  badge.textContent=season?season.emoji+' '+season.name+' theme live':'';
+  badge.title=season?season.name+' is active — change your accent in the game Settings to opt out':'';
+}
+renderSiteThemePicker();
+document.querySelector('#site-theme-picker')?.addEventListener('click',event=>{
+  const button=(event.target as HTMLElement).closest<HTMLButtonElement>('.swatch');
+  if(!button||!button.dataset.hex) return;
+  const ok=applyCustomAccent(button.dataset.hex);
+  toast(ok?'Accent synced — the game follows.':'Locked accent — find its skin on the marketplace.');
+});
 
 document.querySelector('#style-trigger')?.addEventListener('click', () => {
   document.querySelector('#style-panel')?.classList.toggle('open');
@@ -505,8 +637,5 @@ document.querySelectorAll<HTMLButtonElement>('.more').forEach(button => button.a
 document.querySelectorAll<HTMLButtonElement>('[data-market-action]').forEach(button => button.addEventListener('click', () => toast((button.dataset.marketAction ?? 'Object') + ' opened in Marketplace.')));
 document.querySelectorAll<HTMLButtonElement>('[data-social]').forEach(button => button.addEventListener('click', () => toast((button.dataset.social ?? 'social').toUpperCase() + ' surface opened.')));
 document.querySelector('#login')?.addEventListener('click', () => toast('Grid Identity sign-in is coming next. Your in-world identity foundation is already in place.'));
-document.getElementById('operator-trigger')?.addEventListener('click',()=>{
-  if(operator) operator.open();
-  else toast('Grid Operator needs the live services connection — unavailable in this build. Safety info lives under Community + Safety below.');
-});
+document.getElementById('operator-trigger')?.addEventListener('click',()=>operator?.open());
 

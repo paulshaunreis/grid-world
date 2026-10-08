@@ -25,8 +25,12 @@ export class GridAuthService {
     return data.user;
   }
 
-  async signUp(email:string,password:string){
-    return this.client.auth.signUp({email:email.trim().toLowerCase(),password});
+  async signUp(email:string,password:string,redirectTo?:string){
+    return this.client.auth.signUp({
+      email:email.trim().toLowerCase(),
+      password,
+      options: redirectTo ? {emailRedirectTo:redirectTo} : undefined,
+    });
   }
 
   async signIn(email:string,password:string){

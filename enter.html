@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Enter Grid World — First Light Awaits</title>
+<meta name="description" content="Your Grid World account is ready. Enter First Light and begin your journey.">
+<link rel="stylesheet" href="/src/grid-page-visual.css">
+<style>
+  .enter-page{min-height:calc(100vh - 54px);display:grid;place-items:center;padding:48px 20px;position:relative;overflow:hidden;
+    background:
+      radial-gradient(1000px 600px at 50% 0%,rgba(0,229,255,.12),transparent 60%),
+      radial-gradient(800px 500px at 20% 100%,rgba(255,0,170,.08),transparent 60%),
+      radial-gradient(800px 500px at 80% 100%,rgba(123,47,247,.1),transparent 60%),
+      #04090f;}
+  .enter-page::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.4;
+    background-image:linear-gradient(rgba(0,229,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.04) 1px,transparent 1px);
+    background-size:48px 48px;mask-image:radial-gradient(75% 75% at 50% 40%,black,transparent);}
+  .enter-card{position:relative;z-index:1;width:min(640px,100%);text-align:center;
+    padding:64px 56px;border:1px solid rgba(100,220,255,.2);border-radius:10px;
+    background:linear-gradient(165deg,rgba(10,24,42,.97),rgba(5,13,23,.95));
+    box-shadow:0 40px 100px rgba(0,0,0,.6),0 0 80px rgba(0,229,255,.08),inset 0 1px 0 rgba(255,255,255,.07);
+    backdrop-filter:blur(24px);animation:enterIn .6s cubic-bezier(.2,.9,.3,1.15)}
+  @keyframes enterIn{from{opacity:0;transform:translateY(32px) scale(.97)}to{opacity:1;transform:none}}
+  .enter-seal{width:96px;height:96px;margin:0 auto 28px;border-radius:50%;display:grid;place-items:center;
+    font-size:44px;background:conic-gradient(from 0deg,#00e5ff,#7b2ff7,#ff00aa,#00e5ff);
+    animation:sealSpin 12s linear infinite;box-shadow:0 0 60px rgba(0,229,255,.35)}
+  .enter-seal span{width:80px;height:80px;border-radius:50%;display:grid;place-items:center;
+    background:#060d16;font-size:36px;animation:sealSpinRev 12s linear infinite}
+  @keyframes sealSpin{to{transform:rotate(360deg)}}
+  @keyframes sealSpinRev{to{transform:rotate(-360deg)}}
+  .enter-kicker{font:700 10px/1 'IBM Plex Mono',monospace;letter-spacing:.28em;margin-bottom:20px;
+    background:linear-gradient(90deg,#00e5ff,#ff00aa);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .enter-card h1{font:700 clamp(36px,7vw,58px)/1.02 system-ui;margin:0 0 16px;color:#f2fbff;letter-spacing:-.025em}
+  .enter-card h1 .accent{background:linear-gradient(90deg,#00e5ff,#ff00aa);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .enter-card p{color:rgba(230,245,255,.65);font:15px/1.75 system-ui;margin:0 0 36px;max-width:480px;margin-left:auto;margin-right:auto}
+  .enter-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:36px}
+  .enter-primary{padding:18px 48px;font:700 14px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;color:#04121a;
+    background:linear-gradient(135deg,#00e5ff,#7b2ff7,#ff00aa);background-size:200% 200%;border:none;border-radius:8px;
+    cursor:pointer;text-decoration:none;display:inline-block;transition:all .15s;animation:gradShift 4s ease infinite}
+  @keyframes gradShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+  .enter-primary:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 14px 44px rgba(0,229,255,.4)}
+  .enter-secondary{padding:18px 36px;font:700 13px/1 'IBM Plex Mono',monospace;letter-spacing:.1em;color:#eaf8ff;
+    border:1px solid rgba(100,220,255,.3);border-radius:8px;text-decoration:none;transition:all .15s}
+  .enter-secondary:hover{border-color:#00e5ff;background:rgba(0,229,255,.06)}
+  .enter-meta{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;
+    padding-top:28px;border-top:1px solid rgba(100,220,255,.1)}
+  .enter-meta div{text-align:center}
+  .enter-meta b{display:block;font:700 20px system-ui;color:#fff;margin-bottom:4px}
+  .enter-meta small{font:11px 'IBM Plex Mono',monospace;letter-spacing:.12em;color:rgba(230,245,255,.45)}
+  .enter-official{margin-top:32px;font:11px system-ui;color:rgba(230,245,255,.35);letter-spacing:.06em}
+  .enter-official::before{content:'◆ ';color:rgba(0,229,255,.5)}
+  @media(max-width:600px){.enter-card{padding:44px 28px}}
+</style>
+</head>
+<body class="grid-world-page">
+<header class="grid-global-nav">
+  <a class="grid-nav-brand" href="/">◇ GRID WORLD</a>
+  <nav><a href="/">HOME</a><a href="/play.html">WORLD</a><a href="/marketplace.html">MARKET</a><a href="/docs.html">DOCS</a></nav>
+  <a class="grid-nav-join" href="/join.html">JOIN GRID</a>
+</header>
+<main class="enter-page">
+  <div class="enter-card">
+    <div class="enter-seal"><span>◇</span></div>
+    <div class="enter-kicker">GRID WORLD // OFFICIAL ENTRY</div>
+    <h1>First Light <span class="accent">awaits.</span></h1>
+    <p>Your account is confirmed and your avatar is ready. Step through the gate into a living world — nine regions, persistent simulation, and a community building it with you.</p>
+    <div class="enter-actions">
+      <a class="enter-primary" href="/play.html">ENTER FIRST LIGHT →</a>
+      <a class="enter-secondary" href="/avatars.html">REVIEW AVATAR</a>
+    </div>
+    <div class="enter-meta">
+      <div><b>09</b><small>REGIONS</small></div>
+      <div><b>24/7</b><small>PERSISTENT</small></div>
+      <div><b>∞</b><small>WORLDS</small></div>
+    </div>
+    <div class="enter-official">Official Grid World entry point · grid-world-qghn.onrender.com</div>
+  </div>
+</main>
+<script type="module" src="/src/nav.ts"></script></body>
+</html>

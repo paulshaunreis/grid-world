@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Email Confirmed — Grid World</title>
+<meta name="description" content="Your Grid World email is confirmed. Welcome to the Grid.">
+<link rel="stylesheet" href="/src/grid-page-visual.css">
+<style>
+  .confirm-page{min-height:100vh;display:grid;place-items:center;padding:48px 20px;
+    background:radial-gradient(1200px 600px at 50% -10%,rgba(0,255,255,.06),transparent 60%),#04090f;}
+  .confirm-card{width:min(520px,100%);padding:56px 48px;text-align:center;border:1px solid rgba(100,220,255,.16);
+    background:rgba(5,13,23,.92);box-shadow:0 30px 90px rgba(0,0,0,.5);backdrop-filter:blur(20px);border-radius:4px}
+  .confirm-kicker{font:700 10px/1 'IBM Plex Mono',monospace;letter-spacing:.22em;color:#79e9ff;margin-bottom:20px}
+  .confirm-icon{font-size:64px;margin-bottom:20px}
+  .confirm-card h1{font:700 clamp(30px,5vw,44px)/1.1 system-ui;margin:0 0 14px;color:#f2fbff;letter-spacing:-.02em}
+  .confirm-card p{color:rgba(230,245,255,.65);font:15px/1.7 system-ui;margin:0 0 32px}
+  .confirm-card p.error{color:#ff8a8a}
+  .confirm-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .confirm-primary{padding:15px 32px;font:700 12px/1 'IBM Plex Mono',monospace;letter-spacing:.12em;color:#04121a;
+    background:linear-gradient(135deg,#00e5ff,#00b8d4);border:none;border-radius:3px;cursor:pointer;text-decoration:none;
+    transition:transform .12s,box-shadow .12s}
+  .confirm-primary:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(0,229,255,.3)}
+  .confirm-secondary{padding:15px 28px;font:700 12px/1 'IBM Plex Mono',monospace;letter-spacing:.1em;
+    color:#eaf8ff;border:1px solid rgba(100,220,255,.25);border-radius:3px;text-decoration:none}
+  .confirm-spinner{width:40px;height:40px;margin:0 auto 24px;border:3px solid rgba(0,229,255,.2);
+    border-top-color:#00e5ff;border-radius:50%;animation:spin 0.8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media(max-width:560px){.confirm-card{padding:40px 28px}}
+</style>
+</head>
+<body class="grid-world-page">
+<header class="grid-global-nav">
+  <a class="grid-nav-brand" href="/">◇ GRID WORLD</a>
+  <nav><a href="/">HOME</a><a href="/play.html">WORLD</a><a href="/marketplace.html">MARKET</a><a href="/docs.html">DOCS</a></nav>
+  <a class="grid-nav-join" href="/join.html">JOIN GRID</a>
+</header>
+<main class="confirm-page">
+  <div class="confirm-card" id="confirm-app">
+    <div class="confirm-spinner"></div>
+    <p>Confirming your email…</p>
+  </div>
+</main>
+<script type="module">
+  import { createClient } from '@supabase/supabase-js';
+  import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, supabaseConfigured } from '/src/persistence/config.ts';
+
+  const app = document.getElementById('confirm-app');
+
+  function showError(msg) {
+    app.innerHTML = `
+      <div class="confirm-kicker">GRID WORLD // ARRIVAL</div>
+      <div class="confirm-icon">⚠️</div>
+      <h1>Confirmation didn't go through.</h1>
+      <p class="error">${msg}</p>
+      <div class="confirm-actions">
+        <a class="confirm-primary" href="/join.html">TRY AGAIN</a>
+        <a class="confirm-secondary" href="/">HOME</a>
+      </div>`;
+  }
+
+  function showSuccess() {
+    app.innerHTML = `
+      <div class="confirm-kicker">GRID WORLD // OFFICIAL</div>
+      <div class="confirm-icon">✦</div>
+      <h1>Email confirmed.<br>Welcome to the Grid.</h1>
+      <p>Your account is verified by Grid World. Taking you to the official entry…</p>
+      <div class="confirm-actions">
+        <a class="confirm-primary" href="/enter.html">ENTER GRID WORLD →</a>
+      </div>`;
+    // Auto-redirect to the official Enter page
+    setTimeout(() => { window.location.href = '/enter.html'; }, 3500);
+  }
+
+  async function handleConfirmation() {
+    if (!supabaseConfigured) {
+      showError('The account backend is not configured.');
+      return;
+    }
+    const client = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+    // Supabase sends the user here with #access_token=...&type=signup
+    // The client library picks it up from the URL fragment automatically.
+    const hash = window.location.hash;
+    if (!hash || !hash.includes('access_token')) {
+      // Maybe they already confirmed and are logged in
+      const { data: { session } } = await client.auth.getSession();
+      if (session) { showSuccess(); return; }
+      showError('This confirmation link is invalid or has expired. Please request a new one from the join page.');
+      return;
+    }
+
+    // Wait for Supabase to process the fragment
+    const { data, error } = await client.auth.getSession();
+    // Give it a moment — the library processes the hash async
+    await new Promise(r => setTimeout(r, 1500));
+    const { data: { session } } = await client.auth.getSession();
+
+    if (session) {
+      showSuccess();
+    } else {
+      showError('Could not confirm your email. The link may have expired.');
+    }
+  }
+
+  handleConfirmation();
+</script>
+<script type="module" src="/src/nav.ts"></script></body>
+</html>

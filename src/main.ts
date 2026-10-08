@@ -326,6 +326,16 @@ function reportBackgroundServiceRecovery(key: string, message: string) {
   addChatMessage('GRID SERVICES', message, 'system');
 }
 
+import { filterProfanity, isChildAccount } from './moderation/profanityFilter';
+
+// Session-level: true if the current user is a child OR a child is in the shared space.
+// Set via window.__gridChildPresent = true when a child joins.
+function childPresent(): boolean {
+  if ((window as any).__gridChildPresent === true) return true;
+  const dob = (window as any).__gridUserDob as string | undefined;
+  return isChildAccount(dob);
+}
+
 function addChatMessage(sender: string, message: string, kind: 'player' | 'system' | 'team' = 'player') {
   if (kind !== 'player') audio.play('chat.receive');
   const row = document.createElement('div');
@@ -335,7 +345,8 @@ function addChatMessage(sender: string, message: string, kind: 'player' | 'syste
   name.textContent = sender;
   const text = document.createElement('span');
   text.className = 'chat-text';
-  text.textContent = message;
+  // Paul's rule: mask profanity as !@#$% when a child account is online
+  text.textContent = filterProfanity(message, childPresent());
   row.append(name, text);
   chatMessages.appendChild(row);
   while (chatMessages.children.length > 40) chatMessages.firstElementChild?.remove();
