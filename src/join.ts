@@ -245,6 +245,14 @@ if (!supabaseConfigured || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
 
       app.innerHTML = html;
       wireStep();
+      // Turnstile: explicitly render the widget (it's added dynamically, so auto-render misses it)
+      if (step === 4) {
+        const captchaEl = app.querySelector('#cf-captcha');
+        const ts = (window as any).turnstile;
+        if (captchaEl && ts && typeof ts.render === 'function') {
+          try { ts.render(captchaEl); } catch (e) { /* already rendered */ }
+        }
+      }
     }, card ? 180 : 0);
   }
 
