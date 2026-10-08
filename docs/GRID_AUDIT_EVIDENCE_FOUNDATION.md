@@ -20,9 +20,11 @@ Each event carries actor identity/type, authority scope, action, target, outcome
 
 ## Trust boundary
 
-Client roles cannot directly write or read the audit table.
+The audit table is not exposed for direct client DML.
 
-The initial RPC permits authenticated users to record events where the actor is their own authenticated identity. Trusted service-role paths can record system, service, and AI-worker events. Trusted actors cannot be claimed by an ordinary authenticated client.
+The trusted writer lives in the private database schema and is callable only by the service role. Authoritative database functions can call it inside their own transaction boundaries.
+
+This deliberately avoids putting a SECURITY DEFINER writer in an API-exposed schema.
 
 ## Immutability
 
