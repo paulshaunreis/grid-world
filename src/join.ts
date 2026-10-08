@@ -311,10 +311,11 @@ if (!supabaseConfigured || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     const handleEl = app.querySelector<HTMLInputElement>('#f-handle');
     if (handleEl) handleEl.addEventListener('input', () => {
       const hint = app.querySelector('#handle-hint')!;
-      const v = handleEl.value.trim();
+      const v = handleEl.value;
       if (!v) { hint.textContent = ''; return; }
-      const ok = /^[a-zA-Z0-9_]{3,32}$/.test(v);
-      hint.textContent = ok ? '✓ Available format' : 'Letters, numbers, underscores only.';
+      // Allow "First Last" or "First Middle Last" — letters, numbers, _, single spaces
+      const ok = /^[a-zA-Z0-9_]+( [a-zA-Z0-9_]+)*$/.test(v.trim()) && v.trim().length >= 3 && v.trim().length <= 32;
+      hint.textContent = ok ? '✓ Available format' : 'Letters, numbers, underscores, spaces.';
       hint.className = 'field-hint ' + (ok ? 'ok' : 'error');
     });
     const passEl = app.querySelector<HTMLInputElement>('#f-password');
@@ -339,7 +340,8 @@ if (!supabaseConfigured || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
 
   function collectStep(): void {
     if (step === 1) {
-      state.handle = (app.querySelector<HTMLInputElement>('#f-handle')!)?.value.trim().replace(/^@/, '') ?? state.handle;
+      const rawHandle = (app.querySelector<HTMLInputElement>('#f-handle')!)?.value ?? '';
+      state.handle = rawHandle.trim().replace(/\s+/g, ' ').replace(/^@/, '');
       state.email = (app.querySelector<HTMLInputElement>('#f-email')!)?.value.trim() ?? state.email;
       state.password = (app.querySelector<HTMLInputElement>('#f-password')!)?.value ?? state.password;
     } else if (step === 2) {
@@ -360,10 +362,11 @@ if (!supabaseConfigured || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
 
   function validateStep(): boolean {
     if (step === 1) {
-      const h = (app.querySelector<HTMLInputElement>('#f-handle')!).value.trim().replace(/^@/, '');
+      const rawH = (app.querySelector<HTMLInputElement>('#f-handle')!).value;
+      const h = rawH.trim().replace(/\s+/g, ' ').replace(/^@/, '');
       const e = (app.querySelector<HTMLInputElement>('#f-email')!).value.trim();
       const p = (app.querySelector<HTMLInputElement>('#f-password')!).value;
-      if (!/^[a-zA-Z0-9_]{3,32}$/.test(h)) { setStatus('Handle must be 3–32 chars (letters, numbers, _).', 'error'); return false; }
+      if (!/^[a-zA-Z0-9_]+( [a-zA-Z0-9_]+)*$/.test(h) || h.length < 3 || h.length > 32) { setStatus('Handle must be 3–32 chars (letters, numbers, _, spaces).', 'error'); return false; }
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) { setStatus('Enter a valid email.', 'error'); return false; }
       if (p.length < 12) { setStatus('Password needs 12+ characters.', 'error'); return false; }
     } else if (step === 2) {
