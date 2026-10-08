@@ -39,6 +39,37 @@ create policy "security questions self update"
 -- No select: answers are verify-only via a future recovery RPC.
 
 -- IRL name and country: extend profiles (private fields, never public).
+-- Create profiles table if it doesn't exist yet (GridAuthService expects it).
+create table if not exists public.profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  handle text,
+  avatar_url text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.profiles enable row level security;
+
+-- Profiles are readable by everyone (public handle/avatar), writable by owner.
+drop policy if exists "profiles public read" on public.profiles;
+create policy "profiles public read"
+  on public.profiles for select
+  to anon, authenticated
+  using (true);
+
+drop policy if exists "profiles self insert" on public.profiles;
+create policy "profiles self insert"
+  on public.profiles for insert
+  to authenticated
+  with check (id = auth.uid());
+
+drop policy if exists "profiles self update" on public.profiles;
+create policy "profiles self update"
+  on public.profiles for update
+  to authenticated
+  using (id = auth.uid())
+  with check (id = auth.uid());
+
 alter table public.profiles add column if not exists first_name_irl text;
 alter table public.profiles add column if not exists last_name_irl text;
 alter table public.profiles add column if not exists country_code text;
