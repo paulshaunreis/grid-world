@@ -66,8 +66,12 @@ export function mountDreamSeedPreviewPanel(options: DreamSeedPreviewPanelOptions
       const preview = buildDreamSeedPreview(blueprint);
       result.style.display = 'block';
       result.textContent = JSON.stringify(preview, null, 2);
-      visual.render(preview);
-      status.textContent = 'PREVIEW ONLY · isolated presentation · no world registered · no persistence · no permissions · no publication';
+      status.textContent = 'BUILDING ISOLATED PRESENTATION · loading Grid runtime assets…';
+      void visual.render(preview).then(() => {
+        status.textContent = 'PREVIEW ONLY · isolated presentation · no world registered · no persistence · no permissions · no publication';
+      }).catch(error => {
+        status.textContent = error instanceof Error ? `Preview presentation degraded: ${error.message}` : 'Preview presentation degraded.';
+      });
       options.onPreview?.(preview);
     } catch (error) {
       result.style.display = 'none';
