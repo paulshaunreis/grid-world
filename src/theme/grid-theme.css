@@ -1,0 +1,35 @@
+/* Grid World accent theme defaults (grayscale structure, cyan accent).
+   GridTheme.ts overrides these live via inline custom properties. */
+:root{
+  --gw-accent:#2ce8ff;
+  --gw-accent-rgb:44, 232, 255;
+  --gw-accent-text:#c9fbff;
+  --gw-accent-faint:rgba(44,232,255,.07);
+  --gw-accent-dim:rgba(44,232,255,.14);
+  --gw-accent-border:rgba(44,232,255,.38);
+  --gw-accent-glow:0 0 18px rgba(44,232,255,.35);
+
+  /* Shared surface language — site and in-world UI draw from these.
+     See grid-art-direction.md. Engine scene bg/fog: #07111f. */
+  --gw-surface-0:#050812;
+  --gw-surface-1:#0a1422;
+  --gw-panel:rgba(10,17,30,.82);
+  --gw-line:rgba(120,180,220,.12);
+  --gw-ink:#eaf7ff;
+  --gw-ink-dim:#a9b8c9;
+  --gw-ink-faint:#718092;
+  --gw-font-display:'Space Grotesk',ui-sans-serif,system-ui,sans-serif;
+  --gw-font-mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,monospace;
+
+  /* District identities — canonical table is src/theme/districts.ts.
+     District colors never follow the UI accent. */
+  --gw-district-tideline:#3bc7df;     --gw-district-tideline-rgb:59,199,223;
+  --gw-district-verdant:#8fe388;      --gw-district-verdant-rgb:143,227,136;
+  --gw-district-crown:#d7b46a;        --gw-district-crown-rgb:215,180,106;
+  --gw-district-muse:#d28cff;         --gw-district-muse-rgb:210,140,255;
+  --gw-district-frontier:#c9a36a;     --gw-district-frontier-rgb:201,163,106;
+  --gw-district-neon-district:#ff4fd8;  --gw-district-neon-district-rgb:255,79,216;
+  --gw-district-crystal-caverns:#6fd8ff;--gw-district-crystal-caverns-rgb:111,216,255;
+  --gw-district-iron-wastes:#ff8a4d;  --gw-district-iron-wastes-rgb:255,138,77;
+  --gw-district-skybound-isles:#8fb8ff;--gw-district-skybound-isles-rgb:143,184,255;
+}

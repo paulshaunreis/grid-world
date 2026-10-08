@@ -13,7 +13,7 @@ const PROFANITY = [
   // (kept minimal here; server-side list is authoritative)
 ];
 
-const ALWAYS_FILTER = [
+const ALWAYS_FILTER: string[] = [
   // Hate slurs — never shown to anyone, any age
   // (full list lives server-side; client list is a fallback)
 ];

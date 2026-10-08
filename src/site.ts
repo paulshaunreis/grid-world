@@ -8,6 +8,7 @@ import { TEAM_AVATARS } from './avatars/teamRoster';
 import { GridOperatorService } from './operator/GridOperatorService';
 import { mountGridOperatorPanel } from './ui/GridOperatorPanel';
 import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, supabaseConfigured } from './persistence/config';
 import {
   initTheme, startThemeSync, applyCustomAccent,
   GRID_SWATCHES, isSwatchUnlocked, getAllSkins, currentSeason,
