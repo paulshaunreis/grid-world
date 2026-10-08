@@ -27,6 +27,7 @@ export default defineConfig({
         membership: 'membership.html',
         enter: 'enter.html',
         confirmed: 'confirmed.html',
+        recover: 'recover.html',
       },
     },
   },

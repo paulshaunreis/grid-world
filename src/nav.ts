@@ -45,7 +45,9 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'MEMBERSHIP',
     href: '/membership.html',
-    children: [],
+    children: [
+      { label: 'Recover Account', href: '/recover.html' },
+    ],
   },
 ];
 

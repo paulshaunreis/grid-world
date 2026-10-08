@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Recover Account — Grid World</title>
+<meta name="description" content="Recover your Grid World account using your security questions.">
+<link rel="stylesheet" href="/src/grid-page-visual.css">
+<style>
+  .recover-page{min-height:calc(100vh - 54px);display:grid;place-items:center;padding:32px 20px;position:relative;overflow:hidden;
+    background:
+      radial-gradient(900px 500px at 20% 10%,rgba(255,0,128,.08),transparent 60%),
+      radial-gradient(1000px 600px at 80% 20%,rgba(0,229,255,.1),transparent 60%),
+      radial-gradient(800px 500px at 50% 100%,rgba(128,0,255,.08),transparent 60%),
+      #04090f;}
+  .recover-page::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.5;
+    background-image:linear-gradient(rgba(0,229,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.03) 1px,transparent 1px);
+    background-size:48px 48px;mask-image:radial-gradient(70% 70% at 50% 40%,black,transparent);}
+  #recover-app{position:relative;z-index:1;width:min(560px,100%);}
+  .recover-card{padding:44px 44px 36px;border:1px solid rgba(100,220,255,.2);border-radius:8px;
+    background:linear-gradient(160deg,rgba(10,22,38,.96),rgba(5,13,23,.94));
+    box-shadow:0 30px 90px rgba(0,0,0,.55),0 0 60px rgba(0,229,255,.06),inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter:blur(20px);animation:cardIn .5s cubic-bezier(.2,.9,.3,1.2)}
+  @keyframes cardIn{from{opacity:0;transform:translateY(24px) scale(.98)}to{opacity:1;transform:none}}
+  .recover-kicker{font:700 10px/1 'IBM Plex Mono',monospace;letter-spacing:.24em;margin-bottom:16px;
+    background:linear-gradient(90deg,#00e5ff,#ff00aa);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .recover-card h1{font:700 clamp(28px,5vw,40px)/1.05 system-ui;margin:0 0 10px;color:#f2fbff;letter-spacing:-.02em}
+  .recover-card h1 .accent{background:linear-gradient(90deg,#00e5ff,#a0f);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .recover-sub{color:rgba(230,245,255,.6);font:14px/1.65 system-ui;margin:0 0 28px}
+  .field{margin-bottom:20px}
+  .field label{display:block;font:600 12px system-ui;letter-spacing:.08em;text-transform:uppercase;color:rgba(230,245,255,.7);margin-bottom:8px}
+  .field input{width:100%;padding:14px 16px;font:15px system-ui;color:#f2fbff;background:rgba(255,255,255,.04);
+    border:1px solid rgba(100,220,255,.2);border-radius:6px;outline:none;transition:border-color .15s,box-shadow .15s;box-sizing:border-box}
+  .field input:focus{border-color:#00e5ff;box-shadow:0 0 0 3px rgba(0,229,255,.15)}
+  .field .q-label{font:600 14px system-ui;color:#f2fbff;margin-bottom:8px}
+  .btn-row{display:flex;gap:12px;margin-top:28px}
+  .btn{flex:1;padding:15px;font:700 14px system-ui;letter-spacing:.06em;border:none;border-radius:6px;cursor:pointer;transition:all .15s}
+  .btn-primary{color:#001318;background:linear-gradient(90deg,#00e5ff,#7df9ff)}
+  .btn-primary:hover{box-shadow:0 0 24px rgba(0,229,255,.4);transform:translateY(-1px)}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+  .btn-ghost{color:rgba(230,245,255,.7);background:transparent;border:1px solid rgba(100,220,255,.25)}
+  .btn-ghost:hover{border-color:#00e5ff;color:#fff}
+  .recover-status{margin-top:20px;padding:14px 16px;border-radius:6px;font:14px system-ui;display:none}
+  .recover-status.error{display:block;color:#ff9db0;background:rgba(255,60,100,.08);border:1px solid rgba(255,60,100,.25)}
+  .recover-status.success{display:block;color:#8fffb0;background:rgba(60,255,140,.08);border:1px solid rgba(60,255,140,.25)}
+  .recover-status.info{display:block;color:#79e9ff;background:rgba(0,229,255,.06);border:1px solid rgba(0,229,255,.2)}
+  .recover-alt{margin-top:24px;padding-top:20px;border-top:1px solid rgba(100,220,255,.1);
+    text-align:center;font:13px system-ui;color:rgba(230,245,255,.5)}
+  .recover-alt a{color:#79e9ff;font-weight:600}
+  .step-dots{display:flex;gap:6px;margin-bottom:28px}
+  .step-dots i{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.08);transition:background .3s}
+  .step-dots i.done{background:linear-gradient(90deg,#00e5ff,#ff00aa)}
+  @media(max-width:600px){.recover-card{padding:32px 24px}}
+</style>
+</head>
+<body class="grid-world-page">
+<header class="grid-global-nav">
+  <a class="grid-nav-brand" href="/">◇ GRID WORLD</a>
+  <nav><a href="/">HOME</a><a href="/play.html">WORLD</a><a href="/marketplace.html">MARKET</a><a href="/docs.html">DOCS</a></nav>
+  <a class="grid-nav-join" href="/join.html">JOIN GRID</a>
+</header>
+<main class="recover-page">
+  <div id="recover-app"></div>
+</main>
+<script type="module" src="/src/recover.ts"></script>
+<script type="module" src="/src/nav.ts"></script></body>
+</html>
