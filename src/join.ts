@@ -442,11 +442,16 @@ if (!supabaseConfigured || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
 
       const { data: { user } } = await client.auth.getUser();
       if (user) {
-        await client.from('profiles').update({
+        // IRL identity goes to private_profiles (owner-only RLS, never public).
+        // Public profile data (handle, avatar) stays in profiles.
+        await client.from('private_profiles').upsert({
+          user_id: user.id,
           first_name_irl: state.firstIrl || null,
           last_name_irl: state.lastIrl || null,
           country_code: state.country || null,
           date_of_birth: state.dob || null,
+        }, { onConflict: 'user_id' });
+        await client.from('profiles').update({
           language: localeToLanguage(readLocalLocale()),
           avatar_style: avatarStyle,
         }).eq('id', user.id);
