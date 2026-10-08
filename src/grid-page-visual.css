@@ -8,17 +8,17 @@ body.grid-world-page::before{
  background:
  radial-gradient(circle at 18% 18%,rgba(65,220,255,.12),transparent 30%),
  linear-gradient(90deg,rgba(5,11,20,.96) 0%,rgba(5,11,20,.78) 44%,rgba(5,11,20,.32) 72%,rgba(5,11,20,.78) 100%),
- url("/art/grid-page-atlas.webp") 72% center/72% auto no-repeat;
+ url("/art/grid-page-atlas.svg") 72% center/72% auto no-repeat;
  opacity:.98;
 }
 body.grid-world-page::after{content:"";position:fixed;z-index:0;pointer-events:none;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,transparent,#4ee8ff,#a979ff,#ff74c8,transparent);box-shadow:0 0 22px #4ee8ff}
 /* Keep the game root above the page backdrop without changing fixed HUD overlay positioning. */
 body.grid-world-page>#app{position:relative;z-index:1}
-.grid-page-artbar{position:relative;overflow:hidden;margin:0 0 28px;border:1px solid rgba(90,225,255,.28);border-radius:18px;min-height:190px;background:#07121f url("/art/grid-page-atlas.webp") center/cover no-repeat;box-shadow:0 24px 80px rgba(0,0,0,.35),inset 0 0 60px rgba(80,210,255,.08)}
+.grid-page-artbar{position:relative;overflow:hidden;margin:0 0 28px;border:1px solid rgba(90,225,255,.28);border-radius:18px;min-height:190px;background:#07121f url("/art/grid-page-atlas.svg") center/cover no-repeat;box-shadow:0 24px 80px rgba(0,0,0,.35),inset 0 0 60px rgba(80,210,255,.08)}
 .grid-page-artbar::after{content:"GRID WORLD · LIVING VISUAL SYSTEM";position:absolute;left:22px;bottom:18px;font:700 10px/1 monospace;letter-spacing:.18em;color:#7feaff;text-shadow:0 0 12px rgba(70,220,255,.55)}
 .grid-page-artbar .art-title{position:absolute;right:22px;top:20px;font:700 9px monospace;letter-spacing:.16em;color:#d9c9ff}
 .grid-page-ui-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:0 0 28px}
-.grid-page-ui-strip>div{min-height:110px;border:1px solid rgba(90,225,255,.2);border-radius:12px;background:linear-gradient(135deg,rgba(9,24,39,.84),rgba(17,9,29,.7)),url("/art/grid-ui-atlas.webp") center/cover;color:#eaf8ff;padding:14px;box-shadow:inset 0 0 30px rgba(80,220,255,.06)}
+.grid-page-ui-strip>div{min-height:110px;border:1px solid rgba(90,225,255,.2);border-radius:12px;background:linear-gradient(135deg,rgba(9,24,39,.84),rgba(17,9,29,.7)),url("/art/creator-studio.svg") center/cover;color:#eaf8ff;padding:14px;box-shadow:inset 0 0 30px rgba(80,220,255,.06)}
 .grid-page-ui-strip b{display:block;font:700 9px monospace;letter-spacing:.16em;color:#61eaff;margin-bottom:10px}.grid-page-ui-strip span{font:600 12px/1.5 system-ui;color:rgba(234,248,255,.78)}
 @media(max-width:760px){.grid-page-ui-strip{grid-template-columns:1fr}.grid-page-artbar{min-height:135px}}
 
@@ -40,7 +40,7 @@ body.grid-world-page::before{
  background:
  radial-gradient(circle at 18% 18%,rgba(var(--hud-rgb),.12),transparent 30%),
  linear-gradient(90deg,rgba(5,11,20,.96) 0%,rgba(5,11,20,.78) 44%,rgba(5,11,20,.32) 72%,rgba(5,11,20,.78) 100%),
- url("/art/grid-page-atlas.webp") 72% center/72% auto no-repeat;
+ url("/art/grid-page-atlas.svg") 72% center/72% auto no-repeat;
 }
 body.grid-world-page::after{background:linear-gradient(90deg,transparent,rgb(var(--hud-rgb)),transparent);box-shadow:0 0 22px rgba(var(--hud-rgb),.8)}
 .grid-page-artbar{border-color:rgba(var(--hud-rgb),.28);box-shadow:0 24px 80px rgba(0,0,0,.35),inset 0 0 60px rgba(var(--hud-rgb),.08)}
