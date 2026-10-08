@@ -137,10 +137,10 @@ $function$;
 revoke all on schema private from public, anon, authenticated;
 grant usage on schema private to service_role;
 revoke all on function private.grid_record_audit_event(
-  uuid,text,text,text,text,text,text,text,text,text,text,uuid,jsonb,jsonb,jsonb
+  uuid,text,text,text,text,text,text,text,text,text,text,uuid,jsonb,jsonb,jsonb,jsonb
 ) from public, anon, authenticated;
 grant execute on function private.grid_record_audit_event(
-  uuid,text,text,text,text,text,text,text,text,text,text,uuid,jsonb,jsonb,jsonb
+  uuid,text,text,text,text,text,text,text,text,text,text,uuid,jsonb,jsonb,jsonb,jsonb
 ) to service_role;
 
 create or replace function public.grid_audit_events_are_immutable()
