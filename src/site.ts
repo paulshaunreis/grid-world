@@ -121,7 +121,7 @@ app.innerHTML = `
       <button class="ghost style-trigger" id="style-trigger" type="button">STYLE</button><button class="operator-trigger" id="operator-trigger" type="button">GRID OPERATOR</button>
       <button class="ghost" id="site-qr" type="button">QR</button>
       <a class="ghost" href="/economics.html">ECONOMICS</a><a class="ghost" href="/marketplace.html">MARKET</a><a class="ghost" href="/sound.html">SOUND</a><a class="ghost" href="/grid-world-studio.html">GRID WORLD STUDIO</a><a class="ghost" href="/omni.html">OMNI</a><a class="ghost" href="/directory.html">STAFF</a><a class="ghost" href="/avatars.html">AVATARS</a><a class="ghost" href="/textures.html">TEXTURES</a><a class="ghost" href="/docs.html">DOCS</a><a class="ghost" href="/profile.html">PROFILE</a>
-      <a class="secondary" href="/join.html">JOIN GRID</a><a class="primary" href="/play.html">ENTER WORLD</a>
+      <a class="secondary" href="/join.html" id="header-auth-btn">JOIN GRID</a><a class="primary" href="/play.html">ENTER WORLD</a>
     </div>
   </header>
   <div class="site-live-clock" id="site-live-clock" aria-live="polite">GRID SIGNAL · <span>SYNCING</span></div>
@@ -519,6 +519,54 @@ document.querySelectorAll<HTMLAnchorElement>('nav a').forEach(link => link.addEv
 }));
 
 document.querySelector('#site-qr')?.addEventListener('click', () => qrScanner.open());
+
+// User account menu (Paul's request 2026-10-08): when signed in, the header
+// shows "Welcome [Handle]" with a gear icon; the gear opens a dropdown with
+// account options. When signed out, the JOIN GRID button stays.
+async function initHeaderUserMenu() {
+  const authBtn = document.querySelector('#header-auth-btn');
+  if (!authBtn || !supabaseConfigured || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) return;
+  const client = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  const { data: { session } } = await client.auth.getSession();
+  if (!session?.user) return; // not signed in — keep JOIN GRID
+
+  // Fetch the user's handle from profiles
+  let handle = 'Citizen';
+  try {
+    const { data: profile } = await client.from('profiles').select('handle,display_name').eq('id', session.user.id).maybeSingle();
+    if (profile?.handle) handle = profile.handle;
+    else if (profile?.display_name) handle = profile.display_name;
+  } catch { /* fall back to default */ }
+
+  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const wrapper = document.createElement('div');
+  wrapper.className = 'header-user-menu';
+  wrapper.innerHTML =
+    `<span class="header-welcome">Welcome ${esc(handle)}</span>` +
+    `<button class="header-gear" id="header-gear" type="button" aria-label="Account settings" aria-haspopup="true">⚙</button>` +
+    `<div class="header-user-dropdown" id="header-user-dropdown" hidden>` +
+      `<a href="/profile.html">My Profile</a>` +
+      `<a href="/account.html">Account Settings</a>` +
+      `<a href="/recover.html">Security & Recovery</a>` +
+      `<button type="button" id="header-signout">Sign Out</button>` +
+    `</div>`;
+  authBtn.replaceWith(wrapper);
+
+  const gear = wrapper.querySelector<HTMLButtonElement>('#header-gear')!;
+  const dropdown = wrapper.querySelector<HTMLDivElement>('#header-user-dropdown')!;
+  gear.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdown.hidden = !dropdown.hidden;
+  });
+  document.addEventListener('click', (e) => {
+    if (!wrapper.contains(e.target as Node)) dropdown.hidden = true;
+  });
+  wrapper.querySelector('#header-signout')?.addEventListener('click', async () => {
+    await client.auth.signOut({ scope: 'local' });
+    window.location.reload();
+  });
+}
+initHeaderUserMenu();
 
 // Live team feed (Paul's request 2026-10-08): team members post daily updates.
 // Replaces the old hardcoded mock posts. Honest timestamps, no fake engagement.

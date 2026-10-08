@@ -268,3 +268,11 @@ html[data-site-style="aurora"] h1,html[data-site-style="aurora"] h2,html[data-si
 .world-map-figure img{width:100%;height:auto;border:1px solid rgba(120,180,220,.16);border-radius:8px}
 .world-map-figure figcaption{margin-top:14px;color:#8494a5;font-size:12px}
 .world-map-figure figcaption b{display:block;color:#48e7ff;font-size:11px;letter-spacing:.16em;margin-bottom:6px}
+.header-user-menu{position:relative;display:flex;align-items:center;gap:8px}
+.header-welcome{font-size:11px;font-weight:800;letter-spacing:.08em;color:#eaf7ff;white-space:nowrap}
+.header-gear{background:transparent;border:1px solid rgba(80,220,255,.35);border-radius:4px;color:#eaf7ff;font-size:16px;width:36px;height:36px;display:grid;place-items:center;cursor:pointer;transition:transform .2s ease,border-color .2s ease}
+.header-gear:hover{border-color:#42e9ff;transform:rotate(30deg)}
+.header-user-dropdown{position:absolute;top:calc(100% + 8px);right:0;min-width:200px;background:rgba(10,17,30,.97);border:1px solid rgba(120,180,220,.2);border-radius:8px;padding:6px;z-index:50;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.header-user-dropdown a,.header-user-dropdown button{display:block;width:100%;text-align:left;padding:10px 12px;font-size:12px;letter-spacing:.06em;color:#bdc9d5;background:none;border:0;border-radius:4px;cursor:pointer;text-decoration:none}
+.header-user-dropdown a:hover,.header-user-dropdown button:hover{background:rgba(66,233,255,.08);color:#fff}
+.header-user-dropdown button{font:inherit}
