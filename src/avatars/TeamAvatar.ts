@@ -8,6 +8,11 @@ export type TeamAvatarStyle = 'aurora' | 'link' | 'rey' | 'elder' | 'veyr' | 'ny
 export interface TeamAvatarDefinition {
   id: string;
   displayName: string;
+  /** Staff full name: first + last (Paul's rule). */
+  firstName: string;
+  lastName: string;
+  /** Staff job title, e.g. "Systems Architect", "Moderator". */
+  title: string;
   role: string;
   style: TeamAvatarStyle;
   spawn: { x: number; y?: number; z: number };
@@ -19,6 +24,10 @@ export interface TeamAvatarDefinition {
   species?: string;
   /** Epic 2-3 sentence bio. Shown in the staff directory. */
   bio?: string;
+  /** What they're currently working on (dev-diary style, in their voice). */
+  currentlyWorkingOn?: string;
+  /** Recent completions, 2-3 items. */
+  recentWork?: string[];
 }
 
 const palettes: Record<TeamAvatarStyle, { body: number; visor: number; glow: number }> = {

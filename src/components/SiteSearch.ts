@@ -1,13 +1,14 @@
 // SiteSearch — global search for the GridWorld header (Paul 2026-10-09).
 // A search button in the top nav opens a glassmorphic overlay panel with
-// live-filtered results across pages, regions, marketplace items, and games.
+// live-filtered results across pages, regions, marketplace items, games, and citizens.
+import { searchCitizens, taggedName, citizenUrl, staffDisplayName } from '../social/citizens';
 //
 // Design: matches the vibrant dashboard — dark glass, cyan accent highlights,
 // rounded corners, pill shapes. Uses the grayscale-first accent system
 // (--accent, --gw-*) so it recolors with the user's accent choice.
 
 export interface SearchEntry {
-  kind: 'page' | 'region' | 'item' | 'game';
+  kind: 'page' | 'region' | 'item' | 'game' | 'citizen';
   title: string;
   sub: string;
   href: string;
@@ -19,6 +20,7 @@ const KIND_LABEL: Record<SearchEntry['kind'], string> = {
   region: 'Regions',
   item: 'Marketplace',
   game: 'Games',
+  citizen: 'Citizens',
 };
 
 const INDEX: SearchEntry[] = [
@@ -167,6 +169,7 @@ const KIND_ICON: Record<SearchEntry['kind'], string> = {
   region: '🌐',
   item: '💎',
   game: '🎮',
+  citizen: '👤',
 };
 
 function scoreEntry(entry: SearchEntry, query: string): number {
@@ -190,8 +193,19 @@ function scoreEntry(entry: SearchEntry, query: string): number {
 export function searchIndex(query: string, limit = 12): SearchEntry[] {
   const q = query.trim();
   if (q.length < 2) return [];
-  return INDEX.map((e) => ({ e, s: scoreEntry(e, q) }))
-    .filter((r) => r.s > 0)
+  const staticResults = INDEX.map((e) => ({ e, s: scoreEntry(e, q) }))
+    .filter((r) => r.s > 0);
+  // Citizens from the directory
+  let citizenResults: { e: SearchEntry; s: number }[] = [];
+  try {
+    citizenResults = searchCitizens(q).slice(0, 5).map((c) => {
+      const name = c.type === 'staff' ? staffDisplayName(c) : c.displayName;
+      const sub = c.type === 'staff' ? `${c.title ?? 'Staff'} · TEAM` : `${taggedName(c)}${c.userTypeLabel ? ` · ${c.userTypeLabel}` : ''}`;
+      const e: SearchEntry = { kind: 'citizen', title: name, sub, href: citizenUrl(c), keywords: `${c.username} ${c.displayName} ${taggedName(c)}` };
+      return { e, s: 60 };
+    });
+  } catch { /* citizens unavailable */ }
+  return [...staticResults, ...citizenResults]
     .sort((a, b) => b.s - a.s)
     .slice(0, limit)
     .map((r) => r.e);
@@ -239,7 +253,7 @@ function renderResults(): void {
   selectedIdx = currentResults.length > 0 ? 0 : -1;
 
   if (q.trim().length < 2) {
-    resultsEl.innerHTML = '<div class="gw-search-empty">Type to search pages, regions, items, and games…</div>';
+    resultsEl.innerHTML = '<div class="gw-search-empty">Type to search pages, regions, items, games, and citizens…</div>';
     return;
   }
   if (currentResults.length === 0) {
