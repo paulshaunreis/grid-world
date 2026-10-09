@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { createGLTFLoader } from '../engine/dracoLoader.js';
 import { createStarterPBRMaterial } from '../engine/GridPBRLibrary';
 
-export type TeamAvatarStyle = 'aurora' | 'link' | 'rey' | 'elder' | 'veyr' | 'nyxen' | 'orin' | 'seraith' | 'vael' | 'kairox' | 'morrow' | 'cipher' | 'solenne' | 'rook' | 'echo' | 'umbra' | 'civitas' | 'axiom' | 'mosaic' | 'sentinel' | 'praxis' | 'atlas' | 'tessera' | 'waypoint';
+export type TeamAvatarStyle = 'aurora' | 'link' | 'rey' | 'elder' | 'veyr' | 'nyxen' | 'orin' | 'seraith' | 'vael' | 'kairox' | 'morrow' | 'cipher' | 'solenne' | 'rook' | 'echo' | 'umbra' | 'civitas' | 'axiom' | 'mosaic' | 'sentinel' | 'praxis' | 'atlas' | 'tessera' | 'waypoint' | 'forge' | 'lumen' | 'bramble' | 'zephyr' | 'tinker' | 'marisol' | 'koda' | 'vex' | 'pip' | 'sable' | 'talon' | 'ember' | 'juno' | 'bolt' | 'thistle' | 'ondine' | 'rowan' | 'pixel' | 'lyra' | 'bastion';
 
 export interface TeamAvatarDefinition {
   id: string;
@@ -15,6 +15,10 @@ export interface TeamAvatarDefinition {
   interaction: string;
   topics: string[];
   badge: 'TEAM';
+  /** Species/type, e.g. 'Robot (industrial automaton)'. Shown in the staff directory. */
+  species?: string;
+  /** Epic 2-3 sentence bio. Shown in the staff directory. */
+  bio?: string;
 }
 
 const palettes: Record<TeamAvatarStyle, { body: number; visor: number; glow: number }> = {
@@ -42,6 +46,26 @@ const palettes: Record<TeamAvatarStyle, { body: number; visor: number; glow: num
   atlas: { body: 0x70c6e8, visor: 0x193b55, glow: 0x58d9ff },
   tessera: { body: 0xf0a56f, visor: 0x57321e, glow: 0xffa05c },
   waypoint: { body: 0x6ed19c, visor: 0x1e4936, glow: 0x70e6ae },
+  forge: { body: 0x8a8f98, visor: 0x2a1a0a, glow: 0xff7b2f },
+  lumen: { body: 0xbfe9ff, visor: 0x2a4a5a, glow: 0x9be8ff },
+  bramble: { body: 0x6b5a44, visor: 0x2a2018, glow: 0xa8d86b },
+  zephyr: { body: 0xcfe8f0, visor: 0x2a4a55, glow: 0x7de8ff },
+  tinker: { body: 0xd9a13b, visor: 0x3a2a10, glow: 0xffd05a },
+  marisol: { body: 0x2e8fa8, visor: 0x102a33, glow: 0x4ceaff },
+  koda: { body: 0x7a5c3e, visor: 0x2a1d12, glow: 0xffb86b },
+  vex: { body: 0x4a5a3a, visor: 0x1a2410, glow: 0xa8ff5e },
+  pip: { body: 0xffd05a, visor: 0x4a3510, glow: 0xffe08a },
+  sable: { body: 0x2a2a4a, visor: 0x0a0a1a, glow: 0xb78cff },
+  talon: { body: 0x8a7a5a, visor: 0x2a2010, glow: 0xffd66d },
+  ember: { body: 0xff5a2f, visor: 0x4a150a, glow: 0xffa05c },
+  juno: { body: 0x5a8aff, visor: 0x101a3a, glow: 0x7db3ff },
+  bolt: { body: 0xc0c8d0, visor: 0x2a3a4a, glow: 0x4ceaff },
+  thistle: { body: 0xc76b3a, visor: 0x3a1d0a, glow: 0xff9a5c },
+  ondine: { body: 0x3a9ab8, visor: 0x0a2a3a, glow: 0x7df3ff },
+  rowan: { body: 0x9a8a6b, visor: 0x2a2418, glow: 0xffdf9b },
+  pixel: { body: 0xff6bd9, visor: 0x3a0a2a, glow: 0xff8fe8 },
+  lyra: { body: 0xe8d9ff, visor: 0x3a2a4a, glow: 0xd18aff },
+  bastion: { body: 0x5a6a7a, visor: 0x1a222a, glow: 0x8ce1d1 },
 };
 
 export class TeamAvatar {
