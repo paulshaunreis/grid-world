@@ -67,7 +67,7 @@ async function render() {
           <p><a href="/recover.html">Change password / account recovery →</a></p>
         </section>
         <section class="account-card">
-          <h2>GRID COIN</h2>
+          <h2>GWC</h2>
           <p class="dev-note">Wallet balance and transaction history are in active development.</p>
           <p><a href="/economics.html">How Grid World Currency works →</a></p>
         </section>

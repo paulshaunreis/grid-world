@@ -11,7 +11,7 @@ export interface NPCMarketListing {
   category:NPCProducedItem['category'];
   quantity:number;
   unitPrice:number;
-  currency:'GRID_COIN';
+  currency:'GWC';
   quality:number;
   metadata:GridMarketplaceItemMetadata;
   createdAt:number;
@@ -24,7 +24,7 @@ export interface NPCMarketTrade {
   sellerId:string;
   quantity:number;
   totalPrice:number;
-  currency:'GRID_COIN';
+  currency:'GWC';
   createdAt:number;
 }
 
@@ -46,7 +46,7 @@ export class NPCMarketSystem {
     const listing:NPCMarketListing={
       id,sellerId,worldId:item.worldId,itemId:item.id,itemName:item.name,
       category:item.category,quantity:item.quantity,unitPrice:Math.max(.01,unitPrice),
-      currency:'GRID_COIN',quality:item.quality,metadata:marketplaceItemMetadata(item.id,item.quality),createdAt:Date.now()
+      currency:'GWC',quality:item.quality,metadata:marketplaceItemMetadata(item.id,item.quality),createdAt:Date.now()
     };
     this.listings.set(id,listing);
     return listing;
@@ -62,7 +62,7 @@ export class NPCMarketSystem {
     this.balances.set(listing.sellerId,(this.balances.get(listing.sellerId) ?? 0)+total);
     listing.quantity-=quantity;
     if(listing.quantity===0) this.listings.delete(listingId);
-    const trade:NPCMarketTrade={id:listingId+':trade:'+Date.now(),listingId,buyerId,sellerId:listing.sellerId,quantity,totalPrice:total,currency:'GRID_COIN',createdAt:Date.now()};
+    const trade:NPCMarketTrade={id:listingId+':trade:'+Date.now(),listingId,buyerId,sellerId:listing.sellerId,quantity,totalPrice:total,currency:'GWC',createdAt:Date.now()};
     this.trades.push(trade);
     this.trades=this.trades.slice(-256);
     return trade;

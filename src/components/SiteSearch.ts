@@ -34,7 +34,7 @@ const INDEX: SearchEntry[] = [
   { kind:'page', title:'Shop Studio', sub:'Creator storefront tools', href:'/shop.html', keywords:'shop store sell storefront' },
   { kind:'page', title:'Classifieds', sub:'Community listings', href:'/classifieds.html', keywords:'classifieds listings ads' },
   { kind:'page', title:'Safe Meetups', sub:'Plan safe community meetups', href:'/meetups.html', keywords:'meetups events community gather' },
-  { kind:'page', title:'Economics', sub:'Grid World economy and Grid Coin', href:'/economics.html', keywords:'economics economy grid coin currency gwc money' },
+  { kind:'page', title:'Economics', sub:'Grid World economy and GWC', href:'/economics.html', keywords:'economics economy gwc currency money' },
   { kind:'page', title:'Documentation', sub:'Guides and reference docs', href:'/docs.html', keywords:'docs documentation help guide reference' },
   { kind:'page', title:'Grid World People', sub:'Staff directory and team', href:'/directory.html', keywords:'directory staff team people' },
   { kind:'page', title:'Grid Omni Sound', sub:'Sound and music systems', href:'/sound.html', keywords:'sound music audio soundtrack' },
