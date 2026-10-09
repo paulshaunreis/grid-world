@@ -29,6 +29,7 @@ export default defineConfig({
         confirmed: 'confirmed.html',
         recover: 'recover.html',
         home: 'home.html',
+        store: 'store.html',
       },
     },
   },

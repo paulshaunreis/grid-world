@@ -12,6 +12,7 @@ const NAV_LINKS: Array<[string, string]> = [
   ['WORLDS', '/directory.html'],
   ['COMMUNITY', '/social.html'],
   ['MARKETPLACE', '/marketplace.html'],
+  ['STORE', '/store.html'],
   ['GAMES', '/games.html'],
   ['VAULT', '/economics.html'],
   ['SUPPORT', '/docs.html'],
