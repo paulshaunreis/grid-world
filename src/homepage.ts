@@ -273,7 +273,7 @@ app.innerHTML = `
   <section class="hw-panel hw-stay" aria-label="Stay connected">
     <div class="hw-panel-head">STAY CONNECTED</div>
     <div class="hw-cardimg"><span class="badge-concept">CONCEPT ART</span><img src="/home/stay-connected.jpg" alt="Concept art: phone and desktop showing Grid World" loading="lazy"></div>
-    <div class="hw-cardbody"><div class="tag">On any device. Anywhere.</div></div>
+    <div class="hw-cardbody"><div class="tag">Designed for any device. Anywhere.</div></div>
   </section>
 
   <!-- SAFE -->

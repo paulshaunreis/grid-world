@@ -56,7 +56,7 @@ const operatorKey=import.meta.env.VITE_SUPABASE_ANON_KEY as string|undefined;
 const operator=operatorUrl&&operatorKey?mountGridOperatorPanel(new GridOperatorService(createClient(operatorUrl,operatorKey))):null;
 
 const navItems = [
-  ['Home','/'], ['Discover','/#discover'], ['Communities','/#communities'], ['Events','/meetups.html'], ['Marketplace','/marketplace.html'], ['Creator Hub','/grid-world-studio.html']
+  ['Home','/'], ['Discover','/#discover'], ['Communities','/#communities'], ['Events','/meetups.html'], ['Marketplace','/marketplace.html'], ['About','/#about'], ['Creator Hub','/grid-world-studio.html']
 ] as const;
 const siteStyles = ['aurora', 'studio', 'terminal', 'garden'] as const;
 type SiteStyle = typeof siteStyles[number];
@@ -78,7 +78,7 @@ interface TeamPost {
 }
 
 const SAMPLE_POSTS: TeamPost[] = [
-  { author_id: 'aurora', author_name: 'Aurora', author_role: 'World Coordinator', region: 'First Light', tag: 'WORLD UPDATE', body: 'First Light is online. The world is beginning to change with time, weather, and living systems.', created_at: new Date().toISOString() },
+  { author_id: 'aurora', author_name: 'Aurora', author_role: 'World Coordinator', region: 'First Light', tag: 'BUILD NOTE', body: 'First Light is a concept region in active design. Time, weather, and living systems are being built piece by piece.', created_at: new Date().toISOString() },
 ];
 
 function formatPostAge(iso: string): string {
@@ -121,7 +121,7 @@ app.innerHTML = `
       <button class="ghost style-trigger" id="style-trigger" type="button">STYLE</button><button class="operator-trigger" id="operator-trigger" type="button">GRID OPERATOR</button>
       <button class="ghost" id="site-qr" type="button">QR</button>
       <a class="ghost" href="/economics.html">ECONOMICS</a><a class="ghost" href="/marketplace.html">MARKET</a><a class="ghost" href="/sound.html">SOUND</a><a class="ghost" href="/grid-world-studio.html">GRID WORLD STUDIO</a><a class="ghost" href="/omni.html">OMNI</a><a class="ghost" href="/directory.html">STAFF</a><a class="ghost" href="/avatars.html">AVATARS</a><a class="ghost" href="/textures.html">TEXTURES</a><a class="ghost" href="/docs.html">DOCS</a><a class="ghost" href="/profile.html">PROFILE</a>
-      <a class="ghost" href="/signin.html" id="header-signin-btn">SIGN IN</a><a class="secondary" href="/join.html" id="header-auth-btn">JOIN GRID</a><a class="primary" href="/play.html">ENTER WORLD</a>
+      <a class="ghost" href="/signin.html" id="header-signin-btn">SIGN IN</a><a class="secondary" href="/join.html" id="header-auth-btn">JOIN GRID</a><a class="primary" href="/play.html">PREVIEW BUILD</a>
     </div>
   </header>
   <div class="site-live-clock" id="site-live-clock" aria-live="polite">GRID SIGNAL · <span>SYNCING</span></div>
@@ -133,7 +133,7 @@ app.innerHTML = `
 
   <main>
     <section class="hero" id="home">
-      <div class="visual-build-badge">GRID WORLD · VISUAL BUILD 01 OCT 2026 · LIVE</div>
+      <div class="visual-build-badge">GRID WORLD · VISUAL BUILD · CONCEPT PREVIEW</div>
       <div class="hero-art" aria-hidden="true"></div>
       <img class="hero-image-proof" src="/art/grid-page-atlas.svg" alt="Grid World concept art showing multiple connected living worlds">
       <div class="hero-grid"></div>
@@ -145,10 +145,10 @@ app.innerHTML = `
           <a class="primary large" href="/join.html">JOIN GRID WORLD</a>
           <a class="secondary large" href="#discover">EXPLORE WORLDS</a>
         </div>
-        <div class="hero-stats"><span><b>05</b> built regions</span><span><b>04</b> in development</span><span><b>∞</b> expandable worlds</span><span><b>24/7</b> persistent simulation</span></div>
+        <div class="hero-stats"><span><b>05</b> built regions</span><span><b>04</b> in development</span><span><b>∞</b> expandable worlds</span><span><b>∞</b> persistent by design</span></div>
         ${renderDistrictStrip()}
       </div>
-      <div class="hero-orb"><div class="orb-ring r1"></div><div class="orb-ring r2"></div><div class="orb-core">GRID<br><small>FIRST LIGHT</small></div><div class="orb-caption">LIVE PROTOTYPE · IN-WORLD TRANSIT LENS</div></div>
+      <div class="hero-orb"><div class="orb-ring r1"></div><div class="orb-ring r2"></div><div class="orb-core">GRID<br><small>FIRST LIGHT</small></div><div class="orb-caption">CONCEPT · IN-WORLD TRANSIT LENS</div></div>
     </section>
 
     <section class="concept-gallery" id="concept-art">
@@ -171,7 +171,7 @@ app.innerHTML = `
     <article><b>LIVING WORLD</b><span>Trees · flora · habitats · creatures · NPC material drops</span></article>
     <article><b>CRAFT YOUR TOOLS</b><span>Harvest materials and forge better construction tools.</span></article>
   </div>
-  <a class="primary large" href="/play.html">BUILD IN GRID WORLD</a>
+  <a class="primary large" href="/play.html">PREVIEW THE BUILDER</a>
 </section>
 
 <section class="grid-pulse" id="grid-pulse">
@@ -182,7 +182,7 @@ app.innerHTML = `
         <i class="pulse-node n1"></i><i class="pulse-node n2"></i><i class="pulse-node n3"></i><i class="pulse-node n4"></i>
       </div>
       <div class="pulse-copy">
-        <div class="section-label">GRID PULSE · LIVE WORLD</div>
+        <div class="section-label">GRID PULSE · DEVELOPMENT PREVIEW</div>
         <h2>The site can<br><span>feel the world move.</span></h2>
         <p>Public world events flow from Grid World into this surface in real time. Teleports, marketplace activity, sound releases, living memories, and system signals can appear as they happen.</p>
         <div class="pulse-status"><span class="pulse-dot"></span><span data-grid-pulse-status>CONNECTING</span><b><span data-grid-pulse-count>00</span> RECENT</b></div>
@@ -192,7 +192,7 @@ app.innerHTML = `
 
 
     <section class="studio-live" id="studio-live">
-      <div class="studio-live-head"><div><div class="section-label">PUBLIC STUDIO SIGNAL</div><h2>The world is being<br><span>built in front of you.</span></h2><p>Team members can publish the parts of the build they are comfortable sharing. These are the current public workstreams.</p></div><div class="studio-live-badge"><span></span> LIVE BUILD</div></div>
+      <div class="studio-live-head"><div><div class="section-label">PUBLIC STUDIO SIGNAL</div><h2>The world is being<br><span>built in front of you.</span></h2><p>Team members can publish the parts of the build they are comfortable sharing. These are the current public workstreams.</p></div><div class="studio-live-badge"><span></span> BUILD IN PROGRESS</div></div>
       <div class="studio-live-art"><img src="/art/team-studio.svg" alt="" aria-hidden="true"></div><div class="studio-live-grid" id="studio-live-grid"></div>
     </section>
 
@@ -207,14 +207,14 @@ app.innerHTML = `
           <article><b>SEASONS</b><span>Growth · weather · change</span></article>
           <article><b>LIFE</b><span>Flora · fauna · evolution</span></article>
         </div>
-        <a class="secondary large" href="/play.html">ENTER A LIVING WORLD</a>
+        <a class="secondary large" href="/play.html">EXPLORE THE CONCEPT</a>
       </div>
       <div class="living-visual" aria-label="Procedural living world visualization">
         <div class="living-sky"></div><div class="living-sun"></div><div class="living-ring ring-a"></div><div class="living-ring ring-b"></div>
         <div class="living-island island-a"><i></i><i></i><i></i></div>
         <div class="living-island island-b"><i></i><i></i></div>
         <div class="living-creature c1"></div><div class="living-creature c2"></div><div class="living-creature c3"></div>
-        <div class="living-readout"><span>ENVIRONMENT // ONLINE</span><b>WEATHER · HABITAT · LIFE</b><small>WORLD COUNT: ∞</small></div>
+        <div class="living-readout"><span>ENVIRONMENT // CONCEPT</span><b>WEATHER · HABITAT · LIFE</b><small>WORLD COUNT: ∞</small></div>
       </div>
     </section>
 
@@ -262,7 +262,7 @@ app.innerHTML = `
           <article><b>PVP</b><span>Arena · duels · teams</span><small>Server-validated player combat in designated spaces.</small></article>
         </div>
         <div class="combat-authority"><span class="combat-live-dot"></span><strong>GRID AUTHORITY</strong><span>health · range · cooldown · damage validated server-side</span></div>
-        <a class="secondary large" href="/play.html">ENTER FIRST LIGHT</a>
+        <a class="secondary large" href="/play.html">FOLLOW FIRST LIGHT</a>
       </div>
     </section>
 
@@ -305,7 +305,7 @@ app.innerHTML = `
         <a href="#creator-hub"><strong>03</strong><span>Creator Hub</span><small>Build · sculpt · script · publish</small></a>
         <a href="#events"><strong>04</strong><span>Events</span><small>Concerts · classes · gatherings</small></a>
         <a href="/profile.html"><strong>05</strong><span>Identity</span><small>Profile · avatar · relationships</small></a>
-        <a href="/play.html"><strong>06</strong><span>Enter World</span><small>3D · HUD · inventory · map</small></a>
+        <a href="/play.html"><strong>06</strong><span>Preview World</span><small>3D · HUD · inventory · map</small></a>
       </div>
     </section>
 
@@ -334,10 +334,10 @@ app.innerHTML = `
     <section class="marketplace-section" id="marketplace">
       <div class="section-label">GRID MARKETPLACE</div>
       <h2>Things made<br><span>by the Grid.</span></h2>
-      <div class="market-grid"><a class="market-live-link" href="/marketplace.html">OPEN LIVE MARKETPLACE →</a>
+      <div class="market-grid"><a class="market-live-link" href="/marketplace.html">MARKETPLACE PREVIEW →</a>
         <article><div class="market-art prism-art">◇</div><small>OBJECT</small><h3>Profile Prism Kit</h3><p>Identity components for creators.</p><button data-market-action="Profile Prism Kit" type="button">VIEW OBJECT</button></article>
         <article><div class="market-art voxel-art">▦</div><small>BUILD</small><h3>Voxel Workshop</h3><p>Primitive-to-sculpt creator tools.</p><button data-market-action="Voxel Workshop" type="button">VIEW OBJECT</button></article>
-        <article><div class="market-art stage-art">✦</div><small>EVENT</small><h3>Stage Light Set</h3><p>Lighting primitives for live worlds.</p><button data-market-action="Stage Light Set" type="button">VIEW OBJECT</button></article>
+        <article><div class="market-art stage-art">✦</div><small>EVENT</small><h3>Stage Light Set</h3><p>Lighting primitives for worlds in development.</p><button data-market-action="Stage Light Set" type="button">VIEW OBJECT</button></article>
       </div>
     </section>
 
@@ -423,8 +423,37 @@ app.innerHTML = `
       <article><b>PLAY</b><span>Missions · quests · mysteries · PvE · PvP · arenas · pets · mounts · achievements · progression</span></article>
       <article><b>ECONOMY</b><span>Grid World Currency · multiple currency types · marketplace · barter · merchants · economy telemetry · Omni Bank foundation</span></article>
       <article><b>OMNI</b><span>Grid Omni Core · Security · Guards · Grid Code · permissions · diagnostics · protected world layers</span></article>
-      <article><b>MEDIA</b><span>Images · video · sound · creator galleries · stages · concerts · recording · live world signals</span></article>
+      <article><b>MEDIA</b><span>Images · video · sound · creator galleries · stages · concerts · recording · world signals</span></article>
       <article><b>EVERYWHERE</b><span>Desktop world · responsive UI · mobile functions · QR · optional location features · persistent state</span></article>
+    </div>
+  </section>
+
+  <section class="corp-about" id="about">
+    <div class="section-label">ABOUT GRID CORPORATION</div>
+    <h2>We are building<br><span>the next social world.</span></h2>
+    <div class="corp-about-grid">
+      <div class="corp-about-copy">
+        <p>Grid Corporation is an independent studio developing Grid World — a persistent framework for connected virtual worlds, communities, creators, and shared experiences.</p>
+        <p>We believe virtual worlds should belong to the people who build them. Our approach is creator-first: the tools, economy, and governance of Grid World are designed so creators and communities — not just the platform — capture the value they create.</p>
+        <p>Grid World is currently in active development. We build in the open: concept art, design decisions, and build progress are shared publicly as the world takes shape.</p>
+      </div>
+      <div class="corp-about-facts">
+        <article><b>FOUNDED</b><span>2026</span></article>
+        <article><b>ENGINE</b><span>Grid Engine: Zero</span></article>
+        <article><b>CURRENCY</b><span>Grid World Currency (GWC)</span></article>
+        <article><b>STATUS</b><span>In active development</span></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="corp-vision" id="vision">
+    <div class="section-label">OUR VISION</div>
+    <h2>One grid.<br><span>Many worlds. Yours.</span></h2>
+    <div class="corp-vision-grid">
+      <article><b>01</b><h3>Creator-first economy</h3><p>Creators set the terms. Fair fees, transparent payouts, and ownership that stays with the people who make things.</p></article>
+      <article><b>02</b><h3>Worlds without walls</h3><p>Many worlds, one identity. Travel, trade, and build across regions without starting over.</p></article>
+      <article><b>03</b><h3>Safety by design</h3><p>Moderation, age-appropriate spaces, and privacy controls are platform foundations — not afterthoughts.</p></article>
+      <article><b>04</b><h3>Built in the open</h3><p>Development happens in front of the community. Concept art, systems design, and build notes are public from day one.</p></article>
     </div>
   </section>
 
@@ -445,6 +474,26 @@ app.innerHTML = `
     <small class="honesty-note">Concept preview — the Grid Team are in-world guide characters in a world under active development, not a live concierge service.</small>
   </section>
 
+  <section class="corp-news" id="news">
+    <div class="section-label">NEWS &amp; UPDATES</div>
+    <h2>Signals<br><span>from the build.</span></h2>
+    <div class="corp-news-grid">
+      <article><small>OCT 2026</small><h3>Account tiers &amp; economy design</h3><p>Free, Citizen, and Architect tiers mapped out — with fair fees for everyone and Grid World Currency at the center.</p></article>
+      <article><small>OCT 2026</small><h3>Mascot creatures revealed</h3><p>Five original companions — Voltkit, Mossimp, Glimmerwing, Pebblor, and Nixie — designed for the hug test.</p></article>
+      <article><small>OCT 2026</small><h3>Brand package &amp; logo system</h3><p>Print-ready logo variants, color specs, and merch guidelines — from billboard to embroidered patch.</p></article>
+    </div>
+  </section>
+
+  <section class="corp-contact" id="contact">
+    <div class="section-label">CONTACT</div>
+    <h2>Talk to<br><span>the Grid.</span></h2>
+    <div class="corp-contact-grid">
+      <article><b>GENERAL</b><p>Questions about Grid World, the build, or the studio.</p><a href="/docs.html">Visit support →</a></article>
+      <article><b>CREATORS</b><p>Building for the Grid? Start with the creator hub.</p><a href="/grid-world-studio.html">Creator hub →</a></article>
+      <article><b>COMMUNITY</b><p>Meet people, join conversations, follow the build.</p><a href="/social.html">Community →</a></article>
+    </div>
+  </section>
+
   </main>
 
   <section class="legal-strip" id="terms">
@@ -453,7 +502,35 @@ app.innerHTML = `
     <div id="safety"><span>SAFETY</span><p>Moderation, reporting, blocking, creator permissions, and age-appropriate defaults are platform capabilities—not afterthoughts.</p></div>
     <div id="status"><span>STATUS</span><p>Prototype services: web UI, First Light 3D, local profile persistence, and optional realtime presence.</p></div>
   </section>
-  <footer><div class="brand"><img class="brand-logo brand-logo-footer" src="/grid-world-logo.svg" alt="Grid World"><span>GRID WORLD</span></div><p>A framework for worlds, communities, and experiences.</p><div><a href="#terms">Terms</a><a href="#privacy">Privacy</a><a href="#safety">Safety</a><a href="#status">Status</a></div></footer>
+  <footer class="corp-footer">
+    <div class="corp-footer-brand">
+      <div class="brand"><img class="brand-logo brand-logo-footer" src="/grid-world-logo.svg" alt="Grid World"><span>GRID WORLD</span></div>
+      <p>A framework for worlds, communities, and experiences.</p>
+      <p class="corp-copyright">© 2026 Grid Corporation. All rights reserved.<br>Grid World is in active development — not yet live or playable.</p>
+    </div>
+    <nav class="corp-footer-col" aria-label="Company">
+      <b>COMPANY</b>
+      <a href="#about">About</a>
+      <a href="#vision">Vision</a>
+      <a href="#grid-team">Team</a>
+      <a href="#news">News</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <nav class="corp-footer-col" aria-label="Explore">
+      <b>EXPLORE</b>
+      <a href="#worlds">Worlds</a>
+      <a href="/marketplace.html">Marketplace</a>
+      <a href="/shop.html">Shop</a>
+      <a href="/grid-world-studio.html">Creator Hub</a>
+    </nav>
+    <nav class="corp-footer-col" aria-label="Legal">
+      <b>LEGAL</b>
+      <a href="#terms">Terms</a>
+      <a href="#privacy">Privacy</a>
+      <a href="#safety">Safety</a>
+      <a href="#status">Status</a>
+    </nav>
+  </footer>
   <div class="site-toast" id="site-toast" role="status" aria-live="polite"></div>
 `;
 

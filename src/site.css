@@ -312,3 +312,42 @@ html[data-site-style="aurora"] h1,html[data-site-style="aurora"] h2,html[data-si
 .combat-art img[src$="combat-system.webp"],.studio-live-art img[src$="team-studio.webp"]{background:url('/art/secure-grid.svg') center/cover no-repeat}
 @media(max-width:850px){.hero{padding:90px 6vw;min-height:720px}.hero-image-proof{right:0;top:34%;width:100%;height:54%;opacity:.38;mask-image:linear-gradient(180deg,transparent,#000 15%)}.hero-orb{right:6%;top:42%;width:190px;height:190px;opacity:.55}.concept-gallery-head{display:block}.concept-gallery-grid{grid-template-columns:1fr}.concept-gallery-grid figure,.concept-gallery-grid figure img{min-height:220px}.hero-stats{gap:12px}.hero-stats span{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.concept-gallery-grid figure img{transition:none}}
+
+/* ---- Corporate sections (Paul 2026-10-08: professional company site) ---- */
+.corp-about,.corp-vision,.corp-news,.corp-contact{padding:clamp(64px,8vw,110px) 8vw;max-width:1280px;margin:auto}
+.corp-about h2,.corp-vision h2,.corp-news h2,.corp-contact h2{font-size:clamp(42px,6vw,76px);line-height:.95;letter-spacing:-.05em;margin:16px 0 42px}
+.corp-about-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:48px;align-items:start}
+.corp-about-copy p{color:#a9b8c9;line-height:1.7;font-size:15px;margin:0 0 18px}
+.corp-about-facts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.corp-about-facts article{padding:18px;border:1px solid rgba(120,180,220,.14);background:rgba(8,17,28,.48)}
+.corp-about-facts b{display:block;font:600 9px 'IBM Plex Mono',monospace;color:#48e7ff;letter-spacing:.15em;margin-bottom:8px}
+.corp-about-facts span{font-size:15px;font-weight:600}
+.corp-vision-grid,.corp-news-grid,.corp-contact-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.corp-news-grid{grid-template-columns:repeat(3,1fr)}
+.corp-contact-grid{grid-template-columns:repeat(3,1fr)}
+.corp-vision-grid article,.corp-news-grid article,.corp-contact-grid article{padding:25px;background:linear-gradient(160deg,rgba(17,29,47,.9),rgba(8,13,24,.8));border:1px solid rgba(120,180,220,.12)}
+.corp-vision-grid b{font-size:26px;color:#48e7ff;font-weight:800}
+.corp-vision-grid h3,.corp-news-grid h3,.corp-contact-grid b{font-size:17px;margin:10px 0 8px}
+.corp-vision-grid p,.corp-news-grid p,.corp-contact-grid p{color:#8495a7;font-size:13px;line-height:1.6;margin:0}
+.corp-news-grid small{font:600 9px 'IBM Plex Mono',monospace;color:#48e7ff;letter-spacing:.15em}
+.corp-contact-grid a{display:inline-block;margin-top:12px;color:#48e7ff;font-size:12px;letter-spacing:.08em}
+
+/* ---- Corporate footer ---- */
+.corp-footer{border-top:1px solid rgba(120,180,220,.1);padding:56px 8vw 40px;display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:40px;color:#657586;font-size:12px}
+.corp-footer-brand p{line-height:1.6;margin:14px 0}
+.corp-copyright{font-size:11px;color:#4a5a6c}
+.corp-footer-col{display:flex;flex-direction:column;gap:10px}
+.corp-footer-col b{font:600 9px 'IBM Plex Mono',monospace;color:#48e7ff;letter-spacing:.15em;margin-bottom:6px}
+.corp-footer-col a{color:#8b9aaa;font-size:12px}
+.corp-footer-col a:hover{color:#eaf7ff}
+
+@media(max-width:900px){
+  .corp-about-grid{grid-template-columns:1fr}
+  .corp-vision-grid{grid-template-columns:1fr 1fr}
+  .corp-news-grid,.corp-contact-grid{grid-template-columns:1fr 1fr}
+  .corp-footer{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+  .corp-vision-grid,.corp-news-grid,.corp-contact-grid,.corp-about-facts{grid-template-columns:1fr}
+  .corp-footer{grid-template-columns:1fr}
+}
