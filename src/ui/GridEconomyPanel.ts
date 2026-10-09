@@ -1,5 +1,5 @@
 import type { GridCombatAuthority } from '../network/GridCombatAuthority';
-import { GRID_COIN_DENOMINATIONS } from '../economy/GridCurrencySystem';
+import { GWC_DENOMINATIONS, GWC_CHESTS } from '../economy/GridCurrencySystem';
 import { marketplaceItemMetadata } from '../economy/GridMarketplaceItem';
 
 export function mountGridEconomyPanel(authority:()=>GridCombatAuthority|null){
@@ -39,8 +39,8 @@ export function mountGridEconomyPanel(authority:()=>GridCombatAuthority|null){
           '<div class="grid-economy-list">'+
           rows.map((x:any)=>'<div class="grid-economy-row"><div><b>'+esc(String(x.currency_code??x.currency_id).toUpperCase())+'</b><small>'+esc(String(x.currency_name??x.currency_id))+'</small></div><strong>'+Number(x.balance).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+'</strong><span>server wallet</span></div>').join('')+
           '</div>'+
-          '<div class="grid-economy-subhead">GRID COIN DENOMINATIONS</div>'+
-          '<div class="grid-economy-list">'+GRID_COIN_DENOMINATIONS.map(d=>'<div class="grid-economy-row"><b>'+esc(d.name)+'</b><strong>'+esc(d.symbol)+'</strong><small>configurable denomination of Grid World Currency</small></div>').join('')+'</div>'+
+          '<div class="grid-economy-subhead">GWC DENOMINATIONS</div>'+
+          '<div class="grid-economy-list">'+GWC_DENOMINATIONS.map(d=>'<div class="grid-economy-row"><img src="'+esc(d.art)+'" alt="'+esc(d.name)+'" width="40" height="40" loading="lazy"><div><b>'+esc(d.name)+'</b><small>'+esc(d.symbol)+' · '+Number(d.gwcValue).toLocaleString()+' GWC · configurable denomination of Grid World Currency</small></div></div>').join('')+'</div>'+
           '<div class="grid-economy-subhead">RECENT LEDGER ENTRIES</div>'+
           '<div class="grid-economy-list">'+
           entries.map((x:any)=>'<div class="grid-economy-row"><div><b>'+esc(String(x.transaction_type??'TRANSACTION'))+'</b><small>'+esc(String(x.memo??''))+'</small></div><strong>'+((Number(x.entry?.amount??0)>=0)?'+':'')+Number(x.entry?.amount??0).toFixed(2)+'</strong><span>'+esc(String(x.entry?.currency_id??''))+'</span></div>').join('')+

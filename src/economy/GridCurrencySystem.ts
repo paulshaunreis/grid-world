@@ -16,16 +16,20 @@ export interface GridCurrencyDefinition {
   tradeable: boolean;
 }
 
-export interface GridCoinDenomination {
-  id: 'GRID_COPPER' | 'GRID_SILVER' | 'GRID_GOLD' | 'GRID_CRYSTAL';
+export interface GwcDenomination {
+  id: 'GWC_SHARD' | 'GWC_COIN' | 'GWC_BAR' | 'GWC_CRYSTAL';
   name: string;
   symbol: string;
   currencyId: 'grid';
   /**
+   * Value of one unit of this denomination in Grid World Currency (GWC).
    * Conversion is intentionally configurable. These labels are part of the
    * Grid World Currency family, not separate currencies, so the economy can change
    * denomination ratios without changing wallet/ledger identity.
    */
+  gwcValue: number;
+  /** Path to the denomination artwork under public/. */
+  art: string;
   baseUnitsPerCoin?: number;
 }
 
@@ -42,12 +46,38 @@ export const GRID_CURRENCIES: readonly GridCurrencyDefinition[] = [
   { id: 'tide', code: 'TDE', name: 'Tide', category: 'community', decimals: 2, tradeable: true },
 ] as const;
 
-export const GRID_COIN_DENOMINATIONS: readonly GridCoinDenomination[] = [
-  { id: 'GRID_COPPER', name: 'Grid Copper', symbol: 'c', currencyId: 'grid' },
-  { id: 'GRID_SILVER', name: 'Grid Silver', symbol: 's', currencyId: 'grid' },
-  { id: 'GRID_GOLD', name: 'Grid Gold', symbol: 'g', currencyId: 'grid' },
-  { id: 'GRID_CRYSTAL', name: 'Grid Crystal', symbol: '◇', currencyId: 'grid' },
+export const GWC_DENOMINATIONS: readonly GwcDenomination[] = [
+  { id: 'GWC_SHARD', name: 'GWC Shard', symbol: '◈', currencyId: 'grid', gwcValue: 1, art: '/currency/gwc-shard.webp' },
+  { id: 'GWC_COIN', name: 'GWC Coin', symbol: '◎', currencyId: 'grid', gwcValue: 10, art: '/currency/gwc-coin.webp' },
+  { id: 'GWC_BAR', name: 'GWC Bar', symbol: '▬', currencyId: 'grid', gwcValue: 100, art: '/currency/gwc-bar.webp' },
+  { id: 'GWC_CRYSTAL', name: 'GWC Crystal', symbol: '◇', currencyId: 'grid', gwcValue: 1000, art: '/currency/gwc-crystal.webp' },
 ] as const;
+
+/**
+ * Treasure chest artwork for rewards / loot displays.
+ * - closed: standard reward chest, sealed
+ * - open: reward chest opened, overflowing with GWC
+ * - rare: legendary-tier chest variant
+ */
+export const GWC_CHESTS = {
+  closed: '/currency/gwc-chest-closed.webp',
+  open: '/currency/gwc-chest-open.webp',
+  rare: '/currency/gwc-chest-rare.webp',
+} as const;
+
+/** Break a GWC amount down into the fewest denomination units (largest first). */
+export function gwcDenominate(amount: number): { denomination: GwcDenomination; count: number }[] {
+  let remaining = Math.max(0, Math.floor(amount));
+  const out: { denomination: GwcDenomination; count: number }[] = [];
+  for (const d of [...GWC_DENOMINATIONS].sort((a, b) => b.gwcValue - a.gwcValue)) {
+    const count = Math.floor(remaining / d.gwcValue);
+    if (count > 0) {
+      out.push({ denomination: d, count });
+      remaining -= count * d.gwcValue;
+    }
+  }
+  return out;
+}
 
 export function currencyById(id: string) {
   return GRID_CURRENCIES.find(currency => currency.id === id);
