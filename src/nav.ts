@@ -7,11 +7,14 @@ import './theme/accent.css';
 import { createAccentPicker } from './theme/accent';
 import { requireAccess, getAccessLevel } from './auth/accessGate';
 import { mountGlobalNav } from './components/GlobalNav';
+import { mountPageHero } from './components/PageHero';
 
 function init(): void {
   // home.html renders its own .hw-nav via homepage.ts — don't double up.
   if (document.querySelector('.hw-nav')) return;
   mountGlobalNav();
+  // Page-specific cinematic hero banners (Paul 2026-10-08) — no bare pages.
+  mountPageHero();
   // Mount the accent/style picker into the new nav.
   const nav = document.querySelector('header.gw-global-nav');
   if (nav && !nav.querySelector('.site-theme-picker')) {

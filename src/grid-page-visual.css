@@ -67,3 +67,13 @@ body.grid-world-page::after{background:linear-gradient(90deg,transparent,rgb(var
   border-bottom:1px solid rgba(100,220,255,.12);background:rgba(3,9,16,.5)}
 .page-title span+span{color:rgba(230,247,255,.5)}
 .market-page-hero{padding:28px 22px 8px}
+
+/* ---------- page hero banners (PageHero.ts) ---------- */
+.gw-page-hero{position:relative;overflow:hidden;margin:0 0 28px;min-height:300px;display:flex;align-items:flex-end;border:1px solid rgba(90,225,255,.28);border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.35)}
+.gw-page-hero-bg{position:absolute;inset:0;background:center/cover no-repeat;transform:scale(1.02)}
+.gw-page-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,8,18,.15) 0%,rgba(5,8,18,.55) 60%,#050812 100%),linear-gradient(90deg,rgba(5,8,18,.6) 0%,transparent 50%)}
+.gw-page-hero-copy{position:relative;z-index:2;padding:48px 32px 36px;max-width:1240px;width:100%}
+.gw-page-hero-eyebrow{font:700 11px 'IBM Plex Mono',monospace;letter-spacing:.22em;color:#66eaff;text-shadow:0 0 14px rgba(102,234,255,.6)}
+.gw-page-hero-copy h1{font-size:clamp(38px,6vw,68px);line-height:.94;letter-spacing:-.04em;margin:12px 0 10px;color:#f2fbff;text-shadow:0 4px 40px rgba(0,0,0,.6)}
+.gw-page-hero-copy p{max-width:600px;color:#c3d2e2;font-size:16px;line-height:1.6;margin:0;text-shadow:0 2px 18px rgba(0,0,0,.7)}
+@media(max-width:760px){.gw-page-hero{min-height:220px}.gw-page-hero-copy{padding:36px 22px 28px}}
