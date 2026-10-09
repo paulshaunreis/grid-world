@@ -14,9 +14,8 @@ import {
   GRID_SWATCHES, isSwatchUnlocked, getAllSkins, currentSeason,
 } from './theme/GridTheme';
 import { DISTRICT_IDENTITIES } from './theme/districts';
-import { readLocalLocale, writeLocalLocale } from './i18n/GridLanguageService';
 import { mountGlobalNav } from './components/GlobalNav';
-import { GRID_SUPPORTED_LOCALES } from './core/GridLanguagePreferences';
+import { mountLanguagePicker } from './components/LanguagePicker';
 
 /* Region cards render from the canonical district table (src/theme/districts.ts)
    so the site and the in-world districts can never drift apart. */
@@ -110,9 +109,7 @@ async function loadTeamPosts(): Promise<{ posts: TeamPost[]; live: boolean }> {
 app.innerHTML = `
   <div class="site-utility-bar">
     <div class="header-actions">
-      <select class="site-language-picker" id="site-language-picker" title="Language — applies across the website and in-world" aria-label="Language">
-        ${GRID_SUPPORTED_LOCALES.map(l => `<option value="${l}"${l === readLocalLocale() ? ' selected' : ''}>${l}</option>`).join('')}
-      </select>
+      <div class="gw-language-picker" id="site-language-picker" title="Language — applies across the website and in-world" aria-label="Language"></div>
       <div class="site-theme-picker" id="site-theme-picker" title="Interface accent — synced live with the game"></div>
       <button class="ghost style-trigger" id="style-trigger" type="button">STYLE</button><button class="operator-trigger" id="operator-trigger" type="button">GRID OPERATOR</button>
       <button class="ghost" id="site-qr" type="button">QR</button>
@@ -676,10 +673,9 @@ void renderTeamFeed();
 
 // Pre-auth language selection (governance Surface 1). Persists via VersionedStorage;
 // GridLanguageService is the shared authority once the user signs in.
-document.querySelector<HTMLSelectElement>('#site-language-picker')?.addEventListener('change', (e) => {
-  const code = (e.target as HTMLSelectElement).value;
-  writeLocalLocale(code);
-});
+// Custom glass dropdown with flag emojis (native <select> renders as unstyled white box).
+const langPickerEl = document.querySelector<HTMLElement>('#site-language-picker');
+if (langPickerEl) mountLanguagePicker(langPickerEl);
 
 const siteClock = document.querySelector<HTMLSpanElement>('#site-live-clock span');
 const updateSiteClock = () => { if (siteClock) siteClock.textContent = 'LIVE · ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }); };
