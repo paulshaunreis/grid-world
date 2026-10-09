@@ -6,6 +6,12 @@
 export type BadgeUser = {
   handle: string;
   displayName: string;
+  /** Staff: full "First Last" name. */
+  fullName?: string | null;
+  /** Staff job title, e.g. "Systems Architect". */
+  title?: string | null;
+  /** 'staff' shows TEAM badge; 'citizen' shows type badge. */
+  badge?: 'staff' | 'citizen' | null;
   avatarUrl?: string | null;
   userType?: string | null;
   userTypeLabel?: string | null;
@@ -33,14 +39,16 @@ export function userBadge(u: BadgeUser, size: 'sm' | 'md' = 'sm'): string {
     ? '/user/aurora'
     : `/user/${esc(u.handle.toLowerCase())}`;
   const status = u.onlineStatus ?? 'offline';
-  const typeLabel = u.userTypeLabel ?? u.userType ?? '';
+  const name = u.fullName || u.displayName;
+  const isStaff = u.badge === 'staff';
+  const sub = isStaff ? (u.title ?? '') : (u.userTypeLabel ?? u.userType ?? '');
   return `<a class="user-badge user-badge-${size}" href="${profileUrl}">
     <span class="ub-avatar-wrap status-${status}">
-      <img class="ub-avatar" src="${esc(avatarForBadge(u))}" alt="${esc(u.displayName)}" loading="lazy">
+      <img class="ub-avatar" src="${esc(avatarForBadge(u))}" alt="${esc(name)}" loading="lazy">
       <span class="ub-status-dot" title="${status}"></span>
     </span>
-    <span class="ub-name">${esc(u.displayName)}</span>
-    ${typeLabel ? `<span class="ub-type">${esc(typeLabel)}</span>` : ''}
+    <span class="ub-text"><span class="ub-name">${esc(name)}</span>${sub ? `<span class="ub-sub">${esc(sub)}</span>` : ''}</span>
+    ${isStaff ? `<span class="ub-staff">TEAM</span>` : ''}
   </a>`;
 }
 

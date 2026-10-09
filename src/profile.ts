@@ -1,6 +1,9 @@
 import './profile.css';
 import { mediaHubMarkup, bindMediaHub, stopPlayback } from './media/profileMedia';
 import { getPermissions, permBadge, canTransfer, canGift, itemBadge, sendGift, acceptGift, declineGift, pendingGiftsFor, giftDialogMarkup } from './economy/gifting';
+import { TEAM_AVATARS } from './avatars/teamRoster';
+import { teamGallery } from './avatars/teamGalleries';
+import { voteButtons, bindVotes } from './social/voting';
 import { createClient } from '@supabase/supabase-js';
 import { GridProfileAuthority, type GridProfileMedia, type GridArenaRanking, type GridProfileActivity } from './social/GridProfileAuthority';
 import { GridWorldAuthority, type GridPersistentWorld } from './social/GridWorldAuthority';
@@ -269,6 +272,88 @@ async function save() {
   localStorage.setItem(key, JSON.stringify(draft));
   if(profileAuthority&&profileClient){try{const {data:{user}}=await profileClient.auth.getUser();if(user){await profileAuthority.save({handle:draft.handle,displayName:draft.displayName,bio:draft.bio,status:draft.status,mood,avatarUrl:draft.avatarUrl,theme:{...draft.theme,location:draft.location,interests:draft.interests,userType:draft.userType,onlineStatus:draft.onlineStatus},layout:draft.layout});cloudMedia=await profileAuthority.media(user.id);cloudPosts=await profileAuthority.posts(user.id);cloudFeed=await profileAuthority.activity(user.id);cloudLandmarks=await profileAuthority.landmarks(user.id);cloudWorlds=worldAuthority?await worldAuthority.listOwned(user.id):[];cloudInventory=await profileAuthority.inventory(user.id);arenaRanking=await profileAuthority.ranking(user.id);render();return;}}catch(error){console.warn('Cloud profile save unavailable; local profile retained.',error);}}
   const status=document.querySelector('#save-status');if(status)status.textContent='Saved locally · ready for Grid Identity';
+}
+
+let teamTab: 'overview' | 'gallery' | 'about' = 'overview';
+let teamLightbox: number | null = null;
+
+function renderTeamProfile(member: import('./avatars/TeamAvatar').TeamAvatarDefinition) {
+  const gallery = teamGallery(member.id);
+  const fullName = `${member.firstName} ${member.lastName}`;
+  const headshot = `/avatars/team/${member.id}.webp`;
+  app.innerHTML = `
+    <header class="studio-header">
+      <a class="brand" href="/"><span class="brand-mark">◇</span><span>GRID WORLD</span></a>
+      <div class="studio-title"><span>TEAM PROFILE</span></div>
+      <div class="studio-actions"><a href="/directory.html" class="ghost">ALL STAFF</a><a href="/" class="ghost">BACK TO GRID</a></div>
+    </header>
+    <main class="profile-page theme-aurora glow">
+      <section class="profile-hero">
+        <div class="profile-cover"><div class="cover-orbit"></div><div class="profile-badge">⚡</div></div>
+        <div class="identity-row">
+          <div class="avatar-wrap status-online">
+            <img class="avatar-img" src="${headshot}" alt="${fullName}" onerror="this.src='/avatars/default-avatar.webp'">
+            <span class="avatar-status-dot" title="online"></span>
+          </div>
+          <div class="identity-copy">
+            <h2>${fullName} <span class="ub-staff">TEAM</span></h2>
+            <p>${member.title}</p>
+            ${member.species?`<p class="identity-meta">${member.species}</p>`:''}
+          </div>
+        </div>
+      </section>
+      <nav class="profile-tabs">
+        ${(['overview','gallery','about'] as const).map(t=>`<button class="${teamTab===t?'active':''}" data-teamtabs="${t}" type="button">${t.toUpperCase()}</button>`).join('')}
+      </nav>
+      <section class="profile-tab-content">
+        ${teamTab==='overview'?`
+          <div class="profile-grid columns-2">
+            <article class="module-card"><span class="module-label">BIO</span><h3>${fullName}</h3><p>${member.bio ?? member.interaction}</p>
+              <div class="chips"><span>● ONLINE</span><span>${member.title}</span></div></article>
+            <article class="module-card"><span class="module-label">CURRENT FOCUS</span><h3>Now working on</h3>
+              <p><b>${member.currentlyWorkingOn ?? 'New GridWorld systems'}</b></p>
+              ${member.recentWork?.length?`<div class="module-label" style="margin-top:12px">RECENTLY</div>${member.recentWork.map(w=>`<div class="event-row"><b>✓</b><small>${w}</small></div>`).join('')}`:''}
+            </article>
+            <article class="module-card"><span class="module-label">GREETING</span><h3>Say hello</h3><p><i>"${member.greeting}"</i></p>
+              <div class="chips">${member.topics.map(t=>`<span>${t}</span>`).join('')}</div></article>
+            <article class="module-card"><span class="module-label">ROLE</span><h3>${member.role}</h3><p>${member.interaction}</p></article>
+          </div>`:''}
+        ${teamTab==='gallery'?`
+          <article class="module-card gallery-card"><span class="module-label">GALLERY</span>
+            <div class="gallery-head"><h3>Portfolio</h3><small>Curated from the GridWorld archive</small></div>
+            <div class="art-grid">${gallery.map((g,i)=>`
+              <div class="art-thumb" data-teamart="${i}"><img src="${g.src}" alt="${g.title}" loading="lazy">
+              <div class="art-thumb-overlay"><b>${g.title}</b>${voteButtons('team-'+member.id+'-'+i)}</div></div>`).join('')}
+            </div>
+            ${teamLightbox!==null?`<div class="art-lightbox"><div class="art-lightbox-backdrop" data-teamclose></div>
+              <div class="art-lightbox-panel"><button class="art-lightbox-close" data-teamclose type="button">×</button>
+              <img src="${gallery[teamLightbox].src}" alt="${gallery[teamLightbox].title}">
+              <div class="art-lightbox-info"><h3>${gallery[teamLightbox].title}</h3><p>${gallery[teamLightbox].caption}</p>
+              ${voteButtons('team-'+member.id+'-'+teamLightbox)}</div></div></div>`:''}
+          </article>`:''}
+        ${teamTab==='about'?`
+          <div class="profile-grid columns-2">
+            <article class="module-card"><span class="module-label">ABOUT</span><h3>${fullName}</h3><p>${member.bio ?? member.interaction}</p></article>
+            <article class="module-card"><span class="module-label">DETAILS</span><h3>Facts</h3>
+              <div class="event-row"><b>TITLE</b><small>${member.title}</small></div>
+              <div class="event-row"><b>ROLE</b><small>${member.role}</small></div>
+              ${member.species?`<div class="event-row"><b>SPECIES</b><small>${member.species}</small></div>`:''}
+              <div class="event-row"><b>STATUS</b><small>● Active · Grid Staff</small></div>
+            </article>
+          </div>`:''}
+      </section>
+    </main>`;
+  // Bind tabs
+  document.querySelectorAll<HTMLButtonElement>('[data-teamtabs]').forEach(b=>b.addEventListener('click',()=>{
+    teamTab=b.dataset.teamtabs as typeof teamTab; teamLightbox=null; renderTeamProfile(member);
+  }));
+  document.querySelectorAll<HTMLElement>('[data-teamart]').forEach(t=>t.addEventListener('click',()=>{
+    teamLightbox=Number(t.dataset.teamart); renderTeamProfile(member);
+  }));
+  document.querySelectorAll<HTMLElement>('[data-teamclose]').forEach(el=>el.addEventListener('click',()=>{
+    teamLightbox=null; renderTeamProfile(member);
+  }));
+  bindVotes(()=>renderTeamProfile(member));
 }
 
 let activeTab: 'overview' | 'gallery' | 'blog' | 'about' | 'music' = 'overview';
@@ -797,6 +882,12 @@ void (async()=>{
   const handle=(pathMatch?.[1] ?? new URLSearchParams(location.search).get('handle') ?? '').replace(/^@/,'').trim();
   // Aurora's showcase profile lives at /aurora.html — canonical /user/aurora redirects there
   if (handle.toLowerCase() === 'aurora' && pathMatch) { location.replace('/aurora.html'); return; }
+  // Team member showcase: /user/<id> renders their team profile
+  const teamMember = TEAM_AVATARS.find(t => t.id === handle.toLowerCase());
+  if (teamMember && (pathMatch || handle)) {
+    renderTeamProfile(teamMember);
+    return;
+  }
   if(profileAuthority&&handle){
     try{
       const cloud=await profileAuthority.byHandle(handle);

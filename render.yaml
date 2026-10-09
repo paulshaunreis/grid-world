@@ -9,6 +9,9 @@ services:
       - type: rewrite
         source: /user/*
         destination: /user.html
+      - type: rewrite
+        source: /citizen/*
+        destination: /user.html
     headers:
       - path: /*
         name: X-Content-Type-Options

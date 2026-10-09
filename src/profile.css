@@ -257,3 +257,35 @@
 .board-reply-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 .board-reply-head small{color:#627487;font-size:9px}
 .board-reply p{color:#b9d5ec;font-size:12px;line-height:1.5;margin:0}
+
+/* --- Citizen Directory (Yellow Pages) --- */
+.dir-search{margin:24px 0}
+.dir-search-row{display:flex;gap:10px;margin:12px 0}
+.dir-search-row input{flex:1;padding:12px;border:1px solid rgba(0,150,220,.14);background:#0d1b33;color:#fff;border-radius:8px;font-size:14px}
+#dir-go{padding:12px 24px;background:linear-gradient(135deg,rgba(0,212,255,.2),rgba(131,79,255,.2));border:1px solid #00d4ff;color:#fff;font-size:11px;font-weight:800;border-radius:8px;cursor:pointer}
+.dir-filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.dir-filters button{background:transparent;border:1px solid rgba(0,150,220,.15);color:#8fa9c4;font-size:10px;padding:8px 16px;border-radius:6px;cursor:pointer}
+.dir-filters button.selected{border-color:#00d4ff;color:#fff}
+.dir-online{display:flex;align-items:center;gap:6px;color:#8fa9c4;font-size:11px;cursor:pointer}
+.dir-online input{width:auto}
+.dir-count{color:#627487;font-size:11px;margin:10px 0 0}
+.dir-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.dir-card{display:flex;gap:12px;align-items:flex-start;text-decoration:none;color:inherit;padding:16px}
+.dir-card:hover{border-color:rgba(0,212,255,.4)}
+.dir-avatar{width:48px!important;height:48px!important}
+.dir-card-info{flex:1;min-width:0}
+.dir-card-info b{font-size:14px;color:#fff}
+.dir-tagged{display:block;color:#00d4ff;font-size:11px;margin-top:2px}
+.dir-card-info p{color:#8fa9c4;font-size:11px;line-height:1.4;margin:6px 0 0}
+/* UserBadge staff + title */
+.ub-text{display:flex;flex-direction:column;line-height:1.2}
+.ub-sub{font-size:9px;color:#8fa9c4}
+.ub-staff{font-size:8px;font-weight:900;letter-spacing:.08em;padding:3px 8px;border-radius:10px;background:linear-gradient(135deg,rgba(123,77,255,.25),rgba(0,212,255,.15));border:1px solid rgba(123,77,255,.5);color:#c9b8ff}
+
+/* --- Unified voting --- */
+.vote-group{display:inline-flex;gap:6px;align-items:center}
+.vote-btn{background:transparent;border:1px solid rgba(0,150,220,.2);color:#8fa9c4;font-size:12px;padding:6px 12px;border-radius:20px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.vote-btn b{font-weight:800}
+.vote-btn:hover{border-color:#00d4ff}
+.vote-btn.vote-like.active{background:rgba(46,230,107,.12);border-color:#2ee66b;color:#2ee66b}
+.vote-btn.vote-dislike.active{background:rgba(255,107,138,.12);border-color:#ff6b8a;color:#ff6b8a}

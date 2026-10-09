@@ -13,6 +13,7 @@ export default defineConfig({
         aurora: 'aurora.html',
         board: 'board.html',
         user: 'user.html',
+        citizens: 'citizens.html',
         shop: 'shop.html',
         classifieds: 'classifieds.html',
         meetups: 'meetups.html',
