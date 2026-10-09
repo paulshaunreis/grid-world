@@ -1,17 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
 @import "./ui/grid-themes.css";
 /* Grid World shared visual-art surface for every public page */
-html,body{min-height:100%;background:#050b14;color:#eaf8ff}
+html,body{min-height:100%;background:#0a1628;color:#ffffff}
 body.grid-world-page{position:relative;overflow-x:hidden;isolation:isolate}
 body.grid-world-page::before{
  content:"";position:fixed;z-index:-1;pointer-events:none;inset:0;
  background:
- radial-gradient(circle at 18% 18%,rgba(65,220,255,.12),transparent 30%),
- linear-gradient(90deg,rgba(5,11,20,.96) 0%,rgba(5,11,20,.78) 44%,rgba(5,11,20,.32) 72%,rgba(5,11,20,.78) 100%),
+ radial-gradient(circle at 18% 18%,rgba(0,180,255,.16),transparent 32%),
+ radial-gradient(circle at 85% 85%,rgba(123,97,255,.10),transparent 30%),
+ linear-gradient(90deg,rgba(10,22,40,.96) 0%,rgba(10,22,40,.82) 44%,rgba(10,22,40,.45) 72%,rgba(10,22,40,.82) 100%),
  url("/art/grid-page-atlas.svg") 72% center/72% auto no-repeat;
  opacity:.98;
 }
-body.grid-world-page::after{content:"";position:fixed;z-index:0;pointer-events:none;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,transparent,#4ee8ff,#a979ff,#ff74c8,transparent);box-shadow:0 0 22px #4ee8ff}
+body.grid-world-page::after{content:"";position:fixed;z-index:0;pointer-events:none;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,transparent,#00d4ff,#7b61ff,#ff74c8,transparent);box-shadow:0 0 26px #00d4ff}
 /* Keep the game root above the page backdrop without changing fixed HUD overlay positioning. */
 body.grid-world-page>#app{position:relative;z-index:1}
 .grid-page-artbar{position:relative;overflow:hidden;margin:0 0 28px;border:1px solid rgba(90,225,255,.28);border-radius:18px;min-height:190px;background:#07121f url("/art/grid-page-atlas.svg") center/cover no-repeat;box-shadow:0 24px 80px rgba(0,0,0,.35),inset 0 0 60px rgba(80,210,255,.08)}
@@ -69,11 +70,11 @@ body.grid-world-page::after{background:linear-gradient(90deg,transparent,rgb(var
 .market-page-hero{padding:28px 22px 8px}
 
 /* ---------- page hero banners (PageHero.ts) ---------- */
-.gw-page-hero{position:relative;overflow:hidden;margin:0 0 28px;min-height:300px;display:flex;align-items:flex-end;border:1px solid rgba(90,225,255,.28);border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.35)}
+.gw-page-hero{position:relative;overflow:hidden;margin:0 0 28px;min-height:300px;display:flex;align-items:flex-end;border:1px solid rgba(0,212,255,.36);border-radius:14px;box-shadow:0 24px 80px rgba(0,0,0,.4),0 0 30px rgba(0,212,255,.12)}
 .gw-page-hero-bg{position:absolute;inset:0;background:center/cover no-repeat;transform:scale(1.02)}
-.gw-page-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,8,18,.15) 0%,rgba(5,8,18,.55) 60%,#050812 100%),linear-gradient(90deg,rgba(5,8,18,.6) 0%,transparent 50%)}
+.gw-page-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,22,40,.15) 0%,rgba(10,22,40,.55) 60%,#0a1628 100%),linear-gradient(90deg,rgba(10,22,40,.6) 0%,transparent 50%)}
 .gw-page-hero-copy{position:relative;z-index:2;padding:48px 32px 36px;max-width:1240px;width:100%}
-.gw-page-hero-eyebrow{font:700 11px 'IBM Plex Mono',monospace;letter-spacing:.22em;color:#66eaff;text-shadow:0 0 14px rgba(102,234,255,.6)}
-.gw-page-hero-copy h1{font-size:clamp(38px,6vw,68px);line-height:.94;letter-spacing:-.04em;margin:12px 0 10px;color:#f2fbff;text-shadow:0 4px 40px rgba(0,0,0,.6)}
-.gw-page-hero-copy p{max-width:600px;color:#c3d2e2;font-size:16px;line-height:1.6;margin:0;text-shadow:0 2px 18px rgba(0,0,0,.7)}
+.gw-page-hero-eyebrow{font:800 11px 'Space Grotesk',sans-serif;letter-spacing:.22em;color:#00d4ff;text-shadow:0 0 16px rgba(0,212,255,.65)}
+.gw-page-hero-copy h1{font-size:clamp(40px,6vw,72px);line-height:.92;letter-spacing:-.04em;margin:12px 0 10px;color:#ffffff;font-weight:800;text-shadow:0 4px 40px rgba(0,0,0,.6)}
+.gw-page-hero-copy p{max-width:600px;color:#d5e6f5;font-size:16px;line-height:1.6;margin:0;text-shadow:0 2px 18px rgba(0,0,0,.7)}
 @media(max-width:760px){.gw-page-hero{min-height:220px}.gw-page-hero-copy{padding:36px 22px 28px}}

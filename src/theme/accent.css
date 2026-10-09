@@ -23,26 +23,27 @@
  *             --on-accent, --accent-gradient
  */
 
-/* ================= GRAYSCALE (default) =================
- * Clean neutral. Silver accents on charcoal. No color tint. */
+/* ================= VIBRANT BLUE (default) =================
+ * Paul 2026-10-08 concept art: rich navy, electric cyan, glowing panels.
+ * AAA game-launcher dashboard aesthetic. */
 :root {
-  --gw-bg: #07090d;
-  --gw-panel: rgba(17, 20, 26, .88);
-  --gw-panel-2: rgba(23, 28, 37, .92);
-  --gw-border: rgba(165, 175, 190, .18);
-  --gw-text: #eceff3;
-  --gw-muted: #9aa3b0;
-  --gw-radius: 12px;
+  --gw-bg: #0a1628;
+  --gw-panel: rgba(13, 27, 51, .92);
+  --gw-panel-2: rgba(16, 35, 65, .94);
+  --gw-border: rgba(0, 212, 255, .22);
+  --gw-text: #ffffff;
+  --gw-muted: #b9d5ec;
+  --gw-radius: 14px;
 
-  --accent: #c9ced6;
-  --accent-rgb: 201, 206, 214;
-  --accent-2: #8a919b;
-  --accent-dim: #a8aeb8;
-  --accent-glow: rgba(201, 206, 214, .25);
-  --accent-border: rgba(201, 206, 214, .28);
-  --accent-soft: rgba(201, 206, 214, .07);
-  --on-accent: #14171c;
-  --accent-gradient: linear-gradient(180deg, #e2e6eb, #9aa1ac);
+  --accent: #00d4ff;
+  --accent-rgb: 0, 212, 255;
+  --accent-2: #7b61ff;
+  --accent-dim: #4de8ff;
+  --accent-glow: rgba(0, 212, 255, .45);
+  --accent-border: rgba(0, 212, 255, .4);
+  --accent-soft: rgba(0, 212, 255, .08);
+  --on-accent: #04121a;
+  --accent-gradient: linear-gradient(135deg, #00d4ff, #0090ff);
 }
 
 /* ================= RED =================

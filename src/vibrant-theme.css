@@ -1,0 +1,177 @@
+/* ============================================================
+   GridWorld VIBRANT theme — Paul 2026-10-08.
+   Matches the concept art: AAA game-launcher dashboard aesthetic.
+   Rich dark navy (NOT black), electric cyan glows, rounded glowing
+   panels, pill buttons, bold white type with cyan highlights.
+
+   Loaded via nav.ts so it applies to EVERY page, after page CSS.
+   Uses higher-specificity selectors to win over muted styles.
+   ============================================================ */
+
+:root {
+  --vw-bg: #0A1628;
+  --vw-bg-deep: #060D1A;
+  --vw-bg-panel: #0D1B33;
+  --vw-bg-panel2: #102341;
+  --vw-accent: #00D4FF;
+  --vw-accent-bright: #4DE8FF;
+  --vw-accent-deep: #0090FF;
+  --vw-violet: #7B61FF;
+  --vw-amber: #FFB347;
+  --vw-text: #FFFFFF;
+  --vw-text-dim: #B9D5EC;
+  --vw-text-faint: #7E96B3;
+  --vw-border: rgba(0, 212, 255, .32);
+  --vw-border-soft: rgba(0, 212, 255, .16);
+  --vw-glow-sm: 0 0 16px rgba(0, 212, 255, .22);
+  --vw-glow-md: 0 0 28px rgba(0, 212, 255, .32);
+  --vw-panel-shadow: 0 18px 55px rgba(0, 0, 0, .45), 0 0 24px rgba(0, 212, 255, .10);
+}
+
+/* ---------- page canvas: rich navy, never black ---------- */
+html body,
+body.grid-world-page,
+body {
+  background:
+    radial-gradient(circle at 15% 8%, rgba(0, 120, 200, .14), transparent 32%),
+    radial-gradient(circle at 88% 90%, rgba(123, 97, 255, .10), transparent 30%),
+    radial-gradient(circle at 70% 20%, rgba(0, 212, 255, .07), transparent 28%),
+    var(--vw-bg) !important;
+  color: var(--vw-text);
+}
+
+/* ---------- headings: bold white, impactful ---------- */
+html body h1, html body h2 {
+  color: #FFFFFF;
+  font-weight: 800;
+  letter-spacing: -.03em;
+}
+html body h1 span, html body h2 span {
+  color: var(--vw-accent);
+  text-shadow: 0 0 22px rgba(0, 212, 255, .55);
+}
+
+/* ---------- eyebrows / section labels: cyan small-caps ---------- */
+html body .eyebrow, html body .section-label,
+html body .card-title, html body .glass-eyebrow {
+  color: var(--vw-accent) !important;
+  text-shadow: 0 0 12px rgba(0, 212, 255, .5);
+  font-weight: 800;
+}
+
+/* ---------- panels & cards: rounded, glowing borders ---------- */
+html body .glass-panel, html body .glass-card, html body .glass-deep,
+html body .glass-light, html body .side-card, html body .composer,
+html body .post, html body .market-meta, html body .listing,
+html body .shops, html body .shop-card, html body .rules article,
+html body .staff-market-activity, html body .feature-grid article,
+html body .atlas-card, html body .market-grid article,
+html body .social-tools-grid article, html body .combat-modes article,
+html body .npc-merchant-grid article, html body .economy-world-grid article,
+html body .living-metrics article, html body .model-atlas-grid a,
+html body .system-map-grid a, html body .studio-live-card {
+  background: linear-gradient(160deg, rgba(16, 35, 65, .92), rgba(10, 22, 40, .94)) !important;
+  border: 1px solid var(--vw-border) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--vw-panel-shadow), inset 0 1px 0 rgba(255, 255, 255, .06) !important;
+}
+
+/* card hover: brighter glow */
+html body .glass-card:hover, html body .listing:hover,
+html body .shop-card:hover, html body .feature-grid article:hover,
+html body .atlas-card:hover {
+  border-color: rgba(0, 212, 255, .6) !important;
+  box-shadow: 0 22px 65px rgba(0, 0, 0, .5), 0 0 38px rgba(0, 212, 255, .22) !important;
+  transform: translateY(-4px);
+}
+
+/* ---------- buttons: pill-shaped, glowing cyan ---------- */
+html body .primary, html body .glass-btn,
+html body .ghost, html body .secondary,
+html body button.primary, html body a.primary {
+  border-radius: 999px !important;
+  font-weight: 800 !important;
+  letter-spacing: .1em !important;
+  padding: 13px 28px !important;
+  border: 1px solid rgba(0, 212, 255, .65) !important;
+}
+html body .primary, html body a.primary,
+html body .listing-foot .glass-btn {
+  background: linear-gradient(135deg, #00D4FF, #0090FF) !important;
+  color: #04121A !important;
+  box-shadow: 0 0 28px rgba(0, 212, 255, .5), inset 0 1px 0 rgba(255, 255, 255, .35) !important;
+  text-shadow: none !important;
+}
+html body .primary:hover, html body a.primary:hover,
+html body .listing-foot .glass-btn:hover {
+  filter: brightness(1.12);
+  box-shadow: 0 0 40px rgba(0, 212, 255, .7), inset 0 1px 0 rgba(255, 255, 255, .4) !important;
+  transform: translateY(-2px);
+}
+html body .ghost, html body .secondary {
+  background: rgba(0, 212, 255, .06) !important;
+  color: #FFFFFF !important;
+  box-shadow: inset 0 0 18px rgba(0, 212, 255, .06) !important;
+}
+html body .ghost:hover, html body .secondary:hover {
+  border-color: var(--vw-accent) !important;
+  box-shadow: 0 0 22px rgba(0, 212, 255, .3) !important;
+}
+
+/* ---------- links & accents: electric cyan ---------- */
+html body a { color: inherit; }
+html body .card-link, html body .post-tag,
+html body .world-card a, html body .world-card small {
+  color: var(--vw-accent) !important;
+}
+
+/* ---------- inputs: navy with cyan focus glow ---------- */
+html body .glass-input, html body .filters input, html body .filters select,
+html body input[type="text"], html body input[type="email"],
+html body input[type="password"], html body input[type="search"],
+html body select, html body textarea {
+  background: rgba(6, 13, 26, .85) !important;
+  border: 1px solid var(--vw-border-soft) !important;
+  border-radius: 10px !important;
+  color: #FFFFFF !important;
+}
+html body .glass-input:focus, html body .filters input:focus,
+html body input:focus, html body select:focus, html body textarea:focus {
+  outline: none;
+  border-color: var(--vw-accent) !important;
+  box-shadow: 0 0 20px rgba(0, 212, 255, .3) !important;
+}
+
+/* ---------- dim text: brighter for navy bg ---------- */
+html body .post p, html body .side-card p,
+html body .feature-grid p, html body .market-grid p,
+html body .rules p, html body .atlas-copy p {
+  color: var(--vw-text-dim) !important;
+}
+
+/* ---------- stat numbers / highlights ---------- */
+html body .hero-stats b, html body .market-meta b,
+html body .wallet-balance strong {
+  color: #FFFFFF !important;
+  text-shadow: 0 0 14px rgba(0, 212, 255, .35);
+}
+
+/* ---------- dots, badges, live indicators ---------- */
+html body .dot, html body .pulse-dot, html body .combat-live-dot {
+  background: var(--vw-accent) !important;
+  box-shadow: 0 0 12px var(--vw-accent) !important;
+}
+
+/* ---------- footers ---------- */
+html body footer {
+  border-top: 1px solid var(--vw-border-soft) !important;
+  color: var(--vw-text-faint) !important;
+}
+
+/* ---------- scrollbars ---------- */
+html body ::-webkit-scrollbar { width: 10px; height: 10px; }
+html body ::-webkit-scrollbar-track { background: var(--vw-bg-deep); }
+html body ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(0, 212, 255, .4), rgba(0, 144, 255, .4));
+  border-radius: 8px;
+}

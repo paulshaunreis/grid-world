@@ -4,6 +4,7 @@
 //
 // Usage: <script type="module" src="/src/nav.ts"></script>
 import './theme/accent.css';
+import './vibrant-theme.css';
 import { createAccentPicker } from './theme/accent';
 import { requireAccess, getAccessLevel } from './auth/accessGate';
 import { mountGlobalNav } from './components/GlobalNav';

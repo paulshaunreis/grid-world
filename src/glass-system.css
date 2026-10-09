@@ -1,25 +1,25 @@
-/* GridWorld Glass Design System — one continuous language for site + in-world UI.
-   Tokens from src/ui/grid-effects.css "transparency pass: glassmorphism".
-   Frosted glass panels float over the world's art; light type over strong blur. */
+/* GridWorld VIBRANT Design System — Paul 2026-10-08.
+   AAA game-launcher dashboard: rich navy, electric cyan glows,
+   rounded glowing panels. Replaces the old muted glass. */
 
 :root {
-  --glass-deep: rgba(4, 9, 16, .78);
-  --glass-panel: rgba(8, 13, 21, .82);
-  --glass-light: rgba(3, 9, 16, .55);
-  --glass-dim: rgba(2, 5, 10, .55);
-  --glass-border: rgba(100, 220, 255, .22);
-  --glass-border-soft: rgba(100, 220, 255, .14);
-  --glass-glow: inset 0 1px 0 rgba(180, 240, 255, .07), inset 0 0 32px rgba(80, 210, 255, .05);
-  --glass-text: #eaf8ff;
-  --glass-text-dim: #9db4c8;
-  --glass-accent: #66eaff;
+  --glass-deep: rgba(10, 22, 40, .88);
+  --glass-panel: rgba(13, 27, 51, .9);
+  --glass-light: rgba(10, 22, 40, .72);
+  --glass-dim: rgba(6, 13, 26, .72);
+  --glass-border: rgba(0, 212, 255, .34);
+  --glass-border-soft: rgba(0, 212, 255, .16);
+  --glass-glow: inset 0 1px 0 rgba(255, 255, 255, .07), inset 0 0 32px rgba(0, 212, 255, .06);
+  --glass-text: #ffffff;
+  --glass-text-dim: #b9d5ec;
+  --glass-accent: #00d4ff;
 }
 
 .glass-deep, .glass-panel, .glass-card, .glass-light {
   color: var(--glass-text);
   border: 1px solid var(--glass-border);
-  border-radius: 18px;
-  box-shadow: var(--glass-glow), 0 24px 70px rgba(0, 0, 0, .42);
+  border-radius: 14px;
+  box-shadow: var(--glass-glow), 0 18px 55px rgba(0, 0, 0, .45), 0 0 24px rgba(0, 212, 255, .1);
 }
 
 /* Image-based glass: real glass photography layered over the frosted base.
@@ -61,8 +61,8 @@
 }
 .glass-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(100, 220, 255, .45);
-  box-shadow: var(--glass-glow), 0 30px 80px rgba(0, 0, 0, .5), 0 0 34px rgba(90, 220, 255, .12);
+  border-color: rgba(0, 212, 255, .6);
+  box-shadow: var(--glass-glow), 0 24px 70px rgba(0, 0, 0, .5), 0 0 38px rgba(0, 212, 255, .22);
 }
 
 .glass-card .card-art {
@@ -99,26 +99,25 @@
 }
 
 .glass-btn {
-  font: 700 10px 'IBM Plex Mono', monospace;
-  letter-spacing: .14em;
-  color: #eaffff;
-  background:
-    url('/ui/glass-button.webp') center / cover no-repeat,
-    rgba(55, 190, 230, .12);
-  border: 1px solid rgba(100, 230, 255, .45);
-  border-radius: 10px;
-  padding: 10px 16px;
+  font: 800 11px 'Space Grotesk', system-ui, sans-serif;
+  letter-spacing: .1em;
+  color: #04121a;
+  background: linear-gradient(135deg, #00d4ff, #0090ff);
+  border: 1px solid rgba(0, 212, 255, .7);
+  border-radius: 999px;
+  padding: 12px 26px;
   cursor: pointer;
-  transition: box-shadow .18s ease, border-color .18s ease, background-color .18s ease, transform .12s ease;
+  box-shadow: 0 0 26px rgba(0, 212, 255, .45), inset 0 1px 0 rgba(255, 255, 255, .35);
+  transition: box-shadow .18s ease, filter .18s ease, transform .12s ease;
 }
 .glass-btn:hover {
-  border-color: #66eaff;
-  box-shadow: 0 0 22px rgba(90, 220, 255, .25);
+  filter: brightness(1.12);
+  box-shadow: 0 0 40px rgba(0, 212, 255, .65), inset 0 1px 0 rgba(255, 255, 255, .4);
   transform: translateY(-1px);
 }
 
 .glass-input {
-  background: rgba(3, 9, 16, .6);
+  background: rgba(6, 13, 26, .85);
   border: 1px solid var(--glass-border-soft);
   border-radius: 10px;
   color: var(--glass-text);
