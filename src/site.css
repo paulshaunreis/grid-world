@@ -280,7 +280,7 @@ html[data-site-style="aurora"] h1,html[data-site-style="aurora"] h2,html[data-si
 .header-user-dropdown a,.header-user-dropdown button{display:block;width:100%;text-align:left;padding:10px 12px;font-size:12px;letter-spacing:.06em;color:#bdc9d5;background:none;border:0;border-radius:4px;cursor:pointer;text-decoration:none}
 .header-user-dropdown a:hover,.header-user-dropdown button:hover{background:rgba(66,233,255,.08);color:#fff}
 .header-user-dropdown button{font:inherit}
-.hero{min-height:clamp(650px,78vh,900px);padding:clamp(72px,9vw,130px) 7vw;background:#06101d url('/art/grid-page-atlas.svg') center/cover no-repeat;border-bottom:1px solid rgba(87,224,255,.24)}
+.hero{min-height:clamp(650px,78vh,900px);padding:clamp(72px,9vw,130px) 7vw;background:#06101d url('/art/grid-page-atlas.webp') center/cover no-repeat;border-bottom:1px solid rgba(87,224,255,.24)}
 .hero::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(3,10,19,.94) 0%,rgba(3,10,19,.76) 36%,rgba(3,10,19,.2) 72%,rgba(3,10,19,.42) 100%);z-index:0}
 .hero-art{position:absolute;inset:0;background:radial-gradient(ellipse at 70% 55%,rgba(49,220,255,.16),transparent 40%);z-index:1;pointer-events:none}
 .hero-image-proof{position:absolute;right:4%;top:15%;width:min(49%,900px);height:72%;object-fit:cover;object-position:center;border:1px solid rgba(103,230,255,.32);border-radius:14px;opacity:.68;mask-image:linear-gradient(90deg,transparent 0%,#000 20%);box-shadow:0 28px 90px rgba(0,0,0,.38)}

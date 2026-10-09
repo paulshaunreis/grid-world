@@ -40,7 +40,7 @@ const auth = new GridAuthService(client);
 async function render() {
   const user = await auth.currentUser();
   if (!user) {
-    app.innerHTML = `<div class="grid-page-wrap"><h1>Account Settings</h1><p class="lede">You're not signed in.</p><p><a href="/signin.html" style="color:#00e5ff">Sign in →</a></p></div>`;
+    app.innerHTML = `<div class="grid-page-wrap"><h1>Account Settings</h1><p class="lede">You're not signed in.</p><p><a href="/enter.html" style="color:#00e5ff">Sign in →</a></p></div>`;
     return;
   }
   const profile = await auth.profile().catch(() => null);

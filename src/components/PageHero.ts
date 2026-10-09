@@ -17,12 +17,6 @@ const HEROES: Record<string, HeroDef> = {
     title: 'Beta Program',
     sub: 'Help shape the world before it opens.',
   },
-  '/signin.html': {
-    img: '/heroes/signin-gate.webp',
-    eyebrow: 'CITIZEN ACCESS',
-    title: 'Sign In',
-    sub: 'Return to the Grid.',
-  },
   '/join.html': {
     img: '/heroes/join-vista.webp',
     eyebrow: 'NEW CITIZENS',

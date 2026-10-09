@@ -113,7 +113,7 @@ app.innerHTML = `
       <div class="site-theme-picker" id="site-theme-picker" title="Interface accent — synced live with the game"></div>
       <button class="ghost style-trigger" id="style-trigger" type="button">STYLE</button><button class="operator-trigger" id="operator-trigger" type="button">GRID OPERATOR</button>
       <button class="ghost" id="site-qr" type="button">QR</button>
-      <a class="ghost" href="/signin.html" id="header-signin-btn">SIGN IN</a><a class="primary" href="/play.html">PREVIEW BUILD</a>
+      <a class="ghost" href="/enter.html" id="header-signin-btn">SIGN IN</a><a class="primary" href="/play.html">PREVIEW BUILD</a>
     </div>
   </div>
   <div class="site-live-clock" id="site-live-clock" aria-live="polite">GRID SIGNAL · <span>SYNCING</span></div>
@@ -127,7 +127,7 @@ app.innerHTML = `
     <section class="hero" id="home">
       <div class="visual-build-badge">GRID WORLD · VISUAL BUILD · CONCEPT PREVIEW</div>
       <div class="hero-art" aria-hidden="true"></div>
-      <img class="hero-image-proof" src="/art/grid-page-atlas.svg" alt="Grid World concept art showing multiple connected living worlds">
+      <img class="hero-image-proof" src="/art/grid-page-atlas.webp" alt="Grid World concept art showing multiple connected living worlds">
       <div class="hero-grid"></div>
       <div class="hero-copy">
         <div class="eyebrow">A PERSISTENT FRAMEWORK FOR WORLDS</div>
@@ -147,9 +147,9 @@ app.innerHTML = `
       <div class="section-label">GRID WORLD · CONCEPT ATLAS</div>
       <div class="concept-gallery-head"><h2>Real places.<br><span>Real visual language.</span></h2><p>Grid World now carries its concept art directly through the public surface and into the 3D world. These local assets are part of the product—not decorative placeholders.</p></div>
       <div class="concept-gallery-grid">
-        <figure><img src="/grid-concept-first-light.svg" alt="First Light concept art"><figcaption><b>FIRST LIGHT</b><span>Entry world · living systems</span></figcaption></figure>
-        <figure><img src="/grid-concept-living-wilds.svg" alt="Living Wilds concept art"><figcaption><b>LIVING WILDS</b><span>Ecology · creatures · terrain</span></figcaption></figure>
-        <figure><img src="/grid-concept-civic.svg" alt="Civic concept art"><figcaption><b>CIVIC</b><span>Architecture · community · transit</span></figcaption></figure>
+        <figure><img src="/grid-concept-first-light.webp" alt="First Light concept art"><figcaption><b>FIRST LIGHT</b><span>Entry world · living systems</span></figcaption></figure>
+        <figure><img src="/grid-concept-living-wilds.webp" alt="Living Wilds concept art"><figcaption><b>LIVING WILDS</b><span>Ecology · creatures · terrain</span></figcaption></figure>
+        <figure><img src="/grid-concept-civic.webp" alt="Civic concept art"><figcaption><b>CIVIC</b><span>Architecture · community · transit</span></figcaption></figure>
       </div>
     </section>
 
@@ -185,7 +185,7 @@ app.innerHTML = `
 
     <section class="studio-live" id="studio-live">
       <div class="studio-live-head"><div><div class="section-label">PUBLIC STUDIO SIGNAL</div><h2>The world is being<br><span>built in front of you.</span></h2><p>Team members can publish the parts of the build they are comfortable sharing. These are the current public workstreams.</p></div><div class="studio-live-badge"><span></span> BUILD IN PROGRESS</div></div>
-      <div class="studio-live-art"><img src="/art/team-studio.svg" alt="" aria-hidden="true"></div><div class="studio-live-grid" id="studio-live-grid"></div>
+      <div class="studio-live-art"><img src="/art/team-studio.webp" alt="" aria-hidden="true"></div><div class="studio-live-grid" id="studio-live-grid"></div>
     </section>
 
     <section class="living-atlas" id="living-world">
@@ -243,7 +243,7 @@ app.innerHTML = `
     </section>
 
     <section class="combat-feature" id="combat">
-      <div class="combat-art"><img src="/art/combat-system.svg" alt="Grid Combat system concept art"></div>
+      <div class="combat-art"><img src="/art/combat-system.webp" alt="Grid Combat system concept art"></div>
       <div class="combat-copy">
         <div class="section-label">GRID COMBAT · NEW</div>
         <h2>Conflict has<br><span>rules.</span></h2>

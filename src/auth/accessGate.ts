@@ -16,7 +16,7 @@ const PUBLIC_PATHS = new Set([
   '/home.html',
   '/beta.html',
   '/join.html',
-  '/signin.html',
+  '/enter.html',
   '/confirmed.html',
   '/recover.html',
   '/store.html',
