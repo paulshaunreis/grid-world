@@ -429,6 +429,16 @@ if (!supabaseConfigured || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
       if (error) throw error;
 
       if (!data.session) {
+        // Email confirmation required — save profile data so confirmed.html
+        // can complete the full setup (profile, private data, security Qs)
+        // after the user clicks the confirmation link.
+        try {
+          localStorage.setItem('gridworld:pending-profile', JSON.stringify({
+            firstIrl: state.firstIrl, lastIrl: state.lastIrl,
+            handle: state.handle, country: state.country, dob: state.dob,
+            sq: state.sq, avatarStyle: typeof avatarStyle !== 'undefined' ? avatarStyle : null,
+          }));
+        } catch {}
         setStatus(`Check ${state.email} for a confirmation link.`, 'ok');
         btn.textContent = 'CHECK YOUR EMAIL ✓';
         return;

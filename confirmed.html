@@ -64,12 +64,65 @@
       <div class="confirm-kicker">GRID WORLD // OFFICIAL</div>
       <div class="confirm-icon">✦</div>
       <h1>Email confirmed.<br>Welcome to the Grid.</h1>
-      <p>Your account is verified by Grid World. Taking you to the official entry…</p>
+      <p id="setup-status">Setting up your profile…</p>
       <div class="confirm-actions">
         <a class="confirm-primary" href="/enter.html">ENTER GRID WORLD →</a>
       </div>`;
-    // Auto-redirect to the official Enter page
-    setTimeout(() => { window.location.href = '/enter.html'; }, 3500);
+    // Complete any pending profile setup from join.ts, then redirect
+    completePendingProfile().finally(() => {
+      setTimeout(() => { window.location.href = '/enter.html'; }, 3500);
+    });
+  }
+
+  async function hashAnswer(a) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(a.toLowerCase().trim()));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  async function completePendingProfile() {
+    const statusEl = document.getElementById('setup-status');
+    let pending = null;
+    try { pending = JSON.parse(localStorage.getItem('gridworld:pending-profile') || 'null'); } catch {}
+    if (!pending) return; // nothing pending (e.g. session existed at signup)
+
+    const client = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+    const { data: { user } } = await client.auth.getUser();
+    if (!user) return;
+
+    try {
+      if (statusEl) statusEl.textContent = 'Setting up your profile…';
+      // Public profile: handle + display name
+      await client.from('profiles').upsert({
+        id: user.id,
+        username: pending.handle,
+        display_name: pending.handle,
+      }, { onConflict: 'id' });
+
+      // Private IRL data: owner-only table
+      await client.from('private_profiles').upsert({
+        user_id: user.id,
+        first_name_irl: pending.firstIrl || null,
+        last_name_irl: pending.lastIrl || null,
+        country_code: pending.country || null,
+        date_of_birth: pending.dob || null,
+      }, { onConflict: 'user_id' });
+
+      // Security questions
+      if (pending.sq && pending.sq.length === 3) {
+        await client.from('grid_security_questions').insert({
+          user_id: user.id,
+          q1_text: pending.sq[0].q, q1_hash: await hashAnswer(pending.sq[0].a),
+          q2_text: pending.sq[1].q, q2_hash: await hashAnswer(pending.sq[1].a),
+          q3_text: pending.sq[2].q, q3_hash: await hashAnswer(pending.sq[2].a),
+        });
+      }
+
+      localStorage.removeItem('gridworld:pending-profile');
+      if (statusEl) statusEl.textContent = 'Your profile is ready. Taking you to the official entry…';
+    } catch (e) {
+      console.error('Profile setup failed:', e);
+      if (statusEl) statusEl.textContent = 'Profile setup needs attention — you can finish it in Account Settings.';
+    }
   }
 
   async function handleConfirmation() {
