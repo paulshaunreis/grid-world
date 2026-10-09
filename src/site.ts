@@ -1,4 +1,5 @@
 import './site.css';
+import './dashboard.css';
 import './theme/grid-theme.css';
 import './site-asset-health';
 import { QRScanner } from './ui/QRScanner';
@@ -16,6 +17,7 @@ import {
 import { DISTRICT_IDENTITIES } from './theme/districts';
 import { mountGlobalNav } from './components/GlobalNav';
 import { mountLanguagePicker } from './components/LanguagePicker';
+import { renderDashboard } from './components/Dashboard';
 
 /* Region cards render from the canonical district table (src/theme/districts.ts)
    so the site and the in-world districts can never drift apart. */
@@ -143,11 +145,13 @@ app.innerHTML = `
       <div class="hero-orb"><div class="orb-ring r1"></div><div class="orb-ring r2"></div><div class="orb-core">GRID<br><small>FIRST LIGHT</small></div><div class="orb-caption">CONCEPT · IN-WORLD TRANSIT LENS</div></div>
     </section>
 
+    ${renderDashboard()}
+
     <section class="concept-gallery" id="concept-art">
       <div class="section-label">GRID WORLD · CONCEPT ATLAS</div>
       <div class="concept-gallery-head"><h2>Real places.<br><span>Real visual language.</span></h2><p>Grid World now carries its concept art directly through the public surface and into the 3D world. These local assets are part of the product—not decorative placeholders.</p></div>
       <div class="concept-gallery-grid">
-        <figure><img src="/grid-concept-first-light.webp" alt="First Light concept art"><figcaption><b>FIRST LIGHT</b><span>Entry world · living systems</span></figcaption></figure>
+        <figure><a href="/play.html"><img src="/grid-concept-first-light.webp" alt="First Light concept art"></a><figcaption><b>FIRST LIGHT</b><span>Entry world · living systems</span></figcaption></figure>
         <figure><img src="/grid-concept-living-wilds.webp" alt="Living Wilds concept art"><figcaption><b>LIVING WILDS</b><span>Ecology · creatures · terrain</span></figcaption></figure>
         <figure><img src="/grid-concept-civic.webp" alt="Civic concept art"><figcaption><b>CIVIC</b><span>Architecture · community · transit</span></figcaption></figure>
       </div>

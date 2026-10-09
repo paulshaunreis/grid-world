@@ -25,7 +25,7 @@ const NAV_TOPICS: NavTopic[] = [
     label: 'WORLD',
     items: [
       { label: 'Play', href: '/play.html' },
-      { label: 'Regions', href: '/directory.html' },
+      { label: 'Regions', href: '/#dashboard' },
       { label: 'Map', href: '/omni.html' },
       { label: 'Enter the Grid', href: '/enter.html' },
     ],
