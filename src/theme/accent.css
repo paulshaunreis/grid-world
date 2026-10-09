@@ -1,31 +1,37 @@
 /* Grid World website theming — Paul's direction 2026-10-08.
  *
- * 11 styles, Windows-Settings quality: Grayscale (default), Red, Orange,
- * Yellow, Green, Blue, Indigo, Violet, Pink, Black (dark), White (light).
+ * Windows-Settings quality personalization: grayscale-neutral base option,
+ * Paul's NAMED accent lineup, rainbow colors, plus Black (dark) and
+ * White (light) full variants.
+ *
+ * Named accents (marketplace skin names — Paul 2026-10-08):
+ *   Cyan Pulse (default, free), Violet Rift, Magma Core,
+ *   Ghost White, Acid Green, Ember Gold (gated behind progression).
  *
  * Each theme is a COMPLETE palette — not a hue-swap. Every theme defines:
  *   primary accent + secondary accent (harmonious: analogous/complementary),
  *   background tints, border colors, glow effects, and contrast-checked text.
  * Readability is non-negotiable: WCAG AA contrast minimum on all text.
  *
- * - Grayscale is the default: clean neutral, no color tint.
+ * - Cyan Pulse is the default: the concept-art look (electric cyan on rich navy).
+ * - Grayscale is the neutral option: clean neutral, no color tint.
  * - Rainbow colors restyle accents + subtle background tints.
  * - Black / White are FULL variants: they invert the entire surface.
  *
- * Usage: <html data-accent="grayscale"> (default).
+ * Usage: <html data-accent="cyan-pulse"> (default).
  * JS: src/theme/accent.ts — localStorage key "gridworld:accent".
  *
  * Variables (use these, never hardcoded colors):
  *   Surfaces: --gw-bg, --gw-panel, --gw-panel-2, --gw-border,
  *             --gw-text, --gw-muted, --gw-radius
- *   Accents:  --accent, --accent-2, --accent-dim,
+ *   Accents:  --accent, --accent-rgb, --accent-2, --accent-dim,
  *             --accent-glow, --accent-border, --accent-soft,
  *             --on-accent, --accent-gradient
  */
 
-/* ================= VIBRANT BLUE (default) =================
+/* ================= CYAN PULSE (default) =================
  * Paul 2026-10-08 concept art: rich navy, electric cyan, glowing panels.
- * AAA game-launcher dashboard aesthetic. */
+ * AAA game-launcher dashboard aesthetic. Free for everyone. */
 :root {
   --gw-bg: #0a1628;
   --gw-panel: rgba(13, 27, 51, .92);
@@ -44,6 +50,137 @@
   --accent-soft: rgba(0, 212, 255, .08);
   --on-accent: #04121a;
   --accent-gradient: linear-gradient(135deg, #00d4ff, #0090ff);
+}
+
+/* ================= GRAYSCALE (neutral) =================
+ * Clean neutral. Silver accents on charcoal. No color tint. */
+html[data-accent="grayscale"] {
+  --gw-bg: #07090d;
+  --gw-panel: rgba(17, 20, 26, .88);
+  --gw-panel-2: rgba(23, 28, 37, .92);
+  --gw-border: rgba(165, 175, 190, .18);
+  --gw-text: #eceff3;
+  --gw-muted: #9aa3b0;
+
+  --accent: #c9ced6;
+  --accent-rgb: 201, 206, 214;
+  --accent-2: #8a919b;
+  --accent-dim: #a8aeb8;
+  --accent-glow: rgba(201, 206, 214, .25);
+  --accent-border: rgba(201, 206, 214, .28);
+  --accent-soft: rgba(201, 206, 214, .07);
+  --on-accent: #14171c;
+  --accent-gradient: linear-gradient(180deg, #e2e6eb, #9aa1ac);
+}
+
+/* ================= VIOLET RIFT =================
+ * Deep violet-tinted bg. Violet + magenta secondary (analogous).
+ * Gated behind progression (marketplace skin). */
+html[data-accent="violet-rift"] {
+  --gw-bg: #0b0716;
+  --gw-panel: rgba(24, 16, 48, .92);
+  --gw-panel-2: rgba(30, 20, 60, .95);
+  --gw-border: rgba(139, 92, 246, .16);
+  --gw-text: #ffffff;
+  --gw-muted: #c9bdf0;
+
+  --accent: #8B5CF6;
+  --accent-rgb: 139, 92, 246;
+  --accent-2: #d946ef;
+  --accent-dim: #c4b5fd;
+  --accent-glow: rgba(139, 92, 246, .35);
+  --accent-border: rgba(139, 92, 246, .32);
+  --accent-soft: rgba(139, 92, 246, .08);
+  --on-accent: #100a2a;
+  --accent-gradient: linear-gradient(135deg, #a78bfa, #7c3aed);
+}
+
+/* ================= MAGMA CORE =================
+ * Volcanic dark bg. Ember orange + amber secondary (analogous).
+ * Gated behind progression (marketplace skin). */
+html[data-accent="magma-core"] {
+  --gw-bg: #120806;
+  --gw-panel: rgba(44, 18, 12, .92);
+  --gw-panel-2: rgba(54, 22, 14, .95);
+  --gw-border: rgba(255, 90, 46, .16);
+  --gw-text: #ffffff;
+  --gw-muted: #f0cdbd;
+
+  --accent: #FF5A2E;
+  --accent-rgb: 255, 90, 46;
+  --accent-2: #ffb347;
+  --accent-dim: #ff9d7a;
+  --accent-glow: rgba(255, 90, 46, .35);
+  --accent-border: rgba(255, 90, 46, .32);
+  --accent-soft: rgba(255, 90, 46, .08);
+  --on-accent: #2a0d04;
+  --accent-gradient: linear-gradient(135deg, #ff7a4d, #e0341a);
+}
+
+/* ================= GHOST WHITE =================
+ * Near-black bg, spectral white accents. High-contrast minimal.
+ * Gated behind progression (marketplace skin). */
+html[data-accent="ghost-white"] {
+  --gw-bg: #0a0c10;
+  --gw-panel: rgba(24, 28, 36, .92);
+  --gw-panel-2: rgba(30, 35, 44, .95);
+  --gw-border: rgba(242, 245, 249, .14);
+  --gw-text: #ffffff;
+  --gw-muted: #c3cad4;
+
+  --accent: #F2F5F9;
+  --accent-rgb: 242, 245, 249;
+  --accent-2: #aeb8c4;
+  --accent-dim: #ffffff;
+  --accent-glow: rgba(242, 245, 249, .28);
+  --accent-border: rgba(242, 245, 249, .3);
+  --accent-soft: rgba(242, 245, 249, .07);
+  --on-accent: #14171c;
+  --accent-gradient: linear-gradient(180deg, #ffffff, #b9c1cb);
+}
+
+/* ================= ACID GREEN =================
+ * Toxic dark bg. Lime + teal secondary (analogous).
+ * Gated behind progression (marketplace skin). */
+html[data-accent="acid-green"] {
+  --gw-bg: #0a0f06;
+  --gw-panel: rgba(20, 32, 14, .92);
+  --gw-panel-2: rgba(26, 40, 18, .95);
+  --gw-border: rgba(163, 230, 53, .16);
+  --gw-text: #ffffff;
+  --gw-muted: #d3e8b8;
+
+  --accent: #A3E635;
+  --accent-rgb: 163, 230, 53;
+  --accent-2: #2dd4bf;
+  --accent-dim: #d9f99d;
+  --accent-glow: rgba(163, 230, 53, .32);
+  --accent-border: rgba(163, 230, 53, .3);
+  --accent-soft: rgba(163, 230, 53, .08);
+  --on-accent: #16220a;
+  --accent-gradient: linear-gradient(135deg, #bef264, #65a30d);
+}
+
+/* ================= EMBER GOLD =================
+ * Dark ember bg. Gold + tangerine secondary (analogous warm).
+ * Gated behind progression (marketplace skin). */
+html[data-accent="ember-gold"] {
+  --gw-bg: #100c06;
+  --gw-panel: rgba(36, 26, 12, .92);
+  --gw-panel-2: rgba(44, 32, 15, .95);
+  --gw-border: rgba(245, 185, 66, .16);
+  --gw-text: #ffffff;
+  --gw-muted: #ecdcb8;
+
+  --accent: #F5B942;
+  --accent-rgb: 245, 185, 66;
+  --accent-2: #ff8c2e;
+  --accent-dim: #ffd98a;
+  --accent-glow: rgba(245, 185, 66, .32);
+  --accent-border: rgba(245, 185, 66, .3);
+  --accent-soft: rgba(245, 185, 66, .08);
+  --on-accent: #2a1a04;
+  --accent-gradient: linear-gradient(135deg, #ffcf6e, #d98a1a);
 }
 
 /* ================= RED =================

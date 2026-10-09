@@ -7,19 +7,19 @@
   --glass-panel: rgba(13, 27, 51, .9);
   --glass-light: rgba(10, 22, 40, .72);
   --glass-dim: rgba(6, 13, 26, .72);
-  --glass-border: rgba(0, 212, 255, .34);
-  --glass-border-soft: rgba(0, 212, 255, .16);
-  --glass-glow: inset 0 1px 0 rgba(255, 255, 255, .07), inset 0 0 32px rgba(0, 212, 255, .06);
+  --glass-border: var(--accent-border);
+  --glass-border-soft: rgba(var(--accent-rgb), .16);
+  --glass-glow: inset 0 1px 0 rgba(255, 255, 255, .07), inset 0 0 32px rgba(var(--accent-rgb), .06);
   --glass-text: #ffffff;
   --glass-text-dim: #b9d5ec;
-  --glass-accent: #00d4ff;
+  --glass-accent: var(--accent);
 }
 
 .glass-deep, .glass-panel, .glass-card, .glass-light {
   color: var(--glass-text);
   border: 1px solid var(--glass-border);
   border-radius: 14px;
-  box-shadow: var(--glass-glow), 0 18px 55px rgba(0, 0, 0, .45), 0 0 24px rgba(0, 212, 255, .1);
+  box-shadow: var(--glass-glow), 0 18px 55px rgba(0, 0, 0, .45), 0 0 24px rgba(var(--accent-rgb), .1);
 }
 
 /* Image-based glass: real glass photography layered over the frosted base.
@@ -61,8 +61,8 @@
 }
 .glass-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(0, 212, 255, .6);
-  box-shadow: var(--glass-glow), 0 24px 70px rgba(0, 0, 0, .5), 0 0 38px rgba(0, 212, 255, .22);
+  border-color: rgba(var(--accent-rgb), .6);
+  box-shadow: var(--glass-glow), 0 24px 70px rgba(0, 0, 0, .5), 0 0 38px rgba(var(--accent-rgb), .22);
 }
 
 .glass-card .card-art {
@@ -101,18 +101,18 @@
 .glass-btn {
   font: 800 11px 'Space Grotesk', system-ui, sans-serif;
   letter-spacing: .1em;
-  color: #04121a;
-  background: linear-gradient(135deg, #00d4ff, #0090ff);
-  border: 1px solid rgba(0, 212, 255, .7);
+  color: var(--on-accent);
+  background: var(--accent-gradient);
+  border: 1px solid rgba(var(--accent-rgb), .7);
   border-radius: 999px;
   padding: 12px 26px;
   cursor: pointer;
-  box-shadow: 0 0 26px rgba(0, 212, 255, .45), inset 0 1px 0 rgba(255, 255, 255, .35);
+  box-shadow: 0 0 26px rgba(var(--accent-rgb), .45), inset 0 1px 0 rgba(255, 255, 255, .35);
   transition: box-shadow .18s ease, filter .18s ease, transform .12s ease;
 }
 .glass-btn:hover {
   filter: brightness(1.12);
-  box-shadow: 0 0 40px rgba(0, 212, 255, .65), inset 0 1px 0 rgba(255, 255, 255, .4);
+  box-shadow: 0 0 40px rgba(var(--accent-rgb), .65), inset 0 1px 0 rgba(255, 255, 255, .4);
   transform: translateY(-1px);
 }
 

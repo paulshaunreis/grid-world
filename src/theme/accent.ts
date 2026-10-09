@@ -1,6 +1,9 @@
 /* Grid World style picker — Paul's direction 2026-10-08.
- * 11 styles: Grayscale (default), Red, Orange, Yellow, Green, Blue, Indigo,
- * Violet, Pink, Black (dark), White (light).
+ * Named accent lineup + neutrals + rainbow: Cyan Pulse (default, free),
+ * Violet Rift, Magma Core, Ghost White, Acid Green, Ember Gold
+ * (named ones gated behind progression), Grayscale (neutral),
+ * Red, Orange, Yellow, Green, Blue, Indigo, Violet, Pink,
+ * Black (dark), White (light).
  *
  * Windows-Settings quality: clean swatch picker, instant preview,
  * persists across sessions via localStorage key "gridworld:accent".
@@ -14,11 +17,19 @@ export interface AccentTheme {
   name: string;
   /** CSS background for the swatch dot (shows primary + secondary). */
   swatch: string;
+  /** Named marketplace-skin accents are gated behind progression. */
+  gated?: boolean;
 }
 
 export const ACCENT_KEY = 'gridworld:accent';
 
 export const ACCENT_THEMES: AccentTheme[] = [
+  { id: 'cyan-pulse', name: 'Cyan Pulse', swatch: 'linear-gradient(135deg,#00D4FF 0%,#00D4FF 50%,#6f9dff 50%,#6f9dff 100%)' },
+  { id: 'violet-rift', name: 'Violet Rift', swatch: 'linear-gradient(135deg,#8B5CF6 0%,#8B5CF6 50%,#d946ef 50%,#d946ef 100%)', gated: true },
+  { id: 'magma-core', name: 'Magma Core', swatch: 'linear-gradient(135deg,#FF5A2E 0%,#FF5A2E 50%,#ffb347 50%,#ffb347 100%)', gated: true },
+  { id: 'ghost-white', name: 'Ghost White', swatch: 'linear-gradient(135deg,#F2F5F9 0%,#F2F5F9 50%,#aeb8c4 50%,#aeb8c4 100%)', gated: true },
+  { id: 'acid-green', name: 'Acid Green', swatch: 'linear-gradient(135deg,#A3E635 0%,#A3E635 50%,#2dd4bf 50%,#2dd4bf 100%)', gated: true },
+  { id: 'ember-gold', name: 'Ember Gold', swatch: 'linear-gradient(135deg,#F5B942 0%,#F5B942 50%,#ff8c2e 50%,#ff8c2e 100%)', gated: true },
   { id: 'grayscale', name: 'Grayscale', swatch: 'linear-gradient(135deg,#e8ebef 0%,#e8ebef 50%,#6a7078 50%,#6a7078 100%)' },
   { id: 'red',       name: 'Red',       swatch: 'linear-gradient(135deg,#ff5252 0%,#ff5252 50%,#ff9a5c 50%,#ff9a5c 100%)' },
   { id: 'orange',    name: 'Orange',    swatch: 'linear-gradient(135deg,#ff8c2e 0%,#ff8c2e 50%,#ffc44d 50%,#ffc44d 100%)' },
@@ -37,7 +48,7 @@ export function currentAccent(): string {
     const saved = localStorage.getItem(ACCENT_KEY);
     if (saved && ACCENT_THEMES.some(t => t.id === saved)) return saved;
   } catch { /* storage unavailable */ }
-  return 'grayscale';
+  return 'cyan-pulse';
 }
 
 /* ---------- 3D engine bridge (Paul 2026-10-08) ----------
@@ -51,6 +62,12 @@ export function currentAccent(): string {
 export const HUD_THEME_KEY = 'grid-world:hud-theme';
 
 export const ACCENT_TO_HUD: Record<string, string> = {
+  'cyan-pulse': 'cyan',     /* Cyan Pulse — engine default */
+  'violet-rift': 'violet',  /* Violet Rift */
+  'magma-core': 'crimson',  /* Magma Core (closest warm) */
+  'ghost-white': 'white',   /* Ghost White — neutral */
+  'acid-green': 'emerald',  /* Acid Green (closest) */
+  'ember-gold': 'amber',    /* Ember Gold */
   grayscale: 'white',   /* Ghost White — neutral */
   red:       'crimson',  /* Crimson Core */
   orange:    'amber',    /* Amber Signal */
@@ -73,7 +90,7 @@ export function syncHudTheme(accentId: string): void {
 }
 
 export function applyAccent(id: string): void {
-  if (!ACCENT_THEMES.some(t => t.id === id)) id = 'grayscale';
+  if (!ACCENT_THEMES.some(t => t.id === id)) id = 'cyan-pulse';
   document.documentElement.dataset.accent = id;
   try { localStorage.setItem(ACCENT_KEY, id); } catch { /* ignore */ }
   syncHudTheme(id);

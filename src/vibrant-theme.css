@@ -1,65 +1,63 @@
 /* ============================================================
    GridWorld VIBRANT theme — Paul 2026-10-08.
    Matches the concept art: AAA game-launcher dashboard aesthetic.
-   Rich dark navy (NOT black), electric cyan glows, rounded glowing
-   panels, pill buttons, bold white type with cyan highlights.
+   Bold rounded panels, pill buttons, impactful white type.
+
+   GRAYSCALE-FIRST architecture (Paul's standing rule):
+   - Base surfaces are grayscale-driven: --gw-bg, --gw-panel, --gw-panel-2,
+     --gw-border, --gw-text, --gw-muted.
+   - ALL color comes from the accent system: --accent, --accent-rgb,
+     --accent-2, --accent-dim, --accent-glow, --accent-border,
+     --accent-soft, --on-accent, --accent-gradient.
+   - The concept art's electric cyan is the Cyan Pulse DEFAULT accent
+     (see src/theme/accent.css) — never hardcoded here. Pick Violet Rift
+     and every glow/border/button follows. Pick the White theme and the
+     canvas goes light while accents keep working.
 
    Loaded via nav.ts so it applies to EVERY page, after page CSS.
    Uses higher-specificity selectors to win over muted styles.
    ============================================================ */
 
-:root {
-  --vw-bg: #0A1628;
-  --vw-bg-deep: #060D1A;
-  --vw-bg-panel: #0D1B33;
-  --vw-bg-panel2: #102341;
-  --vw-accent: #00D4FF;
-  --vw-accent-bright: #4DE8FF;
-  --vw-accent-deep: #0090FF;
-  --vw-violet: #7B61FF;
-  --vw-amber: #FFB347;
-  --vw-text: #FFFFFF;
-  --vw-text-dim: #B9D5EC;
-  --vw-text-faint: #7E96B3;
-  --vw-border: rgba(0, 212, 255, .32);
-  --vw-border-soft: rgba(0, 212, 255, .16);
-  --vw-glow-sm: 0 0 16px rgba(0, 212, 255, .22);
-  --vw-glow-md: 0 0 28px rgba(0, 212, 255, .32);
-  --vw-panel-shadow: 0 18px 55px rgba(0, 0, 0, .45), 0 0 24px rgba(0, 212, 255, .10);
-}
-
-/* ---------- page canvas: rich navy, never black ---------- */
-html body,
-body.grid-world-page,
-body {
+/* ---------- page canvas ----------
+   Dark themes: rich tinted base + subtle accent wash.
+   White theme: light base, no dark wash. */
+html:not([data-accent="white"]) body,
+html:not([data-accent="white"]) body.grid-world-page,
+body.grid-world-page {
   background:
-    radial-gradient(circle at 15% 8%, rgba(0, 120, 200, .14), transparent 32%),
-    radial-gradient(circle at 88% 90%, rgba(123, 97, 255, .10), transparent 30%),
-    radial-gradient(circle at 70% 20%, rgba(0, 212, 255, .07), transparent 28%),
-    var(--vw-bg) !important;
-  color: var(--vw-text);
+    radial-gradient(circle at 15% 8%, rgba(var(--accent-rgb), .10), transparent 32%),
+    radial-gradient(circle at 88% 90%, rgba(var(--accent-rgb), .06), transparent 30%),
+    radial-gradient(circle at 70% 20%, rgba(var(--accent-rgb), .05), transparent 28%),
+    var(--gw-bg) !important;
+  color: var(--gw-text);
+}
+html[data-accent="white"] body,
+html[data-accent="white"] body.grid-world-page {
+  background: var(--gw-bg) !important;
+  color: var(--gw-text);
 }
 
-/* ---------- headings: bold white, impactful ---------- */
+/* ---------- headings: bold, impactful ---------- */
 html body h1, html body h2 {
-  color: #FFFFFF;
+  color: var(--gw-text);
   font-weight: 800;
   letter-spacing: -.03em;
 }
 html body h1 span, html body h2 span {
-  color: var(--vw-accent);
-  text-shadow: 0 0 22px rgba(0, 212, 255, .55);
+  color: var(--accent);
+  text-shadow: 0 0 22px rgba(var(--accent-rgb), .55);
 }
 
-/* ---------- eyebrows / section labels: cyan small-caps ---------- */
+/* ---------- eyebrows / section labels: accent small-caps ---------- */
 html body .eyebrow, html body .section-label,
 html body .card-title, html body .glass-eyebrow {
-  color: var(--vw-accent) !important;
-  text-shadow: 0 0 12px rgba(0, 212, 255, .5);
+  color: var(--accent) !important;
+  text-shadow: 0 0 12px rgba(var(--accent-rgb), .5);
   font-weight: 800;
 }
 
-/* ---------- panels & cards: rounded, glowing borders ---------- */
+/* ---------- panels & cards: rounded, glowing borders ----------
+   Surfaces from --gw-* (grayscale base), glow from accent. */
 html body .glass-panel, html body .glass-card, html body .glass-deep,
 html body .glass-light, html body .side-card, html body .composer,
 html body .post, html body .market-meta, html body .listing,
@@ -70,22 +68,24 @@ html body .social-tools-grid article, html body .combat-modes article,
 html body .npc-merchant-grid article, html body .economy-world-grid article,
 html body .living-metrics article, html body .model-atlas-grid a,
 html body .system-map-grid a, html body .studio-live-card {
-  background: linear-gradient(160deg, rgba(16, 35, 65, .92), rgba(10, 22, 40, .94)) !important;
-  border: 1px solid var(--vw-border) !important;
+  background: linear-gradient(160deg, var(--gw-panel-2), var(--gw-panel)) !important;
+  border: 1px solid var(--accent-border) !important;
   border-radius: 14px !important;
-  box-shadow: var(--vw-panel-shadow), inset 0 1px 0 rgba(255, 255, 255, .06) !important;
+  box-shadow: 0 18px 55px rgba(0, 0, 0, .45), 0 0 24px rgba(var(--accent-rgb), .10),
+    inset 0 1px 0 rgba(255, 255, 255, .06) !important;
+  color: var(--gw-text);
 }
 
 /* card hover: brighter glow */
 html body .glass-card:hover, html body .listing:hover,
 html body .shop-card:hover, html body .feature-grid article:hover,
 html body .atlas-card:hover {
-  border-color: rgba(0, 212, 255, .6) !important;
-  box-shadow: 0 22px 65px rgba(0, 0, 0, .5), 0 0 38px rgba(0, 212, 255, .22) !important;
+  border-color: rgba(var(--accent-rgb), .6) !important;
+  box-shadow: 0 22px 65px rgba(0, 0, 0, .5), 0 0 38px rgba(var(--accent-rgb), .22) !important;
   transform: translateY(-4px);
 }
 
-/* ---------- buttons: pill-shaped, glowing cyan ---------- */
+/* ---------- buttons: pill-shaped, glowing accent ---------- */
 html body .primary, html body .glass-btn,
 html body .ghost, html body .secondary,
 html body button.primary, html body a.primary {
@@ -93,85 +93,106 @@ html body button.primary, html body a.primary {
   font-weight: 800 !important;
   letter-spacing: .1em !important;
   padding: 13px 28px !important;
-  border: 1px solid rgba(0, 212, 255, .65) !important;
+  border: 1px solid rgba(var(--accent-rgb), .65) !important;
 }
 html body .primary, html body a.primary,
 html body .listing-foot .glass-btn {
-  background: linear-gradient(135deg, #00D4FF, #0090FF) !important;
-  color: #04121A !important;
-  box-shadow: 0 0 28px rgba(0, 212, 255, .5), inset 0 1px 0 rgba(255, 255, 255, .35) !important;
+  background: var(--accent-gradient) !important;
+  color: var(--on-accent) !important;
+  box-shadow: 0 0 28px rgba(var(--accent-rgb), .5), inset 0 1px 0 rgba(255, 255, 255, .35) !important;
   text-shadow: none !important;
 }
 html body .primary:hover, html body a.primary:hover,
 html body .listing-foot .glass-btn:hover {
   filter: brightness(1.12);
-  box-shadow: 0 0 40px rgba(0, 212, 255, .7), inset 0 1px 0 rgba(255, 255, 255, .4) !important;
+  box-shadow: 0 0 40px rgba(var(--accent-rgb), .7), inset 0 1px 0 rgba(255, 255, 255, .4) !important;
   transform: translateY(-2px);
 }
 html body .ghost, html body .secondary {
-  background: rgba(0, 212, 255, .06) !important;
-  color: #FFFFFF !important;
-  box-shadow: inset 0 0 18px rgba(0, 212, 255, .06) !important;
+  background: var(--accent-soft) !important;
+  color: var(--gw-text) !important;
+  box-shadow: inset 0 0 18px rgba(var(--accent-rgb), .06) !important;
 }
 html body .ghost:hover, html body .secondary:hover {
-  border-color: var(--vw-accent) !important;
-  box-shadow: 0 0 22px rgba(0, 212, 255, .3) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 22px rgba(var(--accent-rgb), .3) !important;
 }
 
-/* ---------- links & accents: electric cyan ---------- */
+/* ---------- links & accents ---------- */
 html body a { color: inherit; }
 html body .card-link, html body .post-tag,
 html body .world-card a, html body .world-card small {
-  color: var(--vw-accent) !important;
+  color: var(--accent) !important;
 }
 
-/* ---------- inputs: navy with cyan focus glow ---------- */
-html body .glass-input, html body .filters input, html body .filters select,
-html body input[type="text"], html body input[type="email"],
-html body input[type="password"], html body input[type="search"],
-html body select, html body textarea {
+/* ---------- inputs: dark navy w/ accent focus (dark themes) ---------- */
+html:not([data-accent="white"]) body .glass-input,
+html:not([data-accent="white"]) body .filters input,
+html:not([data-accent="white"]) body .filters select,
+html:not([data-accent="white"]) body input[type="text"],
+html:not([data-accent="white"]) body input[type="email"],
+html:not([data-accent="white"]) body input[type="password"],
+html:not([data-accent="white"]) body input[type="search"],
+html:not([data-accent="white"]) body select,
+html:not([data-accent="white"]) body textarea {
   background: rgba(6, 13, 26, .85) !important;
-  border: 1px solid var(--vw-border-soft) !important;
+  border: 1px solid rgba(var(--accent-rgb), .16) !important;
   border-radius: 10px !important;
   color: #FFFFFF !important;
+}
+/* ---------- inputs: light surfaces (white theme) ---------- */
+html[data-accent="white"] body .glass-input,
+html[data-accent="white"] body .filters input,
+html[data-accent="white"] body .filters select,
+html[data-accent="white"] body input[type="text"],
+html[data-accent="white"] body input[type="email"],
+html[data-accent="white"] body input[type="password"],
+html[data-accent="white"] body input[type="search"],
+html[data-accent="white"] body select,
+html[data-accent="white"] body textarea {
+  background: #ffffff !important;
+  border: 1px solid rgba(20, 25, 35, .18) !important;
+  border-radius: 10px !important;
+  color: #16191e !important;
 }
 html body .glass-input:focus, html body .filters input:focus,
 html body input:focus, html body select:focus, html body textarea:focus {
   outline: none;
-  border-color: var(--vw-accent) !important;
-  box-shadow: 0 0 20px rgba(0, 212, 255, .3) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 20px rgba(var(--accent-rgb), .3) !important;
 }
 
-/* ---------- dim text: brighter for navy bg ---------- */
+/* ---------- dim text ---------- */
 html body .post p, html body .side-card p,
 html body .feature-grid p, html body .market-grid p,
 html body .rules p, html body .atlas-copy p {
-  color: var(--vw-text-dim) !important;
+  color: var(--gw-muted) !important;
 }
 
 /* ---------- stat numbers / highlights ---------- */
 html body .hero-stats b, html body .market-meta b,
 html body .wallet-balance strong {
-  color: #FFFFFF !important;
-  text-shadow: 0 0 14px rgba(0, 212, 255, .35);
+  color: var(--gw-text) !important;
+  text-shadow: 0 0 14px rgba(var(--accent-rgb), .35);
 }
 
 /* ---------- dots, badges, live indicators ---------- */
 html body .dot, html body .pulse-dot, html body .combat-live-dot {
-  background: var(--vw-accent) !important;
-  box-shadow: 0 0 12px var(--vw-accent) !important;
+  background: var(--accent) !important;
+  box-shadow: 0 0 12px var(--accent) !important;
 }
 
 /* ---------- footers ---------- */
 html body footer {
-  border-top: 1px solid var(--vw-border-soft) !important;
-  color: var(--vw-text-faint) !important;
+  border-top: 1px solid rgba(var(--accent-rgb), .16) !important;
+  color: var(--gw-muted) !important;
 }
 
 /* ---------- scrollbars ---------- */
 html body ::-webkit-scrollbar { width: 10px; height: 10px; }
-html body ::-webkit-scrollbar-track { background: var(--vw-bg-deep); }
+html:not([data-accent="white"]) body ::-webkit-scrollbar-track { background: var(--gw-bg); }
+html[data-accent="white"] body ::-webkit-scrollbar-track { background: #e4e7ec; }
 html body ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, rgba(0, 212, 255, .4), rgba(0, 144, 255, .4));
+  background: var(--accent-gradient);
   border-radius: 8px;
 }
