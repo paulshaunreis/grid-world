@@ -76,18 +76,21 @@ let rules:Rule[]=[];
 let shops:any[]=[];
 
 function art(key:string){
-  const palette:{[k:string]:[string,string]}={aurora:['#8ff7ff','#3044ff'],link:['#b9ffcf','#4b5cff'],rey:['#ffe38a','#ff6d9a'],elder:['#d8c1ff','#6c4cff'],veyr:['#f4f7ff','#64748b'],nyxen:['#b9c8ff','#233f9f'],orin:['#9fe8ff','#1d7897'],seraith:['#f4b7ff','#7a2e9a'],vael:['#f0f0f0','#444'],kairox:['#ffd6a1','#a55b22'],morrow:['#d7b78b','#654b35'],cipher:['#c9d8e0','#31515f'],solenne:['#ffe8a7','#d87831'],rook:['#c5d0ff','#394d91'],echo:['#d2ffd9','#39824e'],umbra:['#d8c9ff','#32205f'],civitas:['#ffe7b8','#7e5a22'],axiom:['#b8fff2','#1c8174'],mosaic:['#ffb9df','#6d3f76'],sentinel:['#c8d7ff','#344a9a'],praxis:['#d7fff0','#24614e']};
-  const [a,b]=palette[key.split('-')[0]]??['#dff','#345'];
-  const cube=/cube|tile|board|switchboard|stone/.test(key);
-  const core=cube?'<rect x="72" y="58" width="96" height="96" rx="12" transform="rotate(12 120 106)" fill="none" stroke="'+a+'" stroke-width="5"/><path d="M72 86l96 30M96 62l48 96" stroke="'+b+'" stroke-width="3"/>':'<circle cx="120" cy="106" r="48" fill="none" stroke="'+a+'" stroke-width="5"/><circle cx="120" cy="106" r="24" fill="'+b+'" opacity=".65"/><path d="M48 106h144M120 34v144" stroke="'+a+'" stroke-width="2" opacity=".8"/>';
-  return '<svg viewBox="0 0 240 190" role="img" aria-label="'+key+' artwork"><defs><radialGradient id="g"><stop stop-color="'+a+'"/><stop offset="1" stop-color="'+b+'"/></radialGradient></defs><rect width="240" height="190" rx="22" fill="#080b14"/><circle cx="120" cy="95" r="72" fill="url(#g)" opacity=".13"/>'+core+'<text x="120" y="174" text-anchor="middle" fill="#aab6c9" font-size="10" font-family="monospace" letter-spacing="2">GRID OBJECT STUDY</text></svg>';
+  // Placeholder-tier item art: three GridWorld-branded placeholder images by item family.
+  // Real per-item art replaces these when commissioned.
+  const k=key.toLowerCase();
+  let img='placeholder-artifact.webp';
+  if(/crystal|planter|eco|nature|flora|garden/.test(k)) img='placeholder-nature.webp';
+  else if(/cube|tile|board|switchboard|script|stone|bench|plinth|drone|sign|beacon|dial|node|shield|harness|tool|forge|weapon|armor|sword/.test(k)) img='placeholder-equipment.webp';
+  const safe=key.replace(/"/g,'&quot;');
+  return '<img src="/marketplace/items/'+img+'" alt="'+safe+' placeholder art" loading="lazy">';
 }
 
 function render(){
   const people=new Map(staff.map(s=>[s.id,s]));
-  app.innerHTML='<header><div><span class="eyebrow">GRID WORLD · LIVE PROTOTYPE MARKET</span><h1>Made by the Grid.</h1><p>21 staff merchants. 21 original object studies. Each staff wallet begins with <b>10,000 GRD simulated allocation</b>.</p></div><nav><a href="/">WORLD</a><a href="/economics.html">ECONOMICS</a><a href="/directory.html">STAFF</a><a href="/docs.html">DOCS</a></nav></header>'+
+  app.innerHTML='<header><div><span class="eyebrow">GRID WORLD · PROTOTYPE MARKET</span><h1>Made by the Grid.</h1><p>'+staff.length+' staff merchants. '+listings.length+' original objects. Each staff wallet begins with <b>10,000 GWC simulated allocation</b>.</p></div><nav><a href="/">WORLD</a><a href="/economics.html">ECONOMICS</a><a href="/directory.html">STAFF</a><a href="/docs.html">DOCS</a></nav></header>'+
   '<section class="shops"><div><span class="eyebrow">PLAYER & NPC STOREFRONTS</span><h2>New · Featured · NPC Shops</h2><div class="shop-strip">'+shops.map(s=>'<a class="shop-card" href="/shop.html?shop='+encodeURIComponent(s.slug)+'"><b>'+String(s.name)+'</b><small>'+String(s.shop_type)+' · '+String(s.status)+'</small></a>').join('')+'</div></div></section>'+
-  '<section class="shops"><div><span class="eyebrow">PLAYER & NPC STOREFRONTS</span><h2>New · Featured · NPC Shops</h2><div class="shop-strip">'+shops.map(s=>'<a class="shop-card" href="/shop.html?shop='+encodeURIComponent(s.slug)+'"><b>'+String(s.name)+'</b><small>'+String(s.shop_type)+' · '+String(s.status)+'</small></a>').join('')+'</div></div></section>'+'<section class="market-meta"><div><b>GRID ORIGINALS</b><span>10 reusable originals · 2 free starter objects</span></div><div><b>SIMULATED LEDGER</b><span>Not real money · no cash value</span></div><div><b>'+listings.length+'</b><span>published objects</span></div><div><b>'+staff.length+'</b><span>staff merchants</span></div><div><b>12</b><span>protection rules</span></div></section>'+
+  '<section class="market-meta"><div><b>GRID ORIGINALS</b><span>10 reusable originals · 2 free starter objects</span></div><div><b>SIMULATED LEDGER</b><span>Not real money · no cash value</span></div><div><b>'+listings.length+'</b><span>published objects</span></div><div><b>'+staff.length+'</b><span>staff merchants</span></div><div><b>12</b><span>protection rules</span></div></section>'+
   '<section class="filters"><input id="search" placeholder="Search objects or merchants…"><select id="category"><option value="">All categories</option>'+[...new Set(listings.map(x=>x.category))].sort().map(x=>'<option>'+x+'</option>').join('')+'</select></section>'+
   '<main id="cards">'+listings.map(l=>card(l,people.get(l.seller_staff_id))).join('')+'</main>'+
   '<section class="protection"><div class="eyebrow">MERCHANT · USER · PLATFORM PROTECTION</div><h2>Commerce needs boundaries.</h2><div class="rules">'+rules.map(r=>'<article><small>'+r.audience.toUpperCase()+'</small><h3>'+r.title+'</h3><p>'+r.rule_text+'</p></article>').join('')+'</div></section>'+
@@ -97,7 +100,7 @@ function render(){
   document.querySelectorAll<HTMLButtonElement>('[data-buy]').forEach(b=>b.addEventListener('click',()=>alert('Purchase flow is protected until authenticated wallet + server settlement are enabled.')));
 }
 function card(l:Listing,s?:Staff){
-  return '<article class="listing glass-card"><div class="art">'+art(l.art_key)+'</div><div class="listing-body"><div class="seller"><span>'+((s?.display_name??'Staff Merchant'))+'</span><em>'+l.category+'</em></div><h2>'+l.title+'</h2><p>'+l.description+'</p><div class="listing-foot"><strong>'+l.price.toLocaleString()+' GRD</strong><button class="glass-btn" data-buy="'+l.id+'">VIEW / BUY</button></div></div></article>';
+  return '<article class="listing glass-card"><div class="art">'+art(l.art_key)+'</div><div class="listing-body"><div class="seller"><span>'+((s?.display_name??'Staff Merchant'))+'</span><em>'+l.category+'</em></div><h2>'+l.title+'</h2><p>'+l.description+'</p><div class="listing-foot"><strong>'+l.price.toLocaleString()+' GWC</strong><button class="glass-btn" data-buy="'+l.id+'">VIEW / BUY</button></div></div></article>';
 }
 function filter(){const q=(document.querySelector<HTMLInputElement>('#search')?.value??'').toLowerCase();const c=document.querySelector<HTMLSelectElement>('#category')?.value??'';const cards=document.querySelector<HTMLDivElement>('#cards');if(!cards)return;const people=new Map(staff.map(s=>[s.id,s]));cards.innerHTML=listings.filter(l=>(!q||[l.title,l.description,l.category,people.get(l.seller_staff_id)?.display_name].join(' ').toLowerCase().includes(q))&&(!c||l.category===c)).map(l=>card(l,people.get(l.seller_staff_id))).join('');document.querySelectorAll<HTMLButtonElement>('[data-buy]').forEach(b=>b.addEventListener('click',()=>alert('Purchase flow is protected until authenticated wallet + server settlement are enabled.')));}
 async function load(){

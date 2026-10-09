@@ -1,1 +1,47 @@
-body{margin:0;background:#050812;color:#eaf8ff;font-family:system-ui}header{display:flex;justify-content:space-between;padding:20px 6vw;border-bottom:1px solid #ffffff18}a{color:#8ff7ff;text-decoration:none}.shop{min-height:100vh;padding:6vw;background:radial-gradient(circle at 70% 10%,color-mix(in srgb,var(--accent) 18%,transparent),transparent 40%)}.hero{padding:48px;border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);background:#ffffff08}.hero h1{font-size:clamp(42px,8vw,100px);margin:10px 0}.hero small{color:var(--accent);letter-spacing:.2em}.controls{margin:24px 0;padding:28px;display:grid;gap:14px;max-width:650px;border:1px solid #ffffff14;background:#ffffff06}.controls label{display:grid;gap:6px}.controls input,.controls select,.controls button{padding:12px;background:#07101c;color:#eaf8ff;border:1px solid #ffffff22}.controls button{border-color:var(--accent);cursor:pointer}.items{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.items article{padding:20px;border:1px solid #ffffff14;display:flex;justify-content:space-between}.empty{padding:10vw}.shop-link{color:var(--accent)}
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+/* GridWorld Shop Studio — aligned to the site glass design system.
+   Tokens: bg #050812, text #eaf7ff, accent #48e7ff (overridable via --accent). */
+:root{font-family:'Space Grotesk',system-ui,sans-serif;color:#eaf7ff;background:#050812}
+*{box-sizing:border-box}
+body{margin:0;background:#050812;min-height:100vh;color:#eaf7ff}
+a{color:inherit}
+#shop-app{max-width:1184px;margin:auto;padding:40px 28px 90px}
+
+/* empty state */
+.empty{text-align:center;padding:90px 20px;max-width:640px;margin:auto}
+.empty a{display:inline-block;margin-bottom:22px;font:700 11px 'IBM Plex Mono',monospace;letter-spacing:.18em;color:#66eaff;text-decoration:none;border:1px solid rgba(100,220,255,.3);border-radius:10px;padding:10px 16px}
+.empty h1{font-size:clamp(40px,6vw,68px);letter-spacing:-.05em;margin:14px 0}
+.empty p{color:#a9b8c9;line-height:1.6}
+
+/* shop header */
+#shop-app>header{display:flex;align-items:center;gap:16px;margin-bottom:26px}
+#shop-app>header a{font:700 11px 'IBM Plex Mono',monospace;letter-spacing:.18em;color:#66eaff;text-decoration:none}
+#shop-app>header span{font:700 11px 'IBM Plex Mono',monospace;letter-spacing:.22em;color:#7e8da7}
+
+/* shop hero */
+.shop .hero{position:relative;overflow:hidden;border:1px solid rgba(100,220,255,.2);border-radius:18px;padding:56px 40px;margin-bottom:22px;background:radial-gradient(circle at 70% 30%,color-mix(in srgb,var(--accent,#48e7ff) 16%,transparent),transparent 45%),rgba(8,13,21,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:inset 0 1px 0 rgba(180,240,255,.07),0 24px 70px rgba(0,0,0,.42)}
+.shop .hero small{font:700 10px 'IBM Plex Mono',monospace;letter-spacing:.2em;color:var(--accent,#48e7ff)}
+.shop .hero h1{font-size:clamp(36px,5vw,60px);letter-spacing:-.045em;margin:12px 0}
+.shop .hero p{color:#a9b8c9;max-width:640px;line-height:1.65;margin:0}
+
+/* controls */
+.shop .controls{border:1px solid rgba(100,220,255,.16);border-radius:18px;padding:28px;background:rgba(8,13,21,.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);margin-bottom:22px}
+.shop .controls h2,.shop section>h2{font:700 11px 'IBM Plex Mono',monospace;letter-spacing:.22em;color:#66eaff;margin:0 0 18px}
+.shop .controls label{display:grid;gap:8px;color:#8fa1b2;font:600 10px 'IBM Plex Mono',monospace;letter-spacing:.12em;margin-bottom:16px;max-width:420px}
+.shop .controls select,.shop .controls input[type="text"],.shop .controls input{background:rgba(3,9,16,.6);border:1px solid rgba(100,220,255,.18);border-radius:10px;color:#eaf7ff;padding:12px 14px;font:500 13px 'IBM Plex Mono',monospace;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.shop .controls select:focus,.shop .controls input:focus{outline:none;border-color:#66eaff;box-shadow:0 0 18px rgba(90,220,255,.18)}
+.shop .controls button{font:700 10px 'IBM Plex Mono',monospace;letter-spacing:.14em;color:#eaffff;background:rgba(55,190,230,.12);border:1px solid rgba(100,230,255,.45);border-radius:10px;padding:12px 18px;cursor:pointer;transition:.18s;margin-right:10px}
+.shop .controls button:hover{border-color:#66eaff;box-shadow:0 0 22px rgba(90,220,255,.25);transform:translateY(-1px)}
+.shop-link{display:inline-block;margin-top:6px;font:700 10px 'IBM Plex Mono',monospace;letter-spacing:.12em;color:#66eaff;text-decoration:none}
+.shop-link:hover{text-decoration:underline}
+
+/* inventory */
+.shop .items{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.shop .items article{border:1px solid rgba(100,220,255,.16);border-radius:14px;padding:20px;background:rgba(8,13,21,.7);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:grid;gap:8px;transition:.2s}
+.shop .items article:hover{border-color:rgba(100,220,255,.4);transform:translateY(-3px)}
+.shop .items b{font-size:16px}
+.shop .items span{font:600 13px 'IBM Plex Mono',monospace;color:#8ff7ff}
+.shop .items p{color:#7e8da7;font-size:13px}
+
+@media(max-width:800px){.shop .items{grid-template-columns:1fr 1fr}#shop-app{padding:28px 16px 70px}}
+@media(max-width:560px){.shop .items{grid-template-columns:1fr}.shop .hero{padding:36px 24px}}
