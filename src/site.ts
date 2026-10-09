@@ -607,19 +607,24 @@ async function initHeaderUserMenu() {
   const { data: { session } } = await client.auth.getSession();
   if (!session?.user) return; // not signed in — keep JOIN GRID
 
-  // Fetch the user's handle from profiles
+  // Fetch the user's handle + access badge from profiles
   let handle = 'Citizen';
+  let badge = '';
   try {
-    const { data: profile } = await client.from('profiles').select('handle,display_name').eq('id', session.user.id).maybeSingle();
+    const { data: profile } = await client.from('profiles').select('handle,display_name,beta_status').eq('id', session.user.id).maybeSingle();
     if (profile?.handle) handle = profile.handle;
     else if (profile?.display_name) handle = profile.display_name;
+    // Access badges: TEAM for team members, BETA for approved testers.
+    const status = (profile as any)?.beta_status;
+    if (status === 'team') badge = ' <span class="badge-team">TEAM</span>';
+    else if (status === 'approved') badge = ' <span class="badge-beta">BETA</span>';
   } catch { /* fall back to default */ }
 
   const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const wrapper = document.createElement('div');
   wrapper.className = 'header-user-menu';
   wrapper.innerHTML =
-    `<span class="header-welcome">Welcome ${esc(handle)}</span>` +
+    `<span class="header-welcome">Welcome ${esc(handle)}${badge}</span>` +
     `<button class="header-gear" id="header-gear" type="button" aria-label="Account settings" aria-haspopup="true">⚙</button>` +
     `<div class="header-user-dropdown" id="header-user-dropdown" hidden>` +
       `<a href="/profile.html">My Profile</a>` +

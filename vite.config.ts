@@ -30,6 +30,7 @@ export default defineConfig({
         recover: 'recover.html',
         home: 'home.html',
         store: 'store.html',
+        beta: 'beta.html',
       },
     },
   },

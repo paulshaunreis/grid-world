@@ -351,3 +351,27 @@ html[data-site-style="aurora"] h1,html[data-site-style="aurora"] h2,html[data-si
   .corp-vision-grid,.corp-news-grid,.corp-contact-grid,.corp-about-facts{grid-template-columns:1fr}
   .corp-footer{grid-template-columns:1fr}
 }
+
+/* Access badges — closed development (Paul 2026-10-08) */
+.badge-team {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #00e5ff;
+  color: #04121a;
+  vertical-align: middle;
+}
+.badge-beta {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #7c3aed;
+  color: #fff;
+  vertical-align: middle;
+}

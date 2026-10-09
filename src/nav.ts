@@ -6,6 +6,7 @@
 // Usage: <script type="module" src="/src/nav.ts"></script>
 import './theme/accent.css';
 import { createAccentPicker } from './theme/accent';
+import { requireAccess, getAccessLevel } from './auth/accessGate';
 
 const NAV_LINKS: Array<[string, string]> = [
   ['HOME', '/'],
@@ -16,6 +17,7 @@ const NAV_LINKS: Array<[string, string]> = [
   ['GAMES', '/games.html'],
   ['VAULT', '/economics.html'],
   ['SUPPORT', '/docs.html'],
+  ['BETA', '/beta.html'],
 ];
 
 const NAV_CSS = `
@@ -85,3 +87,14 @@ if (document.readyState === 'loading') {
 } else {
   injectNav();
 }
+
+// Closed-development gate (Paul 2026-10-08): signed-in users without
+// team/approved status are redirected to /beta.html on member pages.
+// Public pages and signed-out visitors are unaffected. RLS is the real
+// enforcement; this is the UX layer.
+requireAccess().catch(() => {});
+// Expose the access level for pages that want to show badges.
+getAccessLevel().then(level => {
+  (window as any).__gridAccessLevel = level;
+  document.documentElement.dataset.access = level;
+}).catch(() => {});

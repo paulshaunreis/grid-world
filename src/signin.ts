@@ -3,6 +3,7 @@
 // Redirects to / on success. Honest in-active-development framing.
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, supabaseConfigured } from './persistence/config';
+import { getAccessLevel, hasFullAccess } from './auth/accessGate';
 
 const app = document.querySelector<HTMLDivElement>('#signin-app')!;
 
@@ -59,7 +60,9 @@ form.addEventListener('submit', async (e) => {
   try {
     const { error } = await client.auth.signInWithPassword({ email, password });
     if (error) throw error;
-    window.location.href = '/account.html';
+    // Closed development: non-approved accounts go to the beta application page.
+    const level = await getAccessLevel();
+    window.location.href = hasFullAccess(level) ? '/account.html' : '/beta.html?reason=signin';
   } catch (err: any) {
     errBox.textContent = err?.message === 'Invalid login credentials'
       ? 'Email or password didn\'t match. Try again or reset your password.'

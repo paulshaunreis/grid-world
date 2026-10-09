@@ -91,12 +91,23 @@
 
     try {
       if (statusEl) statusEl.textContent = 'Setting up your profile…';
-      // Public profile: handle + display name
-      await client.from('profiles').upsert({
+      // Public profile: handle + display name. New signups get
+      // beta_status='pending' (closed development). Use insert-only so we
+      // never overwrite an existing beta_status (e.g. Paul's 'team').
+      const { error: profileErr } = await client.from('profiles').insert({
         id: user.id,
         username: pending.handle,
         display_name: pending.handle,
-      }, { onConflict: 'id' });
+        beta_status: 'pending',
+      });
+      if (profileErr && profileErr.code !== '23505') throw profileErr; // 23505 = already exists, fine
+      if (profileErr && profileErr.code === '23505') {
+        // Profile exists — update handle/display only, never touch beta_status.
+        await client.from('profiles').update({
+          username: pending.handle,
+          display_name: pending.handle,
+        }).eq('id', user.id);
+      }
 
       // Private IRL data: owner-only table
       await client.from('private_profiles').upsert({

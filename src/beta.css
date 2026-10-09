@@ -1,0 +1,217 @@
+/* GridWorld Beta Program page. In closed development; by application only.
+ * Paul's direction 2026-10-08. Theme variables from src/theme/accent.css. */
+
+.beta-wrap {
+  min-height: 100vh;
+  background:
+    radial-gradient(1100px 480px at 50% -8%, rgba(var(--accent-rgb, 201, 206, 214), .10), transparent 60%),
+    var(--gw-bg);
+  color: var(--gw-text);
+  font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+  padding-bottom: 90px;
+}
+
+.beta-hero {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 64px 28px 34px;
+  text-align: center;
+}
+
+.beta-dev-badge {
+  display: inline-block;
+  font-size: 11px;
+  letter-spacing: .22em;
+  padding: 8px 18px;
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  color: var(--accent-dim);
+  background: var(--accent-soft);
+  margin-bottom: 22px;
+}
+
+.beta-hero h1 {
+  font-size: clamp(32px, 5vw, 52px);
+  font-weight: 800;
+  letter-spacing: .02em;
+  margin: 0 0 16px;
+}
+
+.beta-lede {
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--gw-text-dim, #9aa3b2);
+  max-width: 640px;
+  margin: 0 auto 12px;
+}
+
+.beta-notice {
+  max-width: 640px;
+  margin: 22px auto 0;
+  padding: 16px 20px;
+  border: 1px solid var(--accent-border);
+  border-left: 4px solid var(--accent, #00e5ff);
+  border-radius: 10px;
+  background: var(--accent-soft);
+  text-align: left;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.beta-grid {
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 10px 28px 30px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 22px;
+}
+
+.beta-card {
+  border: 1px solid var(--gw-border, rgba(255,255,255,.09));
+  border-radius: 14px;
+  padding: 28px;
+  background: rgba(255,255,255,.02);
+}
+
+.beta-card h2 {
+  font-size: 19px;
+  margin: 0 0 14px;
+  letter-spacing: .04em;
+}
+
+.beta-card ul {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--gw-text-dim, #9aa3b2);
+}
+
+.badge-beta {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #7c3aed;
+  color: #fff;
+  vertical-align: middle;
+}
+
+.badge-team {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #00e5ff;
+  color: #04121a;
+  vertical-align: middle;
+}
+
+.beta-form-card {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 34px 32px;
+  border: 1px solid var(--gw-border, rgba(255,255,255,.09));
+  border-radius: 16px;
+  background: rgba(255,255,255,.02);
+}
+
+.beta-form-card h2 {
+  margin: 0 0 6px;
+  font-size: 24px;
+}
+
+.beta-form-sub {
+  color: var(--gw-text-dim, #9aa3b2);
+  font-size: 15px;
+  margin: 0 0 24px;
+}
+
+.beta-error {
+  display: none;
+  padding: 12px 16px;
+  margin-bottom: 18px;
+  border-radius: 10px;
+  background: rgba(255, 80, 80, .10);
+  border: 1px solid rgba(255, 80, 80, .35);
+  color: #ff9a9a;
+  font-size: 14px;
+}
+.beta-error.show { display: block; }
+
+.beta-field { margin-bottom: 18px; }
+.beta-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  margin-bottom: 8px;
+  color: var(--gw-text-dim, #9aa3b2);
+}
+.beta-field .opt { font-weight: 400; opacity: .7; letter-spacing: 0; }
+.beta-field input,
+.beta-field select,
+.beta-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px 15px;
+  font-size: 15px;
+  border-radius: 10px;
+  border: 1px solid var(--gw-border, rgba(255,255,255,.12));
+  background: rgba(0,0,0,.25);
+  color: var(--gw-text);
+  font-family: inherit;
+}
+.beta-field textarea { resize: vertical; }
+.beta-field input:focus,
+.beta-field select:focus,
+.beta-field textarea:focus {
+  outline: none;
+  border-color: var(--accent, #00e5ff);
+}
+
+.beta-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 560px) { .beta-row { grid-template-columns: 1fr; } }
+
+.beta-btn {
+  display: inline-block;
+  padding: 15px 34px;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  background: var(--accent, #00e5ff);
+  color: #04121a;
+  text-decoration: none;
+  transition: transform .15s ease, opacity .15s ease;
+}
+.beta-btn:hover:not(:disabled) { transform: translateY(-1px); }
+.beta-btn:disabled { opacity: .55; cursor: default; }
+.beta-btn-ghost {
+  background: transparent;
+  border: 1px solid var(--gw-border, rgba(255,255,255,.16));
+  color: var(--gw-text);
+  margin-left: 12px;
+}
+
+.beta-actions { margin-top: 30px; }
+
+.beta-foot {
+  text-align: center;
+  padding: 40px 28px 0;
+  color: var(--gw-text-dim, #9aa3b2);
+  font-size: 13px;
+  line-height: 1.8;
+}
+.beta-foot p { margin: 4px 0; }
