@@ -214,3 +214,46 @@
 .ap-progress{flex:1;height:6px;background:rgba(0,150,220,.15);border-radius:3px;overflow:hidden;cursor:pointer}
 .ap-progress-fill{height:100%;width:0;background:linear-gradient(90deg,#00d4ff,#7d4cff);border-radius:3px}
 @media(max-width:600px){.track-row{flex-wrap:wrap}.track-waveform{order:3;flex-basis:100%}}
+
+/* --- UserBadge: one identity component everywhere --- */
+.user-badge{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:inherit}
+.user-badge:hover .ub-name{color:#00d4ff}
+.ub-avatar-wrap{position:relative;flex:none}
+.user-badge-sm .ub-avatar{width:28px;height:28px;border-radius:50%;object-fit:cover;border:2px solid rgba(0,212,255,.3)}
+.user-badge-md .ub-avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid rgba(0,212,255,.3)}
+.ub-status-dot{position:absolute;right:-1px;bottom:-1px;width:10px;height:10px;border-radius:50%;border:2px solid #07101b}
+.status-online .ub-status-dot{background:#2ee66b;box-shadow:0 0 6px #2ee66b}
+.status-away .ub-status-dot{background:#ffcf3e;box-shadow:0 0 6px #ffcf3e}
+.status-offline .ub-status-dot{background:#5a6b7d}
+.ub-name{font-weight:700;font-size:12px;color:#fff}
+.user-badge-md .ub-name{font-size:14px}
+.ub-type{font-size:8px;font-weight:800;letter-spacing:.08em;padding:3px 8px;border-radius:10px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);color:#00d4ff;text-transform:uppercase}
+
+/* --- Message board --- */
+.board-composer{margin:24px 0}
+.board-composer-row{display:flex;gap:10px;margin-bottom:10px}
+.board-composer-row select{padding:10px;border:1px solid rgba(0,150,220,.14);background:#0d1b33;color:#fff;border-radius:6px;font-size:12px}
+.board-composer-row input{flex:1;padding:10px;border:1px solid rgba(0,150,220,.14);background:#0d1b33;color:#fff;border-radius:6px;font-size:12px}
+.board-composer textarea{width:100%;padding:10px;border:1px solid rgba(0,150,220,.14);background:#0d1b33;color:#fff;border-radius:6px;font-size:12px;resize:vertical}
+.board-composer-footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+.board-as{display:flex;align-items:center;gap:8px;color:#627487;font-size:11px}
+#board-post{padding:12px 24px;background:linear-gradient(135deg,rgba(0,212,255,.2),rgba(131,79,255,.2));border:1px solid #00d4ff;color:#fff;font-size:11px;font-weight:800;border-radius:8px;cursor:pointer}
+.board-tabs{margin:16px 0}
+.board-list{display:grid;gap:14px}
+.board-post-card{padding:20px}
+.board-post-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.board-cat-tag{font-size:10px;font-weight:800;padding:4px 12px;border-radius:12px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);color:#00d4ff}
+.board-post-top small{color:#627487;font-size:10px}
+.board-post-card h3{margin:8px 0;font-size:17px}
+.board-post-author{margin-bottom:10px}
+.board-post-body{color:#b9d5ec;font-size:13px;line-height:1.6;white-space:pre-wrap}
+.board-post-actions{display:flex;gap:8px;margin-top:12px}
+.board-post-actions button{background:transparent;border:1px solid rgba(0,150,220,.2);color:#8fa9c4;font-size:10px;padding:8px 14px;border-radius:6px;cursor:pointer}
+.board-post-actions button:hover{border-color:#00d4ff;color:#fff}
+.board-reply-box{margin-top:12px;display:grid;gap:8px}
+.board-reply-box textarea{padding:10px;border:1px solid rgba(0,150,220,.14);background:#091627;color:#fff;border-radius:6px;font-size:12px;resize:vertical}
+.board-reply-box button{justify-self:start;padding:10px 20px;background:rgba(0,212,255,.12);border:1px solid #00d4ff;color:#fff;font-size:10px;font-weight:800;border-radius:6px;cursor:pointer}
+.board-replies{margin-top:14px;padding-top:12px;border-top:1px solid rgba(0,150,220,.1);display:grid;gap:12px}
+.board-reply-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.board-reply-head small{color:#627487;font-size:9px}
+.board-reply p{color:#b9d5ec;font-size:12px;line-height:1.5;margin:0}

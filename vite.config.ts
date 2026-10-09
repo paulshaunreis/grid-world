@@ -11,6 +11,8 @@ export default defineConfig({
         play: 'play.html',
         profile: 'profile.html',
         aurora: 'aurora.html',
+        board: 'board.html',
+        user: 'user.html',
         shop: 'shop.html',
         classifieds: 'classifieds.html',
         meetups: 'meetups.html',

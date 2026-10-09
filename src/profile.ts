@@ -273,7 +273,11 @@ async function save() {
 
 let activeTab: 'overview' | 'gallery' | 'blog' | 'about' | 'music' = 'overview';
 let editOpen = false;
-const isOwnerView = () => !new URLSearchParams(location.search).get('handle');
+const isOwnerView = () => {
+  if (new URLSearchParams(location.search).get('handle')) return false;
+  const m = location.pathname.match(/^\/user\/([A-Za-z0-9_.-]+)\/?$/);
+  return !m;
+};
 
 function render() {
   const isOwner = isOwnerView();
@@ -788,7 +792,11 @@ function escapeHtml(value: string): string {
 }
 
 void (async()=>{
-  const handle=new URLSearchParams(location.search).get('handle')?.replace(/^@/,'').trim();
+  // Canonical clean URLs: /user/<username> (via render.yaml rewrite to /user.html)
+  const pathMatch = location.pathname.match(/^\/user\/([A-Za-z0-9_.-]+)\/?$/);
+  const handle=(pathMatch?.[1] ?? new URLSearchParams(location.search).get('handle') ?? '').replace(/^@/,'').trim();
+  // Aurora's showcase profile lives at /aurora.html — canonical /user/aurora redirects there
+  if (handle.toLowerCase() === 'aurora' && pathMatch) { location.replace('/aurora.html'); return; }
   if(profileAuthority&&handle){
     try{
       const cloud=await profileAuthority.byHandle(handle);
