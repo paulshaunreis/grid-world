@@ -1,3 +1,5 @@
+import { buildSearchButton, initSearchShortcuts, openSearch } from './SiteSearch';
+
 // GlobalNav — the ONE shared navigation for every GridWorld page (Paul 2026-10-08).
 // Replaces the old double-nav problem: static .grid-global-nav headers in HTML
 // plus nav.ts's injected .gw-nav plus page-level <nav> injections.
@@ -102,8 +104,12 @@ const NAV_CSS = `
 .gw-hamburger{display:none;flex:none;background:rgba(var(--accent-rgb),.08);border:1px solid rgba(var(--accent-rgb),.4);
   border-radius:10px;color:#fff;font-size:18px;padding:6px 12px;cursor:pointer}
 .gw-mobile-panel{display:none}
+.gw-mobile-search{width:100%;text-align:left;background:rgba(var(--accent-rgb),.08);
+  border:1px solid rgba(var(--accent-rgb),.3);border-radius:10px;cursor:pointer;
+  font-family:inherit;font-size:14px;color:#fff;padding:12px 14px;margin-bottom:10px}
 @media(max-width:900px){
   .gw-topics{display:none}
+  .gw-search-btn{display:none}
   .gw-hamburger{display:block}
   .gw-global-nav.mobile-open .gw-mobile-panel{display:block;position:absolute;top:100%;left:0;right:0;
     background:var(--gw-panel-2);border-bottom:1px solid rgba(var(--accent-rgb),.28);padding:12px 18px 18px;
@@ -141,6 +147,8 @@ html[data-accent="white"] .gw-mobile-topic>button{color:#16191e;
   border-bottom:1px solid rgba(20,25,35,.1)}
 html[data-accent="white"] .gw-mobile-links a{color:rgba(20,25,35,.75)}
 html[data-accent="white"] .gw-mobile-links a:hover{color:var(--accent)}
+html[data-accent="white"] .gw-mobile-search{background:rgba(20,25,35,.05);
+  border-color:rgba(20,25,35,.2);color:#16191e}
 `;
 
 function isActive(href: string): boolean {
@@ -182,9 +190,17 @@ function buildNav(): HTMLElement {
   header.innerHTML =
     `<a class="gw-brand" href="/">◇ GRID WORLD</a>` +
     `<nav class="gw-topics" aria-label="Sections">${topicsHtml}</nav>` +
+    `<span class="gw-search-slot"></span>` +
     `<a class="gw-join" href="/join.html">JOIN GRID</a>` +
     `<button class="gw-hamburger" type="button" aria-label="Menu">☰</button>` +
-    `<div class="gw-mobile-panel">${mobileHtml}</div>`;
+    `<div class="gw-mobile-panel">
+      <button type="button" class="gw-mobile-search">🔍 Search Grid World</button>
+      ${mobileHtml}
+    </div>`;
+
+  // Search button — sits between the topics and JOIN GRID.
+  const slot = header.querySelector('.gw-search-slot')!;
+  slot.replaceWith(buildSearchButton());
 
   // Desktop: tap toggles for touch devices (hover covers mouse).
   header.querySelectorAll('.gw-topic > button').forEach((btn) => {
@@ -205,6 +221,11 @@ function buildNav(): HTMLElement {
   hamburger.addEventListener('click', (e) => {
     e.stopPropagation();
     header.classList.toggle('mobile-open');
+  });
+  const mobileSearch = header.querySelector('.gw-mobile-search');
+  mobileSearch?.addEventListener('click', () => {
+    header.classList.remove('mobile-open');
+    openSearch();
   });
   header.querySelectorAll('.gw-mobile-topic > button').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -233,4 +254,5 @@ export function mountGlobalNav(): void {
   // Remove legacy navs: static .grid-global-nav headers and old .gw-nav injections.
   document.querySelectorAll('header.grid-global-nav, header.gw-nav').forEach((el) => el.remove());
   document.body.insertBefore(buildNav(), document.body.firstChild);
+  initSearchShortcuts();
 }
