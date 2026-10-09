@@ -421,7 +421,7 @@ app.innerHTML = `
       <article><b>CREATION</b><span>Primitives · advanced building · terrain sculpting · material harvesting · craftable creator tools</span></article>
       <article><b>PEOPLE</b><span>Custom avatars · staff personas · social profiles · chat · voice · communities · media · events</span></article>
       <article><b>PLAY</b><span>Missions · quests · mysteries · PvE · PvP · arenas · pets · mounts · achievements · progression</span></article>
-      <article><b>ECONOMY</b><span>Grid Coin · multiple currency types · marketplace · barter · merchants · economy telemetry · Omni Bank foundation</span></article>
+      <article><b>ECONOMY</b><span>Grid World Currency · multiple currency types · marketplace · barter · merchants · economy telemetry · Omni Bank foundation</span></article>
       <article><b>OMNI</b><span>Grid Omni Core · Security · Guards · Grid Code · permissions · diagnostics · protected world layers</span></article>
       <article><b>MEDIA</b><span>Images · video · sound · creator galleries · stages · concerts · recording · live world signals</span></article>
       <article><b>EVERYWHERE</b><span>Desktop world · responsive UI · mobile functions · QR · optional location features · persistent state</span></article>

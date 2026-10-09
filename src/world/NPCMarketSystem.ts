@@ -34,7 +34,7 @@ export class NPCMarketSystem {
   private balances = new Map<string,number>();
 
   constructor(){
-    // NPCs use simulated Grid Coin balances until player/economy persistence is connected.
+    // NPCs use simulated Grid World Currency balances until player/economy persistence is connected.
   }
 
   seedMerchant(profile:NPCProfileRecord, startingBalance=100){

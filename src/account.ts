@@ -1,6 +1,6 @@
 // Grid World Account Settings page (Paul's request 2026-10-08).
 // Full account overview after sign-in: identity, handle, security,
-// Grid Coin balance, land holdings, membership. Honest in-active-development framing.
+// Grid World Currency balance, land holdings, membership. Honest in-active-development framing.
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, supabaseConfigured } from './persistence/config';
 import { GridAuthService } from './auth/GridAuthService';
@@ -69,7 +69,7 @@ async function render() {
         <section class="account-card">
           <h2>GRID COIN</h2>
           <p class="dev-note">Wallet balance and transaction history are in active development.</p>
-          <p><a href="/economics.html">How Grid Coin works →</a></p>
+          <p><a href="/economics.html">How Grid World Currency works →</a></p>
         </section>
         <section class="account-card">
           <h2>LAND & MEMBERSHIP</h2>

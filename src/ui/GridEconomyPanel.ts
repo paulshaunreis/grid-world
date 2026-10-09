@@ -40,7 +40,7 @@ export function mountGridEconomyPanel(authority:()=>GridCombatAuthority|null){
           rows.map((x:any)=>'<div class="grid-economy-row"><div><b>'+esc(String(x.currency_code??x.currency_id).toUpperCase())+'</b><small>'+esc(String(x.currency_name??x.currency_id))+'</small></div><strong>'+Number(x.balance).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+'</strong><span>server wallet</span></div>').join('')+
           '</div>'+
           '<div class="grid-economy-subhead">GRID COIN DENOMINATIONS</div>'+
-          '<div class="grid-economy-list">'+GRID_COIN_DENOMINATIONS.map(d=>'<div class="grid-economy-row"><b>'+esc(d.name)+'</b><strong>'+esc(d.symbol)+'</strong><small>configurable denomination of Grid Coin</small></div>').join('')+'</div>'+
+          '<div class="grid-economy-list">'+GRID_COIN_DENOMINATIONS.map(d=>'<div class="grid-economy-row"><b>'+esc(d.name)+'</b><strong>'+esc(d.symbol)+'</strong><small>configurable denomination of Grid World Currency</small></div>').join('')+'</div>'+
           '<div class="grid-economy-subhead">RECENT LEDGER ENTRIES</div>'+
           '<div class="grid-economy-list">'+
           entries.map((x:any)=>'<div class="grid-economy-row"><div><b>'+esc(String(x.transaction_type??'TRANSACTION'))+'</b><small>'+esc(String(x.memo??''))+'</small></div><strong>'+((Number(x.entry?.amount??0)>=0)?'+':'')+Number(x.entry?.amount??0).toFixed(2)+'</strong><span>'+esc(String(x.entry?.currency_id??''))+'</span></div>').join('')+

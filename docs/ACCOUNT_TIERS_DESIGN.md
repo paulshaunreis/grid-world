@@ -7,7 +7,7 @@
 - **Premium = Citizen** ($9.99/mo proposed)
 - **Premium+ = Architect** ($24.99/mo proposed)
 
-**Hard rule:** Grid Coin (GRC) is fictional and simulated. It has NO cash value, cannot be cashed out, and must never be presented as real currency or an investment.
+**Hard rule:** Grid World Currency (GRC) is fictional and simulated. It has NO cash value, cannot be cashed out, and must never be presented as real currency or an investment.
 
 ---
 
@@ -143,7 +143,7 @@ A page where users will **eventually** enter card details to upgrade to Citizen/
 1. **Tier summary cards** — Citizen $9.99/mo, Architect $24.99/mo, what each includes (pull from the table above). Prices labeled "proposed — not yet available."
 2. **Card entry form (visual only):** card number, expiry, CVC, name, ZIP — styled to match the site theme. Fields are `disabled` with a banner: **"Payments are not yet live — this is a preview."**
 3. **Upgrade button:** disabled, labeled "COMING SOON."
-4. **Honesty copy:** "GridWorld is in active development. Paid tiers are not yet available. Grid Coin has no cash value."
+4. **Honesty copy:** "GridWorld is in active development. Paid tiers are not yet available. Grid World Currency has no cash value."
 5. **What it must NOT do:** submit card data anywhere, call any payment API, create subscriptions, store anything.
 
 ### Go-live checklist (future, needs Paul's sign-off each item)

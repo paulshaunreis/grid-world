@@ -7,14 +7,14 @@
  *                                            already tints off this variable)
  *
  * UI skins are curated named accents sold on the marketplace for simulated
- * GRC. Buying a skin unlocks it; applying a skin sets the live accent.
+ * GWC. Buying a skin unlocks it; applying a skin sets the live accent.
  * Everything persists in localStorage; nothing here touches real money.
  */
 
 export interface GridSwatch{ id:string; name:string; hex:string; requiresSkin?:string; }
 export interface GridSkin{
   id:string; name:string; creator:string;
-  priceGRC:number; accent:string; description:string; starter?:boolean; limited?:boolean;
+  priceGWC:number; accent:string; description:string; starter?:boolean; limited?:boolean;
 }
 
 /* ---------------- seasonal holiday themes ----------------
@@ -32,25 +32,25 @@ export const SEASONAL_PRESETS:SeasonalPreset[]=[
   { id:'halloween', name:'Halloween', emoji:'🎃', accent:'#ff7a1a',
     startMonth:10, startDay:15, endMonth:11, endDay:2,
     skins:[
-      {id:'pumpkin-signal', name:'Pumpkin Signal', creator:'Grid World', priceGRC:800,
+      {id:'pumpkin-signal', name:'Pumpkin Signal', creator:'Grid World', priceGWC:800,
        accent:'#ff7a1a', description:'LIMITED — Halloween only. Pumpkin glow for haunted builds. Vanishes Nov 3.', limited:true},
-      {id:'ghost-violet', name:'Ghost Violet', creator:'Grid World', priceGRC:800,
+      {id:'ghost-violet', name:'Ghost Violet', creator:'Grid World', priceGWC:800,
        accent:'#b06bff', description:'LIMITED — Halloween only. Spectral violet, straight from the other side. Vanishes Nov 3.', limited:true},
     ]},
   { id:'christmas', name:'Christmas', emoji:'🎄', accent:'#ff3b3b',
     startMonth:12, startDay:15, endMonth:1, endDay:2,
     skins:[
-      {id:'holly-signal', name:'Holly Signal', creator:'Grid World', priceGRC:800,
+      {id:'holly-signal', name:'Holly Signal', creator:'Grid World', priceGWC:800,
        accent:'#ff3b3b', description:'LIMITED — Christmas only. Holly-red glow for winter builds. Vanishes Jan 3.', limited:true},
-      {id:'tinsel-teal', name:'Tinsel Teal', creator:'Grid World', priceGRC:800,
+      {id:'tinsel-teal', name:'Tinsel Teal', creator:'Grid World', priceGWC:800,
        accent:'#4be1c3', description:'LIMITED — Christmas only. Frosty teal tinsel. Vanishes Jan 3.', limited:true},
     ]},
   { id:'new-year', name:'New Year', emoji:'🎆', accent:'#ffce4a',
     startMonth:12, startDay:28, endMonth:1, endDay:5,
     skins:[
-      {id:'countdown-gold', name:'Countdown Gold', creator:'Grid World', priceGRC:900,
+      {id:'countdown-gold', name:'Countdown Gold', creator:'Grid World', priceGWC:900,
        accent:'#ffce4a', description:'LIMITED — New Year only. Champagne gold for fresh starts. Vanishes Jan 6.', limited:true},
-      {id:'firework-violet', name:'Firework Violet', creator:'Grid World', priceGRC:900,
+      {id:'firework-violet', name:'Firework Violet', creator:'Grid World', priceGWC:900,
        accent:'#c07bff', description:'LIMITED — New Year only. Firework violet over midnight. Vanishes Jan 6.', limited:true},
     ]},
 ];
@@ -100,21 +100,21 @@ export const GRID_SWATCHES:GridSwatch[]=[
 
 /* Buyable curated skins — the category is never empty. */
 export const GRID_SKINS:GridSkin[]=[
-  {id:'cyan-pulse', name:'Cyan Pulse', creator:'Grid World', priceGRC:0,
+  {id:'cyan-pulse', name:'Cyan Pulse', creator:'Grid World', priceGWC:0,
    accent:'#2ce8ff', description:'The default Grid signal. Clean, calm, always online.', starter:true},
-  {id:'violet-rift', name:'Violet Rift', creator:'Grid World', priceGRC:750,
+  {id:'violet-rift', name:'Violet Rift', creator:'Grid World', priceGWC:750,
    accent:'#a569ff', description:'Deep-space violet for night-shift builders.'},
-  {id:'magma-core', name:'Magma Core', creator:'Grid World', priceGRC:1200,
+  {id:'magma-core', name:'Magma Core', creator:'Grid World', priceGWC:1200,
    accent:'#ff5a3c', description:'Molten red-orange for high-energy worlds.'},
-  {id:'ghost-white', name:'Ghost White', creator:'Grid World', priceGRC:900,
+  {id:'ghost-white', name:'Ghost White', creator:'Grid World', priceGWC:900,
    accent:'#ebf5ff', description:'Minimal monochrome. Nothing to hide.'},
-  {id:'acid-green', name:'Acid Green', creator:'Grid World', priceGRC:1100,
+  {id:'acid-green', name:'Acid Green', creator:'Grid World', priceGWC:1100,
    accent:'#7dff6a', description:'High-voltage green for the bold.'},
-  {id:'ember-gold', name:'Ember Gold', creator:'Grid World', priceGRC:1500,
+  {id:'ember-gold', name:'Ember Gold', creator:'Grid World', priceGWC:1500,
    accent:'#ffd166', description:'Warm gold with a premium glow.'},
-  {id:'neon-magenta', name:'Neon Magenta', creator:'Grid World', priceGRC:1000,
+  {id:'neon-magenta', name:'Neon Magenta', creator:'Grid World', priceGWC:1000,
    accent:'#ff4abe', description:'Hot magenta for after-hours energy.'},
-  {id:'solar-orange', name:'Solar Orange', creator:'Grid World', priceGRC:950,
+  {id:'solar-orange', name:'Solar Orange', creator:'Grid World', priceGWC:950,
    accent:'#ff9e5e', description:'Warm solar orange, straight off the grid.'},
 ];
 
@@ -251,7 +251,7 @@ export function startThemeSync(onChange?:()=>void):void{
   });
 }
 
-/* ---------------- simulated GRC wallet (fictional, no cash value) ---------------- */
+/* ---------------- simulated GWC wallet (fictional, no cash value) ---------------- */
 export function getBalance():number{
   const raw=lsGet(K_BAL);
   const n=raw==null?NaN:parseInt(raw,10);
@@ -274,14 +274,14 @@ export function ownSkin(id:string):void{
   if(!owned.includes(id)){ owned.push(id); lsSet(K_OWNED,JSON.stringify(owned)); }
 }
 
-/** Buy a skin with simulated GRC. Returns 'ok' | 'owned' | 'funds'. */
+/** Buy a skin with simulated GWC. Returns 'ok' | 'owned' | 'funds'. */
 export function buySkin(skinId:string):'ok'|'owned'|'funds'{
   const skin=getAllSkins().find(s=>s.id===skinId);
   if(!skin) return 'owned';
   if(getOwnedSkins().includes(skinId)) return 'owned';
   const bal=getBalance();
-  if(bal<skin.priceGRC) return 'funds';
-  setBalance(bal-skin.priceGRC);
+  if(bal<skin.priceGWC) return 'funds';
+  setBalance(bal-skin.priceGWC);
   ownSkin(skinId);
   applySkin(skinId);
   return 'ok';

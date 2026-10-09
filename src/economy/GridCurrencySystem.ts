@@ -23,14 +23,14 @@ export interface GridCoinDenomination {
   currencyId: 'grid';
   /**
    * Conversion is intentionally configurable. These labels are part of the
-   * Grid Coin family, not separate currencies, so the economy can change
+   * Grid World Currency family, not separate currencies, so the economy can change
    * denomination ratios without changing wallet/ledger identity.
    */
   baseUnitsPerCoin?: number;
 }
 
 export const GRID_CURRENCIES: readonly GridCurrencyDefinition[] = [
-  { id: 'grid', code: 'GRD', name: 'Grid Coin', category: 'core', decimals: 2, tradeable: true },
+  { id: 'grid', code: 'GRD', name: 'Grid World Currency', category: 'core', decimals: 2, tradeable: true },
   { id: 'aether', code: 'AET', name: 'Aether', category: 'governance', decimals: 2, tradeable: true },
   { id: 'echo', code: 'ECO', name: 'Echo', category: 'community', decimals: 2, tradeable: true },
   { id: 'forge', code: 'FRG', name: 'Forge', category: 'creator', decimals: 2, tradeable: true },
