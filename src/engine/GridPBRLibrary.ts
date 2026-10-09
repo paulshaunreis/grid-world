@@ -118,3 +118,38 @@ export function createStarterPBRMaterial(
   material.normalMap = maps.normal;
   return material;
 }
+
+// Real texture images (Grid World originals in /textures/). Loads async;
+// falls back to the procedural starter material until the image arrives.
+const realTextureCache = new Map<string, THREE.Texture>();
+
+export function createTexturedPBRMaterial(
+  textureFile: string,
+  options: { roughness?: number; metalness?: number; repeat?: number; emissive?: string | number; emissiveIntensity?: number } = {},
+): THREE.MeshStandardMaterial {
+  const material = new THREE.MeshStandardMaterial({
+    color: '#ffffff',
+    roughness: options.roughness ?? .8,
+    metalness: options.metalness ?? 0,
+    emissive: options.emissive ?? '#000000',
+    emissiveIntensity: options.emissiveIntensity ?? 0,
+  });
+  const repeat = options.repeat ?? 8;
+  let tex = realTextureCache.get(textureFile);
+  if (!tex) {
+    tex = new THREE.TextureLoader().load(
+      `/textures/${textureFile}`,
+      () => { material.needsUpdate = true; },
+      undefined,
+      () => { /* keep procedural fallback on load failure */ },
+    );
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(repeat, repeat);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = 4;
+    realTextureCache.set(textureFile, tex);
+  }
+  material.map = tex;
+  return material;
+}

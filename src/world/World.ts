@@ -5,7 +5,7 @@ import { WorldClock } from './WorldClock';
 import { WorldSimulation } from './WorldSimulation';
 import { WorldAtmosphere } from './WorldAtmosphere';
 import { WorldChunkStreamer } from './WorldChunkStreamer';
-import { createStarterPBRMaterial } from '../engine/GridPBRLibrary';
+import { createStarterPBRMaterial, createTexturedPBRMaterial } from '../engine/GridPBRLibrary';
 
 export class World {
   readonly definition: WorldDefinition;
@@ -91,7 +91,7 @@ export class World {
 
 
   private createFirstLightShowcase() {
-    const plaza = new THREE.Mesh(new THREE.CylinderGeometry(13, 15, .45, 64), createStarterPBRMaterial('metal', { color: '#172a38', metalness: .72, roughness: .26 }));
+    const plaza = new THREE.Mesh(new THREE.CylinderGeometry(13, 15, .45, 64), createTexturedPBRMaterial('tex-ground-metal-deck.webp', { metalness: .6, roughness: .4, repeat: 6 }));
     plaza.position.set(0, .05, 8); plaza.receiveShadow = true; this.scene.add(plaza);
     const plazaRing = new THREE.Mesh(new THREE.TorusGeometry(12.2, .12, 8, 96), new THREE.MeshStandardMaterial({ color: 0x68d9ff, emissive: 0x167b9b, emissiveIntensity: 1.8, metalness: .55, roughness: .22 }));
     plazaRing.rotation.x = Math.PI / 2; plazaRing.position.set(0, .35, 8); this.scene.add(plazaRing);
@@ -199,7 +199,7 @@ export class World {
       positions.setZ(i, rise + ripple);
     }
     geometry.computeVertexNormals();
-    const terrain = new THREE.Mesh(geometry, createStarterPBRMaterial('ground', { color: '#4d5648', roughness: .96 }));
+    const terrain = new THREE.Mesh(geometry, createTexturedPBRMaterial('tex-ground-plaza-dark.webp', { roughness: .9, repeat: 14 }));
     terrain.rotation.x = -Math.PI / 2;
     terrain.position.y = -.42;
     terrain.receiveShadow = true;
