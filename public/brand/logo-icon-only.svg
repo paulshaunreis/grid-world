@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Grid World logo — {variant}. Copyright © 2026 Paul Shaun Reis. All rights reserved. -->
+<!-- Variant: icon-only mark. Simplified for small sizes (no glow filters, thickened details). -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="60 0 680 680" role="img" aria-labelledby="gw-title gw-desc">
+<title id="gw-title">Grid World</title>
+<desc id="gw-desc">Grid World icon: luminous blue and gold orbital grid globe inside a compass shield.</desc>
+<defs>
+<radialGradient id="globe" cx="45%" cy="35%"><stop stop-color="#eaffff"/><stop offset=".22" stop-color="#59e9ff"/><stop offset=".62" stop-color="#2768d9"/><stop offset="1" stop-color="#111b4f"/></radialGradient>
+<linearGradient id="metal" x1="0" x2="1"><stop stop-color="#08132e"/><stop offset=".5" stop-color="#1e5ca8"/><stop offset="1" stop-color="#07132a"/></linearGradient>
+<linearGradient id="gold" x1="0" x2="1"><stop stop-color="#ffe8a1"/><stop offset=".45" stop-color="#d9942e"/><stop offset="1" stop-color="#fff1ad"/></linearGradient>
+<filter id="glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<g transform="translate(400 330)">
+<path d="M0-305 L75-220 L210-205 L290-90 L270 70 L170 200 L0 305 L-170 200 L-270 70 L-290-90 L-210-205 L-75-220 Z" fill="url(#metal)" stroke="#67dcff" stroke-width="10"/>
+<circle r="205" fill="#06122b" stroke="#48dcff" stroke-width="12"/>
+<circle r="178" fill="url(#globe)" stroke="#b7f7ff" stroke-width="5"/>
+<g fill="none" stroke="#b9f9ff" stroke-width="5" opacity=".8"><ellipse rx="178" ry="68"/><ellipse rx="178" ry="125"/><ellipse rx="74" ry="178"/><ellipse rx="145" ry="178"/><path d="M-178 0H178M0-178V178"/></g>
+<g fill="none" stroke="url(#gold)" stroke-width="16"><ellipse rx="275" ry="72" transform="rotate(-17)"/><ellipse rx="278" ry="70" transform="rotate(18)"/></g>
+<circle cx="240" cy="75" r="20" fill="#fff2a5" stroke="#d9902f" stroke-width="7"/>
+<path d="M0-245L18-18L245 0L18 18L0 245L-18 18L-245 0L-18-18Z" fill="none" stroke="url(#gold)" stroke-width="10"/>
+</g>
+</svg>

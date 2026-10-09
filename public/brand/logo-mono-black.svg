@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Grid World logo — {variant}. Copyright © 2026 Paul Shaun Reis. All rights reserved. -->
+<!-- Variant: mono-black (single ink, for light backgrounds). Single ink color, stroke-based, no knockouts. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-labelledby="gw-title gw-desc">
+<title id="gw-title">Grid World</title>
+<desc id="gw-desc">Single-color Grid World logo: compass shield with grid globe and GRID WORLD banner.</desc>
+<g transform="translate(400 330)" fill="none" stroke="#000000">
+<path d="M0-305 L75-220 L210-205 L290-90 L270 70 L170 200 L0 305 L-170 200 L-270 70 L-290-90 L-210-205 L-75-220 Z" stroke-width="10"/>
+<circle r="205" stroke-width="12"/>
+<circle r="178" stroke-width="6"/>
+<g stroke-width="7"><ellipse rx="178" ry="68"/><ellipse rx="178" ry="125"/><ellipse rx="74" ry="178"/><ellipse rx="145" ry="178"/><path d="M-178 0H178M0-178V178"/></g>
+<g stroke-width="14"><ellipse rx="275" ry="72" transform="rotate(-17)"/><ellipse rx="278" ry="70" transform="rotate(18)"/></g>
+<path d="M0-245L18-18L245 0L18 18L0 245L-18 18L-245 0L-18-18Z" stroke-width="9"/>
+</g>
+<circle cx="640" cy="405" r="18" fill="#000000"/>
+<!-- moon dot: mark-local (240,75) + translate(400,330) = (640,405) -->
+<g transform="translate(70 570)">
+<path d="M0 0 H660 L625 120 H35 Z" fill="none" stroke="#000000" stroke-width="7"/>
+<path d="M20 22 H640 L615 98 H45 Z" fill="none" stroke="#000000" stroke-width="4"/>
+<g fill="#000000">
+<path d="M806 211Q921 211 1029.0 244.5Q1137 278 1196 330V525H852V743H1466V225Q1354 110 1174.5 45.0Q995 -20 798 -20Q454 -20 269.0 170.5Q84 361 84 711Q84 1059 270.0 1244.5Q456 1430 805 1430Q1301 1430 1436 1063L1164 981Q1120 1088 1026.0 1143.0Q932 1198 805 1198Q597 1198 489.0 1072.0Q381 946 381 711Q381 472 492.5 341.5Q604 211 806 211Z" transform="translate(90.80 84) scale(0.03027 -0.03027)"/>
+<path d="M1105 0 778 535H432V0H137V1409H841Q1093 1409 1230.0 1300.5Q1367 1192 1367 989Q1367 841 1283.0 733.5Q1199 626 1056 592L1437 0ZM1070 977Q1070 1180 810 1180H432V764H818Q942 764 1006.0 820.0Q1070 876 1070 977Z" transform="translate(147.03 84) scale(0.03027 -0.03027)"/>
+<path d="M137 0V1409H432V0Z" transform="translate(199.80 84) scale(0.03027 -0.03027)"/>
+<path d="M1393 715Q1393 497 1307.5 334.5Q1222 172 1065.5 86.0Q909 0 707 0H137V1409H647Q1003 1409 1198.0 1229.5Q1393 1050 1393 715ZM1096 715Q1096 942 978.0 1061.5Q860 1181 641 1181H432V228H682Q872 228 984.0 359.0Q1096 490 1096 715Z" transform="translate(225.03 84) scale(0.03027 -0.03027)"/>
+<path d="M1567 0H1217L1026 815Q991 959 967 1116Q943 985 928.0 916.5Q913 848 715 0H365L2 1409H301L505 499L551 279Q579 418 605.5 544.5Q632 671 805 1409H1135L1313 659Q1334 575 1384 279L1409 395L1462 625L1632 1409H1931Z" transform="translate(303.03 84) scale(0.03027 -0.03027)"/>
+<path d="M1507 711Q1507 491 1420.0 324.0Q1333 157 1171.0 68.5Q1009 -20 793 -20Q461 -20 272.5 175.5Q84 371 84 711Q84 1050 272.0 1240.0Q460 1430 795 1430Q1130 1430 1318.5 1238.0Q1507 1046 1507 711ZM1206 711Q1206 939 1098.0 1068.5Q990 1198 795 1198Q597 1198 489.0 1069.5Q381 941 381 711Q381 479 491.5 345.5Q602 212 793 212Q991 212 1098.5 342.0Q1206 472 1206 711Z" transform="translate(369.55 84) scale(0.03027 -0.03027)"/>
+<path d="M1105 0 778 535H432V0H137V1409H841Q1093 1409 1230.0 1300.5Q1367 1192 1367 989Q1367 841 1283.0 733.5Q1199 626 1056 592L1437 0ZM1070 977Q1070 1180 810 1180H432V764H818Q942 764 1006.0 820.0Q1070 876 1070 977Z" transform="translate(425.77 84) scale(0.03027 -0.03027)"/>
+<path d="M137 0V1409H432V228H1188V0Z" transform="translate(478.55 84) scale(0.03027 -0.03027)"/>
+<path d="M1393 715Q1393 497 1307.5 334.5Q1222 172 1065.5 86.0Q909 0 707 0H137V1409H647Q1003 1409 1198.0 1229.5Q1393 1050 1393 715ZM1096 715Q1096 942 978.0 1061.5Q860 1181 641 1181H432V228H682Q872 228 984.0 359.0Q1096 490 1096 715Z" transform="translate(524.42 84) scale(0.03027 -0.03027)"/>
+</g>
+<path d="M325 43 l10 10 l-10 10 l-10-10z" fill="#000000"/>
+</g>
+</svg>

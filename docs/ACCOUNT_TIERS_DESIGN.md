@@ -67,7 +67,7 @@
 ### Patterns that matter for GridWorld
 1. **The stipend is king.** Every successful virtual-world sub includes a currency drip (SL L$300/wk, RR+ 6,000 tokens/mo, Roblox 450–2,200 Robux/mo, Fortnite 1,000 V-Bucks/mo). It must feel like more value than the sub price.
 2. **Land = the premium anchor** (SL model). Ownership is the strongest retention mechanic in persistent worlds.
-3. **Selling rights are a powerful gate** (Rec Room, Roblox). Creators will pay for the right to earn.
+3. **Fees, not gates, for selling** (Paul's call, SL model). Everyone can sell — free users just pay higher fees (15%) and get fewer listing slots. Paid tiers earn their keep through lower fees, more slots, and featured placement. User-friendly beats paywalled.
 4. **Free tiers must be genuinely fun** (FFXIV trial, VRChat free). The funnel works when free is good but socially/economically limited.
 5. **No-cash-out currencies (V-Bucks, Tokens-for-spending) keep economies closed and safe.** GridWorld's GRC follows this model — like V-Bucks, not like L$.
 6. **Identity/status perks convert** (badges, exclusive cosmetics, founder walls) — cheap to provide, high perceived value.
@@ -93,8 +93,8 @@
 | **Land** | Visit public regions; no ownership | **Private plot — 512 m²** in a citizen district | **Large plot — 2,048 m²** + second plot option |
 | **Extra land** | — | Buy additional tier (GRC/mo) | Buy additional tier (GRC/mo), priority placement |
 | **Marketplace buying** | ✅ | ✅ | ✅ |
-| **Marketplace selling** | ❌ (buy-only) | ✅ List up to **10 items** | ✅ List up to **50 items**, **featured placement** eligible |
-| **Marketplace fees** | — | Standard 10% | **5%** (half fees) |
+| **Marketplace selling** | ✅ List up to **3 items** | ✅ List up to **10 items** | ✅ List up to **50 items**, **featured placement** eligible |
+| **Marketplace fees** | 15% (higher fee for free tier, SL-style) | Standard 10% | **5%** (half fees) |
 | **Avatar Studio** | Starter avatar + 10 styles | ✅ Full customization | ✅ Full + exclusive seasonal skins |
 | **UI themes** | Grayscale default | All 11 themes | All 11 + early access to new themes |
 | **Profile badge** | — | 🟦 Citizen badge | 🟪 Architect badge |
