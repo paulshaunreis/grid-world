@@ -15,6 +15,7 @@ import {
 } from './theme/GridTheme';
 import { DISTRICT_IDENTITIES } from './theme/districts';
 import { readLocalLocale, writeLocalLocale } from './i18n/GridLanguageService';
+import { mountGlobalNav } from './components/GlobalNav';
 import { GRID_SUPPORTED_LOCALES } from './core/GridLanguagePreferences';
 
 /* Region cards render from the canonical district table (src/theme/districts.ts)
@@ -55,9 +56,6 @@ const operatorUrl=import.meta.env.VITE_SUPABASE_URL as string|undefined;
 const operatorKey=import.meta.env.VITE_SUPABASE_ANON_KEY as string|undefined;
 const operator=operatorUrl&&operatorKey?mountGridOperatorPanel(new GridOperatorService(createClient(operatorUrl,operatorKey))):null;
 
-const navItems = [
-  ['Home','/'], ['Discover','/#discover'], ['Communities','/#communities'], ['Events','/meetups.html'], ['Marketplace','/marketplace.html'], ['About','/#about'], ['Creator Hub','/grid-world-studio.html']
-] as const;
 const siteStyles = ['aurora', 'studio', 'terminal', 'garden'] as const;
 type SiteStyle = typeof siteStyles[number];
 const SITE_STYLE_KEY = 'grid-world:site-style';
@@ -110,9 +108,7 @@ async function loadTeamPosts(): Promise<{ posts: TeamPost[]; live: boolean }> {
 }
 
 app.innerHTML = `
-  <header class="site-header">
-    <a class="brand" href="#home"><img class="brand-logo" src="/grid-world-logo.svg" alt="Grid World"><span>GRID WORLD</span></a>
-    <nav>${navItems.map(([label, href], i) => `<a href="${href}" class="${i === 0 ? 'active' : ''}">${label}</a>`).join('')}</nav>
+  <div class="site-utility-bar">
     <div class="header-actions">
       <select class="site-language-picker" id="site-language-picker" title="Language — applies across the website and in-world" aria-label="Language">
         ${GRID_SUPPORTED_LOCALES.map(l => `<option value="${l}"${l === readLocalLocale() ? ' selected' : ''}>${l}</option>`).join('')}
@@ -120,10 +116,9 @@ app.innerHTML = `
       <div class="site-theme-picker" id="site-theme-picker" title="Interface accent — synced live with the game"></div>
       <button class="ghost style-trigger" id="style-trigger" type="button">STYLE</button><button class="operator-trigger" id="operator-trigger" type="button">GRID OPERATOR</button>
       <button class="ghost" id="site-qr" type="button">QR</button>
-      <a class="ghost" href="/economics.html">ECONOMICS</a><a class="ghost" href="/marketplace.html">MARKET</a><a class="ghost" href="/sound.html">SOUND</a><a class="ghost" href="/grid-world-studio.html">GRID WORLD STUDIO</a><a class="ghost" href="/omni.html">OMNI</a><a class="ghost" href="/directory.html">STAFF</a><a class="ghost" href="/avatars.html">AVATARS</a><a class="ghost" href="/textures.html">TEXTURES</a><a class="ghost" href="/docs.html">DOCS</a><a class="ghost" href="/profile.html">PROFILE</a>
-      <a class="ghost" href="/signin.html" id="header-signin-btn">SIGN IN</a><a class="secondary" href="/join.html" id="header-auth-btn">JOIN GRID</a><a class="primary" href="/play.html">PREVIEW BUILD</a>
+      <a class="ghost" href="/signin.html" id="header-signin-btn">SIGN IN</a><a class="primary" href="/play.html">PREVIEW BUILD</a>
     </div>
-  </header>
+  </div>
   <div class="site-live-clock" id="site-live-clock" aria-live="polite">GRID SIGNAL · <span>SYNCING</span></div>
   <div class="style-panel" id="style-panel" aria-label="Website style selector">
     <div class="style-panel-title">SITE VISUAL LANGUAGE</div>
@@ -534,6 +529,10 @@ app.innerHTML = `
   <div class="site-toast" id="site-toast" role="status" aria-live="polite"></div>
 `;
 
+// Mount the single shared GlobalNav (Paul 2026-10-08) — replaces the old
+// page-specific .site-header. The utility bar above stays for page tools.
+mountGlobalNav();
+
 const studioLiveGrid = document.querySelector<HTMLElement>('#studio-live-grid');
 if (studioLiveGrid) {
   const publicTasks = TEAM_WORK_TASKS.filter(task => task.public);
@@ -601,7 +600,8 @@ document.querySelector('#site-qr')?.addEventListener('click', () => qrScanner.op
 // shows "Welcome [Handle]" with a gear icon; the gear opens a dropdown with
 // account options. When signed out, the JOIN GRID button stays.
 async function initHeaderUserMenu() {
-  const authBtn = document.querySelector('#header-auth-btn');
+  // Target the GlobalNav JOIN button (or the legacy header auth button).
+  const authBtn = document.querySelector('header.gw-global-nav .gw-join') || document.querySelector('#header-auth-btn');
   if (!authBtn || !supabaseConfigured || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) return;
   const client = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
   const { data: { session } } = await client.auth.getSession();

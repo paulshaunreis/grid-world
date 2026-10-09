@@ -59,3 +59,11 @@ body.grid-world-page::after{background:linear-gradient(90deg,transparent,rgb(var
 .gw-theme-menu button{background:none;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:7px 4px;color:#cfe3ee;font:600 8px "IBM Plex Mono",monospace;cursor:pointer;display:grid;gap:4px;place-items:center}
 .gw-theme-menu button span{display:block;width:16px;height:16px;border-radius:50%}
 .gw-theme-menu button:hover{border-color:rgba(var(--hud-rgb),.6);box-shadow:0 0 10px rgba(var(--hud-rgb),.3)}
+
+/* Page title strips (converted from old duplicate nav headers, Paul 2026-10-08).
+   Simple title bars — global navigation now lives in the shared GlobalNav. */
+.page-title{display:flex;align-items:center;gap:12px;padding:14px 22px;
+  font:700 11px/1 "IBM Plex Mono",monospace;letter-spacing:.16em;color:#7feaff;
+  border-bottom:1px solid rgba(100,220,255,.12);background:rgba(3,9,16,.5)}
+.page-title span+span{color:rgba(230,247,255,.5)}
+.market-page-hero{padding:28px 22px 8px}

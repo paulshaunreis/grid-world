@@ -18,7 +18,7 @@ function render(){
   const stages=[...new Set(concepts.map(c=>c.life_stage))];
   const genders=[...new Set(concepts.map(c=>c.gender_identity))];
   app.innerHTML=`<div class="page">
-    <header class="top"><div><div class="eyebrow">GRID WORLD · AVATAR CONCEPT LIBRARY</div><h1>Every stage.<br>Every identity.</h1><p>A flexible, age-appropriate avatar system. Gender identity and presentation are separate design dimensions, so people can describe themselves without being forced into a fixed visual template. This catalog is extensible rather than claiming to enumerate every identity.</p></div><nav class="nav"><a href="/">WORLD</a><a href="/marketplace.html">MARKET</a><a href="/omni.html">OMNI</a><a href="/directory.html">STAFF</a></nav></header>
+    <header class="top"><div><div class="eyebrow">GRID WORLD · AVATAR CONCEPT LIBRARY</div><h1>Every stage.<br>Every identity.</h1><p>A flexible, age-appropriate avatar system. Gender identity and presentation are separate design dimensions, so people can describe themselves without being forced into a fixed visual template. This catalog is extensible rather than claiming to enumerate every identity.</p></div></header>
     <section class="filters">
       <select id="stage"><option value="">All life stages</option>${stages.map(x=>`<option>${x}</option>`).join('')}</select>
       <select id="gender"><option value="">All gender identities</option>${genders.map(x=>`<option>${x}</option>`).join('')}</select>
