@@ -629,7 +629,7 @@ async function initHeaderUserMenu() {
     `<button class="header-gear" id="header-gear" type="button" aria-label="Account settings" aria-haspopup="true">⚙</button>` +
     `<div class="header-user-dropdown" id="header-user-dropdown" hidden>` +
       `<a href="/profile.html">My Profile</a>` +
-      `<a href="/account.html">Account Settings</a>` +
+      `<a href="/profile.html">Account Settings</a>` +
       `<a href="/recover.html">Security & Recovery</a>` +
       `<button type="button" id="header-signout">Sign Out</button>` +
     `</div>`;
