@@ -114,6 +114,20 @@
 .art-lightbox-info p{color:#b9d5ec;font-size:13px;line-height:1.6}
 .art-edit-form{margin-top:12px}
 .art-edit-form input,.art-edit-form textarea{width:100%;margin-bottom:8px;padding:8px;border:1px solid rgba(0,150,220,.14);background:#091627;color:#fff;border-radius:6px;font-size:12px}
+/* Gallery comments */
+.art-comments{margin-top:20px;padding-top:16px;border-top:1px solid rgba(0,212,255,.12)}
+.art-comments h4{margin:0 0 12px;font-size:11px;letter-spacing:.15em;color:#8fb8d8}
+.art-comments-list{display:flex;flex-direction:column;gap:12px;margin-bottom:14px}
+.art-comment{background:rgba(0,80,140,.12);border:1px solid rgba(0,150,220,.1);border-radius:10px;padding:10px 12px}
+.art-comment-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.art-comment-head .art-date{margin-left:auto}
+.art-comment-delete{background:transparent;border:none;color:#627487;font-size:18px;cursor:pointer;padding:0 4px}
+.art-comment-delete:hover{color:#ff8bc8}
+.art-comment p{margin:0;color:#d5e8f7;font-size:13px;line-height:1.5}
+.art-comments-empty{color:#627487;font-size:12px;font-style:italic}
+.art-comment-form{display:flex;gap:8px}
+.art-comment-input{flex:1;padding:10px 12px;border:1px solid rgba(0,150,220,.2);background:#091627;color:#fff;border-radius:8px;font-size:13px}
+.art-comment-form button{background:linear-gradient(135deg,#00d4ff,#0090ff);border:none;color:#fff;padding:10px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600}
 /* Music placeholder */
 .music-coming-soon{text-align:center;padding:40px 20px;color:#8fa9c4}
 .music-note{font-size:48px;margin-bottom:12px;opacity:.6}

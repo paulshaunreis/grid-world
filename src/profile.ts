@@ -4,6 +4,7 @@ import { getPermissions, permBadge, canTransfer, canGift, itemBadge, sendGift, a
 import { TEAM_AVATARS } from './avatars/teamRoster';
 import { teamGallery } from './avatars/teamGalleries';
 import { voteButtons, bindVotes } from './social/voting';
+import { userBadge, currentUserBadge, badgeForHandle } from './social/UserBadge';
 import { createClient } from '@supabase/supabase-js';
 import { GridProfileAuthority, type GridProfileMedia, type GridArenaRanking, type GridProfileActivity } from './social/GridProfileAuthority';
 import { GridWorldAuthority, type GridPersistentWorld } from './social/GridWorldAuthority';
@@ -93,6 +94,35 @@ function saveGallery(pieces: GalleryPiece[]) {
 let gallerySort: 'newest' | 'liked' = 'newest';
 let galleryLightboxId: string | null = null;
 
+// Gallery comments — every comment shows the standard user badge
+// (avatar + online dot, name, type badge, clickable profile link).
+type ArtComment = {
+  id: string;
+  pieceId: string;
+  handle: string;
+  body: string;
+  createdAt: string;
+};
+
+const artCommentsKey = 'grid-world:gallery-comments';
+
+function loadArtComments(): ArtComment[] {
+  try {
+    const saved = localStorage.getItem(artCommentsKey);
+    return saved ? JSON.parse(saved) as ArtComment[] : [];
+  } catch { return []; }
+}
+
+function saveArtComments(comments: ArtComment[]) {
+  localStorage.setItem(artCommentsKey, JSON.stringify(comments));
+}
+
+function commentsForPiece(pieceId: string): ArtComment[] {
+  return loadArtComments()
+    .filter(c => c.pieceId === pieceId)
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+}
+
 function galleryMarkup(): string {
   const isOwner = !new URLSearchParams(location.search).get('handle');
   let pieces = loadGallery().slice();
@@ -152,7 +182,32 @@ function galleryLightboxMarkup(p: GalleryPiece | undefined, isOwner: boolean): s
           <input class="art-edit-tags" value="${escapeHtml(p.tags.join(', '))}" maxlength="200">
           <div class="blog-post-actions"><button data-art-save="${escapeHtml(p.id)}" type="button">SAVE</button><button data-art-cancel type="button">CANCEL</button></div>
         </div>`:''}
+        ${artCommentsMarkup(p.id, isOwner)}
       </div>
+    </div>
+  </div>`;
+}
+
+function artCommentsMarkup(pieceId: string, isOwner: boolean): string {
+  const comments = commentsForPiece(pieceId);
+  const me = currentUserBadge();
+  return `<div class="art-comments">
+    <h4>COMMENTS (${comments.length})</h4>
+    <div class="art-comments-list">
+      ${comments.length ? comments.map(c => {
+        const badge = userBadge(badgeForHandle(c.handle));
+        const canDelete = isOwner || c.handle.toLowerCase() === me.handle.toLowerCase();
+        return `<div class="art-comment">
+          <div class="art-comment-head">${badge}<small class="art-date">${formatBlogDate(c.createdAt)}</small>
+            ${canDelete ? `<button class="art-comment-delete" data-art-comment-delete="${escapeHtml(c.id)}" data-art-piece="${escapeHtml(pieceId)}" type="button" title="Delete">×</button>` : ''}
+          </div>
+          <p>${escapeHtml(c.body)}</p>
+        </div>`;
+      }).join('') : '<p class="art-comments-empty">No comments yet. Be the first.</p>'}
+    </div>
+    <div class="art-comment-form">
+      <input class="art-comment-input" data-art-comment-piece="${escapeHtml(pieceId)}" placeholder="Write a comment…" maxlength="500">
+      <button data-art-comment-post="${escapeHtml(pieceId)}" type="button">POST</button>
     </div>
   </div>`;
 }
@@ -808,6 +863,31 @@ function bind() {
       piece.tags = tags.split(',').map(t=>t.trim()).filter(Boolean);
       saveGallery(pieces);
     }
+    render();
+  }));
+  document.querySelectorAll<HTMLButtonElement>('[data-art-comment-post]').forEach(button => button.addEventListener('click', () => {
+    const pieceId = button.dataset.artCommentPost!;
+    const input = button.closest('.art-comment-form')?.querySelector<HTMLInputElement>('.art-comment-input');
+    const body = input?.value.trim() ?? '';
+    if (!body) return;
+    const me = currentUserBadge();
+    const comments = loadArtComments();
+    comments.push({ id: crypto.randomUUID(), pieceId, handle: me.handle, body, createdAt: new Date().toISOString() });
+    saveArtComments(comments);
+    galleryLightboxId = pieceId;
+    render();
+  }));
+  document.querySelectorAll<HTMLInputElement>('.art-comment-input').forEach(input => input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      input.closest('.art-comment-form')?.querySelector<HTMLButtonElement>('[data-art-comment-post]')?.click();
+    }
+  }));
+  document.querySelectorAll<HTMLButtonElement>('[data-art-comment-delete]').forEach(button => button.addEventListener('click', () => {
+    const id = button.dataset.artCommentDelete!;
+    const pieceId = button.dataset.artPiece!;
+    saveArtComments(loadArtComments().filter(c => c.id !== id));
+    galleryLightboxId = pieceId;
     render();
   }));
   document.querySelector('#save')?.addEventListener('click', save);
