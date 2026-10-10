@@ -920,3 +920,9 @@ _Last updated: 2026-10-10_
 - **Next:** recheck the Render deploy, then do the live browser/WebGL pass (Atlas/HUD stacking, narrow viewport, world entry, movement/camera, teleport preview). Implement and test a server-authoritative mineral interaction path before restoring browser mining. The migration is already applied; do not re-enable the legacy RPCs without world/presence/position checks. Review the Auth leaked-password-protection setting. Keep concept/canon PRs #57 and #58 awaiting explicit user approval.
 
 _Last updated: 2026-10-10_
+
+
+### Follow-up: combat movement stale-sync bypass (2026-10-10)
+- Found `grid-combat` accepted any client-supplied position whenever the prior state was older than five seconds, bypassing its movement-distance check.
+- Proposed fix in PR branch `codex/harden-combat-movement-stale-sync-2026-10-10`: remove the idle-time bypass so stale clients must resume from their last accepted server position. Teleport remains a separate server-authorized transition, not a free movement sync.
+- This hardening is a prerequisite for using combat position as part of any trusted interaction check; it is not by itself sufficient to authorize mining.
