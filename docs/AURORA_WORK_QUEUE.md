@@ -942,5 +942,16 @@ _Last updated: 2026-10-10_
 
 ### Follow-up: combat-state browser write grants (2026-10-10)
 - Live policy/grant audit found authenticated INSERT/UPDATE policies and broad table grants on `grid_combat_state`. The trusted Edge Function performs writes with service_role; browser roles should only read their own row.
-- PR in progress: `security/server-own-combat-state-writes`, migration `20261010180000_revoke_client_writes_to_combat_state.sql` revokes browser writes and removes write policies while retaining authenticated owner-scoped reads.
-- Do not call this deployed until merged and live grant/policy verification passes. Mining remains gated; validated teleport/session architecture is still missing.
+- PR #119 merged as `db8eb9c15e378a1513c313037f8f3f640e1a5c41`; migration `revoke_client_writes_to_combat_state` was applied to live Supabase and recorded in migration history as `20261010193128`.
+- Live grants now show `authenticated` has SELECT only; `service_role` retains table write privileges. The only remaining RLS policy is owner-scoped SELECT. This containment is live-verified; trusted sessions and validated teleport/world transitions remain unimplemented. Mining remains gated.
+
+
+## 2026-10-10 — Desktop runtime portability pass
+
+- Paul approved moving toward a standalone Grid World desktop client while preserving the browser client.
+- Added docs/GRID_DESKTOP_RUNTIME_ROADMAP.md and docs/GRID_RUNTIME_PORTABILITY_MAP.md to record the staged plan and current module boundaries.
+- Source audit confirms Vite + TypeScript + Three.js, a partial GridEngine/ThreeGridRenderer abstraction, and significant Three.js/DOM coupling in src/main.ts, src/world/World.ts, src/core/Input.ts, src/core/PlayerController.ts, src/engine/dracoLoader.ts, and src/ui/WindowManager.ts.
+- PR #121 merged as 781827760f42245801c364eaa0d7ee0965072e43. It adds an injected InputPlatform contract and BrowserInputPlatform adapter; GitHub Actions run #1477 passed TypeScript and build steps. No browser/WebGL interaction test is claimed.
+- The inspected package.json has no test script; build command is grid-code-analyzer.mjs && tsc && vite build.
+- No engine has been selected and no desktop executable is claimed to exist. Keep the current browser client intact.
+- Next: inventory asset path assumptions; then extract viewport/canvas lifecycle without changing movement/camera behavior. Compare the current Three.js path with a candidate native runtime using a small vertical slice before choosing an engine.

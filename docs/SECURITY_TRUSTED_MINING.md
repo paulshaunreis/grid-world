@@ -46,5 +46,6 @@ Trusted world identity, a server-owned teleport transition, mining range/cooldow
 ## Combat-state write containment — 2026-10-10
 
 - Live schema inspection found `grid_combat_state` still granted browser-role table privileges and had owner-scoped INSERT/UPDATE RLS policies. That allowed a signed-in user to forge their own authoritative position/health/mode outside the Edge Function, even though the normal client uses `grid-combat` for sync.
-- Proposed migration `20261010180000_revoke_client_writes_to_combat_state.sql` removes browser write grants and insert/update policies while preserving owner-scoped authenticated SELECT and server-role writes.
-- This is a PR-stage containment change until merged, applied, and verified live. It does not implement server-owned sessions, teleport transitions, or mining. Keep mining disabled.
+- PR #119 merged as `db8eb9c15e378a1513c313037f8f3f640e1a5c41`. Migration `revoke_client_writes_to_combat_state` was applied to live Supabase and recorded in migration history as `20261010193128`.
+- Live grants show `authenticated` has SELECT only on `public.grid_combat_state`; `service_role` retains write privileges. The only remaining RLS policy is owner-scoped SELECT. This containment is live-verified.
+- It does not implement server-owned sessions, validated teleport transitions, or mining. Keep mining disabled.
