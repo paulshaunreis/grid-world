@@ -7,3 +7,23 @@
 .card-body .tag{font-size:8px}
 .grid h2{font-size:28px;margin:7px 0}
 .status{position:static;margin-top:14px}
+
+/* Unified staff identity cards — matching the Grid World profile panel language. */
+.staff-profile .staff-art{height:190px;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 35%,rgba(49,230,232,.16),rgba(5,8,18,.95) 70%)}
+.staff-profile .staff-art img{position:relative;z-index:1}
+.staff-profile .staff-art-fallback{display:none;position:absolute;inset:0;place-items:center;font:800 54px 'Space Grotesk',sans-serif;color:#74eff0;background:linear-gradient(145deg,#123f50,#061a25)}
+.staff-profile .card-body{padding:18px}
+.staff-profile .tag{line-height:1.6;overflow-wrap:anywhere}
+.staff-profile .species{font:10px/1.5 'IBM Plex Mono',monospace;color:#80cbd7;margin-top:7px}
+.staff-profile-section{padding-top:10px;margin-top:10px;border-top:1px solid rgba(72,231,255,.12)}
+.staff-profile-section>b,.staff-profile-more summary{font:700 8px 'IBM Plex Mono',monospace;letter-spacing:.14em;color:#48e7ff}
+.staff-profile-section p,.staff-profile-more p{margin:5px 0 0;color:#b4c7d5;font:12px/1.55 'Space Grotesk',sans-serif;overflow-wrap:anywhere}
+.staff-profile-more{margin-top:12px;border-top:1px solid rgba(72,231,255,.12);padding-top:10px}
+.staff-profile-more summary{cursor:pointer;list-style:none}
+.staff-profile-more summary::-webkit-details-marker{display:none}
+.staff-profile-more summary:after{content:' +';color:#8deff0}
+.staff-profile-more[open] summary:after{content:' −'}
+.staff-profile-more ul{padding-left:17px;color:#b4c7d5;font:11px/1.6 'Space Grotesk',sans-serif}
+.staff-profile-more li+li{margin-top:3px}
+.staff-profile .status{font-size:8px;letter-spacing:.1em}
+@media(max-width:600px){.staff-profile .staff-art{height:170px}}
