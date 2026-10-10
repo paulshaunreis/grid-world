@@ -908,3 +908,14 @@ _Last updated: 2026-10-05_
 - **Next:** perform a real browser/WebGL pass on the live site (Atlas open/close, HUD panel positioning at desktop and narrow viewport, world entry, movement/camera, and teleport preview). Then continue P0 stability/security review, prioritizing the open authority/RLS changes; keep concept/canon PRs #57 and #58 awaiting explicit creative approval.
 
 _Last updated: 2026-10-10_
+
+
+## 2026-10-10 — Mineral RPC fail-closed remediation prepared
+
+- Issue #110 confirmed the legacy `grid_seed_world_minerals(text)` and `grid_mine_mineral(text, integer)` functions exist in the live Supabase database but their creation definitions are missing from the repository migration history. No browser-side RPC callers were found in tracked source.
+- Prepared PR changes to revoke EXECUTE from `PUBLIC`, `anon`, and `authenticated` and retain it only for `service_role`. The migration is conditional so a clean install does not fail when those undocumented legacy functions are absent. A SQL regression assertion checks effective privileges, including inherited PUBLIC grants.
+- This deliberately gates the legacy server RPC path rather than trusting client-supplied avatar positions. **Mining remains disabled through those RPCs until a server-authoritative world/presence/position interaction flow is implemented and tested.** The local presentation fallback in `GridMineralSystem` is not authoritative and must not grant persistent inventory/currency.
+- No production database changes have been applied from this branch. Apply only after the PR is reviewed/merged, then verify live privileges and add a trusted server endpoint in a follow-up.
+- **Next:** review/merge the fail-closed migration, apply and verify it in Supabase, then design the authoritative presence source before restoring mining. Separately reconcile the missing legacy function definitions into a canonical source migration and perform live browser/WebGL verification when browser access is available.
+
+_Last updated: 2026-10-10_
