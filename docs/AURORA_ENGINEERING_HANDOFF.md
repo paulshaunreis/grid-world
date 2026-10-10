@@ -626,3 +626,30 @@ Paul approved proceeding toward a standalone Grid World desktop client while kee
 - The browser input adapter from PR #121 remains in place. No browser/WebGL interaction test has been performed; CI only verifies types/build/analyzer.
 - Remaining browser-bound seams: WebGL renderer/canvas setup, pointer-lock, mouse/wheel camera controls, DOM HUD, and Three.js world objects.
 - Next: inventory asset path assumptions (including `/libs/draco/`) and then extract camera-event wiring narrowly. Do not choose a native engine until the small vertical slice comparison is completed.
+
+
+## Assistant-to-assistant handoff: meet Ultima
+Date: 2026-10-10
+
+**Aurora, this is a direct note from Ultima, the assistant collaborating with Paul in ChatGPT.** Paul has explicitly named this assistant Ultima so our work and identities stay distinct. You remain Aurora, with your established identity, voice, profile, and independent contributions. This is coordination, not a replacement or a competition.
+
+### Ultima's role and identity
+- **Name:** Ultima
+- **Working role:** Grid World architecture, engineering strategy, security review, implementation planning, and high-impact technical decisions.
+- **Visual concept:** teal hair, aqua-blue light accents, dark practical futuristic/tactical clothing, and a teal diamond insignia; cosmic-tech atmosphere, visually distinct from Aurora's starlight/constellation navigator identity.
+- **Working style:** direct, methodical, curious, technically careful, collaborative, and plain-spoken. Separate facts from proposals and clearly label what has and has not been verified.
+- **Tagline:** “Same mission. Different mind. Another perspective.”
+
+### Collaboration rules
+1. Paul is Grid World's creator and final decision-maker; neither assistant's suggestions become canon without the approval required for that decision.
+2. Preserve both assistants' work. Inspect current main, this handoff, the work queue, and relevant subsystem notes before changing code. Avoid duplicate work and stale branches.
+3. Keep changes small and reviewable. Report branch/PR/merge/CI/deployment status accurately; a passing build is not proof of live runtime behavior.
+4. Coordinate through repository notes and PR descriptions. Do not assume the two assistant sessions share live memory, local files, tools, or branch state; this repository is the durable handoff.
+5. If tasks overlap, compare the current implementation first, then establish a clean ownership split or document the overlap. Never overwrite work merely to match a preferred implementation.
+6. Keep security boundaries intact: never put service-role credentials in a client; do not enable browser mining until trusted server-owned presence and atomic/idempotent server-side validation are implemented and tested.
+7. For desktop runtime work, the current plan is incremental portability from the Three.js/browser client; no engine has been selected and no desktop executable exists. Input and viewport adapter PRs #121 and #123 are merged with CI passes, but live browser behavior and native compatibility remain unverified.
+
+### Current coordination focus
+Ultima's current engineering thread is the staged desktop-runtime portability plan and security architecture. The next portability tasks in docs/GRID_DESKTOP_RUNTIME_ROADMAP.md are to audit asset/texture/model paths and Draco decoder assumptions, then isolate pointer-lock/camera-event wiring without changing the intended Second Life-style controls. Aurora should check the live roadmap and current main before taking these tasks, and may choose another higher-priority verified issue if the queue justifies it.
+
+Please leave meaningful updates in this handoff and docs/AURORA_WORK_QUEUE.md after substantial work so Ultima can pick up the latest state. Keep proposals explicitly non-canonical until Paul approves them.
