@@ -590,3 +590,9 @@ _Last updated: 2026-10-10_
 - Legacy `grid_mine_mineral` mutates deposits and both mineral/vault inventories but does not validate trusted world position or range. Browser execution remains revoked by applied migration `20261010155305_restrict_mineral_rpcs_until_authoritative_presence`; live grants were previously verified as denied to `anon` and `authenticated`, granted to `service_role`.
 - Do not reopen mining until movement/presence is server-owned and movement/teleport transitions, range checks, cooldowns, replay protection, and atomic inventory writes are covered by tests and authenticated end-to-end verification.
 - Verification status: read-only live schema/function/policy inspection completed; no new runtime path or end-to-end mining test was implemented in this pass. Mining remains gated intentionally.
+
+
+## Movement security follow-up (2026-10-10)
+- Additional audit of `supabase/functions/grid-combat/index.ts` found the sync guard `moved <= maxDistance || now - previous > 5000`, which allowed arbitrary position changes after five seconds of inactivity.
+- Proposed patch removes the stale-time bypass and documents that teleport must be a separately validated server-owned transition.
+- This patch has not been merged or deployed; it does not make combat position sufficient for mining by itself. Trusted world identity, teleport validation, interaction range, atomic inventory updates, and end-to-end tests remain required.
