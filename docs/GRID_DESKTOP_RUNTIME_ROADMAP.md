@@ -93,5 +93,15 @@ Grid World has a useful early GridEngine subsystem lifecycle and renderer interf
 - Merged PR #121: platform-neutral input contract plus BrowserInputPlatform implementation.
 - CI run #1477 passed the TypeScript check and build.
 - Keyboard and gamepad mapping behavior was preserved in the refactor; input event listeners now have an explicit disposer called on beforeunload.
-- Still browser-only: viewport/canvas, pointer-lock and mouse camera events, WebGL renderer, DOM HUD, and Three.js scene graph. No native engine selected or executable created.
-- Next: audit asset URL/decoder assumptions, then isolate viewport lifecycle in a small follow-up after a fresh source review.
+- PR #123 merged as 5c4fb48187e96ed6dfd35b32ab928245d2a872a8; GitHub Actions run #1482 passed TypeScript and build checks. BrowserViewport now owns the resize-listener lifecycle while keeping camera projection, renderer sizing, and Grid Engine resize calls intact.
+- Still browser-only: canvas creation, pointer-lock and mouse camera events, WebGL renderer, DOM HUD, and Three.js scene graph. No native engine selected or executable created.
+- Next: inventory asset URL/decoder assumptions, then isolate pointer-lock and camera-event wiring in a behavior-preserving adapter.
+
+
+## Viewport adapter checkpoint — 2026-10-10
+
+- PR #123 merged as 5c4fb48187e96ed6dfd35b32ab928245d2a872a8.
+- CI run #1482 passed the TypeScript check and build.
+- BrowserViewport owns resize listener registration/removal and delegates camera projection update, renderer sizing, and Grid Engine resize to injected interfaces.
+- The adapter avoids importing Three.js types. This is a browser-platform seam, not a renderer or native-engine migration.
+- No browser/WebGL interaction test was run; the next change must remain small and separately verified.
