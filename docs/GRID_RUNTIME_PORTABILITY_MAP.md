@@ -16,12 +16,13 @@
 
 | Area | Current modules / evidence | Coupling | Migration note |
 |---|---|---|---|
-| Browser entry and orchestration | play.html, src/main.ts | High: DOM, window events, canvas, renderer, camera and many systems initialized in one module | Keep the existing boot path stable. Extract lifecycle seams gradually; do not rewrite the large file in one pass. |
+| Browser entry and orchestration | play.html, src/main.ts | High: DOM, canvas, renderer, camera and many systems initialized in one module | Keep the existing boot path stable. Extract lifecycle seams gradually; do not rewrite the large file in one pass. |
 | Engine lifecycle | src/engine/GridEngine.ts, GridEngineRuntime.ts, GridEngineCore.ts | Medium: subsystem lifecycle is reusable, but frame and renderer contracts use Three.js types | Keep as the current Grid runtime coordinator. Avoid calling it engine-neutral until the scene/camera contract is deliberately addressed. |
 | Renderer | src/engine/ThreeGridRenderer.ts | High: explicitly wraps THREE.WebGLRenderer | Good adapter for current web renderer. A native runtime needs a separate implementation and likely a separate scene representation, not just a new renderer class. |
 | World/scene graph | src/world/World.ts and related world/engine modules | Very high: THREE.Scene, Mesh, Group, geometry, lights and materials are used directly | Treat Three.js world construction as a Three-backed implementation. First identify portable world definitions/data separately from scene objects. |
 | Player/avatar and camera | src/core/PlayerController.ts, camera logic in src/main.ts | High: Three.js transforms plus DOM pointer-lock/mouse/wheel events | Preserve control semantics; isolate input intent and camera policy before attempting native input integration. |
-| Input | src/core/Input.ts, src/core/InputPlatform.ts, src/platform/BrowserInputPlatform.ts | Reduced for key/gamepad acquisition: Grid input now depends on an interface, with a browser adapter providing global keyboard/gamepad events | First adapter merged in PR #121; viewport and camera event handling are still browser-bound. |
+| Input | src/core/Input.ts, src/core/InputPlatform.ts, src/platform/BrowserInputPlatform.ts | Reduced for key/gamepad acquisition: Grid input now depends on an interface, with a browser adapter providing global keyboard/gamepad events | PR #121 merged with passing type/build CI; viewport and camera event handling are still browser-bound. |
+| Viewport resize | src/platform/BrowserViewport.ts | Reduced: uses injected camera/renderer/resize interfaces; owns the browser window resize listener | PR #123 merged with passing type/build CI. Canvas creation and pointer-lock/camera mouse handlers remain in main.ts. |
 | Persistence | src/core/Persistence.ts, src/core/VersionedStorage.ts | Medium: versioned local browser storage | Keep serialization/schema logic reusable; inject a storage adapter for browser, desktop, or future offline storage. Browser local state is not trusted authority. |
 | Cloud persistence/config | src/persistence/SupabasePersistence.ts, src/persistence/config.ts | Medium: Supabase SDK/configuration, but not inherently DOM-bound | Reuse the same authenticated service boundary in the desktop client; never ship service-role credentials. |
 | Multiplayer presence | src/network/SupabasePresence.ts, src/network/Presence.ts | Low-to-medium platform coupling: Supabase client/realtime and shared player-state types | Potentially reusable with authenticated user sessions; presence data is not proof of trusted gameplay location. |
@@ -43,7 +44,7 @@
 ## Recommended extraction order
 
 1. Define explicit platform contracts for viewport lifecycle, input actions, asset location, and local storage without pretending that Three.js scene types are portable.
-2. Extract browser input acquisition in small, reversible changes while keeping the existing DOM controls and movement/camera behavior.
+2. Extract browser input acquisition and viewport resize lifecycle in small, reversible changes while keeping the existing DOM controls and movement/camera behavior.
 3. Separate world definitions and simulation data from Three.js scene construction where an existing boundary already exists.
 4. Build a small runtime comparison slice: one representative scene, one avatar, camera/movement, asset loading, authenticated world entry, and one safe interaction.
 5. Compare Three.js against Godot using actual build/asset/performance results. Consider Unreal only if the required fidelity and measured trade-offs justify it.
@@ -56,3 +57,10 @@
 - [ ] Inventory all runtime asset formats and URL/path assumptions.
 - [ ] Identify existing tests or add minimal focused coverage for the first adapter.
 - [ ] Complete a behavior-preserving browser adapter before selecting a native engine.
+
+
+## 2026-10-10 update
+
+- PR #121 separated keyboard/gamepad acquisition behind InputPlatform and BrowserInputPlatform.
+- PR #123 separated viewport resize-listener lifecycle behind BrowserViewport.
+- Both PRs passed GitHub Actions TypeScript and build checks. Browser/WebGL behavior remains unverified; the next target is pointer-lock and camera-event wiring, after an asset URL/decoder audit.
