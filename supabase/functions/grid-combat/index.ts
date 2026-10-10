@@ -129,7 +129,7 @@ async function ensureState(userId: string) {
   return created;
 }
 
-async function syncState(userId: string, input: {x:number;y:number;z:number;yaw:number;regionId?:string}) {
+async function syncState(userId: string, input: {x:number;y:number;z:number;yaw:number}) {
   const state = await ensureState(userId);
   const now = Date.now();
   const previous = new Date(state.updated_at).getTime();
@@ -149,7 +149,6 @@ async function syncState(userId: string, input: {x:number;y:number;z:number;yaw:
   const mode = modeForPosition(next.x, next.z);
 
   const { data, error } = await admin.from("grid_combat_state").update({
-    region_id: String(input.regionId ?? state.region_id),
     x: next.x, y: next.y, z: next.z, yaw,
     mode, updated_at: new Date(now).toISOString(),
   }).eq("user_id", userId).select("*").single();
@@ -514,7 +513,10 @@ Deno.serve(async (req: Request) => {
     }
 
     if (action === "sync") {
-      const result = await syncState(user.id, body.transform ?? body);
+      if (!body.transform || typeof body.transform !== "object" || Array.isArray(body.transform)) {
+        return json({ ok:false, error:"invalid_transform" }, 400);
+      }
+      const result = await syncState(user.id, body.transform);
       return json({ ok:true, action, zone:result.zone, mode:result.state.mode, state:result.state, accepted:result.accepted });
     }
 
