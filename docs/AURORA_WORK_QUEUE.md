@@ -938,3 +938,13 @@ _Last updated: 2026-10-10_
 - Removed the five-second idle-time bypass so stale clients resume from their last accepted server position.
 - Deployed repository-matching `grid-combat` source to Supabase Edge Function version 21 with JWT verification enabled. Post-deploy read confirmed the bypass expression is absent and the strict distance guard is present.
 - This hardening is not full trusted presence: client-supplied region identity remains in the generic sync path, and a server-owned teleport/world transition is not implemented. Mining remains disabled to browser roles pending trusted world identity, range/cooldown/replay protections, atomic inventory updates, regression tests, and authenticated end-to-end verification.
+
+
+## 2026-10-10 — Desktop runtime architecture audit
+
+- Paul approved moving toward a standalone Grid World desktop client while preserving the browser client.
+- Added docs/GRID_DESKTOP_RUNTIME_ROADMAP.md to capture repository facts, decision gates, migration phases, and the first implementation slice.
+- Source audit confirms the project is Vite + TypeScript + Three.js. src/engine/GridEngine.ts and ThreeGridRenderer.ts provide an early renderer/subsystem abstraction, but GridEngine itself exposes Three.js Scene/Camera, while src/main.ts owns DOM canvas creation, pointer-lock and camera handlers, and a large bootstrap loop. This is a partial boundary, not a drop-in path to Godot/Unreal.
+- The build command is grid-code-analyzer.mjs && tsc && vite build; the inspected package.json has no test script. No build was run in this documentation-only pass.
+- No engine has been selected, no runtime code changed, and no desktop executable is claimed to exist. Keep the current browser client intact.
+- Next: complete a module-level portability map, then extract one narrow browser-platform adapter without changing movement/camera behavior. Compare the current Three.js path with a candidate native runtime using a small vertical slice before choosing an engine.
