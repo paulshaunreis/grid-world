@@ -10,6 +10,7 @@ export default defineConfig({
         diagnostics: 'diagnostics.html',
         play: 'play.html',
         profile: 'profile.html',
+        account: 'account.html',
         aurora: 'aurora.html',
         board: 'board.html',
         user: 'user.html',
