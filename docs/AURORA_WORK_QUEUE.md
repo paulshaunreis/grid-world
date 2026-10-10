@@ -897,3 +897,14 @@ _Last updated: 2026-10-04_
 - **Next:** review the overlay fix, then verify the merged Render deployment and repeat Atlas/HUD visual checks. Continue P0 stability audit before starting another major feature.
 
 _Last updated: 2026-10-05_
+
+
+## 2026-10-10 — Reconcile overlay deployment and conversation lifecycle status
+
+- **PR #77 is merged** (merge commit `78f346ae259b10f81c646f2403189aeb548e9bea`). The fixed-overlay CSS change is included in the current Render live deployment's source history: live deploy `dep-db4l8vnlot8c73bfm4dg` is serving commit `4a8230a20fde05c5c6202023a0cddfe0df992ebf`, which is a descendant of the overlay merge commit.
+- Render reports the latest deployment build and deploy both succeeded on 2026-10-09. This confirms deployment status and source ancestry, **not** fresh visual/browser verification of Atlas, HUD overlays, or WebGL interactions.
+- **PR #106 is merged** as `25f3272bea13381d41116c33d0769d2de8b513bf`, adding the conversation lifecycle authority wrapper, migration, and documentation on current main. The latest Render deployment predates this commit, so do not describe the latest main revision as deployed yet. Verify migration/application and deploy behavior separately before relying on production UI integration.
+- Direct HTTP/browser access to the Render URL was unavailable in this verification session; no fresh HTTP 200, DOM geometry, or pointer/keyboard result is claimed.
+- **Next:** perform a real browser/WebGL pass on the live site (Atlas open/close, HUD panel positioning at desktop and narrow viewport, world entry, movement/camera, and teleport preview). Then continue P0 stability/security review, prioritizing the open authority/RLS changes; keep concept/canon PRs #57 and #58 awaiting explicit creative approval.
+
+_Last updated: 2026-10-10_

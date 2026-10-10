@@ -558,3 +558,13 @@ _Last updated: 2026-10-04_
 - Verification: live browser/DOM reproduction on current main, plus branch source re-fetch. The fix is not yet merged/deployed; Render PR previews are disabled, and no build/CI result is claimed.
 - Do not merge concept/canon PRs #57 or #58 without the user's approval; their own descriptions say they are awaiting creative approval. Other open PRs #63, #59, and #29 were preserved for separate review.
 - **Next actionable item:** review the overlay stacking PR, then verify its Render deployment and repeat the live Atlas/HUD visual check before resuming the P0 audit.
+
+
+## Checkpoint — 2026-10-10 — Overlay deployment reconciled; lifecycle authority merged
+
+- PR #77 is merged as `78f346ae259b10f81c646f2403189aeb548e9bea`. Render's current live deploy is `dep-db4l8vnlot8c73bfm4dg` from commit `4a8230a20fde05c5c6202023a0cddfe0df992ebf`, a descendant of the overlay merge commit. Render reports build and deploy success on 2026-10-09.
+- This is deployment/source-ancestry evidence only. A fresh browser visual interaction check could not be completed in this session because direct HTTP/browser access to the live URL was unavailable. Do not claim current Atlas/HUD geometry or WebGL interaction is verified.
+- PR #106 merged as `25f3272bea13381d41116c33d0769d2de8b513bf`, adding conversation lifecycle authority TypeScript, a Supabase migration, and documentation. The latest Render deploy predates this commit; verify the current-main deployment path and database migration state separately.
+- **Next actionable item:** live browser/WebGL verification of Atlas, fixed HUD overlays, responsive layout, world entry, movement/camera, and teleport preview. Then continue P0 security/stability review of open authority/RLS PRs. Keep canon/concept PRs #57 and #58 unmerged until Paul explicitly approves them.
+
+_Last updated: 2026-10-10_
