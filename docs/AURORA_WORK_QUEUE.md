@@ -946,11 +946,12 @@ _Last updated: 2026-10-10_
 - Do not call this deployed until merged and live grant/policy verification passes. Mining remains gated; validated teleport/session architecture is still missing.
 
 
-## 2026-10-10 — Desktop runtime architecture audit
+## 2026-10-10 — Desktop runtime portability pass
 
 - Paul approved moving toward a standalone Grid World desktop client while preserving the browser client.
 - Added docs/GRID_DESKTOP_RUNTIME_ROADMAP.md and docs/GRID_RUNTIME_PORTABILITY_MAP.md to record the staged plan and current module boundaries.
 - Source audit confirms Vite + TypeScript + Three.js, a partial GridEngine/ThreeGridRenderer abstraction, and significant Three.js/DOM coupling in src/main.ts, src/world/World.ts, src/core/Input.ts, src/core/PlayerController.ts, src/engine/dracoLoader.ts, and src/ui/WindowManager.ts.
-- The inspected package.json has no test script; build command is grid-code-analyzer.mjs && tsc && vite build. No build was run in this documentation-only pass.
-- No engine has been selected, no runtime code changed, and no desktop executable is claimed to exist. Keep the current browser client intact.
-- Next: establish the analyzer/type/build baseline and inventory asset path assumptions; then extract one narrow browser-platform adapter without changing movement/camera behavior. Compare the current Three.js path with a candidate native runtime using a small vertical slice before choosing an engine.
+- PR #121 merged as 781827760f42245801c364eaa0d7ee0965072e43. It adds an injected InputPlatform contract and BrowserInputPlatform adapter; GitHub Actions run #1477 passed TypeScript and build steps. No browser/WebGL interaction test is claimed.
+- The inspected package.json has no test script; build command is grid-code-analyzer.mjs && tsc && vite build.
+- No engine has been selected and no desktop executable is claimed to exist. Keep the current browser client intact.
+- Next: inventory asset path assumptions; then extract viewport/canvas lifecycle without changing movement/camera behavior. Compare the current Three.js path with a candidate native runtime using a small vertical slice before choosing an engine.
