@@ -599,12 +599,14 @@ _Last updated: 2026-10-10_
 - This is not full trusted presence: `region_id` still accepts a client-supplied value in the function's generic sync path, and there is no validated server-owned teleport/world transition yet. Mining stays gated until those controls, interaction range/cooldowns/replay protections, atomic inventory updates, and authenticated end-to-end tests are implemented.
 
 
-## 2026-10-10 — Desktop runtime direction
+## 2026-10-10 — Desktop runtime direction and first adapter
 
 Paul approved proceeding toward a standalone Grid World desktop client while keeping the browser client supported. Read docs/GRID_DESKTOP_RUNTIME_ROADMAP.md for the staged plan and docs/GRID_RUNTIME_PORTABILITY_MAP.md for the source-level module map.
 
-**Current evidence:** package.json uses Vite + TypeScript + Three.js. GridEngine and ThreeGridRenderer provide an early abstraction, but GridEngine itself is coupled to Three.js scene/camera types. src/main.ts directly creates the WebGL renderer and canvas, wires DOM camera/mouse controls, and owns much of the runtime bootstrap. World.ts and other scene systems construct Three.js objects directly; Input.ts uses global keyboard/gamepad APIs; WindowManager is HTMLElement/CSS-specific; Draco asset loading assumes a web-served path. A wrapper alone is not a native engine migration.
+**Current evidence:** package.json uses Vite + TypeScript + Three.js. GridEngine and ThreeGridRenderer provide an early abstraction, but GridEngine itself is coupled to Three.js scene/camera types. src/main.ts directly creates the WebGL renderer and canvas, wires DOM camera/mouse controls, and owns much of the runtime bootstrap. World.ts and other scene systems construct Three.js objects directly; WindowManager is HTMLElement/CSS-specific; Draco asset loading assumes a web-served path.
 
-**Decision:** no engine selection yet. Preserve the browser client and shared service/authority model. First establish a reproducible build baseline and asset-path inventory, then extract a narrow, behavior-preserving browser adapter. Compare Three.js with a candidate native runtime through a small Windows vertical slice. Do not duplicate accounts, inventory, social, economy, world identity, or trusted gameplay state in the desktop client.
+**Progress:** PR #121 merged as 781827760f42245801c364eaa0d7ee0965072e43. It added a platform-neutral InputPlatform contract and BrowserInputPlatform adapter, preserved existing keyboard/gamepad mapping behavior, and disposes listeners on unload. GitHub Actions run #1477 passed TypeScript check and build. This is not browser/WebGL verification.
 
-**Verification:** source-level repository audit and documentation only. No build/test/browser run, desktop package, or engine migration was performed in this pass. The inspected package has no test script; its build script is grid-code-analyzer.mjs && tsc && vite build.
+**Decision:** no engine selection yet. Preserve the browser client and shared service/authority model. Next map asset paths and extract viewport/canvas lifecycle in a narrow change. Compare Three.js with a candidate native runtime through a small Windows vertical slice. Do not duplicate accounts, inventory, social, economy, world identity, or trusted gameplay state in the desktop client.
+
+**Verification:** source-level audit plus CI build/type check for PR #121. No desktop package or engine migration exists yet. The inspected package has no test script; build script is grid-code-analyzer.mjs && tsc && vite build.
