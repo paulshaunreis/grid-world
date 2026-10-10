@@ -920,3 +920,14 @@ _Last updated: 2026-10-10_
 - **Next:** recheck the Render deploy, then do the live browser/WebGL pass (Atlas/HUD stacking, narrow viewport, world entry, movement/camera, teleport preview). Implement and test a server-authoritative mineral interaction path before restoring browser mining. The migration is already applied; do not re-enable the legacy RPCs without world/presence/position checks. Review the Auth leaked-password-protection setting. Keep concept/canon PRs #57 and #58 awaiting explicit user approval.
 
 _Last updated: 2026-10-10_
+
+
+## P0 — Economy and interaction trust boundaries (2026-10-10)
+
+### Trusted server-authoritative presence before mining is restored
+- Tracking issue: https://github.com/paulshaunreis/grid-world/issues/114
+- Security plan: `docs/SECURITY_TRUSTED_MINING.md`
+- PRs #112/#113 revoked browser execution of unsafe legacy mineral RPCs; live Supabase grants were checked.
+- Confirmed `player_state` permits authenticated users to update their own row, so its coordinates are not authoritative. Do not use it to validate mining range.
+- Keep mining RPCs disabled to browser roles until server-owned movement/presence, teleport transition validation, atomic/idempotent mining, regression tests, and an authenticated end-to-end test exist.
+- Current status: containment verified; trusted path not implemented. Client local mining is preview-only and must not be represented as persistent inventory.

@@ -580,3 +580,13 @@ _Last updated: 2026-10-10_
 - **Next:** recheck the Render deploy, then do the live browser/WebGL pass (Atlas/HUD stacking, narrow viewport, world entry, movement/camera, teleport preview). Implement and test a server-authoritative mineral interaction path before restoring browser mining. The migration is already applied; do not re-enable the legacy RPCs without world/presence/position checks. Review the Auth leaked-password-protection setting. Keep concept/canon PRs #57 and #58 awaiting explicit user approval.
 
 _Last updated: 2026-10-10_
+
+
+## Security continuation — trusted mining boundary (2026-10-10)
+
+- Tracking issue: https://github.com/paulshaunreis/grid-world/issues/114
+- Design plan: `docs/SECURITY_TRUSTED_MINING.md`
+- Live audit confirmed authenticated users can insert/update their own `player_state` row. Client-provided player coordinates are forgeable and must never be treated as proof of proximity.
+- Legacy `grid_mine_mineral` mutates deposits and both mineral/vault inventories but does not validate trusted world position or range. Browser execution remains revoked by applied migration `20261010155305_restrict_mineral_rpcs_until_authoritative_presence`; live grants were previously verified as denied to `anon` and `authenticated`, granted to `service_role`.
+- Do not reopen mining until movement/presence is server-owned and movement/teleport transitions, range checks, cooldowns, replay protection, and atomic inventory writes are covered by tests and authenticated end-to-end verification.
+- Verification status: read-only live schema/function/policy inspection completed; no new runtime path or end-to-end mining test was implemented in this pass. Mining remains gated intentionally.
