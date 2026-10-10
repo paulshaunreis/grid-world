@@ -597,3 +597,14 @@ _Last updated: 2026-10-10_
 - The stale-sync movement bypass was removed and the repository's `grid-combat` source was deployed to Supabase Edge Function version 21.
 - Post-deploy verification confirmed JWT verification remains enabled, the old bypass expression is absent, the strict distance guard is present, and live function source exactly matches `main`.
 - This is not full trusted presence: `region_id` still accepts a client-supplied value in the function's generic sync path, and there is no validated server-owned teleport/world transition yet. Mining stays gated until those controls, interaction range/cooldowns/replay protections, atomic inventory updates, and authenticated end-to-end tests are implemented.
+
+
+## 2026-10-10 — Desktop runtime direction
+
+Paul approved proceeding toward a standalone Grid World desktop client while keeping the browser client supported. See docs/GRID_DESKTOP_RUNTIME_ROADMAP.md for the architecture audit and staged plan.
+
+**Current evidence:** package.json uses Vite + TypeScript + Three.js. GridEngine and ThreeGridRenderer provide a useful early abstraction, but the engine interface itself is coupled to Three.js scene/camera types. src/main.ts directly creates the WebGL renderer and canvas, wires DOM camera/mouse controls, and owns much of the runtime bootstrap. The desktop path therefore needs incremental platform-boundary extraction; a wrapper alone is not a native engine migration.
+
+**Decision:** no engine selection yet. Preserve the browser client and shared service/authority model. First map platform-specific dependencies and extract a narrow, behavior-preserving browser adapter. Then compare Three.js with a candidate native runtime through a small Windows vertical slice. Do not duplicate accounts, inventory, social, economy, world identity, or trusted gameplay state in the desktop client.
+
+**Verification:** source-level repository audit only. No build/test/browser run, desktop package, or engine migration was performed in this pass. The inspected package has no test script; its build script is grid-code-analyzer.mjs && tsc && vite build.
