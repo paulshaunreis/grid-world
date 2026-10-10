@@ -51,6 +51,20 @@
 
 ---
 
+### 4. Trust, Safety, Rights & Jurisdiction architecture
+- Implement the normalized communication safety-event contract across IM/DM, forums, proximity chat, and future communication adapters.
+- Treat keywords as signals, never verdicts; require contextual classification.
+- Establish Guardian routing for Safety, Rights & Speech, Child Safety, Privacy, Cyber, Fraud, Legal/Compliance, Grid Health, and Peace.
+- Build the jurisdiction matrix and versioned legal-evidence pipeline; external law must never silently rewrite Grid policy.
+- Add evidence minimization, retention, audit, appeals, staff incident review, rate limiting, and coordinated-attack resistance.
+- Preserve lawful expression and require human/legal review for consequential actions where applicable.
+- Integrate with Omni Matrix + The Measure and maintain the Peace Factor as a design requirement.
+- Source: `docs/GRID_TRUST_SAFETY_AND_JURISDICTION_ARCHITECTURE.md`.
+
+**Status:** Ready — architecture proposal created on branch `codex/trust-safety-governance-2026-10-06`, commit `941deeb2549417dae45d8b3811a9a9cb9174a24c`. No production implementation or legal approval claimed.
+
+---
+
 ## P1 — Core Player / World Experience
 
 ### 4. Teleportation experience
