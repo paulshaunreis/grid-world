@@ -908,3 +908,15 @@ _Last updated: 2026-10-05_
 - **Next:** perform a real browser/WebGL pass on the live site (Atlas open/close, HUD panel positioning at desktop and narrow viewport, world entry, movement/camera, and teleport preview). Then continue P0 stability/security review, prioritizing the open authority/RLS changes; keep concept/canon PRs #57 and #58 awaiting explicit creative approval.
 
 _Last updated: 2026-10-10_
+
+
+## 2026-10-10 — Security audit: anonymous team-post RPC closed
+- **PR #107 merged:** `4a4bfda5ebd3053b3c225bda1bc0dea8b5ba9634`; refreshed this handoff's deployment/overlay checkpoint.
+- **Finding:** Supabase's security advisor flagged `public.insert_team_post(text,text,text,text,text,text)` as an anonymous-callable `SECURITY DEFINER` function. Its caller-controlled author ID/name/role parameters allowed public staff impersonation and spam attempts.
+- Confirmed the shipped website only reads `grid_team_posts`; no client-side RPC caller or matching database cron job was found. Browser roles already lacked direct table INSERT privileges.
+- **PR #108 merged:** `8ac6d85956303efa8fafa93eddfe1ca746e3e82f`. Applied Supabase migration `restrict_team_post_rpc` (live migration version `20261010152323`). The RPC is now executable only by `service_role`; `anon` and `authenticated` are denied. Both this RPC and `grid_social_friend_respond` now have an empty function search path.
+- **Post-change verification:** direct SQL confirmed the intended grants and function configuration. The anonymous SECURITY DEFINER advisor finding disappeared. Remaining advisor items include 53 authenticated-callable SECURITY DEFINER functions requiring intentional per-function review, four RLS-enabled service-only tables with no client policies (expected pending verification of service access), and leaked-password protection disabled in Supabase Auth.
+- **Not yet done:** this does not complete the whole security audit. Do not bulk-revoke the 53 authenticated RPCs; inspect authorization and grants function-by-function. Do not treat user-selected age bands as real-world age verification.
+- **Next:** verify Render's post-merge deploy/source commit, then perform the outstanding live browser/WebGL pass. Continue security review with the remaining open RLS/authority PRs and the Auth leaked-password-protection setting; keep PRs #57 and #58 awaiting explicit creative approval.
+
+_Last updated: 2026-10-10_
