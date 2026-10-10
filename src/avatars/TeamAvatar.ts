@@ -15,6 +15,8 @@ export interface TeamAvatarDefinition {
   title: string;
   role: string;
   style: TeamAvatarStyle;
+  /** Optional authored portrait for profile/staff-directory UI. */
+  profileImage?: string;
   spawn: { x: number; y?: number; z: number };
   greeting: string;
   interaction: string;
