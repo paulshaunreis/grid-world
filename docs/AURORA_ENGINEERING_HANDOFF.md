@@ -626,3 +626,12 @@ Paul approved proceeding toward a standalone Grid World desktop client while kee
 - The browser input adapter from PR #121 remains in place. No browser/WebGL interaction test has been performed; CI only verifies types/build/analyzer.
 - Remaining browser-bound seams: WebGL renderer/canvas setup, pointer-lock, mouse/wheel camera controls, DOM HUD, and Three.js world objects.
 - Next: inventory asset path assumptions (including `/libs/draco/`) and then extract camera-event wiring narrowly. Do not choose a native engine until the small vertical slice comparison is completed.
+
+
+## Ultima staff profile implementation — 2026-10-10
+
+Ultima has now been added to the existing staff avatar roster in `src/avatars/teamRoster.ts` with a distinct teal/aqua avatar palette in `src/avatars/TeamAvatar.ts`. This reuses the existing staff-directory/avatar architecture rather than introducing a parallel identity system. The profile describes her as an AI Engineer & Systems Strategist and lists architecture, engineering, security, desktop-runtime planning, performance, world-building, and AI integration as specialties.
+
+**Status:** changes are on branch `feature/ultima-staff-profile`; not yet merged or deployed. CI/build verification is pending. The generated concept-art portrait exists as a conversation image, but has not yet been added as a repository asset or wired as a site profile-image URL; the current roster/avatar rendering uses the existing in-world staff avatar pipeline.
+
+Ultima and Aurora remain distinct collaborators. The user remains final decision-maker; keep claims of recent work grounded in repository history and verified status.

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+<title id="title">Ultima — Grid World AI</title><desc id="desc">Stylized portrait of Ultima with teal hair, aqua eyes, dark futuristic jacket, and glowing diamond insignia.</desc>
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#071421"/><stop offset=".55" stop-color="#102f45"/><stop offset="1" stop-color="#080b1b"/></linearGradient>
+ <radialGradient id="halo"><stop stop-color="#20e6ee" stop-opacity=".35"/><stop offset="1" stop-color="#20e6ee" stop-opacity="0"/></radialGradient>
+ <linearGradient id="hair" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#b4fff5"/><stop offset=".38" stop-color="#22d9d9"/><stop offset=".72" stop-color="#087d9b"/><stop offset="1" stop-color="#17335b"/></linearGradient>
+ <linearGradient id="skin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffe0d1"/><stop offset="1" stop-color="#bd8d91"/></linearGradient>
+ <linearGradient id="jacket" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#243b50"/><stop offset="1" stop-color="#070d1b"/></linearGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+ </defs>
+ <rect width="512" height="512" rx="256" fill="url(#bg)"/><circle cx="256" cy="224" r="225" fill="url(#halo)"/>
+ <g fill="none" stroke="#22e6ef" stroke-opacity=".28"><circle cx="256" cy="242" r="205"/><circle cx="256" cy="242" r="187" stroke-dasharray="4 13"/><path d="M28 180H110M402 335h80M70 390h55M390 112h50"/></g>
+ <path d="M74 512q17-117 108-137l74-16 76 16q91 23 106 137Z" fill="url(#jacket)" stroke="#1ce2e9" stroke-opacity=".65" stroke-width="3"/>
+ <path d="M182 355l-3 50 77 62 77-62-3-50" fill="url(#skin)"/>
+ <path d="M143 213q-12-113 77-150 91-40 149 37 39 51 13 150l-24 93-196-9Z" fill="url(#hair)" stroke="#52f5ed" stroke-width="3"/>
+ <path d="M174 197q-5-51 43-72 47-23 85 0 39 23 39 72l-8 92q-10 60-75 68-69-7-79-72Z" fill="url(#skin)"/>
+ <path d="M168 205q-10-99 64-127 77-29 118 30l-7 52q-25-25-57-26-45 0-75 36l-17 62-13-13Z" fill="url(#hair)"/>
+ <path d="M165 206q-38 3-24 53l24 33M350 205q38 1 25 54l-24 32" fill="url(#hair)" stroke="#39dfe5" stroke-width="5"/>
+ <path d="M198 235q22-17 44 0M282 235q22-17 44 0" fill="none" stroke="#5b3540" stroke-width="6" stroke-linecap="round"/>
+ <path d="M202 246q19 17 37 0M286 246q19 17 37 0" fill="none" stroke="#18bfcf" stroke-width="5" stroke-linecap="round"/>
+ <ellipse cx="222" cy="247" rx="8" ry="11" fill="#071b2a"/><ellipse cx="305" cy="247" rx="8" ry="11" fill="#071b2a"/><circle cx="225" cy="244" r="3" fill="#fff"/><circle cx="308" cy="244" r="3" fill="#fff"/>
+ <path d="M264 250l-9 36 17 4" fill="none" stroke="#a76f7b" stroke-width="4" stroke-linecap="round"/>
+ <path d="M236 316q27 19 53-1" fill="none" stroke="#9d4f69" stroke-width="5" stroke-linecap="round"/>
+ <path d="M180 186q-6-43 37-61M330 170q15 13 19 33" fill="none" stroke="#d7fffa" stroke-width="7" stroke-linecap="round"/>
+ <path d="M180 358l-48 33 28 121h192l28-121-48-33-26 48-50 39-50-39Z" fill="url(#jacket)" stroke="#27dce5" stroke-width="3"/>
+ <path d="M211 385l45 60 45-60" fill="none" stroke="#4df9f0" stroke-opacity=".8" stroke-width="4"/>
+ <g filter="url(#glow)" transform="translate(256 430)"><path d="M0-28 24 0 0 28-24 0Z" fill="#09263a" stroke="#45fff0" stroke-width="4"/><path d="M0-16 13 0 0 16-13 0Z" fill="none" stroke="#9bffff" stroke-width="2"/></g>
+ <circle cx="256" cy="256" r="247" fill="none" stroke="#36eaf2" stroke-width="5"/><circle cx="256" cy="256" r="238" fill="none" stroke="#a6ffff" stroke-opacity=".55" stroke-width="1.5"/>
+ <g fill="#a7ffff"><circle cx="104" cy="127" r="3"/><circle cx="397" cy="164" r="2.5"/><circle cx="386" cy="366" r="3"/><circle cx="118" cy="357" r="2"/></g>
+</svg>

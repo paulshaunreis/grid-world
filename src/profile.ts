@@ -335,7 +335,7 @@ let teamLightbox: number | null = null;
 function renderTeamProfile(member: import('./avatars/TeamAvatar').TeamAvatarDefinition) {
   const gallery = teamGallery(member.id);
   const fullName = `${member.firstName} ${member.lastName}`;
-  const headshot = `/avatars/team/${member.id}.webp`;
+  const headshot = member.profileImage ?? `/avatars/team/${member.id}.webp`;
   app.innerHTML = `
     <header class="studio-header">
       <a class="brand" href="/"><span class="brand-mark">◇</span><span>GRID WORLD</span></a>

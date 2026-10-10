@@ -963,3 +963,10 @@ _Last updated: 2026-10-10_
 - BrowserViewport now owns resize-listener registration/removal through injected camera, renderer-sizing, and engine-resize interfaces. It does not import Three.js types.
 - Browser behavior is not yet verified interactively. Canvas creation, pointer-lock, mouse camera controls, and the Three.js scene graph remain browser-specific.
 - Next: audit model/texture/audio paths and Draco decoder assumptions, then isolate pointer-lock/camera-event wiring without changing controls.
+
+
+## Ultima staff profile — implementation in progress (2026-10-10)
+- Added Ultima as a distinct entry in `src/avatars/teamRoster.ts` and added an aqua/teal palette to `src/avatars/TeamAvatar.ts`.
+- Reuses the current staff roster/avatar system; does not create a separate user identity or alter Aurora's profile.
+- Branch: `feature/ultima-staff-profile`. Not merged/deployed; CI/build checks pending.
+- Generated concept portrait is not yet a repository asset and is not yet wired to a site profile-image URL. Follow-up: add the portrait asset and use it only where the existing staff/profile UI safely supports image URLs; verify staff directory rendering and build.
