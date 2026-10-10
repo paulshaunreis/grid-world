@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { captureGridAnalytics, initializeGridAnalytics } from './analytics';
 import { Input } from './core/Input';
 import { BrowserInputPlatform } from './platform/BrowserInputPlatform';
+import { BrowserViewport } from './platform/BrowserViewport';
 import { InteractionSystem } from './core/InteractionSystem';
 import { Persistence } from './core/Persistence';
 import { SupabasePersistence } from './persistence/SupabasePersistence';
@@ -2988,11 +2989,8 @@ renderer.domElement.addEventListener('pointerdown', () => {
 }, { once: true });
 requestAnimationFrame(animate);
 
-addEventListener('beforeunload', () => { input.dispose(); void gridSocialService?.setPresence(false).catch(()=>undefined); buildRealtimeChannel?.unsubscribe(); });
+const browserViewport = new BrowserViewport(camera, renderer, (width, height, pixelRatio) => engine.resize(width, height, pixelRatio));
 
-addEventListener('resize', () => {
-  camera.aspect = innerWidth / innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
-  engine.resize(innerWidth, innerHeight, devicePixelRatio);
-});
+addEventListener('beforeunload', () => { browserViewport.dispose(); input.dispose(); void gridSocialService?.setPresence(false).catch(()=>undefined); buildRealtimeChannel?.unsubscribe(); });
+
+// Browser viewport adapter owns resize listener lifecycle; camera/render semantics stay unchanged.
