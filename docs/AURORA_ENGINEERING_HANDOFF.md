@@ -593,6 +593,7 @@ _Last updated: 2026-10-10_
 
 
 ## Movement security follow-up (2026-10-10)
-- Additional audit of `supabase/functions/grid-combat/index.ts` found the sync guard `moved <= maxDistance || now - previous > 5000`, which allowed arbitrary position changes after five seconds of inactivity.
-- Proposed patch removes the stale-time bypass and documents that teleport must be a separately validated server-owned transition.
-- This patch has not been merged or deployed; it does not make combat position sufficient for mining by itself. Trusted world identity, teleport validation, interaction range, atomic inventory updates, and end-to-end tests remain required.
+- PR #116 merged as `abb48147263aac8eabcb54781663fb6d8d668339`; GitHub Actions run #1468 passed.
+- The stale-sync movement bypass was removed and the repository's `grid-combat` source was deployed to Supabase Edge Function version 21.
+- Post-deploy verification confirmed JWT verification remains enabled, the old bypass expression is absent, the strict distance guard is present, and live function source exactly matches `main`.
+- This is not full trusted presence: `region_id` still accepts a client-supplied value in the function's generic sync path, and there is no validated server-owned teleport/world transition yet. Mining stays gated until those controls, interaction range/cooldowns/replay protections, atomic inventory updates, and authenticated end-to-end tests are implemented.
