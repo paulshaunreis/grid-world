@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { captureGridAnalytics, initializeGridAnalytics } from './analytics';
 import { Input } from './core/Input';
+import { BrowserInputPlatform } from './platform/BrowserInputPlatform';
 import { InteractionSystem } from './core/InteractionSystem';
 import { Persistence } from './core/Persistence';
 import { SupabasePersistence } from './persistence/SupabasePersistence';
@@ -180,7 +181,7 @@ const UI_STYLE_KEY = 'grid-world:ui-style';
 const uiStyle = (localStorage.getItem(UI_STYLE_KEY) as UIStyle | null) ?? 'luminous';
 document.documentElement.dataset.uiStyle = uiStyle;
 
-const input = new Input();
+const input = new Input(new BrowserInputPlatform());
 
 const hud = document.createElement('div');
 hud.className = 'hud';
@@ -2987,7 +2988,7 @@ renderer.domElement.addEventListener('pointerdown', () => {
 }, { once: true });
 requestAnimationFrame(animate);
 
-addEventListener('beforeunload', () => { void gridSocialService?.setPresence(false).catch(()=>undefined); buildRealtimeChannel?.unsubscribe(); });
+addEventListener('beforeunload', () => { input.dispose(); void gridSocialService?.setPresence(false).catch(()=>undefined); buildRealtimeChannel?.unsubscribe(); });
 
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
