@@ -580,3 +580,9 @@ _Last updated: 2026-10-10_
 - **Next:** recheck the Render deploy, then do the live browser/WebGL pass (Atlas/HUD stacking, narrow viewport, world entry, movement/camera, teleport preview). Implement and test a server-authoritative mineral interaction path before restoring browser mining. The migration is already applied; do not re-enable the legacy RPCs without world/presence/position checks. Review the Auth leaked-password-protection setting. Keep concept/canon PRs #57 and #58 awaiting explicit user approval.
 
 _Last updated: 2026-10-10_
+
+
+## Movement security follow-up (2026-10-10)
+- Additional audit of `supabase/functions/grid-combat/index.ts` found the sync guard `moved <= maxDistance || now - previous > 5000`, which allowed arbitrary position changes after five seconds of inactivity.
+- Proposed patch removes the stale-time bypass and documents that teleport must be a separately validated server-owned transition. PR branch: `codex/harden-combat-movement-stale-sync-2026-10-10`.
+- This patch has not been merged or deployed; it does not make combat position sufficient for mining by itself. Trusted world identity, teleport validation, interaction range, atomic inventory updates, and end-to-end tests remain required.
