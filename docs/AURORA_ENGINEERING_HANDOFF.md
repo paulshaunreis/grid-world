@@ -617,3 +617,12 @@ Paul approved proceeding toward a standalone Grid World desktop client while kee
 **Decision:** no engine selection yet. Preserve the browser client and shared service/authority model. Next map asset paths and extract viewport/canvas lifecycle in a narrow change. Compare Three.js with a candidate native runtime through a small Windows vertical slice. Do not duplicate accounts, inventory, social, economy, world identity, or trusted gameplay state in the desktop client.
 
 **Verification:** source-level audit plus CI build/type check for PR #121. No desktop package or engine migration exists yet. The inspected package has no test script; build script is grid-code-analyzer.mjs && tsc && vite build.
+
+
+## 2026-10-10 — Browser viewport adapter
+
+- PR #123 merged as `5c4fb48187e96ed6dfd35b32ab928245d2a872a8`; GitHub Actions run #1482 passed TypeScript check and build.
+- Added `src/platform/BrowserViewport.ts`. It owns resize listener registration/removal and delegates camera projection update, renderer sizing, and Grid Engine resize via injected interfaces without importing Three.js types.
+- The browser input adapter from PR #121 remains in place. No browser/WebGL interaction test has been performed; CI only verifies types/build/analyzer.
+- Remaining browser-bound seams: WebGL renderer/canvas setup, pointer-lock, mouse/wheel camera controls, DOM HUD, and Three.js world objects.
+- Next: inventory asset path assumptions (including `/libs/draco/`) and then extract camera-event wiring narrowly. Do not choose a native engine until the small vertical slice comparison is completed.
