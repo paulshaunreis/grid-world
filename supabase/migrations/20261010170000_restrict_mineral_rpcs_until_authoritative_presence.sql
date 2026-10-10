@@ -8,17 +8,13 @@
 DO $migration$
 BEGIN
   IF to_regprocedure('public.grid_seed_world_minerals(text)') IS NOT NULL THEN
-    REVOKE ALL ON FUNCTION public.grid_seed_world_minerals(text)
-      FROM PUBLIC, anon, authenticated;
-    GRANT EXECUTE ON FUNCTION public.grid_seed_world_minerals(text)
-      TO service_role;
+    EXECUTE 'REVOKE ALL ON FUNCTION public.grid_seed_world_minerals(text) FROM PUBLIC, anon, authenticated';
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.grid_seed_world_minerals(text) TO service_role';
   END IF;
 
   IF to_regprocedure('public.grid_mine_mineral(text,integer)') IS NOT NULL THEN
-    REVOKE ALL ON FUNCTION public.grid_mine_mineral(text, integer)
-      FROM PUBLIC, anon, authenticated;
-    GRANT EXECUTE ON FUNCTION public.grid_mine_mineral(text, integer)
-      TO service_role;
+    EXECUTE 'REVOKE ALL ON FUNCTION public.grid_mine_mineral(text, integer) FROM PUBLIC, anon, authenticated';
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.grid_mine_mineral(text, integer) TO service_role';
   END IF;
 END
 $migration$;
