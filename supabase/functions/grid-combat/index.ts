@@ -141,7 +141,10 @@ async function syncState(userId: string, input: {x:number;y:number;z:number;yaw:
   const maxSpeed = 9.5;
   const maxDistance = maxSpeed * elapsed + 1.5;
   const moved = distance(requested, {x:Number(state.x),y:Number(state.y),z:Number(state.z)});
-  const accepted = moved <= maxDistance || now - previous > 5000;
+  // A stale client must never gain a free teleport by waiting five seconds.
+  // Long disconnects resume from the last accepted server position; legitimate
+  // teleportation must use a separately validated server-owned transition.
+  const accepted = moved <= maxDistance;
   const next = accepted ? requested : { x:Number(state.x), y:Number(state.y), z:Number(state.z) };
   const mode = modeForPosition(next.x, next.z);
 
