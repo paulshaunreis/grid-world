@@ -41,3 +41,10 @@ Do not restore `authenticated` execution on the legacy RPCs until the trusted im
 Containment is applied and live grants were verified on 2026-10-10. On 2026-10-10, PR #116 removed the five-second stale-sync movement bypass; CI passed and Supabase `grid-combat` Edge Function version 21 was deployed with JWT verification enabled. Post-deploy source matched the repository and the bypass expression was absent.
 
 Trusted world identity, a server-owned teleport transition, mining range/cooldown/replay protections, atomic inventory updates, and end-to-end mining tests are not implemented or verified yet. Keep browser mining disabled.
+
+
+## Combat-state write containment — 2026-10-10
+
+- Live schema inspection found `grid_combat_state` still granted browser-role table privileges and had owner-scoped INSERT/UPDATE RLS policies. That allowed a signed-in user to forge their own authoritative position/health/mode outside the Edge Function, even though the normal client uses `grid-combat` for sync.
+- Proposed migration `20261010180000_revoke_client_writes_to_combat_state.sql` removes browser write grants and insert/update policies while preserving owner-scoped authenticated SELECT and server-role writes.
+- This is a PR-stage containment change until merged, applied, and verified live. It does not implement server-owned sessions, teleport transitions, or mining. Keep mining disabled.
