@@ -931,3 +931,9 @@ _Last updated: 2026-10-10_
 - Confirmed `player_state` permits authenticated users to update their own row, so its coordinates are not authoritative. Do not use it to validate mining range.
 - Keep mining RPCs disabled to browser roles until server-owned movement/presence, teleport transition validation, atomic/idempotent mining, regression tests, and an authenticated end-to-end test exist.
 - Current status: containment verified; trusted path not implemented. Client local mining is preview-only and must not be represented as persistent inventory.
+
+
+### Follow-up: combat movement stale-sync bypass (2026-10-10)
+- Found `grid-combat` accepted any client-supplied position whenever the prior state was older than five seconds, bypassing its movement-distance check.
+- Proposed fix removes the idle-time bypass so stale clients must resume from their last accepted server position. Teleport remains a separate server-authorized transition, not a free movement sync.
+- This hardening is a prerequisite for using combat position as part of any trusted interaction check; it is not by itself sufficient to authorize mining.
