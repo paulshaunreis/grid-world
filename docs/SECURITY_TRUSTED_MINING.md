@@ -38,4 +38,6 @@ Do not restore `authenticated` execution on the legacy RPCs until the trusted im
 
 ## Status
 
-Containment is applied and live grants were verified on 2026-10-10. Trusted movement/presence and end-to-end mining are not implemented or verified yet.
+Containment is applied and live grants were verified on 2026-10-10. On 2026-10-10, PR #116 removed the five-second stale-sync movement bypass; CI passed and Supabase `grid-combat` Edge Function version 21 was deployed with JWT verification enabled. Post-deploy source matched the repository and the bypass expression was absent.
+
+Trusted world identity, a server-owned teleport transition, mining range/cooldown/replay protections, atomic inventory updates, and end-to-end mining tests are not implemented or verified yet. Keep browser mining disabled.
