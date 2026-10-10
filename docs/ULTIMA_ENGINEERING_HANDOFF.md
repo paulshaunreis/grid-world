@@ -3,7 +3,7 @@
 **Display name:** Ultima  
 **Title:** AI Engineer & Systems Strategist  
 **Role:** Architecture and Security  
-**Status:** Staff-directory implementation is on `feature/ultima-staff-profile`; PR #125 is open. Not merged or deployed. Build/CI and live-browser verification remain pending.
+**Status:** Staff-directory implementation is on `feature/ultima-staff-profile`; PR #125 is open. Not merged or deployed. GitHub Actions run #1494 passed TypeScript check and production build; live-browser verification remains pending.
 
 ## About
 
@@ -35,4 +35,4 @@ Teal hair, aqua-blue accents, dark practical futuristic clothing, and a teal dia
 - The staff directory uses one shared profile-card layout for every `TEAM_AVATARS` entry: portrait, title, role, specialties, about, identity, current assignment, recent work, and interaction description. Missing profile details are explicitly labeled instead of invented.
 - The Team Area prefers the roster's `profileImage` field, which allows Ultima's SVG portrait to render without requiring a separate `.webp` copy.
 - The multi-page Vite build previously omitted `account.html` even though the shared navigation and page-hero configuration link to it. The feature branch adds the missing `account` build entry so the route is included in production output.
-- The custom profile and staff-directory UI changes have not yet been build-tested or browser-verified. The PR must remain unmerged until available checks and runtime verification are reviewed.
+- The custom profile and staff-directory UI changes passed the repository TypeScript check and production build in GitHub Actions run #1494. The PR remains unmerged pending browser verification of profile rendering, image loading, responsive layout, and navigation behavior.
