@@ -934,6 +934,7 @@ _Last updated: 2026-10-10_
 
 
 ### Follow-up: combat movement stale-sync bypass (2026-10-10)
-- Found `grid-combat` accepted any client-supplied position whenever the prior state was older than five seconds, bypassing its movement-distance check.
-- Proposed fix removes the idle-time bypass so stale clients must resume from their last accepted server position. Teleport remains a separate server-authorized transition, not a free movement sync.
-- This hardening is a prerequisite for using combat position as part of any trusted interaction check; it is not by itself sufficient to authorize mining.
+- PR #116 merged as `abb48147263aac8eabcb54781663fb6d8d668339`; GitHub Actions run #1468 passed.
+- Removed the five-second idle-time bypass so stale clients resume from their last accepted server position.
+- Deployed repository-matching `grid-combat` source to Supabase Edge Function version 21 with JWT verification enabled. Post-deploy read confirmed the bypass expression is absent and the strict distance guard is present.
+- This hardening is not full trusted presence: client-supplied region identity remains in the generic sync path, and a server-owned teleport/world transition is not implemented. Mining remains disabled to browser roles pending trusted world identity, range/cooldown/replay protections, atomic inventory updates, regression tests, and authenticated end-to-end verification.
