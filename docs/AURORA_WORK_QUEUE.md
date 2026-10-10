@@ -938,3 +938,9 @@ _Last updated: 2026-10-10_
 - Removed the five-second idle-time bypass so stale clients resume from their last accepted server position.
 - Deployed repository-matching `grid-combat` source to Supabase Edge Function version 21 with JWT verification enabled. Post-deploy read confirmed the bypass expression is absent and the strict distance guard is present.
 - This hardening is not full trusted presence: client-supplied region identity remains in the generic sync path, and a server-owned teleport/world transition is not implemented. Mining remains disabled to browser roles pending trusted world identity, range/cooldown/replay protections, atomic inventory updates, regression tests, and authenticated end-to-end verification.
+
+
+### Follow-up: combat-state browser write grants (2026-10-10)
+- Live policy/grant audit found authenticated INSERT/UPDATE policies and broad table grants on `grid_combat_state`. The trusted Edge Function performs writes with service_role; browser roles should only read their own row.
+- PR in progress: `security/server-own-combat-state-writes`, migration `20261010180000_revoke_client_writes_to_combat_state.sql` revokes browser writes and removes write policies while retaining authenticated owner-scoped reads.
+- Do not call this deployed until merged and live grant/policy verification passes. Mining remains gated; validated teleport/session architecture is still missing.
