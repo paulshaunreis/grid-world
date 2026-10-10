@@ -568,3 +568,16 @@ _Last updated: 2026-10-04_
 - **Next actionable item:** live browser/WebGL verification of Atlas, fixed HUD overlays, responsive layout, world entry, movement/camera, and teleport preview. Then continue P0 security/stability review of open authority/RLS PRs. Keep canon/concept PRs #57 and #58 unmerged until Paul explicitly approves them.
 
 _Last updated: 2026-10-10_
+
+
+## 2026-10-10 — Security audit checkpoint: team-post RPC hardened
+
+- PR #107 merged as `4a4bfda5ebd3053b3c225bda1bc0dea8b5ba9634`, refreshing the prior deployment/overlay checkpoint.
+- Supabase security advisors identified `public.insert_team_post(text,text,text,text,text,text)` as callable by `anon` while running as `SECURITY DEFINER`. The RPC accepts caller-supplied author identity and role, making it a staff-impersonation/spam path.
+- Source and live DB review found that the website reads `grid_team_posts` but does not call this RPC; no matching database cron job was present, and direct browser-role table INSERT was already denied.
+- PR #108 merged as `8ac6d85956303efa8fafa93eddfe1ca746e3e82f`. Supabase migration `restrict_team_post_rpc` applied successfully (live version `20261010152323`). Verified after application: `insert_team_post` has no `anon` or `authenticated` EXECUTE privilege, `service_role` retains EXECUTE, and its search path is empty. The friendship-response function's search path is also empty; its authenticated execution remains intact.
+- The anonymous-callable SECURITY DEFINER advisor finding is gone. Remaining advisor findings: 53 authenticated-callable SECURITY DEFINER RPCs (review individually, not by blanket revocation), four RLS-enabled/no-policy tables intended to be service-only (confirm role access as a separate task), and Supabase Auth leaked-password protection disabled.
+- CI passed for PR #108: TypeScript check and production build. No live browser/WebGL claim is made from this work.
+- **Next:** verify Render deployment after the latest main merges; perform live Atlas/HUD responsive and interaction verification when browser access is available; continue per-function authorization review of the remaining exposed RPCs and review the Auth leaked-password-protection setting.
+
+_Last updated: 2026-10-10_
