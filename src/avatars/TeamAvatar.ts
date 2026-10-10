@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { createGLTFLoader } from '../engine/dracoLoader.js';
 import { createStarterPBRMaterial } from '../engine/GridPBRLibrary';
 
-export type TeamAvatarStyle = 'aurora' | 'link' | 'rey' | 'elder' | 'veyr' | 'nyxen' | 'orin' | 'seraith' | 'vael' | 'kairox' | 'morrow' | 'cipher' | 'solenne' | 'rook' | 'echo' | 'umbra' | 'civitas' | 'axiom' | 'mosaic' | 'sentinel' | 'praxis' | 'atlas' | 'tessera' | 'waypoint' | 'forge' | 'lumen' | 'bramble' | 'zephyr' | 'tinker' | 'marisol' | 'koda' | 'vex' | 'pip' | 'sable' | 'talon' | 'ember' | 'juno' | 'bolt' | 'thistle' | 'ondine' | 'rowan' | 'pixel' | 'lyra' | 'bastion';
+export type TeamAvatarStyle = 'aurora' | 'link' | 'rey' | 'elder' | 'veyr' | 'nyxen' | 'orin' | 'seraith' | 'vael' | 'kairox' | 'morrow' | 'cipher' | 'solenne' | 'rook' | 'echo' | 'umbra' | 'civitas' | 'axiom' | 'mosaic' | 'sentinel' | 'praxis' | 'atlas' | 'tessera' | 'waypoint' | 'forge' | 'lumen' | 'bramble' | 'zephyr' | 'tinker' | 'marisol' | 'koda' | 'vex' | 'pip' | 'sable' | 'talon' | 'ember' | 'juno' | 'bolt' | 'thistle' | 'ondine' | 'rowan' | 'pixel' | 'lyra' | 'bastion' | 'ultima';
 
 export interface TeamAvatarDefinition {
   id: string;
@@ -75,6 +75,7 @@ const palettes: Record<TeamAvatarStyle, { body: number; visor: number; glow: num
   pixel: { body: 0xff6bd9, visor: 0x3a0a2a, glow: 0xff8fe8 },
   lyra: { body: 0xe8d9ff, visor: 0x3a2a4a, glow: 0xd18aff },
   bastion: { body: 0x5a6a7a, visor: 0x1a222a, glow: 0x8ce1d1 },
+  ultima: { body: 0x123f50, visor: 0x061a25, glow: 0x31e6e8 },
 };
 
 export class TeamAvatar {
