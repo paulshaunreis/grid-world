@@ -963,3 +963,11 @@ _Last updated: 2026-10-10_
 - BrowserViewport now owns resize-listener registration/removal through injected camera, renderer-sizing, and engine-resize interfaces. It does not import Three.js types.
 - Browser behavior is not yet verified interactively. Canvas creation, pointer-lock, mouse camera controls, and the Three.js scene graph remain browser-specific.
 - Next: audit model/texture/audio paths and Draco decoder assumptions, then isolate pointer-lock/camera-event wiring without changing controls.
+
+
+## Assistant coordination note — 2026-10-10
+
+- Ultima is the named Grid World collaborator in ChatGPT, distinct from Aurora on Muse. See docs/ULTIMA_ENGINEERING_HANDOFF.md for Ultima's role, verified project context, and working checklist.
+- docs/AURORA_ENGINEERING_HANDOFF.md now includes a direct introduction and coordination rules for Aurora and Ultima.
+- Treat repository notes and PRs as the durable shared handoff; do not assume assistant sessions share local state. Check current main and relevant docs before taking overlapping work.
+- No change to the existing priority queue or canonical Grid World design is implied by this persona/coordination note.
