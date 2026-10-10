@@ -940,11 +940,17 @@ _Last updated: 2026-10-10_
 - This hardening is not full trusted presence: client-supplied region identity remains in the generic sync path, and a server-owned teleport/world transition is not implemented. Mining remains disabled to browser roles pending trusted world identity, range/cooldown/replay protections, atomic inventory updates, regression tests, and authenticated end-to-end verification.
 
 
+### Follow-up: combat-state browser write grants (2026-10-10)
+- Live policy/grant audit found authenticated INSERT/UPDATE policies and broad table grants on `grid_combat_state`. The trusted Edge Function performs writes with service_role; browser roles should only read their own row.
+- PR in progress: `security/server-own-combat-state-writes`, migration `20261010180000_revoke_client_writes_to_combat_state.sql` revokes browser writes and removes write policies while retaining authenticated owner-scoped reads.
+- Do not call this deployed until merged and live grant/policy verification passes. Mining remains gated; validated teleport/session architecture is still missing.
+
+
 ## 2026-10-10 — Desktop runtime architecture audit
 
 - Paul approved moving toward a standalone Grid World desktop client while preserving the browser client.
-- Added docs/GRID_DESKTOP_RUNTIME_ROADMAP.md to capture repository facts, decision gates, migration phases, and the first implementation slice.
-- Source audit confirms the project is Vite + TypeScript + Three.js. src/engine/GridEngine.ts and ThreeGridRenderer.ts provide an early renderer/subsystem abstraction, but GridEngine itself exposes Three.js Scene/Camera, while src/main.ts owns DOM canvas creation, pointer-lock and camera handlers, and a large bootstrap loop. This is a partial boundary, not a drop-in path to Godot/Unreal.
-- The build command is grid-code-analyzer.mjs && tsc && vite build; the inspected package.json has no test script. No build was run in this documentation-only pass.
+- Added docs/GRID_DESKTOP_RUNTIME_ROADMAP.md and docs/GRID_RUNTIME_PORTABILITY_MAP.md to record the staged plan and current module boundaries.
+- Source audit confirms Vite + TypeScript + Three.js, a partial GridEngine/ThreeGridRenderer abstraction, and significant Three.js/DOM coupling in src/main.ts, src/world/World.ts, src/core/Input.ts, src/core/PlayerController.ts, src/engine/dracoLoader.ts, and src/ui/WindowManager.ts.
+- The inspected package.json has no test script; build command is grid-code-analyzer.mjs && tsc && vite build. No build was run in this documentation-only pass.
 - No engine has been selected, no runtime code changed, and no desktop executable is claimed to exist. Keep the current browser client intact.
-- Next: complete a module-level portability map, then extract one narrow browser-platform adapter without changing movement/camera behavior. Compare the current Three.js path with a candidate native runtime using a small vertical slice before choosing an engine.
+- Next: establish the analyzer/type/build baseline and inventory asset path assumptions; then extract one narrow browser-platform adapter without changing movement/camera behavior. Compare the current Three.js path with a candidate native runtime using a small vertical slice before choosing an engine.
