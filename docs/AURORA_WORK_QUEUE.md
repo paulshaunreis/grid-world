@@ -955,3 +955,11 @@ _Last updated: 2026-10-10_
 - The inspected package.json has no test script; build command is grid-code-analyzer.mjs && tsc && vite build.
 - No engine has been selected and no desktop executable is claimed to exist. Keep the current browser client intact.
 - Next: inventory asset path assumptions; then extract viewport/canvas lifecycle without changing movement/camera behavior. Compare the current Three.js path with a candidate native runtime using a small vertical slice before choosing an engine.
+
+
+## 2026-10-10 — Viewport adapter progress
+
+- PR #123 merged as 5c4fb48187e96ed6dfd35b32ab928245d2a872a8; GitHub Actions run #1482 passed TypeScript and build checks.
+- BrowserViewport now owns resize-listener registration/removal through injected camera, renderer-sizing, and engine-resize interfaces. It does not import Three.js types.
+- Browser behavior is not yet verified interactively. Canvas creation, pointer-lock, mouse camera controls, and the Three.js scene graph remain browser-specific.
+- Next: audit model/texture/audio paths and Draco decoder assumptions, then isolate pointer-lock/camera-event wiring without changing controls.
