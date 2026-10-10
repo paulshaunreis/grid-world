@@ -67,7 +67,9 @@ Compare at least the current Three.js client with Godot. Consider Unreal only if
 
 ## First implementation slice
 
-Before editing runtime code, complete the Phase A portability map. The first code change should be narrow and reversible: extract a browser platform adapter for viewport sizing, pointer/wheel/pointer-lock event wiring, and lifecycle/disposal only where it can be done without changing movement or camera semantics. Do not attempt to make all Three.js world objects engine-neutral in one pass.
+The first narrow platform boundary is now implemented: PR #121 added an InputPlatform contract and BrowserInputPlatform adapter, injected the browser adapter into Grid input, preserved the current keyboard/gamepad mappings, and disposes listeners on unload. PR #121 merged as 781827760f42245801c364eaa0d7ee0965072e43; GitHub Actions run #1477 passed TypeScript check and build. This is source/build verification only; no browser/WebGL interaction test is claimed.
+
+Next, extract viewport/canvas lifecycle and browser camera-event wiring only where this can be done without changing movement/camera semantics. Do not attempt to make all Three.js world objects engine-neutral in one pass.
 
 ## Verification gates
 
@@ -85,3 +87,12 @@ A successful TypeScript build does not prove browser/WebGL behavior, and a deskt
 ## Initial audit conclusion
 
 Grid World has a useful early GridEngine subsystem lifecycle and renderer interface, but the current client is not yet runtime-agnostic. The lowest-risk path is to preserve Three.js as the first renderer, map the actual coupling, extract browser platform boundaries, and then compare a native runtime through a limited vertical slice. No migration, engine choice, or desktop executable is claimed as complete.
+
+
+## Implementation checkpoint — 2026-10-10
+
+- Merged PR #121: platform-neutral input contract plus BrowserInputPlatform implementation.
+- CI run #1477 passed the TypeScript check and build.
+- Keyboard and gamepad mapping behavior was preserved in the refactor; input event listeners now have an explicit disposer called on beforeunload.
+- Still browser-only: viewport/canvas, pointer-lock and mouse camera events, WebGL renderer, DOM HUD, and Three.js scene graph. No native engine selected or executable created.
+- Next: audit asset URL/decoder assumptions, then isolate viewport lifecycle in a small follow-up after a fresh source review.
