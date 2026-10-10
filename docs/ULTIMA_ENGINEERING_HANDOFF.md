@@ -3,7 +3,7 @@
 **Display name:** Ultima  
 **Title:** AI Engineer & Systems Strategist  
 **Role:** Architecture and Security  
-**Status:** Profile draft on feature branch; not merged or deployed.
+**Status:** Staff-directory implementation is on `feature/ultima-staff-profile`; PR #125 is open. Not merged or deployed. Build/CI and live-browser verification remain pending.
 
 ## About
 
@@ -27,4 +27,12 @@ Only publish contributions supported by repository history. Label work as propos
 
 ## Visual identity
 
-Teal hair, aqua-blue accents, dark practical futuristic clothing, and a teal diamond insignia. Concept art has been generated in the conversation; the portrait still needs to be added as a repository asset and connected to the site's profile-image field before it can be displayed as a real site profile picture.
+Teal hair, aqua-blue accents, dark practical futuristic clothing, and a teal diamond insignia. The authored SVG portrait is committed at `public/assets/ultima-profile.svg` and is referenced by `TEAM_AVATARS.profileImage`. The Team Area now uses a shared staff-profile format and prefers each member's authored `profileImage`, falling back to the legacy portrait path with an initials fallback if an image cannot load.
+
+
+## Site-wide integration findings
+
+- The staff directory uses one shared profile-card layout for every `TEAM_AVATARS` entry: portrait, title, role, specialties, about, identity, current assignment, recent work, and interaction description. Missing profile details are explicitly labeled instead of invented.
+- The Team Area prefers the roster's `profileImage` field, which allows Ultima's SVG portrait to render without requiring a separate `.webp` copy.
+- The multi-page Vite build previously omitted `account.html` even though the shared navigation and page-hero configuration link to it. The feature branch adds the missing `account` build entry so the route is included in production output.
+- The custom profile and staff-directory UI changes have not yet been build-tested or browser-verified. The PR must remain unmerged until available checks and runtime verification are reviewed.
