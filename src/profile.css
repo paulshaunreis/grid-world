@@ -303,3 +303,33 @@
 .vote-btn:hover{border-color:#00d4ff}
 .vote-btn.vote-like.active{background:rgba(46,230,107,.12);border-color:#2ee66b;color:#2ee66b}
 .vote-btn.vote-dislike.active{background:rgba(255,107,138,.12);border-color:#ff6b8a;color:#ff6b8a}
+
+
+/* Forum/message board — shared grayscale Grid World shell with selected-style accents. */
+#board-app{--board-accent:var(--grid-accent,var(--profile-accent,#72dce8));color:#eef2f5}
+#board-app .studio-header{background:#090d12;border-bottom:1px solid rgba(220,232,240,.18)}
+#board-app .studio-title span,#board-app .module-label{color:var(--board-accent)}
+#board-app .profile-page{max-width:1240px;margin:0 auto;padding:clamp(16px,3vw,36px);background:#0b0f14}
+#board-app .module-card{background:linear-gradient(145deg,#151b22,#0d1218);border:1px solid rgba(220,232,240,.19);border-radius:12px;box-shadow:0 10px 28px rgba(0,0,0,.16)}
+#board-app .board-composer{padding:clamp(16px,2.4vw,26px);margin-bottom:20px}
+#board-app .board-composer-row{display:grid;grid-template-columns:minmax(150px,.35fr) minmax(0,1fr);gap:10px;margin:12px 0}
+#board-app input,#board-app textarea,#board-app select{box-sizing:border-box;width:100%;background:#090e14;color:#eef2f5;border:1px solid rgba(220,232,240,.24);border-radius:8px;padding:11px 12px;font:inherit}
+#board-app input:focus-visible,#board-app textarea:focus-visible,#board-app select:focus-visible,#board-app button:focus-visible{outline:2px solid var(--board-accent);outline-offset:2px}
+#board-app .board-composer-footer,#board-app .board-post-top,#board-app .board-reply-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#board-app button{background:#17232c;color:#eafaff;border:1px solid rgba(220,232,240,.24);border-radius:7px;padding:9px 13px;cursor:pointer}
+#board-app button:hover,#board-app .profile-tabs button.active{border-color:var(--board-accent);color:var(--board-accent)}
+#board-app .board-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}
+#board-app .board-list{display:grid;gap:14px}
+#board-app .board-post-card{padding:clamp(16px,2vw,24px)}
+#board-app .board-post-card h3{font-size:clamp(18px,2vw,24px);margin:12px 0 8px;color:#f2f5f7}
+#board-app .board-cat-tag{color:var(--board-accent);font-size:.84rem;letter-spacing:.04em}
+#board-app .board-post-top small,#board-app .board-reply-head small{color:#aeb8c2;font-size:.82rem}
+#board-app .board-post-author{margin:8px 0}
+#board-app .board-post-body,#board-app .board-reply p{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.65;color:#d4dbe1}
+#board-app .board-post-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:12px;border-top:1px solid rgba(220,232,240,.12)}
+#board-app .board-reply-box{display:grid;gap:10px;margin-top:14px}
+#board-app .board-replies{display:grid;gap:10px;margin-top:16px;padding-left:clamp(10px,2vw,24px);border-left:2px solid rgba(220,232,240,.15)}
+#board-app .board-reply{padding:12px;background:#0b1117;border:1px solid rgba(220,232,240,.12);border-radius:8px}
+#board-app .board-as{color:#aeb8c2;font-size:.9rem}
+@media(max-width:600px){#board-app .board-composer-row{grid-template-columns:1fr}#board-app .board-composer-footer{align-items:stretch}#board-app .board-composer-footer button{width:100%}}
+@media(prefers-reduced-motion:reduce){#board-app *{scroll-behavior:auto!important;transition:none!important}}

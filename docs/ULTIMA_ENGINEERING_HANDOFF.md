@@ -44,3 +44,10 @@ Teal hair, aqua-blue accents, dark practical futuristic clothing, and a teal dia
 - Static repository audit: 45/45 roster profiles have explicit existing portrait assets; 18/18 page-hero image references exist; 19/19 shared navigation HTML targets exist and are included in Vite inputs; 32/32 configured Vite HTML inputs exist at the repository root.
 - GitHub Actions run #1496 passed TypeScript check and production build.
 - Not yet verified: deployed/live browser behavior, image decode/rendering, all page-specific controls, or responsive appearance at real viewport sizes.
+
+
+## Forum foundation audit — 2026-10-11
+
+Reviewed `board.html`, `src/board.ts`, and `src/social/messageBoard.ts` before expanding the forum. Existing board has General, Trade, Events, and Help categories; compose, reply, author-delete, and author badges. Important limitation: `messageBoard.ts` currently stores posts/replies in browser `localStorage`; the comment about mirroring to Supabase is only a future phase. This is not shared across users/devices and is not server-authoritative moderation. Do not describe website/in-world board synchronization as implemented until a shared persistent backend and its access policies are verified.
+
+This branch adds a responsive, grayscale-first style layer for the existing board while preserving current controls. Follow-up implementation should audit Supabase migrations/schema/RLS before adding any persistence; define server-authoritative ownership/moderation, report/flag flows, pagination/search, and a shared data contract for the web board and in-world kiosk. Existing categories are preserved; additional forum categories should be introduced after the data contract and UX are agreed. Build/browser verification is pending.

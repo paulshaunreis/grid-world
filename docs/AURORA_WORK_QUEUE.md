@@ -970,3 +970,12 @@ _Last updated: 2026-10-10_
 - Reuses the current staff roster/avatar system; does not create a separate user identity or alter Aurora's profile.
 - Branch: `feature/ultima-staff-profile`. Not merged/deployed; CI/build checks pending.
 - Generated concept portrait is not yet a repository asset and is not yet wired to a site profile-image URL. Follow-up: add the portrait asset and use it only where the existing staff/profile UI safely supports image URLs; verify staff directory rendering and build.
+
+
+### 10. Forum foundation and shared message board
+- Preserve the existing `board.html` + `src/board.ts` feature and its General/Trade/Events/Help categories.
+- Apply the grayscale-first Grid World visual shell, responsive composition, and visible focus states.
+- **Audit finding:** `src/social/messageBoard.ts` uses browser `localStorage`; website/in-world cross-device synchronization and server-authoritative ownership/moderation are not implemented by that module. Its Supabase mirror comment is a future note, not functionality.
+- Next: inspect existing Supabase migrations/tables/RLS before designing persistent posts/replies/reports; ensure user identity and author/moderator permissions are server-enforced. Add search, pagination, report/moderation, and broader categories only with that foundation.
+
+**Status:** Existing feature audited; responsive visual pass committed to `feature/forum-foundation-audit`. Backend and browser verification pending.
