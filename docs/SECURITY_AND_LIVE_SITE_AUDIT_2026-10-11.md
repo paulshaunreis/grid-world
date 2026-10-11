@@ -51,3 +51,16 @@ Target: https://grid-world-qghn.onrender.com
 For each finding record: severity, route/system, exact reproduction, expected vs actual behavior, evidence, security/data impact, smallest safe fix, tests required, and whether the finding was verified in source, CI, live database, browser, or deployment.
 
 Do not call a finding fixed until the matching verification step passes. Do not claim the site is fully audited until every relevant checklist item is either verified or explicitly marked blocked/not applicable.
+
+
+## 6. Live Supabase inspection (2026-10-11)
+
+- [x] Connected to the configured `grid-world` Supabase project and checked its project status: `ACTIVE_HEALTHY`.
+- [x] Compared live migration history with repository migration names. Live history includes the recent hardening entries for anonymous SECURITY DEFINER RPC restrictions, forum content-rating RLS, direct resource-sale execution revocation, team-post RPC restrictions, mineral RPC restrictions pending authoritative presence, and combat-state client-write revocation. This is migration-history evidence, not proof that every policy behaves correctly.
+- [x] Queried the live Security Advisor. It reports **4 tables with RLS enabled and no policies**: `grid_economy_monetary_policy`, `grid_name_reservations`, `grid_omni_bank_reserves`, and `grid_operator_policy_rules`. This may be an intentional fail-closed design, but each table's grants, intended access, and server-only usage must be confirmed before adding any policies.
+- [x] Security Advisor also reports **51 SECURITY DEFINER functions executable by authenticated users**. This is a review queue, not a conclusion that all 51 are vulnerable: some may intentionally serve signed-in users. Prioritize economy/barter/marketplace/build functions and verify each function's caller authorization, fixed/empty `search_path`, schema qualification, argument validation, and least-privilege EXECUTE grants.
+- [x] Performance Advisor reports **51 foreign keys without covering indexes**. This is a performance follow-up, not a security exploit. Rank by high-traffic query paths and table size before proposing indexes.
+- [ ] Review the complete advisor output, including any additional security lint categories beyond the findings summarized above; inspect function definitions/grants and table grants/policies before proposing changes.
+- [ ] Run targeted, read-only SQL to enumerate the four no-policy tables' grants, all exposed SECURITY DEFINER function signatures and grants, and each function's `proconfig`/search_path. Do not change production grants or policies until the intended public/authenticated/service-only contract is established.
+
+**Advisor interpretation:** Supabase's guidance distinguishes table grants from RLS policies, and warns that exposed SECURITY DEFINER functions run with their owner's privileges. The appropriate response is to inspect intended access and the function body/grants—not to blanket-revoke all functions or create blanket policies.
