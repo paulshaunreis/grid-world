@@ -33,6 +33,7 @@ export default defineConfig({
         enter: 'enter.html',
         confirmed: 'confirmed.html',
         recover: 'recover.html',
+        resetPassword: 'reset-password.html',
         home: 'home.html',
         store: 'store.html',
         beta: 'beta.html',
