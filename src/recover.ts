@@ -134,7 +134,7 @@ if (!supabaseConfigured || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
           if (data === true) {
             // Verified — send the password reset email
             const { error: resetErr } = await client.auth.resetPasswordForEmail(email, {
-              redirectTo: 'https://grid-world-qghn.onrender.com/enter.html',
+              redirectTo: 'https://grid-world-qghn.onrender.com/reset-password.html',
             });
             if (resetErr) throw resetErr;
             step = 2;
