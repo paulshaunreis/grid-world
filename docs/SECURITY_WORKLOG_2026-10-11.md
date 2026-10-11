@@ -12,7 +12,7 @@
 - Branch: `security/complete-password-reset-flow-ci`
 - Latest reviewed head: `9e0e1bd6d37b7d112300cd2ccb0d571796657acd`
 - Status at checkpoint: open, draft, unmerged, not deployed; GitHub reports mergeable.
-- CI: GitHub Actions run #1510 completed successfully for prior head `9e0e1bd6d37b7d112300cd2ccb0d571796657acd`. After that pass, I made a small follow-up commit `a943d3e5e61b4d2f0713f4a42227949d699315d9` to inspect Supabase SDK-returned errors. The follow-up commit's CI run was not yet visible at the time of this note. The earlier pass is not evidence that the newest commit passed.
+- CI: GitHub Actions run #1510 completed successfully for prior head `9e0e1bd6d37b7d112300cd2ccb0d571796657acd`. After that pass, I made a small follow-up commit `a943d3e5e61b4d2f0713f4a42227949d699315d9` to inspect Supabase SDK-returned errors. The follow-up commit's GitHub Actions run #1512 has now completed successfully for exact head `a943d3e5e61b4d2f0713f4a42227949d699315d9` ([run](https://github.com/paulshaunreis/grid-world/actions/runs/38184619638)). This is CI verification only, not proof of production email delivery or redirect configuration.
 - `src/recover.ts` now uses Supabase Auth `resetPasswordForEmail` rather than showing security questions or calling the legacy answer-verification RPCs. It gives the same public response regardless of whether an account exists.
 - Reset email redirect is currently hard-coded to `https://grid-world-qghn.onrender.com/reset-password.html`.
 - `reset-password.html` and `src/reset-password.ts` provide the completion page. Password fields remain disabled until Supabase emits a `PASSWORD_RECOVERY` event with a session. Passwords must match and be at least 12 characters; update uses `client.auth.updateUser`.
@@ -43,7 +43,7 @@
 - Legacy mining RPCs and browser writes to `grid_combat_state` were previously restricted; Edge Function `grid-combat` version 21 was reported deployed with JWT verification and removal of a stale-sync movement bypass. Remaining work noted earlier: server-owned world/session identity, validated state transitions, movement plausibility, replay/range/cooldown protections, atomic mining credit, and authenticated E2E mining tests. Keep browser mining disabled until the full gate passes.
 
 ## Next actions (ordered)
-1. Check CI for PR #133's newest head `a943d3e5e61b4d2f0713f4a42227949d699315d9`; the confirmed successful run #1510 is for the prior head `9e0e1bd6d37b7d112300cd2ccb0d571796657acd`.
+1. PR #133's latest head `a943d3e5e61b4d2f0713f4a42227949d699315d9` passed GitHub Actions run #1512; still perform the real reset-email end-to-end test before release.
 2. Resolve the PR #131/#133 overlap and preserve the database revocation migration if recovery hardening is approved.
 3. Review and correct handling of Supabase SDK's returned `error` value in `resetPasswordForEmail`, without exposing account existence.
 4. Verify Supabase redirect allowlist and test actual password reset email end-to-end in a safe test account.
