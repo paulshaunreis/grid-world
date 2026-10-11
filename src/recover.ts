@@ -53,13 +53,15 @@ if (!supabaseConfigured || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     status.className = 'recover-status info';
 
     try {
-      // Supabase Auth issues the reset email. Keep the same public response
-      // whether or not the email belongs to an account.
-      await client.auth.resetPasswordForEmail(email, {
+      // Supabase Auth issues the reset email. Inspect SDK-returned errors as well
+      // as thrown exceptions, but never expose provider/account details to the UI.
+      const { error } = await client.auth.resetPasswordForEmail(email, {
         redirectTo: 'https://grid-world-qghn.onrender.com/reset-password.html',
       });
+      if (error) throw error;
     } catch {
-      // Do not disclose account existence or provider details to the caller.
+      // Keep the public response identical to avoid disclosing account existence
+      // or provider-specific details. End-to-end email delivery must be tested.
     }
 
     status.textContent = 'If an eligible account exists for that email, reset instructions will arrive shortly. Check your inbox and spam folder.';
