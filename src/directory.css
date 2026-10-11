@@ -27,3 +27,11 @@
 .staff-profile-more li+li{margin-top:3px}
 .staff-profile .status{font-size:8px;letter-spacing:.1em}
 @media(max-width:600px){.staff-profile .staff-art{height:170px}}
+
+/* Neutral grayscale foundation; identity colors remain restrained accents. */
+body{background:#090c10;color:#eef1f4}
+.grid article,.grid article.glass-card{background:linear-gradient(145deg,#151a20,#0d1116);border-color:rgba(218,226,233,.18)}
+.staff-profile .staff-profile-section,.staff-profile .staff-profile-more{border-color:rgba(218,226,233,.15)}
+.staff-profile .staff-profile-section>b,.staff-profile .staff-profile-more summary,.staff-profile .tag,.staff-profile .species{color:#8edce5}
+.staff-profile .staff-profile-section p,.staff-profile .staff-profile-more p,.staff-profile .staff-profile-more ul{color:#c0c8cf}
+.staff-profile .staff-art{background:radial-gradient(circle at 50% 35%,rgba(142,220,229,.12),#090c10 72%)}

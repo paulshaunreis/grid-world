@@ -970,3 +970,13 @@ _Last updated: 2026-10-10_
 - Reuses the current staff roster/avatar system; does not create a separate user identity or alter Aurora's profile.
 - Branch: `feature/ultima-staff-profile`. Not merged/deployed; CI/build checks pending.
 - Generated concept portrait is not yet a repository asset and is not yet wired to a site profile-image URL. Follow-up: add the portrait asset and use it only where the existing staff/profile UI safely supports image URLs; verify staff directory rendering and build.
+
+
+### 9. Shared profile design system (new — 2026-10-11)
+- Standardize player, staff, and NPC profiles on a consistent grayscale-first UI shell.
+- Make the selected profile style change accents, glow, and decorative language while keeping layout and accessibility consistent.
+- Use the user's supplied Ultima profile screenshot as the target reference for cinematic identity headers and modular profile panels.
+- Update Ultima's portrait from the newly supplied profile sheet, extracting a suitable avatar image asset and verifying all references.
+- Preserve current profile data, social/privacy boundaries, and profile-type-specific sections.
+
+**Status:** Design requirement documented; implementation pending. Do not mark complete until build and browser checks pass.

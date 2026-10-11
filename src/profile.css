@@ -303,3 +303,31 @@
 .vote-btn:hover{border-color:#00d4ff}
 .vote-btn.vote-like.active{background:rgba(46,230,107,.12);border-color:#2ee66b;color:#2ee66b}
 .vote-btn.vote-dislike.active{background:rgba(255,107,138,.12);border-color:#ff6b8a;color:#ff6b8a}
+
+
+/* Shared Grid World profile system: neutral grayscale shell, user-selected accent skin. */
+.profile-preview,.profile-page{--profile-accent:#72dce8;--profile-accent-rgb:114,220,232;--profile-panel:#111820;--profile-panel-raised:#171f29;--profile-line:rgba(220,232,240,.19);--profile-muted:#aeb8c2;background:#0b0f14;color:#f1f4f6;border-color:var(--profile-line)}
+.profile-preview .profile-cover,.profile-page .profile-cover{background-color:#141a21;border-bottom:1px solid var(--profile-line)}
+.profile-preview .profile-main,.profile-page .profile-main{background:#0b0f14}
+.profile-preview .profile-card,.profile-page .profile-card,.profile-preview .profile-panel,.profile-page .profile-panel{background:var(--profile-panel);border-color:var(--profile-line)}
+.profile-preview .section-title,.profile-page .section-title,.profile-preview .eyebrow,.profile-page .eyebrow{color:var(--profile-accent)}
+.profile-preview a,.profile-page a{transition:color .16s ease,border-color .16s ease}
+.profile-preview :focus-visible,.profile-page :focus-visible{outline:2px solid var(--profile-accent);outline-offset:3px}
+.profile-preview.theme-neon,.profile-page.theme-neon{--profile-accent:#f07fd4;--profile-accent-rgb:240,127,212}
+.profile-preview.theme-verdant,.profile-page.theme-verdant{--profile-accent:#7ee3a7;--profile-accent-rgb:126,227,167}
+.profile-preview.theme-ember,.profile-page.theme-ember{--profile-accent:#ffb16b;--profile-accent-rgb:255,177,107}
+.profile-preview.theme-void,.profile-page.theme-void{--profile-accent:#b4a0ff;--profile-accent-rgb:180,160,255}
+.profile-preview.theme-crystal,.profile-page.theme-crystal{--profile-accent:#8be8f4;--profile-accent-rgb:139,232,244}
+.profile-preview.theme-aurora,.profile-page.theme-aurora{--profile-accent:#72dce8;--profile-accent-rgb:114,220,232}
+.profile-preview .profile-cover:before,.profile-page .profile-cover:before{background-image:linear-gradient(rgba(var(--profile-accent-rgb),.055) 1px,transparent 1px),linear-gradient(90deg,rgba(var(--profile-accent-rgb),.055) 1px,transparent 1px)}
+.profile-preview .cover-orbit,.profile-page .cover-orbit{border-color:rgba(var(--profile-accent-rgb),.5);box-shadow:0 0 54px rgba(var(--profile-accent-rgb),.12)}
+@media(max-width:760px){.profile-preview .profile-cover,.profile-page .profile-cover{height:clamp(150px,35vw,240px)}.profile-preview .profile-main,.profile-page .profile-main{padding-left:16px;padding-right:16px}}
+
+/* Shared shell refinements: apply neutral panels to the actual profile route too. */
+.profile-page .module-card,.profile-preview .module-card{background:var(--profile-panel,#111820);border:1px solid var(--profile-line,rgba(220,232,240,.19));color:#eef2f5}
+.profile-page .module-label,.profile-preview .module-label{color:var(--profile-accent,#72dce8)}
+.profile-page .profile-tabs button,.profile-preview .profile-tabs button{border-color:var(--profile-line,rgba(220,232,240,.19))}
+.profile-page .profile-tabs button.active,.profile-preview .profile-tabs button.active{color:var(--profile-accent,#72dce8);border-color:var(--profile-accent,#72dce8)}
+.profile-page .chips span,.profile-preview .chips span{border-color:var(--profile-line,rgba(220,232,240,.19))}
+.profile-page .identity-copy p,.profile-preview .identity-copy p{color:var(--profile-muted,#aeb8c2)}
+.profile-page.theme-neon .module-label,.profile-page.theme-verdant .module-label,.profile-page.theme-ember .module-label,.profile-page.theme-void .module-label,.profile-page.theme-crystal .module-label{color:var(--profile-accent)}
