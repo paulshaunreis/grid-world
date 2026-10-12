@@ -16,7 +16,7 @@
 - `src/recover.ts` now uses Supabase Auth `resetPasswordForEmail` rather than showing security questions or calling the legacy answer-verification RPCs. It gives the same public response regardless of whether an account exists.
 - Reset email redirect is currently hard-coded to `https://grid-world-qghn.onrender.com/reset-password.html`.
 - `reset-password.html` and `src/reset-password.ts` provide the completion page. Password fields remain disabled until Supabase emits a `PASSWORD_RECOVERY` event with a session. Passwords must match and be at least 12 characters; update uses `client.auth.updateUser`.
-- The recovery request handler intentionally returns a generic user-facing message. Note: `resetPasswordForEmail` returns an object with an `error` field in common Supabase SDK usage; the current implementation only catches thrown exceptions and does not inspect the returned `error`. The user-facing response remains generic (good for account enumeration resistance), but internal handling/telemetry and user feedback behavior need review.
+- The recovery request handler intentionally returns a generic user-facing message and now checks the SDK-returned `{ error }` as well as thrown exceptions. Provider/account details are not shown to the user.
 - The reset completion page currently uses a timeout to report invalid/expired links if no recovery event appears. Test actual email links in the configured Supabase project before release.
 - Required before release: confirm Supabase Auth redirect allowlist, verify real email link round-trip and expired-link behavior, confirm the deployed site contains the expected entry pages, and test sign-in after password update. No production DB changes or deployment were made.
 
@@ -26,8 +26,8 @@
 - Head: `984cee5e574fd7ecb373b7de936eb9d97441e13a`
 - Status: draft/open/unmerged/un-deployed; previously observed CI run #1508 passed.
 - It also replaces `src/recover.ts` with an email reset flow and adds migration `supabase/migrations/20261012120000_disable_legacy_security_question_recovery.sql` to revoke execution of `public.get_recovery_questions(text)` and `public.verify_recovery_answers(text,text,text,text)` from `PUBLIC, anon, authenticated`.
-- PR #133 and PR #131 overlap on the same recovery UI. Do not merge both blindly. Before approval, consolidate into one reviewable change or otherwise ensure the database revocation migration is retained in the selected release. The frontend replacement alone does not remove callable legacy database functions.
-- Migration date in filename is 2026-10-12, which is later than this checkpoint date (2026-10-11); confirm whether the date is intentional before release.
+- PR #133 and PR #131 overlap on the same recovery UI. On 2026-10-12, the legacy-RPC revocation migration was copied into PR #133 branch `security/complete-password-reset-flow-ci` in commit `2e417bf996127ffd84b972e7f87aabcc0a7768da` so the more complete recovery implementation can be reviewed as one change. CI for the new head still needs to complete. PR #131 remains open; do not merge both or close either without reviewing the final diff and preserving the migration.
+- The migration filename date `20261012` matches the current date of the follow-up work.
 
 ### Related least-privilege reviews
 - PR #130: https://github.com/paulshaunreis/grid-world/pull/130 — proposes revoking direct browser-role privileges on `public.grid_verification_factors`. Open draft, unmerged, un-deployed. Before approval, verify all legitimate enrollment/update paths use trusted server-side functions.
@@ -45,7 +45,7 @@
 ## Next actions (ordered)
 1. PR #133's latest head `a943d3e5e61b4d2f0713f4a42227949d699315d9` passed GitHub Actions run #1512; still perform the real reset-email end-to-end test before release.
 2. Resolve the PR #131/#133 overlap and preserve the database revocation migration if recovery hardening is approved.
-3. Review and correct handling of Supabase SDK's returned `error` value in `resetPasswordForEmail`, without exposing account existence.
+3. Confirm CI passes on PR #133 after adding the legacy-RPC revocation migration.
 4. Verify Supabase redirect allowlist and test actual password reset email end-to-end in a safe test account.
 5. PR #129's CI run #1505 has now been rechecked and completed successfully. Inspect legitimate server-side access paths before approving PR #130.
 6. Continue the least-privilege audit of sensitive `SECURITY DEFINER` functions, beginning with verification-factor flows and rate limiting.
@@ -56,3 +56,12 @@
 - Distinguish code on a branch, open PR, merged main, CI, and deployed behavior.
 - No merging, production database changes, or deployment without explicit approval.
 - Append a dated entry after each substantial work session. Do not rewrite prior dated findings as if they were newly verified.
+
+
+## 2026-10-12 — Recovery integration follow-up
+
+- Rechecked PR #134 (this work-log PR): GitHub Actions run #1514 passed for head `0da4a035ffe95d72fb8fea6d063aa34d21e2269c` ([run](https://github.com/paulshaunreis/grid-world/actions/runs/38184687681)). PR remains open/draft and is not merged.
+- Reviewed `src/recover.ts`, `src/reset-password.ts`, and `src/signin.ts` on PR #133's branch. The recovery request now checks Supabase's returned `error` and still emits a generic response. The completion page enables updates only after a `PASSWORD_RECOVERY` event with a session, requires matching passwords of at least 12 characters, and routes successful completion to `/signin.html`.
+- Added the legacy security-question RPC revocation migration from PR #131 to PR #133 branch `security/complete-password-reset-flow-ci` in commit `2e417bf996127ffd84b972e7f87aabcc0a7768da`. This is a branch change only. Re-run CI and inspect the combined diff before proposing a merge. PR #131 remains open and no PR has been merged by this work.
+- Remaining release gates: verify Supabase redirect allowlist, real email round-trip and expired-link behavior, expected deployed static entry pages, and successful sign-in after password change. Also inspect legitimate server-side factor enrollment paths before approval of PR #130 and continue review of `grid_verify_three_factors` for rate limits and detailed-result leakage.
+- No production database changes, merges, or deployments were made.
