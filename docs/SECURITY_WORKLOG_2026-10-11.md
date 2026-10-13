@@ -103,3 +103,24 @@
 - GitHub code search still returns no indexed matches for the factor table/function, so enrollment/update/verification call sites remain unverified. Do not treat search failure as proof that these are absent.
 - PR #134's work-log update at commit `168dfe8f66bb85a40da4982d22a93cb46e89c6f4` now has successful GitHub Actions run #1528 ([run](https://github.com/paulshaunreis/grid-world/actions/runs/38461020620)). Documentation CI is green; PR remains open/draft and unmerged.
 - Next: locate and trace the enrollment/update and verification routines, validate auth/authorization and brute-force protections, then run explicit post-migration checks for browser-role grants and operator function access. No production changes, merge, or deployment performed.
+
+
+## 2026-10-13 — Operator endpoint and forum trust-boundary review
+
+### Grid Operator Edge Function — source review only
+- Reviewed `supabase/functions/grid-operator/index.ts` on `main`, blob `8acb6160f5752191cc61403592854225a86291f4`.
+- The function validates a supplied bearer token with `admin.auth.getUser`; its `context` path then reads the current user's profile, social preferences, open operator cases, and enabled policy rules through the service-role client. The `verify-status` action requires authentication and filters factor status by the authenticated user's ID. This supports the intended server-side read path for PR #129, but does not prove live deployment state or post-migration grants.
+- **Additional review items (not confirmed exploits):** `chat` and `moderate` actions are accepted without requiring a signed-in user; this source file shows no explicit per-user/IP rate limiter. Authenticated chat context, including profile/preferences/open cases, is serialized and sent to the configured external AI gateway. Confirm privacy disclosure, vendor/data-retention expectations, and minimize fields sent where possible. The catch handler returns `e.message` in a 500 response; prefer a stable generic client error with server-side correlation logging. Validate moderation model output against an allowlisted schema before returning it or using fields in database writes.
+- `Access-Control-Allow-Origin: *` is present. This alone is not authentication bypass, but the public endpoint and unauthenticated actions make abuse controls, quotas, payload caps, and monitoring worth explicit verification. Do not label these findings exploitable without runtime tests.
+- No function code changed, no production changes made, and no deployment performed.
+
+### Forum foundation — trust boundary and persistence
+- Reviewed `src/social/messageBoard.ts` on `main`, blob `7a9882b0773986077576ebcd96a4640983d50032`, and PR #127 (https://github.com/paulshaunreis/grid-world/pull/127).
+- Posts and replies are stored only in browser `localStorage`; the Supabase mirror is a comment, not implemented functionality. Therefore the current board is not cross-device/shared persistence and browser-side ownership checks are not an authoritative moderation boundary.
+- `deleteBoardPost` trusts a caller-provided handle and includes a special `aurora` exception. In local-only UI this is not a server privilege boundary, but it must not be reused as an authoritative permission check for shared posts. A future backend should derive identity from the authenticated session, enforce author/moderator permissions server-side, validate content and rating at the database boundary, and add abuse/reporting controls.
+- PR #127 remains open; its body states build, automated checks, and browser/device verification have not yet been run. No merge/deployment performed.
+
+### CI and next actions
+- Rechecked PR #134 documentation commit `c12451cde5fd1d6c505124e1deb48bb4481a2cf9`: GitHub Actions run #1529 completed successfully. This verifies the CI job only; PR #134 remains open/draft and unmerged.
+- Next security sequence: (1) trace the three-factor enrollment and verification call sites and rate limiting; (2) add explicit abuse controls and generic client errors to Grid Operator if source/runtime review confirms gaps; (3) define data-minimization and disclosure requirements for AI-gateway context; (4) verify PR #129/#130 grants after an approved migration in a safe environment; (5) design the forum backend only after auditing existing tables, migrations, and RLS.
+- Shared local notebook `~/workspace/gridworld/NOTES-FOR-CHATGPT.md` was not directly accessible in this environment; this dated repo work-log entry is the recorded handoff. No merge, production database change, or deployment was made.
