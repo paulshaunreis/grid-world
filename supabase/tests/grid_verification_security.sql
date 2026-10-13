@@ -64,8 +64,8 @@ begin
     raise exception 'Verification RPC does not implement persistent cooldown logic';
   end if;
 
-  if position('search_path=pg_catalog, auth, extensions' in replace(verify_def, ' ', '')) = 0
-     or position('search_path=pg_catalog, auth, extensions' in replace(enroll_def, ' ', '')) = 0 then
+  if position('search_path=pg_catalog,auth,extensions' in replace(verify_def, ' ', '')) = 0
+     or position('search_path=pg_catalog,auth,extensions' in replace(enroll_def, ' ', '')) = 0 then
     raise exception 'SECURITY DEFINER RPCs do not use the expected restricted search_path';
   end if;
 
