@@ -74,3 +74,12 @@
 - `src/engine/GridModelLibrary.ts` is a source registry of model-source references and metadata; the registry itself does not prove that referenced models are downloaded, bundled, licensed correctly in the shipped artifact, or loading in the running world.
 - Verification boundary: this was a repository source/path inspection only. No production URL request, browser GLTF load, compressed-model decode, or desktop package test was performed. Do not mark decoder runtime as verified.
 - Next asset-audit steps: inspect every GLTF/GLB/texture/audio loader call site and URL construction; identify which models are actual local assets versus external catalog references/procedural fallbacks; then run a browser smoke test that loads at least one known Draco-compressed asset and records network responses. Preserve current browser behavior until that test supplies evidence for a change.
+
+
+### Loader call-site findings
+
+- `src/core/PlayerController.ts` calls the shared `createGLTFLoader()` and requests `/models/avatars/avatar-${gender}-clothed.glb`. Both `public/models/avatars/avatar-male-clothed.glb` and `public/models/avatars/avatar-female-clothed.glb` are present in the repository. This confirms the source asset paths exist; it does not confirm that the deployed browser can fetch/decode them or that the models contain the expected animations/materials.
+- `src/engine/GridPBRLibrary.ts` loads image textures from `/textures/${textureFile}` using `THREE.TextureLoader`. The world uses names including `tex-ground-metal-deck.webp` and `tex-ground-plaza-dark.webp`; matching repository paths under `public/textures/` exist (the file API reports binary UTF-8 decode errors for these image files, not a successful image decode test).
+- These are root-relative runtime paths. Confirm they return HTTP 200 in the deployed app and work under the intended hosting base path before changing path construction.
+- A first-pass text search through the known entry modules did not yield a complete inventory of every loader, so the audit remains incomplete. Do not infer that there are no additional loaders from that search.
+- GitHub Actions run #1520 for the documentation branch completed successfully. This checks the repository CI workflow for the documentation change; it is not a browser asset-loading test.
