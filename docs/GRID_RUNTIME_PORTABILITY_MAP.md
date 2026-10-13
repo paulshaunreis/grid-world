@@ -100,3 +100,10 @@
 - Both CSS files import Google Fonts from `fonts.googleapis.com`; visual typography therefore has an external network dependency unless fonts are bundled elsewhere. No offline/network-restricted browser test was run.
 - The current browser entry is `play.html`, which is very small and loads the main application module. The dedicated `src/reset-password.ts` referenced in PR #133 is not present on `main` at this audit snapshot; it exists in the open PR patch, so do not assume the reset page is already deployed or in the default branch.
 - This pass extends the URL inventory but does not establish runtime delivery, successful image decoding, cache behavior, or a full source-wide inventory. Next: compare every referenced `public/` asset with built `dist/` output and run browser network checks on the deployed origin; confirm any external font dependency is acceptable for the intended offline/desktop direction.
+
+
+### Binary path-existence spot check — 2026-10-12
+
+- Followed up by requesting the repository contents for the seven referenced WebP files: `/grid-world-pulse-art.webp`, `/grid-concept-first-light.webp`, `/grid-concept-civic.webp`, `/grid-concept-living-wilds.webp`, `/art/hero-worlds.webp`, `/art/grid-page-atlas.webp`, and `/libs/draco/draco_decoder.wasm` (repository paths under `public/`). The file endpoint returned UTF-8 decoding errors for these binary files rather than text. This is consistent with binary content being unreadable through the text endpoint, but it is not a successful byte-level integrity check or proof of deployed HTTP delivery.
+- `public/art/worlds-aurora.svg` was independently readable through the repository file endpoint, consistent with the earlier source-level SVG check.
+- Important distinction: these spot checks do not establish that the Vite build copies every asset to `dist/`, that production URLs return HTTP 200, or that browsers decode/render the files. Next verification still requires a built-artifact file listing plus deployed-browser network and rendering checks.
