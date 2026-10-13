@@ -212,3 +212,11 @@ Sources: live read-only SQL queries against the connected project; Supabase guid
 
 
 - Follow-up implementation after the first email-OTP commit: added explicit null-secret rejection in the enrollment RPC and a matching structural assertion. Replaced browser `prompt()` inputs for the codeword/recovery phrase with password-type dialog fields and added a dedicated one-time-code dialog, so secrets are masked while entered. Current PR #130 head is `096ad5035efecdabdebd6097de425c51c0ccd12f`; fresh CI is required for this latest UI/migration/test state.
+
+
+## 2026-10-13 — Latest verification hardening CI result
+
+- GitHub Actions run #1552 completed successfully for exact PR #130 head `096ad5035efecdabdebd6097de425c51c0ccd12f` ([run](https://github.com/paulshaunreis/grid-world/actions/runs/38471120811)). The `build` job passed. This confirms the configured TypeScript/build workflow only; it does **not** execute the proposed SQL migrations or `supabase/tests/grid_verification_security.sql`, nor does it verify Supabase email-template configuration or a real OTP round trip.
+- PR #130 remains open, unmerged, and undeployed. No production database mutation or deployment was performed.
+- Remaining merge/release gates: test the OTP email/code flow and `auth_time` behavior using a safe test account; apply migrations and run the regression plus behavioral/concurrency tests in an existing disposable database (no paid resources; do not use production); confirm authenticated RPC calls still work with direct table grants revoked; and design a secure factor-change/recovery flow before offering factor rotation.
+- The shared local notebook `~/workspace/gridworld/NOTES-FOR-CHATGPT.md` is not accessible through this connector. This repository work-log entry is the available handoff; do not claim the local notebook itself was updated.
