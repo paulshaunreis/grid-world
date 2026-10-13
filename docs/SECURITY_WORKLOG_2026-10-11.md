@@ -67,3 +67,13 @@
 - No production database changes, merges, or deployments were made.
 
 - Follow-up CI run #1518 is in progress for PR #133 commit `dca262583a35cf2760e325072688ec9d1f310259` ([run](https://github.com/paulshaunreis/grid-world/actions/runs/38325654086)); recheck final result before calling this pass CI-verified.
+
+
+## 2026-10-13 — Recovery CI recheck and asset-audit follow-up
+
+- Rechecked PR #133's latest password-recovery redirect change at commit `ce07ae36141963bac62f67f72a0d0477afca8498`. GitHub Actions run #1524 completed with the build job successful; TypeScript check and production build both passed ([run](https://github.com/paulshaunreis/grid-world/actions/runs/38330117447)). This is CI evidence only, not proof of configured Supabase redirects, delivered email, recovery-session behavior, production deployment, or a successful live password change.
+- PR #133 remains an open draft and is not merged. The redirect uses the current origin plus `/reset-password.html`; that entry page is part of the PR patch but is not present on `main` at this check. Keep the release gate for Supabase URL Configuration allowlist and a real end-to-end email/reset/sign-in test. Do not claim the change is deployed.
+- Reviewed the reset-flow patch again: the legacy question-based UI/RPC calls are removed from the recovery page; the migration revokes client EXECUTE privileges on the two legacy recovery RPCs; the reset page waits for a Supabase `PASSWORD_RECOVERY` event with a session, checks matching 12+ character passwords, and handles SDK-returned update errors. These are source-review findings, not runtime validation. Inspect all reset-email call sites and verify redirect configuration before release.
+- Continued PR #135's source-level asset audit and appended a binary-path spot-check note to `docs/GRID_RUNTIME_PORTABILITY_MAP.md` on branch `docs/runtime-asset-path-audit-2026-10-12`, commit `baa14be64c06d8a8e5db44eb58a1c021f2ddace1`. Binary UTF-8 decoding errors are not proof of missing/corrupt assets. CI status for that exact docs commit is unconfirmed; browser network/decode and built-`dist` checks remain outstanding.
+- Shared local notebook `~/workspace/gridworld/NOTES-FOR-CHATGPT.md` was not reachable through the GitHub repository path used in this session; this dated update is recorded in the security work-log branch instead. Do not claim the local notebook itself was updated.
+- No merge, production database change, or deployment was performed.
