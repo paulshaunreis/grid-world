@@ -64,3 +64,13 @@
 - PR #121 separated keyboard/gamepad acquisition behind InputPlatform and BrowserInputPlatform.
 - PR #123 separated viewport resize-listener lifecycle behind BrowserViewport.
 - Both PRs passed GitHub Actions TypeScript and build checks. Browser/WebGL behavior remains unverified; the next target is pointer-lock and camera-event wiring, after an asset URL/decoder audit.
+
+
+## 2026-10-12 update — asset path and decoder inventory (source-level)
+
+- Confirmed on `main` that `src/engine/dracoLoader.ts` sets the decoder base to the root-relative URL `/libs/draco/`.
+- Confirmed the following public files exist at those repository paths: `public/libs/draco/draco_wasm_wrapper.js` and `public/libs/draco/draco_decoder.js`. The GitHub file API could not render `public/libs/draco/draco_decoder.wasm` as UTF-8 because it is binary; that response is consistent with the file being present, but does not verify its contents or production delivery. The path `public/libs/draco/draco_wasm_wrapper.wasm` returned 404 and is not the configured decoder filename.
+- Initial finding: the source path and checked-in decoder filenames appear aligned with Three.js's configured decoder directory. Do not change this path without evidence of a failing deployment. Root-relative `/libs/draco/` may still need an asset-base strategy if Grid World is ever hosted below a URL subpath or packaged outside the browser.
+- `src/engine/GridModelLibrary.ts` is a source registry of model-source references and metadata; the registry itself does not prove that referenced models are downloaded, bundled, licensed correctly in the shipped artifact, or loading in the running world.
+- Verification boundary: this was a repository source/path inspection only. No production URL request, browser GLTF load, compressed-model decode, or desktop package test was performed. Do not mark decoder runtime as verified.
+- Next asset-audit steps: inspect every GLTF/GLB/texture/audio loader call site and URL construction; identify which models are actual local assets versus external catalog references/procedural fallbacks; then run a browser smoke test that loads at least one known Draco-compressed asset and records network responses. Preserve current browser behavior until that test supplies evidence for a change.
