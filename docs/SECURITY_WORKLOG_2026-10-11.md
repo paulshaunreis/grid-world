@@ -235,3 +235,11 @@ Sources: live read-only SQL queries against the connected project; Supabase guid
 
 
 - Final CI recheck: GitHub Actions run #38475051818 completed successfully for exact latest PR #130 head `4aebc06e9126b5860e94311d3c49370b497851eb` ([run](https://github.com/paulshaunreis/grid-world/actions/runs/38475051818)). This verifies the configured build/TypeScript workflow only; the SQL regression file and migration behavior remain unexecuted in a disposable database, and the real email OTP/session round-trip remains untested.
+
+
+## 2026-10-13 — Follow-up review of verification hardening
+
+- Rechecked PR #130 and its latest-head CI. PR #130 remains open/unmerged; the exact head `4aebc06e9126b5860e94311d3c49370b497851eb` has a successful GitHub Actions build job in run #38475051818: https://github.com/paulshaunreis/grid-world/actions/runs/38475051818.
+- Reviewed the proposed verification migration and `supabase/tests/grid_verification_security.sql`. The test file is primarily structural/catalog assertions: it checks privilege state and expected function-definition fragments. It does not itself exercise real enroll/verify calls, prove lockout timing under concurrency, or verify an actual Supabase email OTP round trip.
+- Release gate remains unchanged: run the migrations and SQL assertions in a disposable database, then exercise successful and failed enrollment/verification, repeat enrollment, fresh/stale `auth_time`, lockout and expiry, concurrent attempts, and authenticated RPC access after direct table grants are revoked. Separately test the email template and `verifyOtp({ type: 'email' })` flow using a safe test account. Do not test against production.
+- No production database writes, migration, merge, or deployment were performed. The local shared notebook remains inaccessible through this connector; this repository work log is the available handoff.
