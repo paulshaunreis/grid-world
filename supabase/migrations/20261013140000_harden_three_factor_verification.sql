@@ -24,9 +24,17 @@ as $function$
 declare
   v_user_id uuid := auth.uid();
   v_email_verified boolean;
+  v_auth_time bigint;
 begin
   if v_user_id is null then
     raise exception 'authentication_required';
+  end if;
+
+  v_auth_time := nullif(auth.jwt() ->> 'auth_time', '')::bigint;
+  if v_auth_time is null
+     or to_timestamp(v_auth_time::double precision) < clock_timestamp() - interval '5 minutes'
+     or to_timestamp(v_auth_time::double precision) > clock_timestamp() + interval '30 seconds' then
+    raise exception 'fresh_email_verification_required';
   end if;
 
   if length(trim(p_codeword)) < 8 or length(trim(p_recovery_phrase)) < 12 then
@@ -80,6 +88,7 @@ as $function$
 declare
   v_user_id uuid := auth.uid();
   v_email_verified boolean := false;
+  v_auth_time bigint;
   v_codeword_match boolean := false;
   v_recovery_match boolean := false;
   v_attempts integer := 0;
@@ -87,6 +96,13 @@ declare
   v_locked_until timestamptz;
 begin
   if v_user_id is null then
+    return jsonb_build_object('verified', false);
+  end if;
+
+  v_auth_time := nullif(auth.jwt() ->> 'auth_time', '')::bigint;
+  if v_auth_time is null
+     or to_timestamp(v_auth_time::double precision) < clock_timestamp() - interval '5 minutes'
+     or to_timestamp(v_auth_time::double precision) > clock_timestamp() + interval '30 seconds' then
     return jsonb_build_object('verified', false);
   end if;
 
