@@ -78,9 +78,15 @@ begin
     raise exception 'SECURITY DEFINER RPCs do not use the expected restricted search_path';
   end if;
 
-  if position('extensions.digest' in verify_def) = 0
-     or position('extensions.digest' in enroll_def) = 0 then
-    raise exception 'Verification RPCs must resolve pgcrypto digest explicitly';
+  if position('extensions.crypt' in verify_def) = 0
+     or position('extensions.crypt' in enroll_def) = 0
+     or position('extensions.gen_salt(''bf'', 12)' in enroll_def) = 0 then
+    raise exception 'Verification secrets must use salted bcrypt hashes and constant-format bcrypt verification';
+  end if;
+
+  if position('extensions.digest' in verify_def) > 0
+     or position('extensions.digest' in enroll_def) > 0 then
+    raise exception 'Verification RPCs must not use fast unsalted digest hashes for user-chosen secrets';
   end if;
 
   if position('auth_time' in verify_def) = 0
