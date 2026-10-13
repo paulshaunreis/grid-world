@@ -229,3 +229,6 @@ Sources: live read-only SQL queries against the connected project; Supabase guid
 - PR #130 current head is `4aebc06e9126b5860e94311d3c49370b497851eb` (open, unmerged, not deployed). Fresh CI is pending: run #38475000949 is in progress and run #38475043279 is queued. Earlier run #1552 passed only for the prior pre-bcrypt head and does not verify these new changes.
 - Important: the SQL migration and regression assertions still have not been run in a disposable database. Build CI is not database validation. Continue to require runtime tests for hashing/matching, enrollment, rate limiting/concurrency, privileges, and real Supabase email OTP/session behavior. Do not use production for tests; no production SQL changes, merge, or deployment occurred.
 - The shared local notebook `~/workspace/gridworld/NOTES-FOR-CHATGPT.md` remains inaccessible through this connector; this repo work-log entry is the recorded handoff.
+
+
+- CI follow-up: run #38475000949 completed successfully for the bcrypt migration/test commit `8e4140a9e83d0506a9aac42a79addf7e0cddc19c`; the bcrypt-byte-limit SQL/UI follow-ups are later commits, and latest-head run #38475051818 is still in progress for `4aebc06e9126b5860e94311d3c49370b497851eb`. Do not mark the latest head green until that exact run finishes.
