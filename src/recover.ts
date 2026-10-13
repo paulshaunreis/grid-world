@@ -56,7 +56,7 @@ if (!supabaseConfigured || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
       // Supabase Auth issues the reset email. Inspect SDK-returned errors as well
       // as thrown exceptions, but never expose provider/account details to the UI.
       const { error } = await client.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://grid-world-qghn.onrender.com/reset-password.html',
+        redirectTo: `${window.location.origin}/reset-password.html`,
       });
       if (error) throw error;
     } catch {
