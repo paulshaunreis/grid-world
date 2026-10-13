@@ -64,8 +64,10 @@ begin
   end if;
 
   if position('p_codeword is null' in enroll_def) = 0
-     or position('p_recovery_phrase is null' in enroll_def) = 0 then
-    raise exception 'Enrollment RPC must reject null verification secrets';
+     or position('p_recovery_phrase is null' in enroll_def) = 0
+     or position('octet_length(trim(p_codeword)) > 72' in enroll_def) = 0
+     or position('octet_length(trim(p_recovery_phrase)) > 72' in enroll_def) = 0 then
+    raise exception 'Enrollment RPC must reject null secrets and enforce bcrypt 72-byte input limits';
   end if;
 
   if position('locked_until' in verify_def) = 0
