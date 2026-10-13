@@ -6,6 +6,8 @@ declare
   verify_fn regprocedure := to_regprocedure('public.grid_verify_three_factors(text,text)');
   verify_def text;
   enroll_def text;
+  verify_config text[];
+  enroll_config text[];
 begin
   if enroll_fn is null or verify_fn is null then
     raise exception 'Expected three-factor verification RPCs to exist';
@@ -49,6 +51,8 @@ begin
 
   verify_def := pg_get_functiondef(verify_fn);
   enroll_def := pg_get_functiondef(enroll_fn);
+  select proconfig into verify_config from pg_proc where oid = verify_fn;
+  select proconfig into enroll_config from pg_proc where oid = enroll_fn;
 
   if position('codeword_verified' in verify_def) > 0
      or position('recovery_verified' in verify_def) > 0 then
@@ -64,8 +68,8 @@ begin
     raise exception 'Verification RPC does not implement persistent cooldown logic';
   end if;
 
-  if position('search_path=pg_catalog,auth,extensions' in replace(verify_def, ' ', '')) = 0
-     or position('search_path=pg_catalog,auth,extensions' in replace(enroll_def, ' ', '')) = 0 then
+  if not ('search_path=pg_catalog, auth, extensions' = any(coalesce(verify_config, array[]::text[])))
+     or not ('search_path=pg_catalog, auth, extensions' = any(coalesce(enroll_config, array[]::text[]))) then
     raise exception 'SECURITY DEFINER RPCs do not use the expected restricted search_path';
   end if;
 
