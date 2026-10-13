@@ -19,7 +19,7 @@ create or replace function public.grid_enroll_verification(p_codeword text, p_re
 returns jsonb
 language plpgsql
 security definer
-set search_path = public, auth
+set search_path = pg_catalog, auth, extensions
 as $function$
 declare
   v_user_id uuid := auth.uid();
@@ -50,9 +50,9 @@ begin
   values (
     v_user_id,
     'GRID CODEWORD',
-    encode(digest(trim(lower(p_codeword)), 'sha256'), 'hex'),
+    encode(extensions.digest(trim(lower(p_codeword)), 'sha256'), 'hex'),
     'GRID RECOVERY PHRASE',
-    encode(digest(trim(lower(p_recovery_phrase)), 'sha256'), 'hex'),
+    encode(extensions.digest(trim(lower(p_recovery_phrase)), 'sha256'), 'hex'),
     'VERIFIED EMAIL',
     'email',
     now(),
@@ -75,7 +75,7 @@ create or replace function public.grid_verify_three_factors(p_codeword text, p_r
 returns jsonb
 language plpgsql
 security definer
-set search_path = public, auth
+set search_path = pg_catalog, auth, extensions
 as $function$
 declare
   v_user_id uuid := auth.uid();
@@ -123,8 +123,8 @@ begin
   end if;
 
   select
-    coalesce(f.factor_one_hash = encode(digest(trim(lower(coalesce(p_codeword, ''))), 'sha256'), 'hex'), false),
-    coalesce(f.factor_two_hash = encode(digest(trim(lower(coalesce(p_recovery_phrase, ''))), 'sha256'), 'hex'), false)
+    coalesce(f.factor_one_hash = encode(extensions.digest(trim(lower(coalesce(p_codeword, ''))), 'sha256'), 'hex'), false),
+    coalesce(f.factor_two_hash = encode(extensions.digest(trim(lower(coalesce(p_recovery_phrase, ''))), 'sha256'), 'hex'), false)
     into v_codeword_match, v_recovery_match
     from public.grid_verification_factors f
     where f.user_id = v_user_id;
