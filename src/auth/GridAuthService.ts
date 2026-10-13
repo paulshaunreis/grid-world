@@ -39,7 +39,13 @@ export class GridAuthService {
 
   async signOut(){ return this.client.auth.signOut({scope:'local'}); }
 
-  async resetPassword(email:string){ return this.client.auth.resetPasswordForEmail(email.trim().toLowerCase(),{redirectTo:window.location.origin}); }
+  async resetPassword(email:string){
+    // Recovery links must land on the page that validates the PASSWORD_RECOVERY
+    // session and lets the user choose a new password, not the generic site root.
+    return this.client.auth.resetPasswordForEmail(email.trim().toLowerCase(),{
+      redirectTo: `${window.location.origin}/reset-password.html`,
+    });
+  }
 
   async claimStarterGrant(){ const {data,error}=await this.client.rpc('grid_claim_starter_currency'); if(error) throw error; return data; }
 
