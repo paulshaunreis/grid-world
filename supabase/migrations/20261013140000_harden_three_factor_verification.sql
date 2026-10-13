@@ -60,9 +60,9 @@ begin
   values (
     v_user_id,
     'GRID CODEWORD',
-    encode(extensions.digest(trim(lower(p_codeword)), 'sha256'), 'hex'),
+    extensions.crypt(trim(lower(p_codeword)), extensions.gen_salt('bf', 12)),
     'GRID RECOVERY PHRASE',
-    encode(extensions.digest(trim(lower(p_recovery_phrase)), 'sha256'), 'hex'),
+    extensions.crypt(trim(lower(p_recovery_phrase)), extensions.gen_salt('bf', 12)),
     'VERIFIED EMAIL',
     'email',
     now(),
@@ -141,8 +141,8 @@ begin
   end if;
 
   select
-    coalesce(f.factor_one_hash = encode(extensions.digest(trim(lower(coalesce(p_codeword, ''))), 'sha256'), 'hex'), false),
-    coalesce(f.factor_two_hash = encode(extensions.digest(trim(lower(coalesce(p_recovery_phrase, ''))), 'sha256'), 'hex'), false)
+    coalesce(f.factor_one_hash = extensions.crypt(trim(lower(coalesce(p_codeword, ''))), f.factor_one_hash), false),
+    coalesce(f.factor_two_hash = extensions.crypt(trim(lower(coalesce(p_recovery_phrase, ''))), f.factor_two_hash), false)
     into v_codeword_match, v_recovery_match
     from public.grid_verification_factors f
     where f.user_id = v_user_id;
