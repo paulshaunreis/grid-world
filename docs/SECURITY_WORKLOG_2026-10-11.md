@@ -77,3 +77,10 @@
 - Continued PR #135's source-level asset audit and appended a binary-path spot-check note to `docs/GRID_RUNTIME_PORTABILITY_MAP.md` on branch `docs/runtime-asset-path-audit-2026-10-12`, commit `baa14be64c06d8a8e5db44eb58a1c021f2ddace1`. Binary UTF-8 decoding errors are not proof of missing/corrupt assets. CI status for that exact docs commit is unconfirmed; browser network/decode and built-`dist` checks remain outstanding.
 - Shared local notebook `~/workspace/gridworld/NOTES-FOR-CHATGPT.md` was not reachable through the GitHub repository path used in this session; this dated update is recorded in the security work-log branch instead. Do not claim the local notebook itself was updated.
 - No merge, production database change, or deployment was performed.
+
+
+## 2026-10-13 — Least-privilege migration review
+
+- Re-read the proposed SQL diffs in PR #129 and PR #130. PR #129 revokes all direct table privileges on `public.grid_operator_policy_rules` from `anon` and `authenticated`; PR #130 does the same for `public.grid_verification_factors`. The stated intent is appropriate least privilege for internal policy configuration and authentication-factor hashes, respectively.
+- This was a source-diff review only. Before either migration is merged/applied, verify the actual runtime call paths: legitimate operator-policy reads/writes must run through the intended trusted server/database role; verification-factor enrollment, update, and verification must use vetted narrowly scoped server-side routines. Confirm routine ownership, EXECUTE grants, RLS, and any client flows that may rely on direct table access. Do not infer those paths are safe solely from the migration comments.
+- No migration was applied, no PR was merged, and no production access was changed. Next security check: inspect the relevant RPC/function definitions and call sites, then add concrete evidence and test requirements to the review notes before recommending release.
