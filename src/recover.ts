@@ -56,7 +56,7 @@ if (!supabaseConfigured || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
       // Supabase Auth is responsible for issuing the reset email. Keep the
       // same public response whether or not the email belongs to an account.
       await client.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password.html`,
+        redirectTo: 'https://grid-world-qghn.onrender.com/reset-password.html',
       });
     } catch {
       // Do not disclose account existence or provider details to the caller.
