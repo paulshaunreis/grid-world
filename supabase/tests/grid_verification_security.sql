@@ -77,5 +77,12 @@ begin
      or position('extensions.digest' in enroll_def) = 0 then
     raise exception 'Verification RPCs must resolve pgcrypto digest explicitly';
   end if;
+
+  if position('auth_time' in verify_def) = 0
+     or position('auth_time' in enroll_def) = 0
+     or position('interval ''5 minutes''' in verify_def) = 0
+     or position('interval ''5 minutes''' in enroll_def) = 0 then
+    raise exception 'Enrollment and verification must require a recent authenticated email-OTP session';
+  end if;
 end
 $test$;
