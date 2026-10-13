@@ -232,3 +232,6 @@ Sources: live read-only SQL queries against the connected project; Supabase guid
 
 
 - CI follow-up: run #38475000949 completed successfully for the bcrypt migration/test commit `8e4140a9e83d0506a9aac42a79addf7e0cddc19c`; the bcrypt-byte-limit SQL/UI follow-ups are later commits, and latest-head run #38475051818 is still in progress for `4aebc06e9126b5860e94311d3c49370b497851eb`. Do not mark the latest head green until that exact run finishes.
+
+
+- Final CI recheck: GitHub Actions run #38475051818 completed successfully for exact latest PR #130 head `4aebc06e9126b5860e94311d3c49370b497851eb` ([run](https://github.com/paulshaunreis/grid-world/actions/runs/38475051818)). This verifies the configured build/TypeScript workflow only; the SQL regression file and migration behavior remain unexecuted in a disposable database, and the real email OTP/session round-trip remains untested.
