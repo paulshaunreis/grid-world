@@ -63,6 +63,11 @@ begin
     raise exception 'Enrollment RPC does not reject factor replacement';
   end if;
 
+  if position('p_codeword is null' in enroll_def) = 0
+     or position('p_recovery_phrase is null' in enroll_def) = 0 then
+    raise exception 'Enrollment RPC must reject null verification secrets';
+  end if;
+
   if position('locked_until' in verify_def) = 0
      or position('interval ''15 minutes''' in verify_def) = 0 then
     raise exception 'Verification RPC does not implement persistent cooldown logic';
