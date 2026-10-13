@@ -37,7 +37,9 @@ begin
     raise exception 'fresh_email_verification_required';
   end if;
 
-  if length(trim(p_codeword)) < 8 or length(trim(p_recovery_phrase)) < 12 then
+  if p_codeword is null or p_recovery_phrase is null
+     or length(trim(p_codeword)) < 8
+     or length(trim(p_recovery_phrase)) < 12 then
     raise exception 'verification_secrets_too_short';
   end if;
 
