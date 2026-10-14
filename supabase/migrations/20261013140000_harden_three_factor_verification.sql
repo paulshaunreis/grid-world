@@ -25,6 +25,9 @@ declare
   v_user_id uuid := auth.uid();
   v_email_verified boolean;
   v_auth_time bigint;
+  v_recent_otp boolean := false;
+  v_amr_entry jsonb;
+  v_amr_timestamp bigint;
 begin
   if v_user_id is null then
     raise exception 'authentication_required';
@@ -35,6 +38,30 @@ begin
      or to_timestamp(v_auth_time::double precision) < clock_timestamp() - interval '5 minutes'
      or to_timestamp(v_auth_time::double precision) > clock_timestamp() + interval '30 seconds' then
     raise exception 'fresh_email_verification_required';
+  end if;
+
+  -- auth_time alone also changes after password sign-in. Require a recent OTP
+  -- method in the signed Supabase AMR claim before treating this as step-up auth.
+  for v_amr_entry in
+    select value from jsonb_array_elements(coalesce(auth.jwt() -> 'amr', '[]'::jsonb))
+  loop
+    if jsonb_typeof(v_amr_entry) = 'object' and v_amr_entry ->> 'method' = 'otp' then
+      begin
+        v_amr_timestamp := nullif(v_amr_entry ->> 'timestamp', '')::bigint;
+      exception when invalid_text_representation then
+        v_amr_timestamp := null;
+      end;
+      if v_amr_timestamp is not null
+         and to_timestamp(v_amr_timestamp::double precision) >= clock_timestamp() - interval '5 minutes'
+         and to_timestamp(v_amr_timestamp::double precision) <= clock_timestamp() + interval '30 seconds' then
+        v_recent_otp := true;
+        exit;
+      end if;
+    end if;
+  end loop;
+
+  if not v_recent_otp then
+    raise exception 'fresh_otp_authentication_required';
   end if;
 
   if p_codeword is null or p_recovery_phrase is null
@@ -93,6 +120,9 @@ declare
   v_user_id uuid := auth.uid();
   v_email_verified boolean := false;
   v_auth_time bigint;
+  v_recent_otp boolean := false;
+  v_amr_entry jsonb;
+  v_amr_timestamp bigint;
   v_codeword_match boolean := false;
   v_recovery_match boolean := false;
   v_attempts integer := 0;
@@ -107,6 +137,29 @@ begin
   if v_auth_time is null
      or to_timestamp(v_auth_time::double precision) < clock_timestamp() - interval '5 minutes'
      or to_timestamp(v_auth_time::double precision) > clock_timestamp() + interval '30 seconds' then
+    return jsonb_build_object('verified', false);
+  end if;
+
+  -- Do not accept a recent password sign-in as proof of a fresh OTP challenge.
+  for v_amr_entry in
+    select value from jsonb_array_elements(coalesce(auth.jwt() -> 'amr', '[]'::jsonb))
+  loop
+    if jsonb_typeof(v_amr_entry) = 'object' and v_amr_entry ->> 'method' = 'otp' then
+      begin
+        v_amr_timestamp := nullif(v_amr_entry ->> 'timestamp', '')::bigint;
+      exception when invalid_text_representation then
+        v_amr_timestamp := null;
+      end;
+      if v_amr_timestamp is not null
+         and to_timestamp(v_amr_timestamp::double precision) >= clock_timestamp() - interval '5 minutes'
+         and to_timestamp(v_amr_timestamp::double precision) <= clock_timestamp() + interval '30 seconds' then
+        v_recent_otp := true;
+        exit;
+      end if;
+    end if;
+  end loop;
+
+  if not v_recent_otp then
     return jsonb_build_object('verified', false);
   end if;
 
