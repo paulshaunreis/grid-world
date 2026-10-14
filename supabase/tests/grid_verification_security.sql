@@ -22,7 +22,11 @@ begin
      or has_table_privilege('authenticated', 'public.grid_verification_factors', 'INSERT')
      or has_table_privilege('authenticated', 'public.grid_verification_factors', 'UPDATE')
      or has_table_privilege('authenticated', 'public.grid_verification_factors', 'DELETE')
-     or has_table_privilege('authenticated', 'public.grid_verification_factors', 'TRUNCATE') then
+     or has_table_privilege('authenticated', 'public.grid_verification_factors', 'TRUNCATE')
+     or has_table_privilege('anon', 'public.grid_verification_factors', 'REFERENCES')
+     or has_table_privilege('anon', 'public.grid_verification_factors', 'TRIGGER')
+     or has_table_privilege('authenticated', 'public.grid_verification_factors', 'REFERENCES')
+     or has_table_privilege('authenticated', 'public.grid_verification_factors', 'TRIGGER') then
     raise exception 'Browser roles retain direct privileges on verification factors';
   end if;
 
@@ -35,7 +39,11 @@ begin
      or has_table_privilege('authenticated', 'public.grid_verification_attempts', 'INSERT')
      or has_table_privilege('authenticated', 'public.grid_verification_attempts', 'UPDATE')
      or has_table_privilege('authenticated', 'public.grid_verification_attempts', 'DELETE')
-     or has_table_privilege('authenticated', 'public.grid_verification_attempts', 'TRUNCATE') then
+     or has_table_privilege('authenticated', 'public.grid_verification_attempts', 'TRUNCATE')
+     or has_table_privilege('anon', 'public.grid_verification_attempts', 'REFERENCES')
+     or has_table_privilege('anon', 'public.grid_verification_attempts', 'TRIGGER')
+     or has_table_privilege('authenticated', 'public.grid_verification_attempts', 'REFERENCES')
+     or has_table_privilege('authenticated', 'public.grid_verification_attempts', 'TRIGGER') then
     raise exception 'Browser roles retain direct privileges on verification attempt records';
   end if;
 
