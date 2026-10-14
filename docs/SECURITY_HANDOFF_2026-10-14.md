@@ -14,6 +14,13 @@
 - Moderation enum/severity values still need checking against actual persistence constraints.
 - Wildcard CORS remains unchanged pending an explicit client-access inventory.
 
+### Additional source-review findings (2026-10-14)
+- The source diff is structurally readable; the earlier literal `\\n` artifacts shown in the diff are not present in the fetched current file.
+- `user(req)` is awaited before the handler's `try` block. If the auth lookup itself throws, the intended generic `operator_temporarily_unavailable` response/logging path does not catch it. Move auth resolution inside the guarded block and test the rejection path.
+- UTF-8 decoding uses `TextDecoder(..., { fatal: true })` outside the JSON-parse catch. Invalid UTF-8 therefore reaches the outer catch and returns the generic 500 rather than a client 400. Prefer classifying invalid encoding as `invalid_request` (400), then test it.
+- Existing `supabase/tests` files are SQL assertion scripts, not an Edge Function test harness. No `deno.json` was found at the repository root, so don't assume a configured Deno test command; establish a supported runtime/test path before claiming coverage.
+- `validateModerationResult` accepts severity values, but the actual `grid_operator_cases.severity` database constraint still needs verification before persistence is considered safe.
+
 ### Next safe actions
 1. Inspect the exact PR diff and function control flow for accidental source-format damage and behavior regressions.
 2. Add an Edge Function-specific typecheck/test path compatible with the repository's supported runtime.
