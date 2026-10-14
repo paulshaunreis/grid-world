@@ -72,10 +72,31 @@ Deno.serve(async req=>{
  if(req.method!=="POST")return json({error:"method_not_allowed"},405);
  const u=await user(req);
  try{
+  const maxBodyBytes=16384;
   const declaredLength=Number(req.headers.get("content-length")||"0");
-  if(Number.isFinite(declaredLength)&&declaredLength>16384)return json({error:"request_too_large"},413);
-  const rawBody=await req.text();
-  if(new TextEncoder().encode(rawBody).byteLength>16384)return json({error:"request_too_large"},413);
+  if(Number.isFinite(declaredLength)&&declaredLength>maxBodyBytes)return json({error:"request_too_large"},413);
+  if(!req.body)return json({error:"invalid_request"},400);
+  const reader=req.body.getReader();
+  const chunks:Uint8Array[]=[];
+  let totalBytes=0;
+  try{
+   while(true){
+    const {done,value}=await reader.read();
+    if(done)break;
+    totalBytes+=value.byteLength;
+    if(totalBytes>maxBodyBytes){
+     await reader.cancel();
+     return json({error:"request_too_large"},413);
+    }
+    chunks.push(value);
+   }
+  }catch{
+   return json({error:"invalid_request"},400);
+  }
+  const bytes=new Uint8Array(totalBytes);
+  let offset=0;
+  for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.byteLength;}
+  const rawBody=new TextDecoder("utf-8",{fatal:true}).decode(bytes);
   let body:Record<string,unknown>;
   try{const parsed=JSON.parse(rawBody);if(!parsed||typeof parsed!=="object"||Array.isArray(parsed))return json({error:"invalid_request"},400);body=parsed as Record<string,unknown>;}
   catch{return json({error:"invalid_json"},400);}
