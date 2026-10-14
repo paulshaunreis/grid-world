@@ -66,7 +66,8 @@ async function moderateContent(content:string,ctx:unknown){
  const data=await response.json();const raw=String(data?.choices?.[0]?.message?.content??"{}").replace(/^\`\`\`json\s*/,"").replace(/\s*\`\`\`$/,"");
  try{return validateModerationResult(JSON.parse(raw));}catch{return validateModerationResult(null);}
 }
-\nDeno.serve(async req=>{
+
+Deno.serve(async req=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:cors});
  if(req.method!=="POST")return json({error:"method_not_allowed"},405);
  const u=await user(req);
@@ -82,7 +83,8 @@ async function moderateContent(content:string,ctx:unknown){
   if(action.length>40)return json({error:"invalid_action"},400);
   const ctx=u?await context(u.id):{profile:null,prefs:null,cases:[],rules:[]};
   if(action==="context"){if(!u)return json({error:"authentication_required"},401);return json({ok:true,context:{profile:ctx.profile,prefs:ctx.prefs,cases:ctx.cases}});}
-  if(action==="moderate"){const content=String(body.content||"").trim().slice(0,8000);if(!content)return json({error:"content_required"},400);const result=await moderateContent(content,ctx);if(u&&result.decision!=="ALLOW"){await admin.from("grid_operator_cases").insert({user_id:u.id,severity:result.severity,status:"open",category:"moderation",title:"Content moderation review",summary:String(result.user_message||"Content requires review."),evidence:{decision:result.decision,reasons:result.reasons,matched_rules:result.matched_rules}});}return json({ok:true,result});}\n  if(action==="chat"){
+  if(action==="moderate"){const content=String(body.content||"").trim().slice(0,8000);if(!content)return json({error:"content_required"},400);const result=await moderateContent(content,ctx);if(u&&result.decision!=="ALLOW"){await admin.from("grid_operator_cases").insert({user_id:u.id,severity:result.severity,status:"open",category:"moderation",title:"Content moderation review",summary:String(result.user_message||"Content requires review."),evidence:{decision:result.decision,reasons:result.reasons,matched_rules:result.matched_rules}});}return json({ok:true,result});}
+  if(action==="chat"){
    const message=String(body.message||"").trim().slice(0,4000);if(!message)return json({error:"message_required"},400);
    if(u) await admin.from("grid_operator_messages").insert({user_id:u.id,role:"user",body:message});
    const suppliedRuntime=body.runtime_context;
