@@ -79,8 +79,10 @@ begin
   end if;
 
   if position('locked_until' in verify_def) = 0
-     or position('interval ''15 minutes''' in verify_def) = 0 then
-    raise exception 'Verification RPC does not implement persistent cooldown logic';
+     or position('interval ''15 minutes''' in verify_def) = 0
+     or position('v_attempts >= 5' in verify_def) = 0
+     or position('window_started_at < clock_timestamp() - interval ''15 minutes''' in verify_def) = 0 then
+    raise exception 'Verification RPC must lock after five failures and reset the attempt window after fifteen minutes';
   end if;
 
   if not ('search_path=pg_catalog, auth, extensions' = any(coalesce(verify_config, array[]::text[])))
