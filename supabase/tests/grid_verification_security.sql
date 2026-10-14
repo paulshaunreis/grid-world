@@ -103,7 +103,16 @@ begin
      or position('auth_time' in enroll_def) = 0
      or position('interval ''5 minutes''' in verify_def) = 0
      or position('interval ''5 minutes''' in enroll_def) = 0 then
-    raise exception 'Enrollment and verification must require a recent authenticated email-OTP session';
+    raise exception 'Enrollment and verification must require recent authentication time';
+  end if;
+
+  if position('auth.jwt() -> ''amr''' in verify_def) = 0
+     or position('auth.jwt() -> ''amr''' in enroll_def) = 0
+     or position('v_amr_entry ->> ''method'' = ''otp''' in verify_def) = 0
+     or position('v_amr_entry ->> ''method'' = ''otp''' in enroll_def) = 0
+     or position('v_amr_timestamp' in verify_def) = 0
+     or position('v_amr_timestamp' in enroll_def) = 0 then
+    raise exception 'Enrollment and verification must require a recent OTP AMR entry, not auth_time alone';
   end if;
 end
 $test$;
