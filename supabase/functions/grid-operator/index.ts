@@ -45,6 +45,18 @@ async function callOperator(prompt:string,ctx:unknown){
  return data?.choices?.[0]?.message?.content??"I’m unable to answer that right now.";
 }
 
+function validateModerationResult(value:unknown){
+ const allowedDecisions=new Set(["ALLOW","REVIEW","BLOCK"]);
+ const allowedSeverities=new Set(["info","notice","warning","critical"]);
+ if(!value||typeof value!=="object")return {decision:"REVIEW",severity:"notice",reasons:["Invalid moderation response; human review required."],matched_rules:[],user_message:"This content has been queued for review."};
+ const v=value as Record<string,unknown>;
+ const validStringArray=(x:unknown)=>Array.isArray(x)&&x.length<=10&&x.every(y=>typeof y==="string"&&y.length<=240);
+ if(!allowedDecisions.has(String(v.decision))||!allowedSeverities.has(String(v.severity))||!validStringArray(v.reasons)||!validStringArray(v.matched_rules)||typeof v.user_message!=="string"||v.user_message.length>500){
+  return {decision:"REVIEW",severity:"notice",reasons:["Invalid moderation response; human review required."],matched_rules:[],user_message:"This content has been queued for review."};
+ }
+ return {decision:v.decision,severity:v.severity,reasons:v.reasons,matched_rules:v.matched_rules,user_message:v.user_message};
+}
+
 async function moderateContent(content:string,ctx:unknown){
  const response=await fetch("https://ai-gateway.vercel.sh/v1/chat/completions",{method:"POST",headers:{"Authorization":"Bearer "+gatewayKey,"Content-Type":"application/json"},body:JSON.stringify({model,messages:[
   {role:"system",content:"You are Grid Operator moderation AI. Evaluate content against the supplied Grid World rules only. Return JSON only with fields: decision (ALLOW|REVIEW|BLOCK), severity (info|notice|warning|critical), reasons (string[]), matched_rules (string[]), user_message (string). Do not infer protected traits, age, criminality, mental state, or intent. Do not make claims about external law unless the content clearly concerns a named jurisdiction; then say that legal review may be needed. BLOCK is reserved for clear rule violations; ambiguous cases are REVIEW."},
@@ -52,19 +64,39 @@ async function moderateContent(content:string,ctx:unknown){
 ],temperature:0,max_tokens:500})});
  if(!response.ok)throw new Error("moderation_ai_unavailable");
  const data=await response.json();const raw=String(data?.choices?.[0]?.message?.content??"{}").replace(/^\`\`\`json\s*/,"").replace(/\s*\`\`\`$/,"");
- try{return JSON.parse(raw);}catch{return {decision:"REVIEW",severity:"notice",reasons:["The moderation response could not be safely parsed."],matched_rules:[],user_message:"This content has been queued for review."};}
+ try{return validateModerationResult(JSON.parse(raw));}catch{return validateModerationResult(null);}
 }
 \nDeno.serve(async req=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:cors});
  if(req.method!=="POST")return json({error:"method_not_allowed"},405);
  const u=await user(req);
  try{
-  const body=await req.json();const action=String(body.action||"chat");const ctx=u?await context(u.id):{profile:null,prefs:null,cases:[],rules:[]};
+  const declaredLength=Number(req.headers.get("content-length")||"0");
+  if(Number.isFinite(declaredLength)&&declaredLength>16384)return json({error:"request_too_large"},413);
+  const rawBody=await req.text();
+  if(new TextEncoder().encode(rawBody).byteLength>16384)return json({error:"request_too_large"},413);
+  let body:Record<string,unknown>;
+  try{const parsed=JSON.parse(rawBody);if(!parsed||typeof parsed!=="object"||Array.isArray(parsed))return json({error:"invalid_request"},400);body=parsed as Record<string,unknown>;}
+  catch{return json({error:"invalid_json"},400);}
+  const action=typeof body.action==="string"?body.action:"chat";
+  if(action.length>40)return json({error:"invalid_action"},400);
+  const ctx=u?await context(u.id):{profile:null,prefs:null,cases:[],rules:[]};
   if(action==="context"){if(!u)return json({error:"authentication_required"},401);return json({ok:true,context:{profile:ctx.profile,prefs:ctx.prefs,cases:ctx.cases}});}
   if(action==="moderate"){const content=String(body.content||"").trim().slice(0,8000);if(!content)return json({error:"content_required"},400);const result=await moderateContent(content,ctx);if(u&&result.decision!=="ALLOW"){await admin.from("grid_operator_cases").insert({user_id:u.id,severity:result.severity,status:"open",category:"moderation",title:"Content moderation review",summary:String(result.user_message||"Content requires review."),evidence:{decision:result.decision,reasons:result.reasons,matched_rules:result.matched_rules}});}return json({ok:true,result});}\n  if(action==="chat"){
    const message=String(body.message||"").trim().slice(0,4000);if(!message)return json({error:"message_required"},400);
    if(u) await admin.from("grid_operator_messages").insert({user_id:u.id,role:"user",body:message});
-   const runtimeContext=(body.runtime_context&&typeof body.runtime_context==="object")?body.runtime_context:{};\n   const answer=await callOperator(message,{...ctx,runtime:runtimeContext});
+   const suppliedRuntime=body.runtime_context;
+   const runtimeContext:Record<string,string|number|boolean>= {};
+   if(suppliedRuntime&&typeof suppliedRuntime==="object"&&!Array.isArray(suppliedRuntime)){
+    const source=suppliedRuntime as Record<string,unknown>;
+    for(const key of ["world_id","world_name","location","current_activity"]){
+     const value=source[key];
+     if(typeof value==="string"&&value.length<=120)runtimeContext[key]=value;
+     else if(typeof value==="number"&&Number.isFinite(value))runtimeContext[key]=value;
+     else if(typeof value==="boolean")runtimeContext[key]=value;
+    }
+   }
+   const answer=await callOperator(message,{...ctx,runtime:runtimeContext});
    if(u) await admin.from("grid_operator_messages").insert({user_id:u.id,role:"operator",body:answer});
    return json({ok:true,answer,openCases:ctx.cases,authenticated:Boolean(u)});
   }
@@ -73,5 +105,5 @@ async function moderateContent(content:string,ctx:unknown){
    return json({ok:true,enrolled:Boolean(data?.enrolled_at),factors:data});
   }
   return json({error:"unknown_action"},400);
- }catch(e){console.error(e);return json({error:e instanceof Error?e.message:"operator_error"},500);}
+ }catch(e){console.error("grid-operator request failed",{name:e instanceof Error?e.name:"unknown"});return json({error:"operator_temporarily_unavailable"},500);}
 });
