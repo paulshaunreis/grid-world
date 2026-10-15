@@ -115,7 +115,7 @@ app.innerHTML = `
       <div class="site-theme-picker" id="site-theme-picker" title="Interface accent — synced live with the game"></div>
       <button class="ghost style-trigger" id="style-trigger" type="button">STYLE</button><button class="operator-trigger" id="operator-trigger" type="button">GRID OPERATOR</button>
       <button class="ghost" id="site-qr" type="button">QR</button>
-      <a class="ghost" href="/enter.html" id="header-signin-btn">SIGN IN</a><a class="primary" href="/play.html">PREVIEW BUILD</a>
+      <a class="ghost" href="/signin.html" id="header-signin-btn">SIGN IN</a><a class="primary" href="/play.html">PREVIEW BUILD</a>
     </div>
   </div>
   <div class="site-live-clock" id="site-live-clock" aria-live="polite">GRID SIGNAL · <span>SYNCING</span></div>

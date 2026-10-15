@@ -61,74 +61,87 @@
       <div class="confirm-icon">✦</div>
       <h1>Email confirmed.<br>Welcome to the Grid.</h1>
       <p id="setup-status">Setting up your profile…</p>
-      <div class="confirm-actions">
+      <div class="confirm-actions" id="confirm-actions">
         <a class="confirm-primary" href="/enter.html">ENTER GRID WORLD →</a>
       </div>`;
-    // Complete any pending profile setup from join.ts, then redirect
-    completePendingProfile().finally(() => {
-      setTimeout(() => { window.location.href = '/enter.html'; }, 3500);
-    });
-  }
-
-  async function hashAnswer(a) {
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(a.toLowerCase().trim()));
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    // Complete any pending profile setup from join.ts (single atomic RPC).
+    // Redirect happens ONLY on setup success; on failure the user gets a
+    // retry button and no auto-redirect (Phase 1 §F14).
+    void completePendingProfile();
   }
 
   async function completePendingProfile() {
     const statusEl = document.getElementById('setup-status');
+    const actionsEl = document.getElementById('confirm-actions');
     let pending = null;
     try { pending = JSON.parse(localStorage.getItem('gridworld:pending-profile') || 'null'); } catch {}
-    if (!pending) return; // nothing pending (e.g. session existed at signup)
+    if (!pending) {
+      // Nothing pending (e.g. session existed at signup) — head straight in.
+      setTimeout(() => { window.location.href = '/enter.html'; }, 1200);
+      return;
+    }
 
     const client = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
     const { data: { user } } = await client.auth.getUser();
     if (!user) return;
 
-    try {
+    const runSetup = async () => {
       if (statusEl) statusEl.textContent = 'Setting up your profile…';
-      // Public profile: handle + display name. New signups get
-      // beta_status='pending' (closed development). Use insert-only so we
-      // never overwrite an existing beta_status (e.g. Paul's 'team').
-      const { error: profileErr } = await client.from('profiles').insert({
-        id: user.id,
-        username: pending.handle,
-        display_name: pending.handle,
-        beta_status: 'pending',
+      // Single atomic RPC (Phase 1 §F2): profiles (handle/handle_normalized,
+      // display_name, beta_status='pending' insert-only) + private_profiles +
+      // grid_security_questions (v2 bcrypt) in one transaction. Persists the
+      // avatar style + language the old inline chain dropped.
+      const { error } = await client.rpc('grid_complete_signup', {
+        p_handle: pending.handle,
+        p_display_name: pending.handle,
+        p_first_name: pending.firstIrl || '',
+        p_middle_name: '',
+        p_last_name: pending.lastIrl || '',
+        p_name_visibility: 'display_only',
+        p_language: (navigator.language || 'en-US').split('-')[0].toLowerCase(),
+        p_avatar_style: pending.avatarStyle || '',
+        p_avatar_customization: null,
+        p_first_name_irl: pending.firstIrl || null,
+        p_last_name_irl: pending.lastIrl || null,
+        p_country_code: pending.country || null,
+        p_date_of_birth: pending.dob || null,
+        p_q1_text: pending.sq?.[0]?.q || null,
+        p_q1_answer: pending.sq?.[0]?.a || null,
+        p_q2_text: pending.sq?.[1]?.q || null,
+        p_q2_answer: pending.sq?.[1]?.a || null,
+        p_q3_text: pending.sq?.[2]?.q || null,
+        p_q3_answer: pending.sq?.[2]?.a || null,
       });
-      if (profileErr && profileErr.code !== '23505') throw profileErr; // 23505 = already exists, fine
-      if (profileErr && profileErr.code === '23505') {
-        // Profile exists — update handle/display only, never touch beta_status.
-        await client.from('profiles').update({
-          username: pending.handle,
-          display_name: pending.handle,
-        }).eq('id', user.id);
-      }
+      if (error) throw error;
+    };
 
-      // Private IRL data: owner-only table
-      await client.from('private_profiles').upsert({
-        user_id: user.id,
-        first_name_irl: pending.firstIrl || null,
-        last_name_irl: pending.lastIrl || null,
-        country_code: pending.country || null,
-        date_of_birth: pending.dob || null,
-      }, { onConflict: 'user_id' });
-
-      // Security questions
-      if (pending.sq && pending.sq.length === 3) {
-        await client.from('grid_security_questions').insert({
-          user_id: user.id,
-          q1_text: pending.sq[0].q, q1_hash: await hashAnswer(pending.sq[0].a),
-          q2_text: pending.sq[1].q, q2_hash: await hashAnswer(pending.sq[1].a),
-          q3_text: pending.sq[2].q, q3_hash: await hashAnswer(pending.sq[2].a),
-        });
-      }
-
+    try {
+      await runSetup();
       localStorage.removeItem('gridworld:pending-profile');
       if (statusEl) statusEl.textContent = 'Your profile is ready. Taking you to the official entry…';
+      setTimeout(() => { window.location.href = '/enter.html'; }, 1500);
     } catch (e) {
       console.error('Profile setup failed:', e);
-      if (statusEl) statusEl.textContent = 'Profile setup needs attention — you can finish it in Account Settings.';
+      // No auto-redirect on failure: the user keeps their pending payload
+      // and gets a retry button (re-runs the RPC) + a settings escape hatch.
+      if (statusEl) statusEl.textContent = 'Profile setup needs attention — your account is created, but setup did not finish. Press RETRY SETUP to finish it.';
+      if (actionsEl) actionsEl.innerHTML = `
+        <button class="confirm-primary" id="retry-setup" type="button">RETRY SETUP</button>
+        <a class="confirm-secondary" href="/account.html">CONTINUE TO ACCOUNT SETTINGS</a>`;
+      document.getElementById('retry-setup')?.addEventListener('click', async () => {
+        const btn = document.getElementById('retry-setup');
+        if (btn) btn.textContent = 'RETRYING…';
+        try {
+          await runSetup();
+          localStorage.removeItem('gridworld:pending-profile');
+          if (statusEl) statusEl.textContent = 'Your profile is ready. Taking you to the official entry…';
+          setTimeout(() => { window.location.href = '/enter.html'; }, 1200);
+        } catch (e2) {
+          console.error('Profile setup retry failed:', e2);
+          if (statusEl) statusEl.textContent = 'Setup still needs attention — please try again.';
+          if (btn) btn.textContent = 'RETRY SETUP';
+        }
+      });
     }
   }
 
@@ -139,28 +152,58 @@
     }
     const client = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
-    // Supabase sends the user here with #access_token=...&type=signup
-    // The client library picks it up from the URL fragment automatically.
+    // PKCE flow: ?code= — exchange it for a session (the old code only
+    // handled #access_token fragments and showed "invalid or expired" for
+    // perfectly good PKCE links — Phase 1 §F14).
+    const code = new URLSearchParams(window.location.search).get('code');
+    if (code) {
+      const { error } = await client.auth.exchangeCodeForSession(code);
+      if (error) {
+        showError('Could not confirm your email. The link may have expired.');
+        return;
+      }
+      showSuccess();
+      return;
+    }
+
+    // Implicit flow: #access_token=...&type=signup. Wait for the client to
+    // establish the session via onAuthStateChange (SIGNED_IN) instead of a
+    // fixed 1500ms wait, which raced on slow networks (Phase 1 §F14).
     const hash = window.location.hash;
     if (!hash || !hash.includes('access_token')) {
-      // Maybe they already confirmed and are logged in
+      // Maybe they already confirmed and are logged in.
       const { data: { session } } = await client.auth.getSession();
       if (session) { showSuccess(); return; }
       showError('This confirmation link is invalid or has expired. Please request a new one from the join page.');
       return;
     }
 
-    // Wait for Supabase to process the fragment
-    const { data, error } = await client.auth.getSession();
-    // Give it a moment — the library processes the hash async
-    await new Promise(r => setTimeout(r, 1500));
-    const { data: { session } } = await client.auth.getSession();
+    const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        subscription.unsubscribe();
+        showSuccess();
+      }
+    });
 
+    // Fallback: if a session is already established, proceed.
+    const { data: { session } } = await client.auth.getSession();
     if (session) {
+      subscription.unsubscribe();
       showSuccess();
-    } else {
-      showError('Could not confirm your email. The link may have expired.');
+      return;
     }
+
+    // Give the client a moment to process the fragment, then fail cleanly.
+    setTimeout(async () => {
+      const { data: { session: later } } = await client.auth.getSession();
+      if (later) {
+        subscription.unsubscribe();
+        showSuccess();
+      } else {
+        subscription.unsubscribe();
+        showError('Could not confirm your email. The link may have expired.');
+      }
+    }, 3000);
   }
 
   handleConfirmation();

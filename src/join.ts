@@ -53,6 +53,8 @@ if (!supabaseConfigured || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
 
   // Wizard state
   let step = 0;
+  // Set by the debounced live handle-availability check in wireStep().
+  let handleTaken = false;
   let gender: 'masculine' | 'feminine' | 'nonbinary' | 'fluid' = 'masculine';
   let avatarStyle = 'navigator';
   let rotation = 0;
@@ -317,15 +319,35 @@ if (!supabaseConfigured || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
 
     // Live validation (step 1)
     const handleEl = app.querySelector<HTMLInputElement>('#f-handle');
-    if (handleEl) handleEl.addEventListener('input', () => {
-      const hint = app.querySelector('#handle-hint')!;
-      const v = handleEl.value;
-      if (!v) { hint.textContent = ''; return; }
-      // Allow "First Last" or "First Middle Last" — letters, numbers, _, single spaces
-      const ok = /^[a-zA-Z0-9_]+( [a-zA-Z0-9_]+)*$/.test(v.trim()) && v.trim().length >= 3 && v.trim().length <= 32;
-      hint.textContent = ok ? '✓ Available format' : 'Letters, numbers, underscores, spaces.';
-      hint.className = 'field-hint ' + (ok ? 'ok' : 'error');
-    });
+    let handleCheckTimer: ReturnType<typeof setTimeout> | null = null;
+    if (handleEl) {
+      const checkAvailability = () => {
+        const v = handleEl.value.trim().replace(/\s+/g, ' ').replace(/^@/, '');
+        const hint = app.querySelector('#handle-hint')!;
+        if (!/^[a-zA-Z0-9_]+( [a-zA-Z0-9_]+)*$/.test(v) || v.length < 3 || v.length > 32) return;
+        // Live handle-availability check (Phase 1 §F9 step 4): debounced,
+        // on-blur only — never per keystroke. Replaces the old format-only
+        // "✓ Available format" hint with a real taken/free result.
+        void auth.checkHandleAvailable(v).then((free) => {
+          handleTaken = !free;
+          if (handleEl.value.trim() !== v) return; // user kept typing
+          hint.textContent = free ? '✓ Handle available' : 'Handle is taken — try another.';
+          hint.className = 'field-hint ' + (free ? 'ok' : 'error');
+        }).catch(() => { /* availability check failed — format hint stands */ });
+      };
+      handleEl.addEventListener('input', () => {
+        const hint = app.querySelector('#handle-hint')!;
+        const v = handleEl.value;
+        if (!v) { hint.textContent = ''; return; }
+        // Allow "First Last" or "First Middle Last" — letters, numbers, _, single spaces
+        const ok = /^[a-zA-Z0-9_]+( [a-zA-Z0-9_]+)*$/.test(v.trim()) && v.trim().length >= 3 && v.trim().length <= 32;
+        hint.textContent = ok ? 'Checking availability…' : 'Letters, numbers, underscores, spaces.';
+        hint.className = 'field-hint ' + (ok ? '' : 'error');
+        if (handleCheckTimer) clearTimeout(handleCheckTimer);
+        if (ok) handleCheckTimer = setTimeout(checkAvailability, 600);
+      });
+      handleEl.addEventListener('blur', checkAvailability);
+    }
     const passEl = app.querySelector<HTMLInputElement>('#f-password');
     if (passEl) passEl.addEventListener('input', () => {
       const hint = app.querySelector('#password-hint')!;
@@ -375,6 +397,7 @@ if (!supabaseConfigured || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
       const e = (app.querySelector<HTMLInputElement>('#f-email')!).value.trim();
       const p = (app.querySelector<HTMLInputElement>('#f-password')!).value;
       if (!/^[a-zA-Z0-9_]+( [a-zA-Z0-9_]+)*$/.test(h) || h.length < 3 || h.length > 32) { setStatus('Handle must be 3–32 chars (letters, numbers, _, spaces).', 'error'); return false; }
+      if (handleTaken) { setStatus('That handle is taken — pick another.', 'error'); return false; }
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) { setStatus('Enter a valid email.', 'error'); return false; }
       if (p.length < 12) { setStatus('Password needs 12+ characters.', 'error'); return false; }
     } else if (step === 2) {
@@ -393,35 +416,72 @@ if (!supabaseConfigured || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     return true;
   }
 
-  async function hashAnswer(answer: string): Promise<string> {
-    const data = new TextEncoder().encode(answer.trim().toLowerCase());
-    const hash = await crypto.subtle.digest('SHA-256', data);
-    return [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, '0')).join('');
+  // Setup retry: if the atomic signup RPC fails, the auth account already
+  // exists but no profile rows were written (the RPC rolls back). Keep the
+  // pending state and let the user retry the RPC without re-signing up.
+  let setupFailed = false;
+
+  async function runSignupSetup(): Promise<void> {
+    // Single atomic RPC (Phase 1 §F2): profiles + private_profiles +
+    // security questions (v2 bcrypt) in one transaction. Any failure rolls
+    // everything back — no partial accounts.
+    await auth.completeSignup({
+      handle: state.handle,
+      displayName: state.handle,
+      firstName: state.firstIrl,
+      middleName: '',
+      lastName: state.lastIrl,
+      nameVisibility: 'display_only',
+      language: localeToLanguage(readLocalLocale()),
+      avatarStyle,
+      avatarCustomization: null,
+      firstNameIrl: state.firstIrl,
+      lastNameIrl: state.lastIrl,
+      countryCode: state.country,
+      dob: state.dob,
+      q1Text: state.sq[0].q, q1Answer: state.sq[0].a,
+      q2Text: state.sq[1].q, q2Answer: state.sq[1].a,
+      q3Text: state.sq[2].q, q3Answer: state.sq[2].a,
+    });
   }
 
   async function submitAll(): Promise<void> {
     collectStep();
     if (!state.terms) { setStatus('Please agree to the Terms to continue.', 'error'); return; }
-    // TEMPORARY (2026-10-08, Paul's request): CAPTCHA check disabled until the
-    // Turnstile edge-function secret is fixed in Supabase. Re-enable by
-    // uncommenting the line below.
-    // if (!captchaToken) { setStatus('Please complete the CAPTCHA to prove you\'re human.', 'error'); return; }
     const btn = app.querySelector<HTMLButtonElement>('#submit-btn')!;
     btn.disabled = true; btn.textContent = 'CREATING…';
-    setStatus('Verifying you\'re human…', '');
 
     try {
-      // TEMPORARY: CAPTCHA verification bypassed (2026-10-08) — edge function secret
-      // mismatch in Supabase. Re-enable after Paul fixes TURNSTILE_SECRET_KEY.
-      // const verifyRes = await client.functions.invoke('verify-captcha', {
-      //   body: { token: captchaToken },
-      // });
-      // if (verifyRes.error || !verifyRes.data?.success) {
-      //   setStatus('CAPTCHA verification failed. Please try again.', 'error');
-      //   captchaToken = null;
-      //   btn.disabled = false; btn.textContent = 'CREATE ACCOUNT ✦';
-      //   return;
-      // }
+      // Retry path: the auth account already exists and a previous
+      // completeSignup call failed (rolled back). Re-run the RPC only —
+      // do NOT create a second auth account.
+      if (setupFailed) {
+        setStatus('Retrying setup…', '');
+        await runSignupSetup();
+        setupFailed = false;
+        try { await auth.ensureStarterGrant(); } catch { /* non-fatal */ }
+        setStatus('Welcome to the Grid! Taking you to the official entry…', 'ok');
+        btn.textContent = 'WELCOME ✦';
+        setTimeout(() => { window.location.href = '/enter.html'; }, 1400);
+        return;
+      }
+
+      // CAPTCHA gate (Phase 1 §F6): token must exist AND verify server-side.
+      // Requires TURNSTILE_SECRET_KEY in Supabase Edge Function secrets
+      // (Paul-only step) — do NOT merge/deploy this branch until it is set,
+      // or every signup will fail at verification.
+      if (!captchaToken) { setStatus('Please complete the CAPTCHA to prove you\'re human.', 'error'); btn.disabled = false; btn.textContent = 'CREATE ACCOUNT ✦'; return; }
+      setStatus('Verifying you\'re human…', '');
+      const verifyRes = await client.functions.invoke('verify-captcha', {
+        body: { token: captchaToken },
+      });
+      if (verifyRes.error || !verifyRes.data?.success) {
+        setStatus('CAPTCHA verification failed. Please try again.', 'error');
+        captchaToken = null;
+        try { (window as any).turnstile?.reset?.(); } catch { /* re-render fallback below */ }
+        btn.disabled = false; btn.textContent = 'CREATE ACCOUNT ✦';
+        return;
+      }
 
       setStatus('Creating your account…', '');
       const confirmUrl = window.location.origin + '/confirmed.html';
@@ -445,34 +505,16 @@ if (!supabaseConfigured || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
       }
 
       setStatus('Setting up your identity…', '');
-      await auth.completeProfile({
-        firstName: state.firstIrl, middleName: '', lastName: state.lastIrl,
-        handle: state.handle, displayName: state.handle, nameVisibility: 'display_only',
-      });
-
-      const { data: { user } } = await client.auth.getUser();
-      if (user) {
-        // IRL identity goes to private_profiles (owner-only RLS, never public).
-        // Public profile data (handle, avatar) stays in profiles.
-        await client.from('private_profiles').upsert({
-          user_id: user.id,
-          first_name_irl: state.firstIrl || null,
-          last_name_irl: state.lastIrl || null,
-          country_code: state.country || null,
-          date_of_birth: state.dob || null,
-        }, { onConflict: 'user_id' });
-        await client.from('profiles').update({
-          language: localeToLanguage(readLocalLocale()),
-          avatar_style: avatarStyle,
-        }).eq('id', user.id);
-
-        setStatus('Securing your account…', '');
-        await client.from('grid_security_questions').insert({
-          user_id: user.id,
-          q1_text: state.sq[0].q, q1_hash: await hashAnswer(state.sq[0].a),
-          q2_text: state.sq[1].q, q2_hash: await hashAnswer(state.sq[1].a),
-          q3_text: state.sq[2].q, q3_hash: await hashAnswer(state.sq[2].a),
-        });
+      try {
+        await runSignupSetup();
+      } catch (setupErr) {
+        // Atomic RPC failed → nothing was written (rolled back). Keep the
+        // state and offer retry instead of stranding a bare auth account.
+        setupFailed = true;
+        const msg = setupErr instanceof Error ? setupErr.message : 'Setup failed.';
+        setStatus(`Setup incomplete — ${msg} Your account exists; press RETRY SETUP to finish it.`, 'error');
+        btn.disabled = false; btn.textContent = 'RETRY SETUP →';
+        return;
       }
 
       try { await auth.ensureStarterGrant(); } catch { /* non-fatal */ }
@@ -484,7 +526,10 @@ if (!supabaseConfigured || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Signup failed.';
       setStatus(msg.includes('already registered') ? 'Email already registered. Try logging in.' : msg, 'error');
-      btn.disabled = false; btn.textContent = 'CREATE ACCOUNT ✦';
+      btn.disabled = false;
+      // If the atomic setup failed, keep the RETRY affordance (the auth
+      // account exists; the next click re-runs only the setup RPC).
+      btn.textContent = setupFailed ? 'RETRY SETUP →' : 'CREATE ACCOUNT ✦';
     }
   }
 

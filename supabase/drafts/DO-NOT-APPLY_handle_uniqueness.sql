@@ -1,0 +1,58 @@
+-- ══════════════════════════════════════════════════════════════════════════
+-- DRAFT — DO NOT APPLY — HANDLE UNIQUENESS (plan §F9)
+-- ══════════════════════════════════════════════════════════════════════════
+-- This file lives in supabase/drafts/ (NOT supabase/migrations/) precisely
+-- so `supabase db push` and the Dashboard migration runner NEVER pick it up.
+--
+-- PAUL MUST APPROVE BEFORE ANY OF THIS APPLIES. Sequence:
+--   1. Run the DEDUP REPORT query below against LIVE (read-only) and send
+--      the results to Paul.
+--   2. If duplicates exist, Paul decides resolution (e.g. earliest account
+--      keeps the handle; others get a "-2" suffix + a user notice).
+--      Do NOT auto-rename anyone.
+--   3. Only after dedup is resolved AND Paul approves, move the trigger +
+--      UNIQUE index into a real, timestamped migration in supabase/migrations/
+--      and apply it. A UNIQUE index on live data with unknown duplicates
+--      FAILS the migration and can block writes — that is why this is a draft.
+--
+-- Context: live profiles has both `handle` and `username` plus
+-- `handle_normalized`, and ZERO unique constraints (Phase 0 Query 4).
+-- Canonical form is `handle`. `username` becomes legacy read-only:
+-- GridProfileService keeps the `handle ?? username` read fallback; new
+-- accounts stop writing `username` (confirmed.html now uses the signup RPC,
+-- which writes handle + handle_normalized only).
+
+-- ── STEP 1 — DEDUP REPORT (read-only; Paul runs this against live) ────────
+-- select handle_normalized, count(*) as dup_count, array_agg(id) as user_ids
+-- from public.profiles
+-- where handle_normalized is not null
+-- group by handle_normalized
+-- having count(*) > 1
+-- order by dup_count desc;
+
+-- ── STEP 2 — Backfill (only after dedup is resolved) ───────────────────────
+-- update public.profiles
+--   set handle_normalized = lower(trim(handle))
+--   where handle is not null;
+
+-- ── STEP 3 — Trigger maintaining handle_normalized on write ────────────────
+-- create or replace function public.grid_profiles_sync_handle_normalized()
+-- returns trigger
+-- language plpgsql
+-- set search_path = public
+-- as $$
+-- begin
+--   new.handle_normalized := lower(trim(new.handle));
+--   return new;
+-- end;
+-- $$;
+--
+-- drop trigger if exists grid_profiles_sync_handle_normalized
+--   on public.profiles;
+-- create trigger grid_profiles_sync_handle_normalized
+--   before insert or update of handle on public.profiles
+--   for each row execute function public.grid_profiles_sync_handle_normalized();
+
+-- ── STEP 4 — UNIQUE index on the normalized form (case-insensitive) ───────
+-- create unique index if not exists profiles_handle_normalized_key
+--   on public.profiles (handle_normalized);

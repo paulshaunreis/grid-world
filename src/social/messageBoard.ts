@@ -1,5 +1,11 @@
 // GridWorld Message Board — site bulletin board + in-world kiosk share the same data.
 // Categories: General, Trade, Events, Help. Newest first. Identity on every post.
+//
+// Storage: localStorage ONLY (key grid-world:message-board). Posts are saved in
+// this browser only — they are NOT shared with other citizens. The shared
+// backend is draft-only: supabase/drafts/DO-NOT-APPLY_board_posts.sql defines
+// grid_board_posts + grid_board_replies. Do NOT wire this module to Supabase
+// until that migration is approved + applied live, or posting will break.
 
 import type { BadgeUser } from './UserBadge';
 
@@ -50,7 +56,6 @@ export function postToBoard(category: BoardCategory, title: string, body: string
     author, createdAt: new Date().toISOString(), replies: [],
   };
   const posts = loadBoardPosts(); posts.push(post); saveBoardPosts(posts);
-  // Phase 2: mirror to Supabase grid_board_posts.
   return post;
 }
 

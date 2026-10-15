@@ -1,5 +1,13 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+// Profile-system boundary (Phase 1, plan §F16 — decision, not a rewrite):
+//   grid_user_profiles = PUBLIC citizen profile (display, bio, theme, mood).
+//   Written only via grid_profile_upsert / GridProfileAuthority.save.
+//   `profiles` = ACCOUNT identity (auth, handle, onboarding, avatar, beta),
+//   written only via the signup RPC and account settings. The `profiles`
+//   read below is a compatibility fallback for older accounts while the
+//   surfaces converge — it must not become a write path.
+
 export interface GridPublicProfile {
   id:string;
   handle?:string;

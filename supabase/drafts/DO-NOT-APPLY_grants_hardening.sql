@@ -1,0 +1,83 @@
+-- ══════════════════════════════════════════════════════════════════════════
+-- DRAFT — DO NOT APPLY — GRANTS HARDENING (plan §F11)
+-- ══════════════════════════════════════════════════════════════════════════
+-- This file lives in supabase/drafts/ (NOT supabase/migrations/) precisely
+-- so `supabase db push` and the Dashboard migration runner NEVER pick it up.
+--
+-- PAUL MUST APPROVE THIS PLAN AS ITS OWN DECISION BEFORE ANY REVOKE APPLIES.
+--
+-- Why no changes in Phase 1: revokes can break live client paths that write
+-- via PostgREST today (profile.ts direct inserts into grid_profile_media /
+-- grid_profile_posts, beta.ts insert, confirmed.html direct inserts — all
+-- being replaced by RPCs in Phase 1). Revoke ONLY AFTER the RPC migration
+-- lands and each direct-write path is re-verified.
+--
+-- Verified live state (Phase 0 Queries 5–7): anon + authenticated hold ALL 7
+-- privileges (DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE)
+-- on every checked table. RLS does NOT cover TRUNCATE. Sharpest risk:
+-- anon can TRUNCATE private_profiles (real names + DOB) and
+-- grid_security_questions (hashed answers).
+--
+-- Proposed target state:
+--   - anon: SELECT only where a public read is genuinely intended
+--     (profiles public-read via RLS qual, grid_user_profiles public read).
+--     No direct INSERT/UPDATE/DELETE/TRUNCATE for anon on any table.
+--   - authenticated: only the privileges each table's RLS policies actually
+--     need (typically SELECT + INSERT/UPDATE/DELETE where the app writes via
+--     PostgREST; no TRUNCATE/TRIGGER/REFERENCES unless justified per table).
+--   - private_profiles + grid_security_questions: revoke ALL direct table
+--     grants from anon + authenticated; access only via SECURITY DEFINER
+--     RPCs (signup RPC, verify RPCs). HIGHEST-PRIORITY revoke — PII +
+--     credential-adjacent data.
+--   - Operator tables: revoke scope belongs to held PRs #129/#138 — do NOT
+--     duplicate or touch here; this draft excludes them so Paul sees one
+--     coherent picture across the two efforts.
+--   - Function grants: justify or revoke the three anon EXECUTE grants
+--     (grid_create_organization, grid_organization_treasury_entry,
+--     grid_worlds_touch_updated_at). NOTE: verify whether anon org creation
+--     is an intended feature before revoking grid_create_organization.
+
+-- ── Live verification queries (read-only; run before/after any revoke) ─────
+-- Grants on one table:
+--   select grantee, privilege_type from information_schema.role_table_grants
+--     where table_schema = 'public' and table_name = 'private_profiles'
+--     order by grantee, privilege_type;
+-- Function EXECUTE grants for anon:
+--   select routine_name from information_schema.routine_privileges
+--     where routine_schema = 'public' and grantee = 'anon'
+--       and privilege_type = 'EXECUTE' order by routine_name;
+
+-- ── DRAFT REVOKE 1 — highest priority: PII + credential-adjacent tables ───
+-- Revoke ALL direct table grants on private_profiles + grid_security_questions
+-- from anon + authenticated. After this, those tables are reachable only via
+-- SECURITY DEFINER RPCs (grid_complete_signup, get_recovery_questions,
+-- verify_recovery_answers). Verify the RPC paths work BEFORE applying.
+-- revoke all on public.private_profiles from anon, authenticated;
+-- revoke all on public.grid_security_questions from anon, authenticated;
+
+-- ── DRAFT REVOKE 2 — TRUNCATE / TRIGGER / REFERENCES from anon + auth ─────
+-- No client path legitimately needs TRUNCATE, TRIGGER, or REFERENCES via
+-- PostgREST. Revoking these three on every public table removes the
+-- sharpest abuse (TRUNCATE bypasses RLS) without touching the DML the app
+-- uses. Apply per table after verifying each table's write paths:
+--   revoke truncate, trigger, references on public.<table> from anon, authenticated;
+-- Example (one table shown; extend the list only after per-table review):
+-- revoke truncate, trigger, references on public.profiles from anon, authenticated;
+-- revoke truncate, trigger, references on public.grid_user_profiles from anon, authenticated;
+-- revoke truncate, trigger, references on public.grid_profile_media from anon, authenticated;
+-- revoke truncate, trigger, references on public.grid_profile_posts from anon, authenticated;
+-- revoke truncate, trigger, references on public.grid_profile_activity from anon, authenticated;
+-- revoke truncate, trigger, references on public.grid_account_social from anon, authenticated;
+-- revoke truncate, trigger, references on public.grid_account_presence from anon, authenticated;
+-- revoke truncate, trigger, references on public.grid_social_connections from anon, authenticated;
+-- revoke truncate, trigger, references on public.grid_arena_rankings from anon, authenticated;
+-- revoke truncate, trigger, references on public.grid_landmarks from anon, authenticated;
+-- revoke truncate, trigger, references on public.grid_beta_applications from anon, authenticated;
+-- revoke truncate, trigger, references on public.grid_recovery_attempts from anon, authenticated;
+-- (Operator tables EXCLUDED here — see held PRs #129/#138.)
+
+-- ── DRAFT REVOKE 3 — anon DML (after anon write paths are confirmed dead) ─
+-- Once no client path writes via PostgREST as anon, revoke anon DML:
+-- revoke insert, update, delete on all tables in schema public from anon;
+-- (Per-table form preferred for reviewability; the blanket form is shown
+-- only as the end-state shape. Do NOT run the blanket form unreviewed.)

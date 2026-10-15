@@ -55,6 +55,8 @@ const NAV_TOPICS: NavTopic[] = [
     items: [
       { label: 'Staff Directory', href: '/directory.html' },
       { label: 'Profiles', href: '/profile.html' },
+      { label: 'Forums', href: '/forum.html' },
+      { label: 'Message Board', href: '/board.html' },
       { label: 'Social', href: '/social.html' },
       { label: 'Meetups', href: '/meetups.html' },
       { label: 'Docs', href: '/docs.html' },
@@ -191,6 +193,7 @@ function buildNav(): HTMLElement {
     `<a class="gw-brand" href="/">◇ GRID WORLD</a>` +
     `<nav class="gw-topics" aria-label="Sections">${topicsHtml}</nav>` +
     `<span class="gw-search-slot"></span>` +
+    `<a class="gw-join gw-signin" href="/signin.html">SIGN IN</a>` +
     `<a class="gw-join" href="/join.html">JOIN GRID</a>` +
     `<button class="gw-hamburger" type="button" aria-label="Menu">☰</button>` +
     `<div class="gw-mobile-panel">

@@ -95,3 +95,43 @@ a{color:inherit}
 
 @media(max-width:900px){#marketplace>header{display:block}.market-meta{grid-template-columns:repeat(2,1fr)}.market-meta div{border-left:0;border-top:1px solid rgba(0,212,255,.1)}#marketplace main{grid-template-columns:1fr 1fr;padding:0 14px}.filters{margin:0 14px 18px}.rules{grid-template-columns:1fr}.protection{padding:50px 14px}.market-hero{min-height:260px}}
 @media(max-width:600px){#marketplace main{grid-template-columns:1fr}.market-hero-copy{padding:40px 20px 32px}.staff-trade-list article{grid-template-columns:1fr auto}}
+
+/* ---------- marketplace: notice, composer, detail, buy dialog ---------- */
+.market-notice{max-width:1184px;margin:0 auto 18px;padding:12px 18px;border:1px dashed rgba(0,212,255,.35);border-radius:10px;color:#b9d5ec;font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.04em;text-align:center}
+.market-composer{max-width:1184px;margin:0 auto 22px;padding:24px;border:1px solid rgba(0,212,255,.18);border-radius:14px;background:rgba(13,27,51,.82)}
+.market-composer h2{margin:10px 0 6px;font-size:28px;letter-spacing:-.02em}
+.composer-note{color:#97a5bb;font-size:13px;line-height:1.5;margin:0 0 14px}
+.composer-error{color:#ff9d9d;font-size:13px}
+.composer-row{display:flex;gap:10px;margin-bottom:10px}
+.composer-row input,.composer-row select,.market-composer textarea{flex:1;background:rgba(6,13,26,.6);border:1px solid rgba(0,212,255,.18);border-radius:10px;color:#fff;padding:12px 14px;font:500 13px 'IBM Plex Mono',monospace}
+.market-composer textarea{width:100%;resize:vertical}
+.composer-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap}
+.composer-footer span{color:#7e8da7;font:500 10px 'IBM Plex Mono',monospace;letter-spacing:.05em}
+.composer-footer button,.market-detail .glass-btn,.buy-dialog .glass-btn{font:700 11px 'IBM Plex Mono',monospace;letter-spacing:.1em;color:#eaffff;background:rgba(0,212,255,.12);border:1px solid rgba(100,230,255,.45);border-radius:10px;padding:11px 18px;cursor:pointer}
+.board-signin-banner{max-width:1184px;margin:0 auto 22px;padding:16px 20px;border:1px solid rgba(0,212,255,.18);border-radius:12px;background:rgba(13,27,51,.7);color:#b9d5ec}
+.local-badge{display:inline-block;margin-top:10px;padding:5px 10px;border:1px dashed rgba(0,212,255,.5);border-radius:8px;color:#4de8ff;font:700 9px 'IBM Plex Mono',monospace;letter-spacing:.1em}
+.listing-actions{display:flex;gap:8px}
+.glass-btn-danger{border-color:rgba(255,120,120,.5)!important;color:#ffb3b3!important}
+.market-empty{grid-column:1/-1;text-align:center;color:#97a5bb;padding:40px 0}
+.market-detail{max-width:1184px;margin:0 auto 30px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:18px}
+.detail-grid .art{border-radius:14px;overflow:hidden;aspect-ratio:16/10;background:#060b14}
+.detail-grid .art img{width:100%;height:100%;object-fit:cover}
+.detail-body h2{font-size:34px;margin:10px 0}
+.detail-body p{color:#b9d5ec;line-height:1.6}
+.detail-price{display:flex;gap:16px;align-items:baseline;margin:18px 0}
+.detail-price strong{font:600 22px 'IBM Plex Mono',monospace;color:#4de8ff}
+.detail-price span{color:#7e8da7;font:500 11px 'IBM Plex Mono',monospace}
+.detail-note{color:#97a5bb;font-size:13px}
+.detail-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.buy-overlay{position:fixed;inset:0;background:rgba(3,6,14,.75);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px}
+.buy-dialog{max-width:520px;width:100%;background:#0d1b33;border:1px solid rgba(0,212,255,.3);border-radius:16px;padding:28px;box-shadow:0 30px 90px rgba(0,0,0,.6)}
+.buy-dialog h3{font-size:24px;margin:0 0 6px}
+.buy-dialog p{color:#b9d5ec;line-height:1.55}
+.buy-seller{color:#4de8ff!important;font:700 11px 'IBM Plex Mono',monospace;letter-spacing:.08em}
+.buy-total{display:flex;justify-content:space-between;align-items:baseline;margin:18px 0;padding:14px 0;border-top:1px solid rgba(0,212,255,.15);border-bottom:1px solid rgba(0,212,255,.15)}
+.buy-total strong{font:600 20px 'IBM Plex Mono',monospace;color:#4de8ff}
+.buy-disabled-note{color:#ffcf9d!important;font-size:13px}
+.buy-dialog .buy-disabled{opacity:.55;cursor:not-allowed}
+.buy-dialog .glass-btn{margin-right:8px;margin-top:8px}
+@media(max-width:900px){.detail-grid{grid-template-columns:1fr}.composer-row{flex-direction:column}}
