@@ -29,7 +29,7 @@ const INDEX: SearchEntry[] = [
   { kind:'page', title:'Grid World Marketplace', sub:'Buy and sell Grid World originals', href:'/marketplace.html', keywords:'marketplace market shop buy sell items' },
   { kind:'page', title:'Grid World Games', sub:'Grid Monsters, Grid Duel, Grid Dice and more', href:'/games.html', keywords:'games play grid monsters duel dice solitaire poker chess checkers racing puzzles arena' },
   { kind:'page', title:'Play — First Light', sub:'Enter the 3D world at First Light', href:'/play.html', keywords:'play 3d world first light enter grid' },
-  { kind:'page', title:'Enter Grid World', sub:'Sign in to your Grid World account', href:'/enter.html', keywords:'enter sign in login account' },
+  { kind:'page', title:'Sign In', sub:'Sign in to your Grid World account', href:'/signin.html', keywords:'enter sign in login account' },
   { kind:'page', title:'Join Grid World', sub:'Create your Grid World account', href:'/join.html', keywords:'join sign up register create account' },
   { kind:'page', title:'GridWorld Beta Program', sub:'Apply for closed beta access', href:'/beta.html', keywords:'beta apply access tester' },
   { kind:'page', title:'Profile Studio', sub:'Customize your Grid World profile', href:'/profile.html', keywords:'profile avatar customize identity' },

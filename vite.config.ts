@@ -28,6 +28,8 @@ export default defineConfig({
         gridWorldStudio: 'grid-world-studio.html',
         textures: 'textures.html',
         join: 'join.html',
+        signin: 'signin.html',
+        reset: 'reset.html',
         social: 'social.html',
         membership: 'membership.html',
         enter: 'enter.html',

@@ -20,7 +20,7 @@ export function mountGridAuthPanel(auth:GridAuthService,onProfile:(profile:GridA
     closeAvatar();
     setProgress(mode==='login'||mode==='join'?'account':mode==='profile'?'identity':mode==='avatar'?'avatar':'world');
     if(mode==='login') body.innerHTML='<label>Email<input id="ga-email" type="email" autocomplete="email"></label><label>Password<input id="ga-password" type="password" autocomplete="current-password"></label><button class="grid-auth-primary" id="ga-submit">LOGIN</button><button class="grid-auth-secondary" id="ga-reset">SEND PASSWORD RESET</button><p>Passwords are handled by Supabase Auth, not Grid World.</p>';
-    else if(mode==='join') body.innerHTML='<label>Email<input id="ga-email" type="email" autocomplete="email"></label><label>Password<input id="ga-password" type="password" minlength="12" autocomplete="new-password"></label><p class="grid-auth-note">Use a unique password of at least 12 characters. Email confirmation is part of the production join flow.</p><button class="grid-auth-primary" id="ga-submit">CREATE ACCOUNT</button>';
+    else if(mode==='join') body.innerHTML='<p class="grid-auth-note">One signup path for everyone: the full join flow collects your handle, identity, security questions, and CAPTCHA. Panel-created accounts used to skip all of that and could never complete recovery setup (Phase 1 §F15).</p><button class="grid-auth-primary" id="ga-join-full">CREATE A FULL ACCOUNT →</button>';
     else if(mode==='avatar') {
       body.innerHTML='<div id="grid-avatar-host"></div>';
       const host=body.querySelector<HTMLDivElement>('#grid-avatar-host')!;
@@ -47,22 +47,20 @@ export function mountGridAuthPanel(auth:GridAuthService,onProfile:(profile:GridA
     const enter=body.querySelector<HTMLButtonElement>('#ga-enter');
     if(enter) enter.onclick=async()=>{ if(mode==='world'){ status.textContent='Securing your arrival package…'; try{ await auth.ensureStarterGrant(); await auth.claimFirstStarterLand(selectedWorld); status.textContent='Arrival package secured. Welcome to '+selectedWorld+'.'; window.setTimeout(()=>{root.classList.remove('open');},350); }catch(e){status.textContent=e instanceof Error?e.message:'Starter package could not be secured yet.';} } };
 
+    const joinFull=body.querySelector<HTMLButtonElement>('#ga-join-full');
+    if(joinFull) joinFull.onclick=()=>{ window.location.href='/join.html'; };
+
     const submit=body.querySelector<HTMLButtonElement>('#ga-submit');
     if(submit) submit.onclick=async()=>{
       status.textContent='Working…';
       try{
-        if(mode==='login'){
-          const r=await auth.signIn((body.querySelector<HTMLInputElement>('#ga-email')!).value,(body.querySelector<HTMLInputElement>('#ga-password')!).value);
-          if(r.error) throw r.error;
-          if(!r.data.user){status.textContent='Check your credentials.';return;}
-          const p=await auth.profile();
-          if(p){onProfile(p); newFlow=false; mode=p.avatar_ready?'profile':'avatar'; render(); status.textContent=p.avatar_ready?'Welcome back. Your Grid is ready.':'Choose your starter avatar to finish arrival.';}
-        }else{
-          const r=await auth.signUp((body.querySelector<HTMLInputElement>('#ga-email')!).value,(body.querySelector<HTMLInputElement>('#ga-password')!).value);
-          if(r.error) throw r.error;
-          status.textContent=r.data.session?'Account created. Let’s build your identity.':'Account created. Check your email to confirm it, then log in.';
-          newFlow=Boolean(r.data.session); mode=r.data.session?'profile':'login';render();
-        }
+        // #ga-submit only renders in login mode (join mode redirects to
+        // /join.html — Phase 1 §F15). No in-panel signup path anymore.
+        const r=await auth.signIn((body.querySelector<HTMLInputElement>('#ga-email')!).value,(body.querySelector<HTMLInputElement>('#ga-password')!).value);
+        if(r.error) throw r.error;
+        if(!r.data.user){status.textContent='Check your credentials.';return;}
+        const p=await auth.profile();
+        if(p){onProfile(p); newFlow=false; mode=p.avatar_ready?'profile':'avatar'; render(); status.textContent=p.avatar_ready?'Welcome back. Your Grid is ready.':'Choose your starter avatar to finish arrival.';}
       }catch(e){status.textContent=e instanceof Error?e.message:'Authentication failed.';}
     };
 

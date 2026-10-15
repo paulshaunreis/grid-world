@@ -41,7 +41,11 @@ export class SupabasePersistence {
   }
 
   async save(identity: PlayerIdentity, state: PersistedPlayerState) {
-    const { error: profileError } = await this.client.from('profiles').upsert({ id: identity.id, display_name: identity.displayName, updated_at: new Date().toISOString() });
+    // NOTE: this upsert deliberately does NOT write display_name (Phase 1
+    // §F15, audit C7). Display names change only via profile.ts /
+    // GridProfileAuthority — a game save must never clobber the account
+    // display name when local identity drifts.
+    const { error: profileError } = await this.client.from('profiles').upsert({ id: identity.id, updated_at: new Date().toISOString() });
     if (profileError) throw profileError;
     const { error } = await this.client.from('player_state').upsert({ user_id: identity.id, region_id: state.regionId, x: state.x, y: state.y, z: state.z, yaw: state.yaw, updated_at: state.updatedAt });
     if (error) throw error;

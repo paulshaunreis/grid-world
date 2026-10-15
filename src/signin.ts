@@ -50,6 +50,15 @@ const form = document.querySelector<HTMLFormElement>('#signin-form')!;
 const errBox = document.querySelector<HTMLDivElement>('#signin-error')!;
 const submitBtn = document.querySelector<HTMLButtonElement>('#signin-submit')!;
 
+// Arriving from /reset.html after a successful password update.
+if (new URLSearchParams(window.location.search).get('reset') === 'success') {
+  errBox.textContent = 'Password updated. Sign in with your new password.';
+  errBox.classList.add('show');
+  errBox.style.color = '#8affc8';
+  errBox.style.borderColor = 'rgba(80,255,160,.3)';
+  errBox.style.background = 'rgba(80,255,160,.08)';
+}
+
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
   errBox.classList.remove('show');

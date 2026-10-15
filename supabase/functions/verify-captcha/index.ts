@@ -7,9 +7,10 @@ import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
 serve(async (req: Request) => {
-  // CORS for the GridWorld site
+  // CORS: production origin only (Phase 1 §F6 step 4). The old wildcard
+  // '*' let any site spend verification calls on this endpoint.
   const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': 'https://grid-world-qghn.onrender.com',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   };
 

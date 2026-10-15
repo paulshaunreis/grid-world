@@ -40,7 +40,7 @@ const auth = new GridAuthService(client);
 async function render() {
   const user = await auth.currentUser();
   if (!user) {
-    app.innerHTML = `<div class="grid-page-wrap"><h1>Account Settings</h1><p class="lede">You're not signed in.</p><p><a href="/enter.html" style="color:#00e5ff">Sign in →</a></p></div>`;
+    app.innerHTML = `<div class="grid-page-wrap"><h1>Account Settings</h1><p class="lede">You're not signed in.</p><p><a href="/signin.html" style="color:#00e5ff">Sign in →</a></p></div>`;
     return;
   }
   const profile = await auth.profile().catch(() => null);
@@ -83,6 +83,7 @@ async function render() {
         <section class="account-card">
           <h2>SESSION</h2>
           <p>Signed in as ${esc(user.email ?? '—')}</p>
+          <p class="dev-note">Signing out signs you out on all devices.</p>
           <p><button id="acct-signout" type="button">Sign Out</button></p>
         </section>
       </div>

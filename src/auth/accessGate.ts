@@ -16,6 +16,8 @@ const PUBLIC_PATHS = new Set([
   '/home.html',
   '/beta.html',
   '/join.html',
+  '/signin.html',
+  '/reset.html',
   '/enter.html',
   '/confirmed.html',
   '/recover.html',
@@ -42,8 +44,17 @@ export async function getAccessLevel(): Promise<AccessLevel> {
     if (status === 'team' || status === 'approved' || status === 'pending' || status === 'rejected') {
       return status;
     }
+    // No row or no recognizable beta_status: fail closed as 'pending'.
+    // Debug log (Phase 1 §F12 step 4) so a future column gap is visible
+    // instead of silent — this is how the missing-beta_status drift hid.
+    console.debug('[accessGate] no usable beta_status; treating as pending', {
+      hasRow: Boolean(profile),
+      betaStatus: status ?? null,
+    });
     return 'pending'; // profile row missing → treat as pending, not open
-  } catch {
+  } catch (err) {
+    // Fail closed, but log so a future column gap is visible, not silent.
+    console.debug('[accessGate] getAccessLevel error; treating as pending', err);
     return 'pending'; // fail closed
   }
 }
