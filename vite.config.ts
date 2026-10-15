@@ -29,6 +29,7 @@ export default defineConfig({
         textures: 'textures.html',
         join: 'join.html',
         signin: 'signin.html',
+        forum: 'forum.html',
         reset: 'reset.html',
         social: 'social.html',
         membership: 'membership.html',
