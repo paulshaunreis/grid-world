@@ -635,3 +635,44 @@ Ultima has now been added to the existing staff avatar roster in `src/avatars/te
 **Status:** changes are on branch `feature/ultima-staff-profile`; not yet merged or deployed. CI/build verification is pending. The generated concept-art portrait exists as a conversation image, but has not yet been added as a repository asset or wired as a site profile-image URL; the current roster/avatar rendering uses the existing in-world staff avatar pipeline.
 
 Ultima and Aurora remain distinct collaborators. The user remains final decision-maker; keep claims of recent work grounded in repository history and verified status.
+
+
+## Security handoff for Aurora — 2026-10-15
+
+**Purpose:** This entry is a durable repository handoff for Aurora. If the shared local notebook `~/workspace/gridworld/NOTES-FOR-CHATGPT.md` is not visible in Aurora's environment, use this file and the linked PRs as the available shared record. Do not assume a local notebook was updated by this commit.
+
+### Current security work — verified status
+
+- **PR #137 — Grid Operator boundary hardening:** https://github.com/paulshaunreis/grid-world/pull/137
+  - Open/draft/unmerged. Source changes include a 16 KiB JSON request-body cap, fatal UTF-8 handling, moderation-result validation with REVIEW fallback, and helper unit tests.
+  - CI run #1578 passed on source/workflow commit `814767af45de95bd202f4e188c6a5b160b1f4305`: https://github.com/paulshaunreis/grid-world/actions/runs/38658100963
+  - Follow-up documentation commit: `781efd31e8196866875486d9766ef6a669c8e1c6`.
+  - Remaining gates: guest access to chat/moderate, durable shared-state rate limiting, wildcard CORS review, safe-environment runtime tests, and schema provenance. Do not call the work fully secured based on helper tests alone.
+
+- **PR #129 — revoke browser access to Operator policy rules:** https://github.com/paulshaunreis/grid-world/pull/129
+  - Open/unmerged. The proposed migration is not verified as applied to live Supabase.
+  - Read-only live catalog inspection on 2026-10-15 confirmed direct ACL entries granting both `anon` and `authenticated` broad privileges on `public.grid_operator_policy_rules`, including SELECT and TRUNCATE. RLS does not replace revoking table-level TRUNCATE privileges.
+  - Do not claim the browser-access revocation is active until the live ACL and migration history are rechecked after an approved application.
+
+- **PR #138 — revoke browser access to Operator cases:** https://github.com/paulshaunreis/grid-world/pull/138
+  - Open/draft/unmerged. Proposed migration: `supabase/migrations/20261015120000_revoke_client_access_to_operator_cases.sql`.
+  - CI run #38659889207 passed on exact head `d8e991f9ffb4bcc9fc2ce5eadb86258b2a19258e`: https://github.com/paulshaunreis/grid-world/actions/runs/38659889207
+  - Read-only live catalog inspection on 2026-10-15 confirmed direct ACL entries granting `anon` and `authenticated` broad privileges on `public.grid_operator_cases`, including SELECT and TRUNCATE.
+  - CI confirms repository build checks only; it does not prove the migration was applied or runtime permissions were tested.
+
+### Safety and coordination rules
+
+1. No production database writes, migration application, deployment, or PR merge was performed during this audit.
+2. Preserve the open security PRs. Reconcile live ACLs with migration history before proposing any production operation.
+3. Keep schema provenance on the checklist: no authoritative tracked creation migration for `grid_operator_cases` was found during the review.
+4. Continue with read-only verification and disposable-environment tests where available. Do not run a guessed baseline migration against production.
+5. Keep status labels precise: proposed, committed, CI-passed, applied, and runtime-verified are different states.
+
+### Immediate next steps
+
+1. Inspect why live ACLs still contain browser-role grants despite older security migrations; confirm migration history and actual ACL state without changing production.
+2. Review the policy-rules and cases revocation PRs together for consistency, including required `service_role` access.
+3. Continue PR #137 review for guest invocation policy, shared rate limiting, CORS scope, and runtime coverage.
+4. After any explicitly approved production application, re-run read-only ACL and migration-history checks and record exact evidence here.
+
+**Notebook pointer:** Aurora can open this file directly: https://github.com/paulshaunreis/grid-world/blob/main/docs/AURORA_ENGINEERING_HANDOFF.md
