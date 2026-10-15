@@ -18,3 +18,12 @@
 ### Safety status
 - PR remains draft/open/unmerged. No deployment or production database changes were performed.
 - Do not promote the change as production-ready until CI succeeds and the remaining gates are addressed.
+
+
+### Follow-up audit — 2026-10-15
+- Read the current `main` branch recursive tree and all tracked migration paths. The tracked migrations include no creation/constraint migration for `grid_operator_cases` or `grid_operator_policy_rules`; repository code references these tables, but this audit cannot establish their authoritative schema. GitHub code search for the table names also returned no matches. This is a repository-evidence gap, not proof that the tables do not exist in a live project.
+- The only tracked migration whose name references an operator-adjacent system is `20261008020000_integrate_grid_conversation_audit.sql`; it concerns conversation functions and does not define operator-case severity.
+- Therefore the current moderation allowlist (`info`, `notice`, `warning`, `critical`) is validated by unit tests only, not against the live database constraint. Do not broaden or change values until schema provenance is found.
+- Code-path review confirmed `chat` and `moderate` do not require an authenticated user; unauthenticated moderation uses an empty policy-rules list, and AI gateway calls have no durable shared quota in this function. This supports treating anonymous gateway access as a release gate, not as a confirmed abuse incident.
+- No durable rate-limit table/RPC was found in the tracked migration filenames. Do not implement a guessed migration while the table/schema provenance gap remains unresolved.
+- Safe next steps: obtain authoritative schema/migration provenance for the operator tables; select guest-access policy; then implement/test durable shared rate limiting and run full integration tests in a disposable Supabase environment. Wildcard CORS still needs a supported-client inventory before a safe restriction can be chosen.
