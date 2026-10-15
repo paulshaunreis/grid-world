@@ -56,6 +56,7 @@ const NAV_TOPICS: NavTopic[] = [
       { label: 'Staff Directory', href: '/directory.html' },
       { label: 'Profiles', href: '/profile.html' },
       { label: 'Forums', href: '/forum.html' },
+      { label: 'Message Board', href: '/board.html' },
       { label: 'Social', href: '/social.html' },
       { label: 'Meetups', href: '/meetups.html' },
       { label: 'Docs', href: '/docs.html' },
