@@ -17,6 +17,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Test Grid Operator Edge Function guards
+        run: deno test supabase/functions/grid-operator/request-guards_test.ts
       - run: npm install
       - name: TypeScript check
         run: npx tsc --noEmit
