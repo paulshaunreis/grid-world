@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { readJsonBody, validateModerationResult } from "./request-guards.ts";
 
 const cors={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS","Content-Type":"application/json"};
 const url=Deno.env.get("SUPABASE_URL")!;
@@ -52,19 +53,37 @@ async function moderateContent(content:string,ctx:unknown){
 ],temperature:0,max_tokens:500})});
  if(!response.ok)throw new Error("moderation_ai_unavailable");
  const data=await response.json();const raw=String(data?.choices?.[0]?.message?.content??"{}").replace(/^\`\`\`json\s*/,"").replace(/\s*\`\`\`$/,"");
- try{return JSON.parse(raw);}catch{return {decision:"REVIEW",severity:"notice",reasons:["The moderation response could not be safely parsed."],matched_rules:[],user_message:"This content has been queued for review."};}
+ try{return validateModerationResult(JSON.parse(raw));}catch{return validateModerationResult(null);}
 }
-\nDeno.serve(async req=>{
+
+Deno.serve(async req=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:cors});
  if(req.method!=="POST")return json({error:"method_not_allowed"},405);
- const u=await user(req);
  try{
-  const body=await req.json();const action=String(body.action||"chat");const ctx=u?await context(u.id):{profile:null,prefs:null,cases:[],rules:[]};
+  const parsed=await readJsonBody(req);
+  if(!parsed.ok)return json({error:parsed.error},parsed.status);
+  const body=parsed.body;
+  const u=await user(req);
+  const action=typeof body.action==="string"?body.action:"chat";
+  if(action.length>40)return json({error:"invalid_action"},400);
+  const ctx=u?await context(u.id):{profile:null,prefs:null,cases:[],rules:[]};
   if(action==="context"){if(!u)return json({error:"authentication_required"},401);return json({ok:true,context:{profile:ctx.profile,prefs:ctx.prefs,cases:ctx.cases}});}
-  if(action==="moderate"){const content=String(body.content||"").trim().slice(0,8000);if(!content)return json({error:"content_required"},400);const result=await moderateContent(content,ctx);if(u&&result.decision!=="ALLOW"){await admin.from("grid_operator_cases").insert({user_id:u.id,severity:result.severity,status:"open",category:"moderation",title:"Content moderation review",summary:String(result.user_message||"Content requires review."),evidence:{decision:result.decision,reasons:result.reasons,matched_rules:result.matched_rules}});}return json({ok:true,result});}\n  if(action==="chat"){
+  if(action==="moderate"){const content=String(body.content||"").trim().slice(0,8000);if(!content)return json({error:"content_required"},400);const result=await moderateContent(content,ctx);if(u&&result.decision!=="ALLOW"){await admin.from("grid_operator_cases").insert({user_id:u.id,severity:result.severity,status:"open",category:"moderation",title:"Content moderation review",summary:String(result.user_message||"Content requires review."),evidence:{decision:result.decision,reasons:result.reasons,matched_rules:result.matched_rules}});}return json({ok:true,result});}
+  if(action==="chat"){
    const message=String(body.message||"").trim().slice(0,4000);if(!message)return json({error:"message_required"},400);
    if(u) await admin.from("grid_operator_messages").insert({user_id:u.id,role:"user",body:message});
-   const runtimeContext=(body.runtime_context&&typeof body.runtime_context==="object")?body.runtime_context:{};\n   const answer=await callOperator(message,{...ctx,runtime:runtimeContext});
+   const suppliedRuntime=body.runtime_context;
+   const runtimeContext:Record<string,string|number|boolean>= {};
+   if(suppliedRuntime&&typeof suppliedRuntime==="object"&&!Array.isArray(suppliedRuntime)){
+    const source=suppliedRuntime as Record<string,unknown>;
+    for(const key of ["world_id","world_name","location","current_activity"]){
+     const value=source[key];
+     if(typeof value==="string"&&value.length<=120)runtimeContext[key]=value;
+     else if(typeof value==="number"&&Number.isFinite(value))runtimeContext[key]=value;
+     else if(typeof value==="boolean")runtimeContext[key]=value;
+    }
+   }
+   const answer=await callOperator(message,{...ctx,runtime:runtimeContext});
    if(u) await admin.from("grid_operator_messages").insert({user_id:u.id,role:"operator",body:answer});
    return json({ok:true,answer,openCases:ctx.cases,authenticated:Boolean(u)});
   }
@@ -73,5 +92,5 @@ async function moderateContent(content:string,ctx:unknown){
    return json({ok:true,enrolled:Boolean(data?.enrolled_at),factors:data});
   }
   return json({error:"unknown_action"},400);
- }catch(e){console.error(e);return json({error:e instanceof Error?e.message:"operator_error"},500);}
+ }catch(e){console.error("grid-operator request failed",{name:e instanceof Error?e.name:"unknown"});return json({error:"operator_temporarily_unavailable"},500);}
 });
