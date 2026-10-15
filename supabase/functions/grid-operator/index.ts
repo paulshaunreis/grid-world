@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { readJsonBody, validateModerationResult } from "./request-guards.ts";
 
 const cors={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS","Content-Type":"application/json"};
 const url=Deno.env.get("SUPABASE_URL")!;
@@ -45,18 +46,6 @@ async function callOperator(prompt:string,ctx:unknown){
  return data?.choices?.[0]?.message?.content??"I’m unable to answer that right now.";
 }
 
-function validateModerationResult(value:unknown){
- const allowedDecisions=new Set(["ALLOW","REVIEW","BLOCK"]);
- const allowedSeverities=new Set(["info","notice","warning","critical"]);
- if(!value||typeof value!=="object")return {decision:"REVIEW",severity:"notice",reasons:["Invalid moderation response; human review required."],matched_rules:[],user_message:"This content has been queued for review."};
- const v=value as Record<string,unknown>;
- const validStringArray=(x:unknown)=>Array.isArray(x)&&x.length<=10&&x.every(y=>typeof y==="string"&&y.length<=240);
- if(!allowedDecisions.has(String(v.decision))||!allowedSeverities.has(String(v.severity))||!validStringArray(v.reasons)||!validStringArray(v.matched_rules)||typeof v.user_message!=="string"||v.user_message.length>500){
-  return {decision:"REVIEW",severity:"notice",reasons:["Invalid moderation response; human review required."],matched_rules:[],user_message:"This content has been queued for review."};
- }
- return {decision:v.decision,severity:v.severity,reasons:v.reasons,matched_rules:v.matched_rules,user_message:v.user_message};
-}
-
 async function moderateContent(content:string,ctx:unknown){
  const response=await fetch("https://ai-gateway.vercel.sh/v1/chat/completions",{method:"POST",headers:{"Authorization":"Bearer "+gatewayKey,"Content-Type":"application/json"},body:JSON.stringify({model,messages:[
   {role:"system",content:"You are Grid Operator moderation AI. Evaluate content against the supplied Grid World rules only. Return JSON only with fields: decision (ALLOW|REVIEW|BLOCK), severity (info|notice|warning|critical), reasons (string[]), matched_rules (string[]), user_message (string). Do not infer protected traits, age, criminality, mental state, or intent. Do not make claims about external law unless the content clearly concerns a named jurisdiction; then say that legal review may be needed. BLOCK is reserved for clear rule violations; ambiguous cases are REVIEW."},
@@ -70,36 +59,11 @@ async function moderateContent(content:string,ctx:unknown){
 Deno.serve(async req=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:cors});
  if(req.method!=="POST")return json({error:"method_not_allowed"},405);
- const u=await user(req);
  try{
-  const maxBodyBytes=16384;
-  const declaredLength=Number(req.headers.get("content-length")||"0");
-  if(Number.isFinite(declaredLength)&&declaredLength>maxBodyBytes)return json({error:"request_too_large"},413);
-  if(!req.body)return json({error:"invalid_request"},400);
-  const reader=req.body.getReader();
-  const chunks:Uint8Array[]=[];
-  let totalBytes=0;
-  try{
-   while(true){
-    const {done,value}=await reader.read();
-    if(done)break;
-    totalBytes+=value.byteLength;
-    if(totalBytes>maxBodyBytes){
-     await reader.cancel();
-     return json({error:"request_too_large"},413);
-    }
-    chunks.push(value);
-   }
-  }catch{
-   return json({error:"invalid_request"},400);
-  }
-  const bytes=new Uint8Array(totalBytes);
-  let offset=0;
-  for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.byteLength;}
-  const rawBody=new TextDecoder("utf-8",{fatal:true}).decode(bytes);
-  let body:Record<string,unknown>;
-  try{const parsed=JSON.parse(rawBody);if(!parsed||typeof parsed!=="object"||Array.isArray(parsed))return json({error:"invalid_request"},400);body=parsed as Record<string,unknown>;}
-  catch{return json({error:"invalid_json"},400);}
+  const parsed=await readJsonBody(req);
+  if(!parsed.ok)return json({error:parsed.error},parsed.status);
+  const body=parsed.body;
+  const u=await user(req);
   const action=typeof body.action==="string"?body.action:"chat";
   if(action.length>40)return json({error:"invalid_action"},400);
   const ctx=u?await context(u.id):{profile:null,prefs:null,cases:[],rules:[]};
