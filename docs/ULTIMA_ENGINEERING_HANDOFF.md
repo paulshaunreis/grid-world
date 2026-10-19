@@ -44,3 +44,14 @@ Teal hair, aqua-blue accents, dark practical futuristic clothing, and a teal dia
 - Static repository audit: 45/45 roster profiles have explicit existing portrait assets; 18/18 page-hero image references exist; 19/19 shared navigation HTML targets exist and are included in Vite inputs; 32/32 configured Vite HTML inputs exist at the repository root.
 - GitHub Actions run #1496 passed TypeScript check and production build.
 - Not yet verified: deployed/live browser behavior, image decode/rendering, all page-specific controls, or responsive appearance at real viewport sizes.
+
+
+## Profile visual standard — 2026-10-11
+
+**User-approved direction:** All Grid World profiles should share a consistent, adaptable grayscale-first UI system. The neutral grayscale shell (surfaces, panels, borders, typography hierarchy, and layout) is the common foundation; a user's selected profile style changes the accent palette, glow, and decorative treatment without breaking layout consistency or readability. The supplied Ultima profile screenshot is the visual reference for a cinematic cover/identity header, clear portrait, modular About / role / specialties / stats / activity / gallery sections, and responsive desktop/mobile layouts.
+
+- Apply the shared profile style to player profiles, staff profiles, and NPC profiles, with profile-type-specific sections and data rather than forcing identical content on every kind of profile.
+- The profile Style setting must visibly update the profile UI. Keep accessible contrast and preserve user privacy/permissions.
+- Preserve the existing profile data model, social authority, and media behavior; do not replace working systems with static mockups.
+- **Ultima portrait update requested:** use the newly supplied Ultima AI Assistant Profile Sheet as the portrait reference, preferably extracting the head-and-shoulders portrait as a dedicated image asset rather than using the entire sheet as a tiny avatar. Until that image asset is committed and its reference updated, the portrait change is pending—not complete.
+- **Status:** design requirement recorded; implementation and visual/browser verification still pending. Work should be delivered in a reviewable PR and must not be described as deployed until verified.
