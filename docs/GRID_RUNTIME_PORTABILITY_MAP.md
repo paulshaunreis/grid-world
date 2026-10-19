@@ -64,3 +64,46 @@
 - PR #121 separated keyboard/gamepad acquisition behind InputPlatform and BrowserInputPlatform.
 - PR #123 separated viewport resize-listener lifecycle behind BrowserViewport.
 - Both PRs passed GitHub Actions TypeScript and build checks. Browser/WebGL behavior remains unverified; the next target is pointer-lock and camera-event wiring, after an asset URL/decoder audit.
+
+
+## 2026-10-12 update — asset path and decoder inventory (source-level)
+
+- Confirmed on `main` that `src/engine/dracoLoader.ts` sets the decoder base to the root-relative URL `/libs/draco/`.
+- Confirmed the following public files exist at those repository paths: `public/libs/draco/draco_wasm_wrapper.js` and `public/libs/draco/draco_decoder.js`. The GitHub file API could not render `public/libs/draco/draco_decoder.wasm` as UTF-8 because it is binary; that response is consistent with the file being present, but does not verify its contents or production delivery. The path `public/libs/draco/draco_wasm_wrapper.wasm` returned 404 and is not the configured decoder filename.
+- Initial finding: the source path and checked-in decoder filenames appear aligned with Three.js's configured decoder directory. Do not change this path without evidence of a failing deployment. Root-relative `/libs/draco/` may still need an asset-base strategy if Grid World is ever hosted below a URL subpath or packaged outside the browser.
+- `src/engine/GridModelLibrary.ts` is a source registry of model-source references and metadata; the registry itself does not prove that referenced models are downloaded, bundled, licensed correctly in the shipped artifact, or loading in the running world.
+- Verification boundary: this was a repository source/path inspection only. No production URL request, browser GLTF load, compressed-model decode, or desktop package test was performed. Do not mark decoder runtime as verified.
+- Next asset-audit steps: inspect every GLTF/GLB/texture/audio loader call site and URL construction; identify which models are actual local assets versus external catalog references/procedural fallbacks; then run a browser smoke test that loads at least one known Draco-compressed asset and records network responses. Preserve current browser behavior until that test supplies evidence for a change.
+
+
+### Loader call-site findings
+
+- `src/core/PlayerController.ts` calls the shared `createGLTFLoader()` and requests `/models/avatars/avatar-${gender}-clothed.glb`. Both `public/models/avatars/avatar-male-clothed.glb` and `public/models/avatars/avatar-female-clothed.glb` are present in the repository. This confirms the source asset paths exist; it does not confirm that the deployed browser can fetch/decode them or that the models contain the expected animations/materials.
+- `src/engine/GridPBRLibrary.ts` loads image textures from `/textures/${textureFile}` using `THREE.TextureLoader`. The world uses names including `tex-ground-metal-deck.webp` and `tex-ground-plaza-dark.webp`; matching repository paths under `public/textures/` exist (the file API reports binary UTF-8 decode errors for these image files, not a successful image decode test).
+- These are root-relative runtime paths. Confirm they return HTTP 200 in the deployed app and work under the intended hosting base path before changing path construction.
+- A first-pass text search through the known entry modules did not yield a complete inventory of every loader, so the audit remains incomplete. Do not infer that there are no additional loaders from that search.
+- GitHub Actions run #1520 for the documentation branch completed successfully. This checks the repository CI workflow for the documentation change; it is not a browser asset-loading test.
+
+### Additional loader inventory — 2026-10-12
+
+- Inspected `src/main.ts`: its concept-art deck references `/grid-concept-first-light.webp`, `/grid-concept-living-wilds.webp`, `/grid-concept-civic.webp`, and `/art/hero-worlds.webp`. These are HTML image URLs, separate from the Three.js GLB/texture loaders. Their deployed HTTP status and visual rendering have not been tested.
+- Inspected `src/audio/GridAudioSystem.ts` and `src/audio/GridVoiceSystem.ts`: the audio system file includes a catalog of candidate audio sources and license labels, but this is not evidence that audio files are locally packaged or currently loaded. The inspected files did not show a direct Three.js asset-loader call. Continue to honor the current product decision to keep distracting avatar audio disabled; do not re-enable it as part of this portability audit.
+- `src/engine/GridModelLibrary.ts` contains external source/catalog metadata (including Kenney and Poly Haven URLs). Those URLs identify potential source libraries, not downloaded runtime models. Before shipping catalog assets, verify each chosen asset's actual file, attribution/license terms, and runtime packaging.
+- `src/world/WorldChunkStreamer.ts` creates and removes Three.js world chunks and hydrates/saves chunk state through a store; it is a world-state streaming component, not an observed GLTF/texture/audio file loader. Its asynchronous chunk-state lifecycle was not behavior-tested during this asset audit.
+- Inventory status: the directly inspected asset-loading paths are the avatar GLB loader, PBR texture loader, Draco decoder setup, and HTML concept-art images. This is still not a repository-wide exhaustive inventory. Next search should cover all source files for loader constructors, dynamic imports, CSS `url(...)`, HTML media tags, and asset URLs, then verify representative paths in the deployed browser.
+- Verification boundary: these additional findings are source-level only. No production URL requests, audio playback, image decode, or chunk-streaming behavior test was performed.
+
+### CSS and static-art URL pass — 2026-10-12
+
+- Inspected `src/site.css` and `src/grid-page-visual.css` for CSS image/font URLs. The styles reference root-relative art assets including `/grid-world-pulse-art.webp`, `/grid-concept-first-light.webp`, `/grid-concept-civic.webp`, `/grid-concept-living-wilds.webp`, `/art/hero-worlds.webp`, and `/art/grid-page-atlas.webp`, plus SVG illustrations `/art/worlds-aurora.svg`, `/art/creator-studio.svg`, and `/art/secure-grid.svg`.
+- Repository path checks for the referenced WebP files produced binary UTF-8 decode errors rather than readable content. Treat that as evidence the text-file endpoint could not decode image bytes, not as proof that the images decode or are served correctly. The three referenced SVG paths returned readable file contents from the repository.
+- Both CSS files import Google Fonts from `fonts.googleapis.com`; visual typography therefore has an external network dependency unless fonts are bundled elsewhere. No offline/network-restricted browser test was run.
+- The current browser entry is `play.html`, which is very small and loads the main application module. The dedicated `src/reset-password.ts` referenced in PR #133 is not present on `main` at this audit snapshot; it exists in the open PR patch, so do not assume the reset page is already deployed or in the default branch.
+- This pass extends the URL inventory but does not establish runtime delivery, successful image decoding, cache behavior, or a full source-wide inventory. Next: compare every referenced `public/` asset with built `dist/` output and run browser network checks on the deployed origin; confirm any external font dependency is acceptable for the intended offline/desktop direction.
+
+
+### Binary path-existence spot check — 2026-10-12
+
+- Followed up by requesting the repository contents for the seven referenced WebP files: `/grid-world-pulse-art.webp`, `/grid-concept-first-light.webp`, `/grid-concept-civic.webp`, `/grid-concept-living-wilds.webp`, `/art/hero-worlds.webp`, `/art/grid-page-atlas.webp`, and `/libs/draco/draco_decoder.wasm` (repository paths under `public/`). The file endpoint returned UTF-8 decoding errors for these binary files rather than text. This is consistent with binary content being unreadable through the text endpoint, but it is not a successful byte-level integrity check or proof of deployed HTTP delivery.
+- `public/art/worlds-aurora.svg` was independently readable through the repository file endpoint, consistent with the earlier source-level SVG check.
+- Important distinction: these spot checks do not establish that the Vite build copies every asset to `dist/`, that production URLs return HTTP 200, or that browsers decode/render the files. Next verification still requires a built-artifact file listing plus deployed-browser network and rendering checks.
