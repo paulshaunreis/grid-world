@@ -676,3 +676,31 @@ Ultima and Aurora remain distinct collaborators. The user remains final decision
 4. After any explicitly approved production application, re-run read-only ACL and migration-history checks and record exact evidence here.
 
 **Notebook pointer:** Aurora can open this file directly: https://github.com/paulshaunreis/grid-world/blob/main/docs/AURORA_ENGINEERING_HANDOFF.md
+
+
+## Security recheck — 2026-10-22
+
+**Scope:** Read-only live Supabase catalog and migration-history recheck; GitHub PR status check. No database writes, migration application, deployment, or merge performed.
+
+### Freshly verified findings
+
+- Live migration history still ends at `20261010193128` (`revoke_client_writes_to_combat_state`). It includes `20261005235254 secure_grid_operator_policy_rules`, but does not include the proposed revocation migrations from PR #129 (`20261011190000`) or PR #138 (`20261015120000`).
+- Live catalog query confirms RLS is enabled but not forced on both `public.grid_operator_cases` and `public.grid_operator_policy_rules`.
+- Both tables still have direct ACL entries for `anon` and `authenticated` covering DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, and UPDATE. `service_role` also has broad privileges, which the server-side Operator path is expected to retain.
+- PR #129 remains open and unmerged at head `446bc3bacabc83d5afd884a4d0474c60f9210fc4`: https://github.com/paulshaunreis/grid-world/pull/129
+- PR #137 remains open/draft/unmerged at head `781efd31e8196866875486d9766ef6a669c8e1c6`: https://github.com/paulshaunreis/grid-world/pull/137
+- PR #138 remains open/draft/unmerged at head `d8e991f9ffb4bcc9fc2ce5eadb86258b2a19258e`: https://github.com/paulshaunreis/grid-world/pull/138
+- The documentation handoff itself is tracked in PR #139, still open/draft/unmerged: https://github.com/paulshaunreis/grid-world/pull/139
+
+### Interpretation and next actions
+
+This confirms the privilege mismatch remains unresolved. It does **not** prove exploitation or that a particular operation has occurred. RLS being enabled does not remove direct table privileges, and table-level TRUNCATE privileges are not controlled by row policies.
+
+1. Keep production untouched while investigating why live grants remain despite the older policy-rules migration.
+2. Inspect the exact SQL in PRs #129 and #138 together; verify role targets and preserve trusted server-side `service_role` access.
+3. Establish the missing authoritative creation/schema provenance for `grid_operator_cases` before relying on an assumed baseline.
+4. Test the revocations in a disposable database/environment and verify both effective privileges and the Operator Edge Function's server-side behavior.
+5. Continue PR #137's remaining guest-access, shared rate-limit, CORS, and runtime-test gates.
+6. After any separately approved production application, repeat read-only ACL and migration-history checks and record exact results.
+
+**Status boundary:** These are read-only observations as of 2026-10-22. Proposed migration ≠ applied migration; CI success ≠ live permission verification; RLS enabled ≠ browser roles lack table privileges.
