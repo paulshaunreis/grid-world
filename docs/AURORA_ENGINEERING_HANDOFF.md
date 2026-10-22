@@ -635,3 +635,94 @@ Ultima has now been added to the existing staff avatar roster in `src/avatars/te
 **Status:** changes are on branch `feature/ultima-staff-profile`; not yet merged or deployed. CI/build verification is pending. The generated concept-art portrait exists as a conversation image, but has not yet been added as a repository asset or wired as a site profile-image URL; the current roster/avatar rendering uses the existing in-world staff avatar pipeline.
 
 Ultima and Aurora remain distinct collaborators. The user remains final decision-maker; keep claims of recent work grounded in repository history and verified status.
+
+
+## Security handoff for Aurora — 2026-10-15
+
+**Purpose:** This entry is a durable repository handoff for Aurora. If the shared local notebook `~/workspace/gridworld/NOTES-FOR-CHATGPT.md` is not visible in Aurora's environment, use this file and the linked PRs as the available shared record. Do not assume a local notebook was updated by this commit.
+
+### Current security work — verified status
+
+- **PR #137 — Grid Operator boundary hardening:** https://github.com/paulshaunreis/grid-world/pull/137
+  - Open/draft/unmerged. Source changes include a 16 KiB JSON request-body cap, fatal UTF-8 handling, moderation-result validation with REVIEW fallback, and helper unit tests.
+  - CI run #1578 passed on source/workflow commit `814767af45de95bd202f4e188c6a5b160b1f4305`: https://github.com/paulshaunreis/grid-world/actions/runs/38658100963
+  - Follow-up documentation commit: `781efd31e8196866875486d9766ef6a669c8e1c6`.
+  - Remaining gates: guest access to chat/moderate, durable shared-state rate limiting, wildcard CORS review, safe-environment runtime tests, and schema provenance. Do not call the work fully secured based on helper tests alone.
+
+- **PR #129 — revoke browser access to Operator policy rules:** https://github.com/paulshaunreis/grid-world/pull/129
+  - Open/unmerged. The proposed migration is not verified as applied to live Supabase.
+  - Read-only live catalog inspection on 2026-10-15 confirmed direct ACL entries granting both `anon` and `authenticated` broad privileges on `public.grid_operator_policy_rules`, including SELECT and TRUNCATE. RLS does not replace revoking table-level TRUNCATE privileges.
+  - Do not claim the browser-access revocation is active until the live ACL and migration history are rechecked after an approved application.
+
+- **PR #138 — revoke browser access to Operator cases:** https://github.com/paulshaunreis/grid-world/pull/138
+  - Open/draft/unmerged. Proposed migration: `supabase/migrations/20261015120000_revoke_client_access_to_operator_cases.sql`.
+  - CI run #38659889207 passed on exact head `d8e991f9ffb4bcc9fc2ce5eadb86258b2a19258e`: https://github.com/paulshaunreis/grid-world/actions/runs/38659889207
+  - Read-only live catalog inspection on 2026-10-15 confirmed direct ACL entries granting `anon` and `authenticated` broad privileges on `public.grid_operator_cases`, including SELECT and TRUNCATE.
+  - CI confirms repository build checks only; it does not prove the migration was applied or runtime permissions were tested.
+
+### Safety and coordination rules
+
+1. No production database writes, migration application, deployment, or PR merge was performed during this audit.
+2. Preserve the open security PRs. Reconcile live ACLs with migration history before proposing any production operation.
+3. Keep schema provenance on the checklist: no authoritative tracked creation migration for `grid_operator_cases` was found during the review.
+4. Continue with read-only verification and disposable-environment tests where available. Do not run a guessed baseline migration against production.
+5. Keep status labels precise: proposed, committed, CI-passed, applied, and runtime-verified are different states.
+
+### Immediate next steps
+
+1. Inspect why live ACLs still contain browser-role grants despite older security migrations; confirm migration history and actual ACL state without changing production.
+2. Review the policy-rules and cases revocation PRs together for consistency, including required `service_role` access.
+3. Continue PR #137 review for guest invocation policy, shared rate limiting, CORS scope, and runtime coverage.
+4. After any explicitly approved production application, re-run read-only ACL and migration-history checks and record exact evidence here.
+
+**Notebook pointer:** Aurora can open this file directly: https://github.com/paulshaunreis/grid-world/blob/main/docs/AURORA_ENGINEERING_HANDOFF.md
+
+
+## Security recheck — 2026-10-22
+
+**Scope:** Read-only live Supabase catalog and migration-history recheck; GitHub PR status check. No database writes, migration application, deployment, or merge performed.
+
+### Freshly verified findings
+
+- Live migration history still ends at `20261010193128` (`revoke_client_writes_to_combat_state`). It includes `20261005235254 secure_grid_operator_policy_rules`, but does not include the proposed revocation migrations from PR #129 (`20261011190000`) or PR #138 (`20261015120000`).
+- Live catalog query confirms RLS is enabled but not forced on both `public.grid_operator_cases` and `public.grid_operator_policy_rules`.
+- Both tables still have direct ACL entries for `anon` and `authenticated` covering DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, and UPDATE. `service_role` also has broad privileges, which the server-side Operator path is expected to retain.
+- PR #129 remains open and unmerged at head `446bc3bacabc83d5afd884a4d0474c60f9210fc4`: https://github.com/paulshaunreis/grid-world/pull/129
+- PR #137 remains open/draft/unmerged at head `781efd31e8196866875486d9766ef6a669c8e1c6`: https://github.com/paulshaunreis/grid-world/pull/137
+- PR #138 remains open/draft/unmerged at head `d8e991f9ffb4bcc9fc2ce5eadb86258b2a19258e`: https://github.com/paulshaunreis/grid-world/pull/138
+- The documentation handoff itself is tracked in PR #139, still open/draft/unmerged: https://github.com/paulshaunreis/grid-world/pull/139
+
+### Interpretation and next actions
+
+This confirms the privilege mismatch remains unresolved. It does **not** prove exploitation or that a particular operation has occurred. RLS being enabled does not remove direct table privileges, and table-level TRUNCATE privileges are not controlled by row policies.
+
+1. Keep production untouched while investigating why live grants remain despite the older policy-rules migration.
+2. Inspect the exact SQL in PRs #129 and #138 together; verify role targets and preserve trusted server-side `service_role` access.
+3. Establish the missing authoritative creation/schema provenance for `grid_operator_cases` before relying on an assumed baseline.
+4. Test the revocations in a disposable database/environment and verify both effective privileges and the Operator Edge Function's server-side behavior.
+5. Continue PR #137's remaining guest-access, shared rate-limit, CORS, and runtime-test gates.
+6. After any separately approved production application, repeat read-only ACL and migration-history checks and record exact results.
+
+**Status boundary:** These are read-only observations as of 2026-10-22. Proposed migration ≠ applied migration; CI success ≠ live permission verification; RLS enabled ≠ browser roles lack table privileges.
+
+
+## Work continuation checkpoint — 2026-10-22
+
+### PR migration review
+- Reviewed the exact SQL proposed by PR #129 and PR #138. Both are narrowly scoped single-table revocations from `PUBLIC`, `anon`, and `authenticated`; neither explicitly revokes from `service_role`. The SQL shape matches the stated goal of removing direct browser-facing table privileges while retaining explicit server-role grants.
+- This review does not resolve the live discrepancy: the live catalog still shows broad `anon`/`authenticated` ACL entries on both tables and migration history does not record either proposed revocation migration.
+- Do not use PR SQL as a substitute for verifying its effect. After an approved application, check effective privileges (including inherited role grants) and confirm the Edge Function can still read rules and write cases through its service-role client.
+
+### Safe test environment
+- Supabase reported no existing development branches for this project during the 2026-10-22 check.
+- Creating a Supabase development branch can incur hourly compute/usage charges and the project budget is constrained. No branch was created and no paid test environment was started.
+- Before creating a test environment, prefer an existing zero-cost/local disposable Postgres/Supabase setup if one is available. If none is available, surface the cost/choice rather than silently starting billable resources.
+
+### Operator policy decision still required
+- PR #137 continues to permit unauthenticated `chat` and `moderate` actions. That is an unresolved product/security policy decision, not an observed abuse incident.
+- Recommended conservative release gate: do not enable broad anonymous AI gateway access until a product decision is recorded and durable shared-state quotas/abuse controls exist. If guest use is required, define its narrow limits and failure behavior explicitly before implementation.
+- Wildcard CORS should not be narrowed by guessing origins. First inventory supported browser, mobile, and other clients; CORS is not authentication and does not replace server-side authorization or rate limiting.
+
+### Current coordination status
+- This checkpoint is committed to branch `docs/aurora-security-handoff-2026-10-15` and is included in PR #139; it is not yet on `main`.
+- Continue read-only live checks and repository review. No production migration, database write, deployment, merge, or billable Supabase branch creation occurred in this continuation.
