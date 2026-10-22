@@ -704,3 +704,25 @@ This confirms the privilege mismatch remains unresolved. It does **not** prove e
 6. After any separately approved production application, repeat read-only ACL and migration-history checks and record exact results.
 
 **Status boundary:** These are read-only observations as of 2026-10-22. Proposed migration ≠ applied migration; CI success ≠ live permission verification; RLS enabled ≠ browser roles lack table privileges.
+
+
+## Work continuation checkpoint — 2026-10-22
+
+### PR migration review
+- Reviewed the exact SQL proposed by PR #129 and PR #138. Both are narrowly scoped single-table revocations from `PUBLIC`, `anon`, and `authenticated`; neither explicitly revokes from `service_role`. The SQL shape matches the stated goal of removing direct browser-facing table privileges while retaining explicit server-role grants.
+- This review does not resolve the live discrepancy: the live catalog still shows broad `anon`/`authenticated` ACL entries on both tables and migration history does not record either proposed revocation migration.
+- Do not use PR SQL as a substitute for verifying its effect. After an approved application, check effective privileges (including inherited role grants) and confirm the Edge Function can still read rules and write cases through its service-role client.
+
+### Safe test environment
+- Supabase reported no existing development branches for this project during the 2026-10-22 check.
+- Creating a Supabase development branch can incur hourly compute/usage charges and the project budget is constrained. No branch was created and no paid test environment was started.
+- Before creating a test environment, prefer an existing zero-cost/local disposable Postgres/Supabase setup if one is available. If none is available, surface the cost/choice rather than silently starting billable resources.
+
+### Operator policy decision still required
+- PR #137 continues to permit unauthenticated `chat` and `moderate` actions. That is an unresolved product/security policy decision, not an observed abuse incident.
+- Recommended conservative release gate: do not enable broad anonymous AI gateway access until a product decision is recorded and durable shared-state quotas/abuse controls exist. If guest use is required, define its narrow limits and failure behavior explicitly before implementation.
+- Wildcard CORS should not be narrowed by guessing origins. First inventory supported browser, mobile, and other clients; CORS is not authentication and does not replace server-side authorization or rate limiting.
+
+### Current coordination status
+- This checkpoint is committed to branch `docs/aurora-security-handoff-2026-10-15` and is included in PR #139; it is not yet on `main`.
+- Continue read-only live checks and repository review. No production migration, database write, deployment, merge, or billable Supabase branch creation occurred in this continuation.
